@@ -55,10 +55,10 @@ Requirements pour la specification technique publiable. Chaque requirement corre
 
 ### Governance (GOV)
 
-- [ ] **GOV-01**: Charte de gouvernance (regles de participation, TSC)
-- [ ] **GOV-02**: Processus de contribution (RFC process)
-- [ ] **GOV-03**: Documentation licence Apache 2.0 et IP
-- [ ] **GOV-04**: Processus de versionnage (semver, release process)
+- [x] **GOV-01**: Charte de gouvernance (regles de participation, TSC)
+- [x] **GOV-02**: Processus de contribution (RFC process)
+- [x] **GOV-03**: Documentation licence Apache 2.0 et IP
+- [x] **GOV-04**: Processus de versionnage (semver, release process)
 
 ### Compliance Documentation (COMPL)
 
@@ -146,10 +146,10 @@ Quel phase couvre quel requirement. Mis a jour lors de la creation du roadmap.
 | INFRA-03 | Phase 7 | Pending |
 | INFRA-04 | Phase 7 | Pending |
 | INFRA-05 | Phase 7 | Pending |
-| GOV-01 | Phase 1 | Pending |
-| GOV-02 | Phase 1 | Pending |
-| GOV-03 | Phase 1 | Pending |
-| GOV-04 | Phase 1 | Pending |
+| GOV-01 | Phase 1 | Complete |
+| GOV-02 | Phase 1 | Complete |
+| GOV-03 | Phase 1 | Complete |
+| GOV-04 | Phase 1 | Complete |
 | COMPL-01 | Phase 8 | Pending |
 | COMPL-02 | Phase 8 | Pending |
 | COMPL-03 | Phase 8 | Pending |
@@ -161,4 +161,4 @@ Quel phase couvre quel requirement. Mis a jour lors de la creation du roadmap.
 
 ---
 *Requirements defined: 2026-01-30*
-*Last updated: 2026-01-30 after roadmap creation*
+*Last updated: 2026-01-30 (Phase 1 GOV requirements complete)*
