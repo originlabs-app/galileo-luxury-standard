@@ -12,7 +12,7 @@ This roadmap transforms the Galileo Luxury Standard from concept to publishable 
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Governance Foundation** - Establish neutral governance before technical work (TradeLens lesson)
+- [x] **Phase 1: Governance Foundation** - Establish neutral governance before technical work (TradeLens lesson)
 - [ ] **Phase 2: Architecture Foundation** - Define hybrid on-chain/off-chain architecture and cryptographic patterns
 - [ ] **Phase 3: Core Data Models** - Complete ESPR-ready DPP and lifecycle event schemas
 - [ ] **Phase 4: Identity Infrastructure** - Enable participant verification via ERC-3643 identity layer
@@ -35,12 +35,12 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 6 plans in 2 waves
 
 Plans:
-- [ ] 01-01-PLAN.md — IP Foundation: Apache 2.0 LICENSE, NOTICE, DCO (GOV-03)
-- [ ] 01-02-PLAN.md — Governance Charter: CHARTER.md, CODE_OF_CONDUCT.md (GOV-01 core)
-- [ ] 01-03-PLAN.md — RFC Process: CONTRIBUTING.md, rfcs/* (GOV-02)
-- [ ] 01-04-PLAN.md — Versioning Policy: VERSIONING.md (GOV-04)
-- [ ] 01-05-PLAN.md — TSC Operations: tsc/* (GOV-01 completion)
-- [ ] 01-06-PLAN.md — Membership System: membership/* (participation rules)
+- [x] 01-01-PLAN.md — IP Foundation: Apache 2.0 LICENSE, NOTICE, DCO (GOV-03)
+- [x] 01-02-PLAN.md — Governance Charter: CHARTER.md, CODE_OF_CONDUCT.md (GOV-01 core)
+- [x] 01-03-PLAN.md — RFC Process: CONTRIBUTING.md, rfcs/* (GOV-02)
+- [x] 01-04-PLAN.md — Versioning Policy: VERSIONING.md (GOV-04)
+- [x] 01-05-PLAN.md — TSC Operations: tsc/* (GOV-01 completion)
+- [x] 01-06-PLAN.md — Membership System: membership/* (participation rules)
 
 ---
 
@@ -53,11 +53,12 @@ Plans:
   2. Product identity schema follows W3C DID specification for decentralized, non-revocable identifiers
   3. Crypto-agile specification enables signature scheme migration without breaking changes
   4. Legal validation confirms no personal data stored on-chain (EDPB 2025 guidance compliance)
-**Plans**: TBD
+**Plans**: 3 plans in 2 waves
 
 Plans:
-- [ ] 02-01: TBD (architecture document)
-- [ ] 02-02: TBD (identity and crypto patterns)
+- [ ] 02-01-PLAN.md — Hybrid Architecture: GDPR-compliant on-chain/off-chain boundaries (FOUND-01)
+- [ ] 02-02-PLAN.md — Crypto-Agility: Post-quantum cryptography migration path (FOUND-06)
+- [ ] 02-03-PLAN.md — Product Identity: W3C DID method and document schema (FOUND-02)
 
 ---
 
@@ -178,8 +179,8 @@ Note: Phase 3 and 4 can proceed in parallel after Phase 2 completes (no dependen
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Governance Foundation | 0/6 | Planned | - |
-| 2. Architecture Foundation | 0/TBD | Not started | - |
+| 1. Governance Foundation | 6/6 | Complete | 2026-01-30 |
+| 2. Architecture Foundation | 0/3 | Planned | - |
 | 3. Core Data Models | 0/TBD | Not started | - |
 | 4. Identity Infrastructure | 0/TBD | Not started | - |
 | 5. Token & Compliance Layer | 0/TBD | Not started | - |
@@ -234,4 +235,4 @@ Phase 3 (Data)    Phase 4 (Identity)
 
 ---
 *Roadmap created: 2026-01-30*
-*Last updated: 2026-01-30 (Phase 1 planned)*
+*Last updated: 2026-01-30 (Phase 2 planned)*
