@@ -12,7 +12,7 @@ Requirements pour la specification technique publiable. Chaque requirement corre
 - [x] **FOUND-01**: Architecture document decrivant le modele hybride on-chain/off-chain
 - [x] **FOUND-02**: Schema d'identite produit base sur W3C DID
 - [ ] **FOUND-03**: Specification d'integration GS1 Digital Link
-- [ ] **FOUND-04**: Schema DPP Core Data (JSON-LD conforme ESPR)
+- [x] **FOUND-04**: Schema DPP Core Data (JSON-LD conforme ESPR)
 - [ ] **FOUND-05**: Schema de resolution context-aware (routing dynamique par role)
 - [x] **FOUND-06**: Specification crypto-agile (preparation PQC, certificats hybrides)
 
@@ -36,14 +36,14 @@ Requirements pour la specification technique publiable. Chaque requirement corre
 
 ### Lifecycle Events (EVENT)
 
-- [ ] **EVENT-01**: Schema JSON-LD pour Object Event: Creation
-- [ ] **EVENT-02**: Schema JSON-LD pour Object Event: Commission
-- [ ] **EVENT-03**: Schema JSON-LD pour Transaction Event: Sale (first sale)
-- [ ] **EVENT-04**: Schema JSON-LD pour Transformation Event: Repair/MRO
-- [ ] **EVENT-05**: Schema JSON-LD pour Transaction Event: Resale
-- [ ] **EVENT-06**: Schema JSON-LD pour Object Event: Decommission
-- [ ] **EVENT-07**: Alignement EPCIS 2.0 avec vocabulaire CBV
-- [ ] **EVENT-08**: Extension de schema pour signatures moleculaires/terroir (ultra-luxe)
+- [x] **EVENT-01**: Schema JSON-LD pour Object Event: Creation
+- [x] **EVENT-02**: Schema JSON-LD pour Object Event: Commission
+- [x] **EVENT-03**: Schema JSON-LD pour Transaction Event: Sale (first sale)
+- [x] **EVENT-04**: Schema JSON-LD pour Transformation Event: Repair/MRO
+- [x] **EVENT-05**: Schema JSON-LD pour Transaction Event: Resale
+- [x] **EVENT-06**: Schema JSON-LD pour Object Event: Decommission
+- [x] **EVENT-07**: Alignement EPCIS 2.0 avec vocabulaire CBV
+- [x] **EVENT-08**: Extension de schema pour signatures moleculaires/terroir (ultra-luxe)
 
 ### Infrastructure (INFRA)
 
@@ -118,7 +118,7 @@ Quel phase couvre quel requirement. Mis a jour lors de la creation du roadmap.
 | FOUND-01 | Phase 2 | Complete |
 | FOUND-02 | Phase 2 | Complete |
 | FOUND-03 | Phase 6 | Pending |
-| FOUND-04 | Phase 3 | Pending |
+| FOUND-04 | Phase 3 | Complete |
 | FOUND-05 | Phase 6 | Pending |
 | FOUND-06 | Phase 2 | Complete |
 | IDENT-01 | Phase 4 | Pending |
@@ -133,14 +133,14 @@ Quel phase couvre quel requirement. Mis a jour lors de la creation du roadmap.
 | TOKEN-04 | Phase 5 | Pending |
 | TOKEN-05 | Phase 5 | Pending |
 | TOKEN-06 | Phase 5 | Pending |
-| EVENT-01 | Phase 3 | Pending |
-| EVENT-02 | Phase 3 | Pending |
-| EVENT-03 | Phase 3 | Pending |
-| EVENT-04 | Phase 3 | Pending |
-| EVENT-05 | Phase 3 | Pending |
-| EVENT-06 | Phase 3 | Pending |
-| EVENT-07 | Phase 3 | Pending |
-| EVENT-08 | Phase 3 | Pending |
+| EVENT-01 | Phase 3 | Complete |
+| EVENT-02 | Phase 3 | Complete |
+| EVENT-03 | Phase 3 | Complete |
+| EVENT-04 | Phase 3 | Complete |
+| EVENT-05 | Phase 3 | Complete |
+| EVENT-06 | Phase 3 | Complete |
+| EVENT-07 | Phase 3 | Complete |
+| EVENT-08 | Phase 3 | Complete |
 | INFRA-01 | Phase 6 | Pending |
 | INFRA-02 | Phase 7 | Pending |
 | INFRA-03 | Phase 7 | Pending |
@@ -161,4 +161,4 @@ Quel phase couvre quel requirement. Mis a jour lors de la creation du roadmap.
 
 ---
 *Requirements defined: 2026-01-30*
-*Last updated: 2026-01-30 (Phase 2 FOUND requirements complete)*
+*Last updated: 2026-01-30 (Phase 3 requirements complete)*

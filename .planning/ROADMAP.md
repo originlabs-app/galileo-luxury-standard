@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Governance Foundation** - Establish neutral governance before technical work (TradeLens lesson)
 - [x] **Phase 2: Architecture Foundation** - Define hybrid on-chain/off-chain architecture and cryptographic patterns
-- [ ] **Phase 3: Core Data Models** - Complete ESPR-ready DPP and lifecycle event schemas
+- [x] **Phase 3: Core Data Models** - Complete ESPR-ready DPP and lifecycle event schemas
 - [ ] **Phase 4: Identity Infrastructure** - Enable participant verification via ERC-3643 identity layer
 - [ ] **Phase 5: Token & Compliance Layer** - Enable compliant ownership transfer (depends on Phase 4)
 - [ ] **Phase 6: GS1 Resolver Integration** - Bridge physical products to digital identities
@@ -72,12 +72,12 @@ Plans:
   3. All schemas align with EPCIS 2.0 standard and use Core Business Vocabulary (CBV)
   4. JSON-LD format enables semantic interoperability and linked data queries
   5. Molecular signature extension supports ultra-luxury provenance verification (terroir, materials)
-**Plans**: TBD
+**Plans**: 3 plans in 2 waves
 
 Plans:
-- [ ] 03-01: TBD (DPP core schema)
-- [ ] 03-02: TBD (lifecycle events)
-- [ ] 03-03: TBD (EPCIS alignment and extensions)
+- [x] 03-01-PLAN.md — DPP Core Schema: JSON-LD contexts, ESPR mandatory fields, product-specific schemas (FOUND-04)
+- [x] 03-02-PLAN.md — Lifecycle Event Schemas: EPCIS 2.0 events for creation, sale, repair, resale, decommission (EVENT-01 to EVENT-06)
+- [x] 03-03-PLAN.md — EPCIS Alignment & Extensions: CBV vocabulary mapping, GS1 integration, molecular signatures (EVENT-07, EVENT-08)
 
 ---
 
@@ -181,7 +181,7 @@ Note: Phase 3 and 4 can proceed in parallel after Phase 2 completes (no dependen
 |-------|----------------|--------|-----------|
 | 1. Governance Foundation | 6/6 | Complete | 2026-01-30 |
 | 2. Architecture Foundation | 3/3 | Complete | 2026-01-30 |
-| 3. Core Data Models | 0/TBD | Not started | - |
+| 3. Core Data Models | 3/3 | Complete | 2026-01-30 |
 | 4. Identity Infrastructure | 0/TBD | Not started | - |
 | 5. Token & Compliance Layer | 0/TBD | Not started | - |
 | 6. GS1 Resolver Integration | 0/TBD | Not started | - |
@@ -235,4 +235,4 @@ Phase 3 (Data)    Phase 4 (Identity)
 
 ---
 *Roadmap created: 2026-01-30*
-*Last updated: 2026-01-30 (Phase 2 complete)*
+*Last updated: 2026-01-30 (Phase 3 complete)*
