@@ -32,11 +32,15 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. RFC contribution process enables any organization to propose specification changes
   3. Apache 2.0 license documentation establishes standard as non-capturable commons
   4. Semantic versioning policy ensures backward compatibility guarantees for adopters
-**Plans**: TBD
+**Plans**: 6 plans in 2 waves
 
 Plans:
-- [ ] 01-01: TBD (governance charter)
-- [ ] 01-02: TBD (contribution and versioning)
+- [ ] 01-01-PLAN.md — IP Foundation: Apache 2.0 LICENSE, NOTICE, DCO (GOV-03)
+- [ ] 01-02-PLAN.md — Governance Charter: CHARTER.md, CODE_OF_CONDUCT.md (GOV-01 core)
+- [ ] 01-03-PLAN.md — RFC Process: CONTRIBUTING.md, rfcs/* (GOV-02)
+- [ ] 01-04-PLAN.md — Versioning Policy: VERSIONING.md (GOV-04)
+- [ ] 01-05-PLAN.md — TSC Operations: tsc/* (GOV-01 completion)
+- [ ] 01-06-PLAN.md — Membership System: membership/* (participation rules)
 
 ---
 
@@ -174,7 +178,7 @@ Note: Phase 3 and 4 can proceed in parallel after Phase 2 completes (no dependen
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Governance Foundation | 0/TBD | Not started | - |
+| 1. Governance Foundation | 0/6 | Planned | - |
 | 2. Architecture Foundation | 0/TBD | Not started | - |
 | 3. Core Data Models | 0/TBD | Not started | - |
 | 4. Identity Infrastructure | 0/TBD | Not started | - |
@@ -230,4 +234,4 @@ Phase 3 (Data)    Phase 4 (Identity)
 
 ---
 *Roadmap created: 2026-01-30*
-*Last updated: 2026-01-30*
+*Last updated: 2026-01-30 (Phase 1 planned)*
