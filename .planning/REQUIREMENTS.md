@@ -9,12 +9,12 @@ Requirements pour la specification technique publiable. Chaque requirement corre
 
 ### Foundation (FOUND)
 
-- [ ] **FOUND-01**: Architecture document decrivant le modele hybride on-chain/off-chain
-- [ ] **FOUND-02**: Schema d'identite produit base sur W3C DID
+- [x] **FOUND-01**: Architecture document decrivant le modele hybride on-chain/off-chain
+- [x] **FOUND-02**: Schema d'identite produit base sur W3C DID
 - [ ] **FOUND-03**: Specification d'integration GS1 Digital Link
 - [ ] **FOUND-04**: Schema DPP Core Data (JSON-LD conforme ESPR)
 - [ ] **FOUND-05**: Schema de resolution context-aware (routing dynamique par role)
-- [ ] **FOUND-06**: Specification crypto-agile (preparation PQC, certificats hybrides)
+- [x] **FOUND-06**: Specification crypto-agile (preparation PQC, certificats hybrides)
 
 ### Identity (IDENT)
 
@@ -115,12 +115,12 @@ Quel phase couvre quel requirement. Mis a jour lors de la creation du roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FOUND-01 | Phase 2 | Pending |
-| FOUND-02 | Phase 2 | Pending |
+| FOUND-01 | Phase 2 | Complete |
+| FOUND-02 | Phase 2 | Complete |
 | FOUND-03 | Phase 6 | Pending |
 | FOUND-04 | Phase 3 | Pending |
 | FOUND-05 | Phase 6 | Pending |
-| FOUND-06 | Phase 2 | Pending |
+| FOUND-06 | Phase 2 | Complete |
 | IDENT-01 | Phase 4 | Pending |
 | IDENT-02 | Phase 4 | Pending |
 | IDENT-03 | Phase 4 | Pending |
@@ -161,4 +161,4 @@ Quel phase couvre quel requirement. Mis a jour lors de la creation du roadmap.
 
 ---
 *Requirements defined: 2026-01-30*
-*Last updated: 2026-01-30 (Phase 1 GOV requirements complete)*
+*Last updated: 2026-01-30 (Phase 2 FOUND requirements complete)*

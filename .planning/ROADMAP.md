@@ -13,7 +13,7 @@ This roadmap transforms the Galileo Luxury Standard from concept to publishable 
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Governance Foundation** - Establish neutral governance before technical work (TradeLens lesson)
-- [ ] **Phase 2: Architecture Foundation** - Define hybrid on-chain/off-chain architecture and cryptographic patterns
+- [x] **Phase 2: Architecture Foundation** - Define hybrid on-chain/off-chain architecture and cryptographic patterns
 - [ ] **Phase 3: Core Data Models** - Complete ESPR-ready DPP and lifecycle event schemas
 - [ ] **Phase 4: Identity Infrastructure** - Enable participant verification via ERC-3643 identity layer
 - [ ] **Phase 5: Token & Compliance Layer** - Enable compliant ownership transfer (depends on Phase 4)
@@ -56,9 +56,9 @@ Plans:
 **Plans**: 3 plans in 2 waves
 
 Plans:
-- [ ] 02-01-PLAN.md — Hybrid Architecture: GDPR-compliant on-chain/off-chain boundaries (FOUND-01)
-- [ ] 02-02-PLAN.md — Crypto-Agility: Post-quantum cryptography migration path (FOUND-06)
-- [ ] 02-03-PLAN.md — Product Identity: W3C DID method and document schema (FOUND-02)
+- [x] 02-01-PLAN.md — Hybrid Architecture: GDPR-compliant on-chain/off-chain boundaries (FOUND-01)
+- [x] 02-02-PLAN.md — Crypto-Agility: Post-quantum cryptography migration path (FOUND-06)
+- [x] 02-03-PLAN.md — Product Identity: W3C DID method and document schema (FOUND-02)
 
 ---
 
@@ -180,7 +180,7 @@ Note: Phase 3 and 4 can proceed in parallel after Phase 2 completes (no dependen
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Governance Foundation | 6/6 | Complete | 2026-01-30 |
-| 2. Architecture Foundation | 0/3 | Planned | - |
+| 2. Architecture Foundation | 3/3 | Complete | 2026-01-30 |
 | 3. Core Data Models | 0/TBD | Not started | - |
 | 4. Identity Infrastructure | 0/TBD | Not started | - |
 | 5. Token & Compliance Layer | 0/TBD | Not started | - |
@@ -235,4 +235,4 @@ Phase 3 (Data)    Phase 4 (Identity)
 
 ---
 *Roadmap created: 2026-01-30*
-*Last updated: 2026-01-30 (Phase 2 planned)*
+*Last updated: 2026-01-30 (Phase 2 complete)*
