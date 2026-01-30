@@ -1,0 +1,143 @@
+{
+  "@context": {
+    "@version": 1.1,
+    "@vocab": "https://schema.org/",
+    "@base": "https://vocab.galileo.luxury/",
+
+    "schema": "https://schema.org/",
+    "gs1": "https://gs1.org/voc/",
+    "epcis": "https://ref.gs1.org/standards/epcis/",
+    "galileo": "https://vocab.galileo.luxury/",
+    "espr": "https://vocab.galileo.luxury/espr/",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "did": "https://www.w3.org/ns/did#",
+    "sec": "https://w3id.org/security#",
+
+    "id": "@id",
+    "type": "@type",
+
+    "IndividualProduct": "schema:IndividualProduct",
+    "Product": "schema:Product",
+    "Brand": "schema:Brand",
+    "Organization": "schema:Organization",
+    "PropertyValue": "schema:PropertyValue",
+    "QuantitativeValue": "schema:QuantitativeValue",
+    "Place": "schema:Place",
+
+    "gtin": {
+      "@id": "schema:gtin",
+      "@type": "xsd:string"
+    },
+    "serialNumber": {
+      "@id": "schema:serialNumber",
+      "@type": "xsd:string"
+    },
+    "name": {
+      "@id": "schema:name",
+      "@type": "xsd:string"
+    },
+    "description": {
+      "@id": "schema:description",
+      "@type": "xsd:string"
+    },
+    "brand": {
+      "@id": "schema:brand",
+      "@type": "@id"
+    },
+    "manufacturer": {
+      "@id": "schema:manufacturer",
+      "@type": "@id"
+    },
+    "productionDate": {
+      "@id": "schema:productionDate",
+      "@type": "xsd:date"
+    },
+    "countryOfOrigin": {
+      "@id": "schema:countryOfOrigin",
+      "@type": "xsd:string"
+    },
+    "identifier": {
+      "@id": "schema:identifier",
+      "@type": "@id"
+    },
+    "propertyID": {
+      "@id": "schema:propertyID",
+      "@type": "xsd:string"
+    },
+    "value": {
+      "@id": "schema:value"
+    },
+    "url": {
+      "@id": "schema:url",
+      "@type": "@id"
+    },
+    "image": {
+      "@id": "schema:image",
+      "@type": "@id"
+    },
+
+    "materialComposition": {
+      "@id": "galileo:materialComposition",
+      "@container": "@list"
+    },
+    "carbonFootprint": {
+      "@id": "galileo:carbonFootprint",
+      "@type": "@id"
+    },
+    "repairInstructions": {
+      "@id": "galileo:repairInstructions",
+      "@type": "@id"
+    },
+    "complianceDeclaration": {
+      "@id": "galileo:complianceDeclaration",
+      "@type": "@id"
+    },
+
+    "artisanAttribution": {
+      "@id": "galileo:artisanAttribution",
+      "@type": "@id"
+    },
+    "terroirProvenance": {
+      "@id": "galileo:terroirProvenance",
+      "@type": "@id"
+    },
+    "molecularSignature": {
+      "@id": "galileo:molecularSignature",
+      "@type": "@id"
+    },
+    "craftsmanshipDetails": {
+      "@id": "galileo:craftsmanshipDetails",
+      "@type": "@id"
+    },
+
+    "provenanceEvent": {
+      "@id": "galileo:provenanceEvent",
+      "@container": "@list"
+    },
+    "authenticityClaim": {
+      "@id": "galileo:authenticityClaim",
+      "@type": "@id"
+    },
+    "verificationStatus": {
+      "@id": "galileo:verificationStatus",
+      "@type": "xsd:string"
+    },
+    "productDID": {
+      "@id": "galileo:productDID",
+      "@type": "@id"
+    },
+    "brandDID": {
+      "@id": "galileo:brandDID",
+      "@type": "@id"
+    },
+
+    "GalileoProduct": "galileo:GalileoProduct",
+    "MaterialComponent": "galileo:MaterialComponent",
+    "CarbonFootprint": "galileo:CarbonFootprint",
+    "RepairGuide": "galileo:RepairGuide",
+    "ComplianceDeclaration": "galileo:ComplianceDeclaration",
+    "ArtisanAttribution": "galileo:ArtisanAttribution",
+    "ProvenanceEvent": "galileo:ProvenanceEvent",
+    "AuthenticationResult": "galileo:AuthenticationResult"
+  }
+}
