@@ -10,27 +10,27 @@ See: .planning/PROJECT.md (updated 2026-01-30)
 ## Current Position
 
 Phase: 1 of 8 (Governance Foundation)
-Plan: 4 of 6 in current phase
+Plan: 5 of 6 in current phase
 Status: In progress
-Last activity: 2026-01-30 - Completed 01-03-PLAN.md (RFC Process)
+Last activity: 2026-01-30 - Completed 01-06-PLAN.md (Membership System)
 
-Progress: [████                ] ~17%
+Progress: [█████               ] ~21%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
+- Total plans completed: 5
 - Average duration: 4 min
-- Total execution time: 15 min
+- Total execution time: 21 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 1. Governance Foundation | 4/6 | 15 min | 4 min |
+| 1. Governance Foundation | 5/6 | 21 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (2 min), 01-04 (2 min), 01-02 (8 min), 01-03 (3 min)
+- Last 5 plans: 01-01 (2 min), 01-04 (2 min), 01-02 (8 min), 01-03 (3 min), 01-06 (6 min)
 - Trend: Consistent
 
 *Updated after each plan completion*
@@ -59,6 +59,11 @@ Recent decisions affecting current work:
 - 01-03: Champion assignment for each RFC to prevent abandonment
 - 01-03: Lazy consensus as default decision mechanism
 - 01-03: English authoritative, community translations encouraged but non-binding
+- 01-06: Three revenue bands (SME <10M, Mid-Market 10M-100M, Enterprise >100M) for accessible dues
+- 01-06: 50% discount for nonprofits, academics, and government agencies
+- 01-06: Founding Partner window explicitly CLOSED at ratification
+- 01-06: Active Contributor status is individual (meritocratic), membership is organizational
+- 01-06: 60-day grace period for dues non-payment before membership lapse
 
 ### Pending Todos
 
@@ -76,7 +81,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-30T12:20:09Z
-Stopped at: Completed 01-03-PLAN.md (RFC Process)
+Last session: 2026-01-30T12:28:48Z
+Stopped at: Completed 01-06-PLAN.md (Membership System)
 Resume file: None
-Next plan: .planning/phases/01-governance-foundation/01-05-PLAN.md
+Next plan: .planning/phases/01-governance-foundation/01-05-PLAN.md (TSC Operations - only remaining Phase 1 plan)
