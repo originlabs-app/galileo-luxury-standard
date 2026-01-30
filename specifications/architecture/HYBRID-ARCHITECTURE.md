@@ -259,4 +259,567 @@ The on-chain hash remains (blockchain immutability preserved), but it now refere
 
 ---
 
-*Document continues in subsequent sections (Event Sourcing Protocol, Component Diagrams, Implementation Notes)*
+## 5. Event Sourcing Protocol
+
+### 5.1 Source of Truth Hierarchy
+
+The hybrid architecture requires clear rules for which system is authoritative for different data types:
+
+```
+SOURCE OF TRUTH HIERARCHY
+
++----------------------------------------------------------------+
+|  OWNERSHIP & ATTESTATION: On-Chain is Authoritative            |
+|                                                                |
+|  - Token ownership (who owns the product)                      |
+|  - Compliance attestation results (pass/fail)                  |
+|  - Timestamp of events (block timestamp)                       |
+|  - Identity claim validity (claim topic + result)              |
+|                                                                |
+|  Reason: Blockchain provides finality and tamper-evidence      |
++----------------------------------------------------------------+
+
++----------------------------------------------------------------+
+|  CONTENT & PII: Off-Chain is Authoritative                     |
+|                                                                |
+|  - Full product details (DPP content)                          |
+|  - Personal information (customer, artisan)                    |
+|  - Document attachments (certificates, images)                 |
+|  - Claim content (W3C Verifiable Credentials)                  |
+|                                                                |
+|  Reason: Must support updates, corrections, and deletion       |
++----------------------------------------------------------------+
+
++----------------------------------------------------------------+
+|  CONFLICT RESOLUTION                                           |
+|                                                                |
+|  - Ownership disputes: On-chain wins (blockchain finality)     |
+|  - Content disputes: Off-chain wins (latest version)           |
+|  - Hash mismatch: Flag for reconciliation, do NOT auto-resolve |
+|                                                                |
+|  Reason: Preserve data integrity while enabling GDPR rights    |
++----------------------------------------------------------------+
+```
+
+### 5.2 Event Flow Protocol
+
+All product lifecycle events follow this standardized flow to ensure consistency between on-chain and off-chain systems:
+
+```
+PRODUCT LIFECYCLE EVENT FLOW
+
++-------------------------------------------------------------------+
+|  1. ACTION OCCURS                                                 |
+|     - Product created, transferred, serviced, or decommissioned   |
+|     - Trigger: User action, system automation, or external event  |
++-------------------------------------------------------------------+
+                                |
+                                v
++-------------------------------------------------------------------+
+|  2. OFF-CHAIN FIRST                                               |
+|     - Store complete event details in off-chain store             |
+|     - Generate unique off-chain content ID                        |
+|     - Include all PII and documents                               |
+|     - Encryption applied if CRAB model used                       |
+|                                                                   |
+|     CRITICAL: Never proceed to step 3 until off-chain confirmed   |
++-------------------------------------------------------------------+
+                                |
+                                v
++-------------------------------------------------------------------+
+|  3. COMPUTE HASH                                                  |
+|     - SHA-256 hash of canonical JSON representation               |
+|     - Include version field for schema evolution                  |
+|     - Hash algorithm ID in metadata for crypto-agility            |
+|                                                                   |
+|     Hash Input: { version: "1.0", data: {...}, algorithm: "sha256" }
++-------------------------------------------------------------------+
+                                |
+                                v
++-------------------------------------------------------------------+
+|  4. ON-CHAIN EVENT                                                |
+|     - Emit event with: productDID, eventType, contentHash,        |
+|       timestamp                                                   |
+|     - No PII ever touches blockchain                              |
+|     - Emitter address recorded automatically                      |
+|                                                                   |
+|     Event: ProductLifecycleEvent(did, type, hash, block.timestamp)|
++-------------------------------------------------------------------+
+                                |
+                                v
++-------------------------------------------------------------------+
+|  5. INDEX UPDATE                                                  |
+|     - Off-chain indexer links contentHash -> offChainId           |
+|     - Enable forward lookup (hash to content)                     |
+|     - Enable reverse lookup (product to events)                   |
+|                                                                   |
+|     Index Entry: { hash: "0x...", contentId: "uuid", productDid } |
++-------------------------------------------------------------------+
+                                |
+                                v
++-------------------------------------------------------------------+
+|  6. VERIFICATION                                                  |
+|     - Re-hash off-chain content                                   |
+|     - Compare with on-chain hash                                  |
+|     - Flag discrepancies for investigation                        |
+|                                                                   |
+|     Result: VERIFIED | MISMATCH | ORPHANED                        |
++-------------------------------------------------------------------+
+```
+
+### 5.3 Failure Handling
+
+Robust failure handling ensures data consistency across the hybrid architecture:
+
+| Failure Scenario | Detection | Recovery Procedure | Data State |
+|------------------|-----------|-------------------|------------|
+| **Off-chain write fails** | HTTP error, timeout | Retry with exponential backoff; do NOT emit on-chain event until confirmed | No data loss; action not recorded |
+| **On-chain write fails** | Transaction revert, gas error | Content exists off-chain; retry on-chain emission | Content safe; retry without data loss |
+| **Hash mismatch detected** | Verification step fails | Quarantine record; investigate; manual resolution required | Both versions preserved for audit |
+| **Indexer lag** | Query returns stale data | Graceful degradation; on-chain events always available | Eventually consistent |
+| **Network partition** | Off-chain unavailable | Queue on-chain events; replay to off-chain when recovered | Temporary inconsistency |
+
+**Critical Recovery Principle:**
+
+> Off-chain write MUST complete before on-chain event emission. If off-chain fails, the event never happened. If on-chain fails, retry is safe because off-chain content is idempotent.
+
+### 5.4 Canonical JSON Format
+
+To ensure consistent hashing across implementations, use canonical JSON serialization:
+
+```json
+{
+  "$schema": "https://spec.galileo.luxury/event/v1.0/schema.json",
+  "version": "1.0",
+  "algorithm": "sha256",
+  "timestamp": "2026-01-30T13:05:19Z",
+  "eventType": "created",
+  "productDid": "did:galileo:01:09506000134352:21:ABC123",
+  "content": {
+    // Sorted keys, no whitespace, UTF-8 normalized
+  }
+}
+```
+
+**Canonicalization Rules:**
+- Keys sorted alphabetically (recursive)
+- No trailing commas
+- No whitespace between elements
+- UTF-8 NFC normalization
+- Dates in ISO 8601 format (UTC)
+- Numbers as JSON numbers (not strings)
+
+---
+
+## 6. Component Interaction Diagrams
+
+### 6.1 Core Architecture Components
+
+```
+                           GALILEO LUXURY STANDARD ARCHITECTURE
+
++----------------------------------------------------------------------------------------+
+|                                     ON-CHAIN LAYER                                     |
+|                                                                                        |
+|  +-------------------+     +-------------------+     +-------------------+              |
+|  |                   |     |                   |     |                   |              |
+|  |  Product Token    |<--->|  Identity         |<--->|  Compliance       |              |
+|  |  (ERC-3643)       |     |  Registry         |     |  Module           |              |
+|  |                   |     |  (ONCHAINID)      |     |                   |              |
+|  |  - tokenId        |     |  - identityAddr   |     |  - rules[]        |              |
+|  |  - owner          |     |  - claimTopics[]  |     |  - canTransfer()  |              |
+|  |  - contentHash    |     |  - claimIssuers[] |     |  - checkClaim()   |              |
+|  |                   |     |                   |     |                   |              |
+|  +-------------------+     +-------------------+     +-------------------+              |
+|           |                         |                         |                        |
++-----------|-------------------------|-------------------------|------------------------+
+            |                         |                         |
+============|=========================|=========================|========================
+            |    ON-CHAIN/OFF-CHAIN   |       BOUNDARY          |
+============|=========================|=========================|========================
+            |                         |                         |
++-----------|-------------------------|-------------------------|------------------------+
+|           v                         v                         v                        |
+|  +-------------------+     +-------------------+     +-------------------+              |
+|  |                   |     |                   |     |                   |              |
+|  |  DPP Content      |     |  Claim Storage    |     |  Compliance       |              |
+|  |  Store            |     |  (VCs)            |     |  Evidence         |              |
+|  |                   |     |                   |     |                   |              |
+|  |  - productDetails |     |  - vcDocuments    |     |  - kycDocs        |              |
+|  |  - lifecycle[]    |     |  - proofs         |     |  - auditLogs      |              |
+|  |  - media[]        |     |  - revocations    |     |  - reports        |              |
+|  |                   |     |                   |     |                   |              |
+|  +-------------------+     +-------------------+     +-------------------+              |
+|                                                                                        |
+|                                     OFF-CHAIN LAYER                                    |
++----------------------------------------------------------------------------------------+
+```
+
+### 6.2 GS1 Resolution Flow
+
+```
+                              CONSUMER SCAN FLOW
+
+[Physical Product] --scan--> [QR Code / NFC Tag]
+        |
+        |  contains: https://id.gs1.org/01/09506000134352/21/ABC123
+        |
+        v
++------------------+
+|  GS1 Digital     |
+|  Link Resolver   |
+|                  |
+|  (id.gs1.org or  |
+|  resolver.galileo|
+|  .luxury)        |
++------------------+
+        |
+        |  HTTP 303 redirect based on:
+        |  - Accept header (application/ld+json, text/html)
+        |  - Link relations (gs1:pip, gs1:hasRetailers)
+        |  - Query parameters (?linkType=gs1:pip)
+        |
+        +---------------------+---------------------+
+        |                     |                     |
+        v                     v                     v
++---------------+     +---------------+     +---------------+
+|               |     |               |     |               |
+| Consumer View |     | Brand View    |     | Regulator     |
+| (Public DPP)  |     | (Full Access) |     | View          |
+|               |     |               |     |               |
+| - Materials   |     | - All history |     | - Compliance  |
+| - Care info   |     | - Customer    |     | - Audit trail |
+| - Origin      |     |   data        |     | - Evidence    |
+| - Sustain.    |     | - Analytics   |     |               |
+|               |     |               |     |               |
++---------------+     +---------------+     +---------------+
+
+        ^                     ^                     ^
+        |                     |                     |
+        +---------------------+---------------------+
+                              |
+                    (Context detection via
+                     authentication/headers)
+```
+
+### 6.3 Ownership Transfer Flow
+
+```
+                           OWNERSHIP TRANSFER FLOW
+
++----------------------------------------------------------------------------+
+|  1. INITIATE TRANSFER                                                      |
+|                                                                            |
+|  Seller: "I want to transfer product X to buyer Y"                         |
+|  Input: productDID, buyerIdentity                                          |
++----------------------------------------------------------------------------+
+                                    |
+                                    v
++----------------------------------------------------------------------------+
+|  2. BUYER IDENTITY VERIFICATION                                            |
+|                                                                            |
+|  +-------------------+         +-----------------------+                   |
+|  | Buyer Identity    |-------->| Identity Registry     |                   |
+|  | (wallet address)  |         | (ONCHAINID)           |                   |
+|  +-------------------+         |                       |                   |
+|                                | - Has required claims?|                   |
+|                                | - Claims not expired? |                   |
+|                                | - Claims not revoked? |                   |
+|                                +-----------------------+                   |
++----------------------------------------------------------------------------+
+                                    |
+                                    v (claims verified)
++----------------------------------------------------------------------------+
+|  3. COMPLIANCE CHECK                                                       |
+|                                                                            |
+|  +-------------------+         +-----------------------+                   |
+|  | Transfer Request  |-------->| Compliance Module     |                   |
+|  |                   |         |                       |                   |
+|  +-------------------+         | - Check country rules |                   |
+|                                | - Check investor      |                   |
+|                                |   limits              |                   |
+|                                | - Custom rules        |                   |
+|                                |                       |                   |
+|                                | Returns: true/false   |                   |
+|                                +-----------------------+                   |
++----------------------------------------------------------------------------+
+                                    |
+                                    v (if compliant: true)
++----------------------------------------------------------------------------+
+|  4. TOKEN TRANSFER                                                         |
+|                                                                            |
+|  +-------------------+         +-----------------------+                   |
+|  | Execute Transfer  |-------->| Product Token         |                   |
+|  | (safeTransferFrom)|         | (ERC-3643)            |                   |
+|  +-------------------+         |                       |                   |
+|                                | - Update owner        |                   |
+|                                | - Emit Transfer event |                   |
+|                                | - Record timestamp    |                   |
+|                                +-----------------------+                   |
++----------------------------------------------------------------------------+
+                                    |
+                                    v
++----------------------------------------------------------------------------+
+|  5. OFF-CHAIN SYNC                                                         |
+|                                                                            |
+|  +-------------------+         +-----------------------+                   |
+|  | Transfer Event    |-------->| Event Listener        |                   |
+|  | (on-chain)        |         | (Indexer)             |                   |
+|  +-------------------+         |                       |                   |
+|                                | - Capture event       |                   |
+|                                | - Lookup contentHash  |                   |
+|                                | - Update off-chain    |                   |
+|                                +-----------------------+                   |
+|                                           |                                |
+|                                           v                                |
+|                                +-----------------------+                   |
+|                                | DPP Content Store     |                   |
+|                                |                       |                   |
+|                                | - Add transfer record |                   |
+|                                | - Update current owner|                   |
+|                                | - Compute new hash    |                   |
+|                                +-----------------------+                   |
++----------------------------------------------------------------------------+
+                                    |
+                                    v
++----------------------------------------------------------------------------+
+|  6. COMPLETION                                                             |
+|                                                                            |
+|  - On-chain: New owner recorded, event emitted                             |
+|  - Off-chain: DPP updated with transfer history                            |
+|  - Hashes: Verified to match                                               |
++----------------------------------------------------------------------------+
+```
+
+### 6.4 Product Creation Flow
+
+```
+                            PRODUCT CREATION FLOW
+
+Brand Admin: "Register new product in Galileo"
+
++----------------------------------------------------------------------------+
+|  1. PREPARE OFF-CHAIN DATA                                                 |
+|                                                                            |
+|  +------------------------------------------+                              |
+|  | DPP Content:                             |                              |
+|  | - Product details (materials, origin)    |                              |
+|  | - Artisan attribution (if applicable)    |                              |
+|  | - Certifications                         |                              |
+|  | - Images and media                       |                              |
+|  +------------------------------------------+                              |
++----------------------------------------------------------------------------+
+                                    |
+                                    v
++----------------------------------------------------------------------------+
+|  2. STORE OFF-CHAIN (must complete before on-chain)                        |
+|                                                                            |
+|  +-------------------+         +-----------------------+                   |
+|  | DPP Content       |-------->| Off-Chain Store       |                   |
+|  |                   |         |                       |                   |
+|  +-------------------+         | - Store content       |                   |
+|                                | - Generate contentId  |                   |
+|                                | - Apply encryption    |                   |
+|                                | - Return: contentId   |                   |
+|                                +-----------------------+                   |
++----------------------------------------------------------------------------+
+                                    |
+                                    v
++----------------------------------------------------------------------------+
+|  3. COMPUTE CONTENT HASH                                                   |
+|                                                                            |
+|  +------------------------------------------+                              |
+|  | Input: Canonical JSON of DPP content     |                              |
+|  | Algorithm: SHA-256                        |                              |
+|  | Output: 0x7a3b5c2d1e...                   |                              |
+|  +------------------------------------------+                              |
++----------------------------------------------------------------------------+
+                                    |
+                                    v
++----------------------------------------------------------------------------+
+|  4. MINT TOKEN (on-chain)                                                  |
+|                                                                            |
+|  +-------------------+         +-----------------------+                   |
+|  | Mint Request      |-------->| Product Token         |                   |
+|  | - productDID      |         | (ERC-3643)            |                   |
+|  | - contentHash     |         |                       |                   |
+|  | - brandIdentity   |         | - Mint new token      |                   |
+|  +-------------------+         | - Set initial owner   |                   |
+|                                | - Store contentHash   |                   |
+|                                | - Emit Created event  |                   |
+|                                +-----------------------+                   |
++----------------------------------------------------------------------------+
+                                    |
+                                    v
++----------------------------------------------------------------------------+
+|  5. INDEX AND VERIFY                                                       |
+|                                                                            |
+|  +-------------------+         +-----------------------+                   |
+|  | Created Event     |-------->| Indexer               |                   |
+|  |                   |         |                       |                   |
+|  +-------------------+         | - Link hash->content  |                   |
+|                                | - Verify hash match   |                   |
+|                                | - Update search index |                   |
+|                                +-----------------------+                   |
++----------------------------------------------------------------------------+
+```
+
+---
+
+## 7. Implementation Notes
+
+### 7.1 Off-Chain Storage Requirements
+
+Implementations MUST choose off-chain storage that supports GDPR compliance:
+
+| Requirement | Specification | Rationale |
+|-------------|---------------|-----------|
+| **Deletion Support** | Must support deletion within 30 days | GDPR Art. 17 timeline |
+| **Audit Trail** | Must maintain audit trail of deletions | Accountability |
+| **Encryption at Rest** | AES-256 or equivalent | Data protection |
+| **Access Control** | Role-based with audit logging | Principle of least privilege |
+| **Geographic Control** | EU data residency option | Cross-border transfer rules |
+| **Backup Management** | Backups must be deletable | Complete erasure |
+
+**Recommended Storage Options:**
+
+| Option | Pros | Cons | Recommendation |
+|--------|------|------|----------------|
+| **PostgreSQL/MySQL** | Mature, full GDPR toolkit | Centralized | Good for MVP |
+| **IPFS + Garbage Collection** | Decentralized, content-addressable | Complex deletion | Advanced use |
+| **Traditional Object Store (S3)** | Scalable, lifecycle policies | Vendor lock-in | Production scale |
+| **Encrypted Database + HSM** | Maximum CRAB support | Complex key management | High security |
+
+**NOT Recommended:**
+
+| Option | Reason |
+|--------|--------|
+| **IPFS without pinning control** | Immutable by default; cannot guarantee deletion |
+| **Public IPFS gateways** | No deletion capability |
+| **Filecoin** | Designed for permanence; conflicts with erasure |
+| **Arweave** | Explicitly permanent; GDPR incompatible for PII |
+
+### 7.2 Hash Algorithm Selection
+
+**Current Standard:**
+```
+Algorithm: SHA-256
+Output: 256 bits (32 bytes)
+Encoding: Hexadecimal with 0x prefix
+Example: 0x7a3b5c2d1e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b
+```
+
+**Crypto-Agility Path:**
+
+| Timeline | Algorithm | Status | Action |
+|----------|-----------|--------|--------|
+| 2026 (Now) | SHA-256 | Production | Use as default |
+| 2027-2028 | SHA-3-256 | Available | Add as option |
+| 2028-2030 | BLAKE3 | Emerging | Evaluate for performance |
+
+**Implementation Pattern:**
+```
+Content Hash Format:
+{
+  "hash": "0x7a3b5c...",
+  "algorithm": "sha256",      // Algorithm identifier
+  "version": "1.0"            // Schema version
+}
+```
+
+Always include algorithm ID in metadata to enable future migration without breaking verification.
+
+### 7.3 Indexer Requirements
+
+The off-chain indexer bridges on-chain events with off-chain content:
+
+| Requirement | Specification | Notes |
+|-------------|---------------|-------|
+| **Consistency Model** | Eventually consistent acceptable | 5-second typical lag |
+| **Reorg Handling** | Must handle chain reorganizations | 12+ block confirmation |
+| **Point-in-Time Queries** | Must support historical queries | For audit purposes |
+| **Hash Lookup** | O(1) hash to content lookup | Primary use case |
+| **Product Lookup** | O(log n) product to events lookup | Secondary use case |
+
+**Recommended Indexer Technologies:**
+
+| Technology | Use Case | Scalability |
+|------------|----------|-------------|
+| **The Graph (Subgraph)** | EVM event indexing | High |
+| **EventStoreDB** | Event sourcing native | High |
+| **PostgreSQL + pg_notify** | Simple implementation | Medium |
+| **Apache Kafka** | High-throughput streaming | Very High |
+
+### 7.4 ERC-3643 Integration Notes
+
+The hybrid architecture aligns with existing ERC-3643 ONCHAINID patterns:
+
+```
+ERC-3643 HYBRID PATTERN
+
++-----------------------------------+
+|  ONCHAINID (On-Chain)             |
+|  - Identity address               |
+|  - Claim topic IDs (10001, etc.)  |
+|  - Claim issuer addresses         |
+|  - Claim validity boolean         |
++-----------------------------------+
+            |
+            | topic ID references
+            v
++-----------------------------------+
+|  Claim Issuer (Off-Chain)         |
+|  - W3C Verifiable Credential      |
+|  - Full claim content             |
+|  - Subject PII                    |
+|  - Evidence documents             |
++-----------------------------------+
+```
+
+The Galileo Luxury Standard extends this pattern to product data:
+
+| ERC-3643 Concept | Galileo Extension |
+|------------------|-------------------|
+| Identity Token | Product Token |
+| Claim Topics | Product Events |
+| Claim Issuers | Authorized Event Emitters |
+| Claim Content | DPP Content |
+
+### 7.5 Security Considerations
+
+| Consideration | Mitigation |
+|---------------|------------|
+| **Content Hash Collision** | SHA-256 collision is computationally infeasible |
+| **Rainbow Table for Hashes** | Content is complex; salt optional but unnecessary |
+| **Off-Chain Tampering** | Hash verification detects any modification |
+| **Replay Attacks** | Timestamps and transaction ordering prevent replay |
+| **Key Compromise (CRAB)** | HSM with hardware attestation recommended |
+
+### 7.6 Performance Considerations
+
+| Operation | Target Latency | Notes |
+|-----------|---------------|-------|
+| Hash Computation | < 10ms | SHA-256 is fast |
+| Off-Chain Write | < 100ms | Database dependent |
+| On-Chain Event | 12-15 seconds | Block time dependent |
+| Index Update | < 5 seconds | Eventually consistent |
+| Full Resolution | < 500ms | Cache-dependent |
+
+---
+
+## Document Metadata
+
+| Property | Value |
+|----------|-------|
+| **Specification ID** | HYBRID-ARCH-001 |
+| **Version** | 1.0.0 |
+| **Status** | Draft |
+| **Created** | 2026-01-30 |
+| **Last Modified** | 2026-01-30 |
+| **Authors** | Galileo Luxury Standard TSC |
+| **Requirement** | FOUND-01 |
+| **Compliance** | EDPB Guidelines 02/2025, GDPR |
+
+---
+
+*End of Hybrid Architecture Specification*
