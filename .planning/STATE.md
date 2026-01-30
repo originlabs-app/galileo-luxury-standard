@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-30)
 
 **Core value:** Proteger le patrimoine des marques et le savoir-faire humain en etablissant un langage commun interoperable
-**Current focus:** Phase 2 - Architecture Foundation
+**Current focus:** Phase 3 - Core Data Models
 
 ## Current Position
 
-Phase: 2 of 8 (Architecture Foundation)
-Plan: 3 of 6 in current phase
+Phase: 3 of 8 (Core Data Models)
+Plan: 1 of 3 in current phase
 Status: In progress
-Last activity: 2026-01-30 - Completed 02-03-PLAN.md (Product Identity Specification)
+Last activity: 2026-01-30 - Completed 03-01-PLAN.md (DPP Core Schema)
 
-Progress: [█████████           ] ~38%
+Progress: [██████████          ] ~42%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9
+- Total plans completed: 10
 - Average duration: 4 min
-- Total execution time: 36 min
+- Total execution time: 43 min
 
 **By Phase:**
 
@@ -29,9 +29,10 @@ Progress: [█████████           ] ~38%
 |-------|-------|-------|----------|
 | 1. Governance Foundation | 6/6 | 27 min | 5 min |
 | 2. Architecture Foundation | 3/6 | 9 min | 3 min |
+| 3. Core Data Models | 1/3 | 7 min | 7 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-05 (6 min), 02-01 (4 min), 02-02 (3 min), 02-03 (6 min), 02-04 (next)
+- Last 5 plans: 02-01 (4 min), 02-02 (3 min), 02-03 (6 min), 03-01 (7 min), 03-02 (next)
 - Trend: Consistent
 
 *Updated after each plan completion*
@@ -86,6 +87,11 @@ Recent decisions affecting current work:
 - 02-03: Dual-resolution: HTTPS resolver + GS1 Digital Link for interoperability
 - 02-03: Product DIDs are non-revocable (deactivated but never deleted for provenance)
 - 02-03: Off-chain DID documents with on-chain content hash for integrity verification
+- 03-01: 14-digit GTIN required per GS1 Digital Link 1.4.0 standard
+- 03-01: Schema.org IndividualProduct as @type (not Product) for unique item instances
+- 03-01: Material composition percentages must sum to 100 per ESPR requirement
+- 03-01: Repairability index 1-10 scale matching French/EU standard
+- 03-01: Five provenance grades (museum_piece, collector, excellent, good, standard) for secondary market differentiation
 
 ### Pending Todos
 
@@ -103,7 +109,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-30T13:17:20Z
-Stopped at: Completed 02-03-PLAN.md (Product Identity Specification)
+Last session: 2026-01-30T13:58:38Z
+Stopped at: Completed 03-01-PLAN.md (DPP Core Schema)
 Resume file: None
-Next plan: 02-04-PLAN.md
+Next plan: 03-02-PLAN.md
