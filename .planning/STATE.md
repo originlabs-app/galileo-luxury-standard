@@ -31,7 +31,7 @@ Progress: [████████            ] ~33%
 | 2. Architecture Foundation | 2/6 | 3 min | 2 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-03 (3 min), 01-06 (6 min), 01-05 (6 min), 02-01 (TBD), 02-02 (3 min)
+- Last 5 plans: 01-06 (6 min), 01-05 (6 min), 02-01 (4 min), 02-02 (3 min), 02-03 (next)
 - Trend: Consistent
 
 *Updated after each plan completion*
@@ -70,6 +70,12 @@ Recent decisions affecting current work:
 - 01-05: Time zone rotation quarterly for global participation
 - 01-05: Reduced quorum (6/11) for security-only emergency sessions
 - 01-05: Recordings not published to encourage candid competitor discussion
+- 02-01: Strict on-chain/off-chain separation: only non-personal references, hashes, booleans on-chain
+- 02-01: Encrypted/hashed PII explicitly prohibited on-chain (EDPB 02/2025 position)
+- 02-01: Off-chain-first pattern: content stored off-chain before on-chain event emission
+- 02-01: Source of truth hierarchy: on-chain for ownership/attestation, off-chain for content/PII
+- 02-01: CRAB model for erasure: key destruction renders on-chain hash orphaned
+- 02-01: 30-day timeline for erasure requests per GDPR standard
 - 02-02: ML-DSA-65 (NIST Level 3) as target algorithm for standard products
 - 02-02: ML-DSA-87 (NIST Level 5) for high-value items
 - 02-02: 2027-2029 hybrid period requires BOTH classical AND PQC signatures valid
