@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-01-30)
 ## Current Position
 
 Phase: 2 of 8 (Architecture Foundation)
-Plan: 2 of 6 in current phase
+Plan: 3 of 6 in current phase
 Status: In progress
-Last activity: 2026-01-30 - Completed 02-02-PLAN.md (Crypto-Agility Specification)
+Last activity: 2026-01-30 - Completed 02-03-PLAN.md (Product Identity Specification)
 
-Progress: [████████            ] ~33%
+Progress: [█████████           ] ~38%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
+- Total plans completed: 9
 - Average duration: 4 min
-- Total execution time: 30 min
+- Total execution time: 36 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1. Governance Foundation | 6/6 | 27 min | 5 min |
-| 2. Architecture Foundation | 2/6 | 3 min | 2 min |
+| 2. Architecture Foundation | 3/6 | 9 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-06 (6 min), 01-05 (6 min), 02-01 (4 min), 02-02 (3 min), 02-03 (next)
+- Last 5 plans: 01-05 (6 min), 02-01 (4 min), 02-02 (3 min), 02-03 (6 min), 02-04 (next)
 - Trend: Consistent
 
 *Updated after each plan completion*
@@ -81,6 +81,11 @@ Recent decisions affecting current work:
 - 02-02: 2027-2029 hybrid period requires BOTH classical AND PQC signatures valid
 - 02-02: Phase 3 (2030+) accepts PQC-only, rejects classical-only
 - 02-02: Key rotation NEVER invalidates historical signatures (10+ year provenance)
+- 02-03: W3C DID Core v1.0 targeted (v1.1 experimental, intentionally avoided)
+- 02-03: GS1 Application Identifiers (01, 8006, 8010, 253) for product-to-DID mapping
+- 02-03: Dual-resolution: HTTPS resolver + GS1 Digital Link for interoperability
+- 02-03: Product DIDs are non-revocable (deactivated but never deleted for provenance)
+- 02-03: Off-chain DID documents with on-chain content hash for integrity verification
 
 ### Pending Todos
 
@@ -98,7 +103,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-30T13:08:05Z
-Stopped at: Completed 02-02-PLAN.md (Crypto-Agility Specification)
+Last session: 2026-01-30T13:17:20Z
+Stopped at: Completed 02-03-PLAN.md (Product Identity Specification)
 Resume file: None
-Next plan: 02-03-PLAN.md (Identity Layer)
+Next plan: 02-04-PLAN.md
