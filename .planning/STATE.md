@@ -5,32 +5,33 @@
 See: .planning/PROJECT.md (updated 2026-01-30)
 
 **Core value:** Proteger le patrimoine des marques et le savoir-faire humain en etablissant un langage commun interoperable
-**Current focus:** Phase 1 - Governance Foundation
+**Current focus:** Phase 2 - Architecture Foundation
 
 ## Current Position
 
-Phase: 1 of 8 (Governance Foundation)
-Plan: 6 of 6 in current phase
-Status: Phase complete
-Last activity: 2026-01-30 - Completed 01-05-PLAN.md (TSC Operations)
+Phase: 2 of 8 (Architecture Foundation)
+Plan: 2 of 6 in current phase
+Status: In progress
+Last activity: 2026-01-30 - Completed 02-02-PLAN.md (Crypto-Agility Specification)
 
-Progress: [██████              ] ~25%
+Progress: [████████            ] ~33%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
-- Average duration: 5 min
-- Total execution time: 27 min
+- Total plans completed: 8
+- Average duration: 4 min
+- Total execution time: 30 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1. Governance Foundation | 6/6 | 27 min | 5 min |
+| 2. Architecture Foundation | 2/6 | 3 min | 2 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-04 (2 min), 01-02 (8 min), 01-03 (3 min), 01-06 (6 min), 01-05 (6 min)
+- Last 5 plans: 01-03 (3 min), 01-06 (6 min), 01-05 (6 min), 02-01 (TBD), 02-02 (3 min)
 - Trend: Consistent
 
 *Updated after each plan completion*
@@ -69,6 +70,11 @@ Recent decisions affecting current work:
 - 01-05: Time zone rotation quarterly for global participation
 - 01-05: Reduced quorum (6/11) for security-only emergency sessions
 - 01-05: Recordings not published to encourage candid competitor discussion
+- 02-02: ML-DSA-65 (NIST Level 3) as target algorithm for standard products
+- 02-02: ML-DSA-87 (NIST Level 5) for high-value items
+- 02-02: 2027-2029 hybrid period requires BOTH classical AND PQC signatures valid
+- 02-02: Phase 3 (2030+) accepts PQC-only, rejects classical-only
+- 02-02: Key rotation NEVER invalidates historical signatures (10+ year provenance)
 
 ### Pending Todos
 
@@ -86,7 +92,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-30T12:29:04Z
-Stopped at: Completed 01-05-PLAN.md (TSC Operations) - Phase 1 complete
+Last session: 2026-01-30T13:08:05Z
+Stopped at: Completed 02-02-PLAN.md (Crypto-Agility Specification)
 Resume file: None
-Next plan: Phase 2 planning (Architecture Foundation)
+Next plan: 02-03-PLAN.md (Identity Layer)
