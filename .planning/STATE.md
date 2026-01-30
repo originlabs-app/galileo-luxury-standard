@@ -47,6 +47,9 @@ Recent decisions affecting current work:
 - Roadmap: Phases 3 and 4 can run in parallel after Phase 2 (no dependency between data models and identity)
 - 01-01: Apache 2.0 exact text used without modifications for legal clarity
 - 01-01: DCO 1.1 chosen over CLA for lower contributor friction
+- 01-04: 10-year deprecation sunset chosen for luxury industry timelines (vs. 12-24 months software norm)
+- 01-04: Semiannual releases (March, September) for ERP integration predictability
+- 01-04: 72-hour coordinated disclosure for critical security vulnerabilities
 
 ### Pending Todos
 
@@ -64,7 +67,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-30T12:18:55Z
-Stopped at: Completed 01-01-PLAN.md (IP Foundation)
+Last session: 2026-01-30T12:18:51Z
+Stopped at: Completed 01-04-PLAN.md (Versioning Policy)
 Resume file: None
-Next plan: .planning/phases/01-governance-foundation/01-02-PLAN.md
+Next plan: .planning/phases/01-governance-foundation/01-05-PLAN.md
