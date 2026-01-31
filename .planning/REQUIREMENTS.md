@@ -48,10 +48,10 @@ Requirements pour la specification technique publiable. Chaque requirement corre
 ### Infrastructure (INFRA)
 
 - [x] **INFRA-01**: Specification GS1 Resolver (resolution protocol)
-- [ ] **INFRA-02**: Specification Access Control Framework (RBAC)
-- [ ] **INFRA-03**: Specification Audit Trail (journal immutable)
-- [ ] **INFRA-04**: Specification Data Retention Policies (GDPR/AML alignment)
-- [ ] **INFRA-05**: Specification stockage hybride on/off-chain
+- [x] **INFRA-02**: Specification Access Control Framework (RBAC)
+- [x] **INFRA-03**: Specification Audit Trail (journal immutable)
+- [x] **INFRA-04**: Specification Data Retention Policies (GDPR/AML alignment)
+- [x] **INFRA-05**: Specification stockage hybride on/off-chain
 
 ### Governance (GOV)
 
@@ -142,10 +142,10 @@ Quel phase couvre quel requirement. Mis a jour lors de la creation du roadmap.
 | EVENT-07 | Phase 3 | Complete |
 | EVENT-08 | Phase 3 | Complete |
 | INFRA-01 | Phase 6 | Complete |
-| INFRA-02 | Phase 7 | Pending |
-| INFRA-03 | Phase 7 | Pending |
-| INFRA-04 | Phase 7 | Pending |
-| INFRA-05 | Phase 7 | Pending |
+| INFRA-02 | Phase 7 | Complete |
+| INFRA-03 | Phase 7 | Complete |
+| INFRA-04 | Phase 7 | Complete |
+| INFRA-05 | Phase 7 | Complete |
 | GOV-01 | Phase 1 | Complete |
 | GOV-02 | Phase 1 | Complete |
 | GOV-03 | Phase 1 | Complete |
@@ -161,4 +161,4 @@ Quel phase couvre quel requirement. Mis a jour lors de la creation du roadmap.
 
 ---
 *Requirements defined: 2026-01-30*
-*Last updated: 2026-01-31 (Phase 6 requirements complete)*
+*Last updated: 2026-01-31 (Phase 7 requirements complete)*

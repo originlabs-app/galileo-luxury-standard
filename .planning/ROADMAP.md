@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: Identity Infrastructure** - Enable participant verification via ERC-3643 identity layer
 - [x] **Phase 5: Token & Compliance Layer** - Enable compliant ownership transfer (depends on Phase 4)
 - [x] **Phase 6: GS1 Resolver Integration** - Bridge physical products to digital identities
-- [ ] **Phase 7: Infrastructure & Security** - Complete operational infrastructure specifications
+- [x] **Phase 7: Infrastructure & Security** - Complete operational infrastructure specifications
 - [ ] **Phase 8: Compliance Documentation** - Enable adopters to achieve regulatory compliance
 
 ## Phase Details
@@ -151,11 +151,13 @@ Plans:
   2. Audit trail specification enables immutable logging of all privileged operations
   3. Data retention policies align GDPR deletion rights with AML 5-year retention requirements
   4. Hybrid storage specification defines on-chain/off-chain synchronization protocol (event sourcing pattern)
-**Plans**: TBD
+**Plans**: 2 plans in 1 wave
 
 Plans:
-- [ ] 07-01: TBD (access control and audit)
-- [ ] 07-02: TBD (retention and hybrid sync)
+- [x] 07-01-PLAN.md — Access Control & Audit: RBAC framework, audit trail specification, IAccessControl interface (INFRA-02, INFRA-03)
+- [x] 07-02-PLAN.md — Retention & Hybrid Sync: Data retention policies, on-chain/off-chain sync protocol (INFRA-04, INFRA-05)
+
+**Note**: Research complete - OpenZeppelin AccessControl, hash-chain audit logs, GDPR/AML retention documented in 07-RESEARCH.md.
 
 ---
 
@@ -188,7 +190,7 @@ Note: Phase 3 and 4 can proceed in parallel after Phase 2 completes (no dependen
 | 4. Identity Infrastructure | 3/3 | Complete | 2026-01-31 |
 | 5. Token & Compliance Layer | 4/4 | Complete | 2026-01-31 |
 | 6. GS1 Resolver Integration | 2/2 | Complete | 2026-01-31 |
-| 7. Infrastructure & Security | 0/TBD | Not started | - |
+| 7. Infrastructure & Security | 2/2 | Complete | 2026-01-31 |
 | 8. Compliance Documentation | 0/TBD | Not started | - |
 
 ## Dependency Graph
@@ -238,4 +240,4 @@ Phase 3 (Data)    Phase 4 (Identity)
 
 ---
 *Roadmap created: 2026-01-30*
-*Last updated: 2026-01-31 (Phase 6 complete)*
+*Last updated: 2026-01-31 (Phase 7 complete)*
