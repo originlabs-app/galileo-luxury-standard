@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-30)
 
 **Core value:** Proteger le patrimoine des marques et le savoir-faire humain en etablissant un langage commun interoperable
-**Current focus:** Phase 5 (Token & Compliance Layer) - IN PROGRESS
+**Current focus:** Phase 6 (GS1 Resolver Integration) - IN PROGRESS
 
 ## Current Position
 
-Phase: 5 of 8 (Token & Compliance Layer)
-Plan: 4 of 6 in current phase
+Phase: 6 of 8 (GS1 Resolver Integration)
+Plan: 1 of 2 in current phase
 Status: In progress
-Last activity: 2026-01-31 - Completed 05-04-PLAN.md (Jurisdiction and Transfer Flows)
+Last activity: 2026-01-31 - Completed 06-01-PLAN.md (GS1 Digital Link Specification)
 
-Progress: [██████████████████░ ] ~76%
+Progress: [███████████████████░] ~80%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 19
+- Total plans completed: 20
 - Average duration: 5 min
-- Total execution time: 93 min
+- Total execution time: 97 min
 
 **By Phase:**
 
@@ -32,9 +32,10 @@ Progress: [██████████████████░ ] ~76%
 | 3. Core Data Models | 3/3 | 20 min | 7 min |
 | 4. Identity Infrastructure | 3/3 | 14 min | 5 min |
 | 5. Token & Compliance | 4/6 | 23 min | 6 min |
+| 6. GS1 Resolver | 1/2 | 4 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-03 (5 min), 05-01 (4 min), 05-02 (5 min), 05-03 (7 min), 05-04 (7 min)
+- Last 5 plans: 05-01 (4 min), 05-02 (5 min), 05-03 (7 min), 05-04 (7 min), 06-01 (4 min)
 - Trend: Consistent execution
 
 *Updated after each plan completion*
@@ -147,6 +148,10 @@ Recent decisions affecting current work:
 - 05-04: Sanctions check always highest priority in conflict resolution
 - 05-04: 8-step transfer validation sequence: pause -> freeze -> identity -> compliance -> execute -> notify
 - 05-04: Standard transfer reason codes (12 types) for complete audit trail
+- 06-01: GS1 Digital Link 1.6.0 (April 2025) as target standard version
+- 06-01: 14-digit GTIN normalization required for all GTIN formats
+- 06-01: Galileo custom link types use galileo: namespace (vocab.galileo.luxury)
+- 06-01: Context-aware auth extension (none, jwt, vc) for privileged links in linkset
 
 ### Pending Todos
 
@@ -164,7 +169,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-31T15:45:XX Z
-Stopped at: Completed 05-04-PLAN.md (Jurisdiction and Transfer Flows)
+Last session: 2026-01-31T18:46:XX Z
+Stopped at: Completed 06-01-PLAN.md (GS1 Digital Link Specification)
 Resume file: None
-Next plan: 05-05-PLAN.md (Token Factory)
+Next plan: 06-02-PLAN.md (Resolver API)
