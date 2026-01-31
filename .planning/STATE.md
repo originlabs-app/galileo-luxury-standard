@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-30)
 
 **Core value:** Proteger le patrimoine des marques et le savoir-faire humain en etablissant un langage commun interoperable
-**Current focus:** Phase 6 (GS1 Resolver Integration) - IN PROGRESS
+**Current focus:** Phase 6 (GS1 Resolver Integration) - COMPLETE
 
 ## Current Position
 
 Phase: 6 of 8 (GS1 Resolver Integration)
-Plan: 1 of 2 in current phase
-Status: In progress
-Last activity: 2026-01-31 - Completed 06-01-PLAN.md (GS1 Digital Link Specification)
+Plan: 2 of 2 in current phase
+Status: Phase complete
+Last activity: 2026-01-31 - Completed 06-02-PLAN.md (Context-Aware Resolution)
 
-Progress: [███████████████████░] ~80%
+Progress: [████████████████████░] ~85%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 20
+- Total plans completed: 21
 - Average duration: 5 min
-- Total execution time: 97 min
+- Total execution time: 105 min
 
 **By Phase:**
 
@@ -32,10 +32,10 @@ Progress: [███████████████████░] ~80%
 | 3. Core Data Models | 3/3 | 20 min | 7 min |
 | 4. Identity Infrastructure | 3/3 | 14 min | 5 min |
 | 5. Token & Compliance | 4/6 | 23 min | 6 min |
-| 6. GS1 Resolver | 1/2 | 4 min | 4 min |
+| 6. GS1 Resolver | 2/2 | 12 min | 6 min |
 
 **Recent Trend:**
-- Last 5 plans: 05-01 (4 min), 05-02 (5 min), 05-03 (7 min), 05-04 (7 min), 06-01 (4 min)
+- Last 5 plans: 05-02 (5 min), 05-03 (7 min), 05-04 (7 min), 06-01 (4 min), 06-02 (8 min)
 - Trend: Consistent execution
 
 *Updated after each plan completion*
@@ -152,6 +152,13 @@ Recent decisions affecting current work:
 - 06-01: 14-digit GTIN normalization required for all GTIN formats
 - 06-01: Galileo custom link types use galileo: namespace (vocab.galileo.luxury)
 - 06-01: Context-aware auth extension (none, jwt, vc) for privileged links in linkset
+- 06-02: 8-step resolution algorithm per GS1-Conformant Resolver 1.2.0 standard
+- 06-02: 307 Temporary Redirect for single link match (preserves HTTP method)
+- 06-02: 410 Gone for deactivated products (not 404) - provenance preserved
+- 06-02: 5-level context detection priority (JWT > linkType > context param > Accept > default)
+- 06-02: SERVICE_CENTER verification via ONCHAINID claim (no JWT-only path)
+- 06-02: 1-hour maximum JWT token lifetime for security
+- 06-02: Rate limiting tiers: 100/1K/10K/50K req/min by auth level
 
 ### Pending Todos
 
@@ -165,11 +172,11 @@ None yet.
 
 - **Phase 4 (Identity):** COMPLETE - ONCHAINID integration patterns fully specified
 - **Phase 5 (Token):** Requires legal review for jurisdiction-specific compliance modules
-- **Phase 6 (Resolver):** GS1 Resolver CE customization requires implementation expertise
+- **Phase 6 (Resolver):** COMPLETE - Resolution protocol, context routing, access control specified
 
 ## Session Continuity
 
-Last session: 2026-01-31T18:46:XX Z
-Stopped at: Completed 06-01-PLAN.md (GS1 Digital Link Specification)
+Last session: 2026-01-31T18:56:XX Z
+Stopped at: Completed 06-02-PLAN.md (Context-Aware Resolution) - Phase 6 Complete
 Resume file: None
-Next plan: 06-02-PLAN.md (Resolver API)
+Next plan: Phase 7 (DPP Schema) when ready
