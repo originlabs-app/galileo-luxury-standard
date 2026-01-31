@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-30)
 
 **Core value:** Proteger le patrimoine des marques et le savoir-faire humain en etablissant un langage commun interoperable
-**Current focus:** Phase 4 (Identity Infrastructure) - Building ERC-3643 compliant identity layer
+**Current focus:** Phase 4 (Identity Infrastructure) - COMPLETE. Ready for Phase 5 (Token Infrastructure)
 
 ## Current Position
 
-Phase: 4 of 8 (Identity Infrastructure)
-Plan: 2 of 3 in current phase
-Status: In progress
-Last activity: 2026-01-31 - Completed 04-02-PLAN.md (Trust and Claims Registries)
+Phase: 4 of 8 (Identity Infrastructure) - COMPLETE
+Plan: 3 of 3 in current phase
+Status: Phase complete
+Last activity: 2026-01-31 - Completed 04-03-PLAN.md (ONCHAINID and Verifiable Credentials)
 
-Progress: [██████████████░     ] ~58%
+Progress: [███████████████░    ] ~62%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 14
+- Total plans completed: 15
 - Average duration: 5 min
-- Total execution time: 65 min
+- Total execution time: 70 min
 
 **By Phase:**
 
@@ -30,10 +30,10 @@ Progress: [██████████████░     ] ~58%
 | 1. Governance Foundation | 6/6 | 27 min | 5 min |
 | 2. Architecture Foundation | 3/6 | 9 min | 3 min |
 | 3. Core Data Models | 3/3 | 20 min | 7 min |
-| 4. Identity Infrastructure | 2/3 | 9 min | 5 min |
+| 4. Identity Infrastructure | 3/3 | 14 min | 5 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-02 (6 min), 03-03 (7 min), 04-01 (3 min), 04-02 (6 min)
+- Last 5 plans: 03-03 (7 min), 04-01 (3 min), 04-02 (6 min), 04-03 (5 min)
 - Trend: Consistent execution
 
 *Updated after each plan completion*
@@ -117,6 +117,14 @@ Recent decisions affecting current work:
 - 04-02: Issuer suspension mechanism for investigation without permanent action
 - 04-02: 365-day default expiry aligns with regulatory reporting cycles
 - 04-02: Heritage topics (origin, authenticity) permanent until fraud discovered
+- 04-03: Claim data encoding: abi.encode(keccak256(vcJson), vcURI) for integrity + retrieval
+- 04-03: RFC 8785 JCS canonicalization for deterministic JSON hashing
+- 04-03: DataIntegrityProof with eddsa-rdfc-2022 as default cryptosuite
+- 04-03: Three status lists by credential type (KYC, luxury, heritage)
+- 04-03: Caching TTL: 5 min for compliance, 24h for heritage
+- 04-03: On-chain consent with expiry for GDPR-compliant cross-brand sharing
+- 04-03: Roles (service_center, authenticator) via claim topics, not ParticipantType
+- 04-03: CREATE2 factory deployment for cross-chain address consistency
 
 ### Pending Todos
 
@@ -128,13 +136,13 @@ None yet.
 
 ### Research Flags (from SUMMARY.md)
 
-- **Phase 4 (Identity):** ONCHAINID integration patterns need deeper research during planning
+- **Phase 4 (Identity):** COMPLETE - ONCHAINID integration patterns fully specified
 - **Phase 5 (Token):** Requires legal review for jurisdiction-specific compliance modules
 - **Phase 6 (Resolver):** GS1 Resolver CE customization requires implementation expertise
 
 ## Session Continuity
 
-Last session: 2026-01-31T14:09:XX Z
-Stopped at: Completed 04-02-PLAN.md (Trust and Claims Registries)
+Last session: 2026-01-31T14:19:XX Z
+Stopped at: Completed 04-03-PLAN.md (ONCHAINID and Verifiable Credentials)
 Resume file: None
-Next plan: 04-03-PLAN.md (ONCHAINID Integration)
+Next plan: 05-01-PLAN.md (Phase 5 - Token Infrastructure)
