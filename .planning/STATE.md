@@ -136,6 +136,11 @@ Recent decisions affecting current work:
 - 05-02: CPOMode enum: NOT_REQUIRED, REQUIRED_FOR_RESALE, ALWAYS_REQUIRED for flexibility
 - 05-02: Five service types: REPAIR, RESTORATION, AUTHENTICATION, CUSTOMIZATION, INSPECTION
 - 05-02: All compliance modules include identityRegistry() for IGalileoIdentityRegistry.batchVerify()
+- 05-03: KYC_ENHANCED required for transfers >EUR 10,000 (aligned with EU 4AMLD threshold)
+- 05-03: Chainalysis oracle as Layer 1, off-chain API as Layer 2 for latency mitigation (60+ day lag)
+- 05-03: Strict mode (fail-closed) recommended for production sanctions checking
+- 05-03: Supplementary blocklist for addresses not yet in Chainalysis oracle
+- 05-03: Risk score thresholds: 0-30 (auto-approve), 31-70 (review), 71-100 (block)
 - 05-04: ISO 3166-1 numeric codes (uint16) for country identification per ERC-3643 standard
 - 05-04: Allow/Restrict dual-mode pattern for jurisdiction modules (whitelist vs blacklist)
 - 05-04: Predefined country groups: OFAC_SANCTIONED, EU_SANCTIONED, FATF_GREYLIST, etc.
