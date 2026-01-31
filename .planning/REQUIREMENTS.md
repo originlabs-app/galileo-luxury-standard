@@ -18,12 +18,12 @@ Requirements pour la specification technique publiable. Chaque requirement corre
 
 ### Identity (IDENT)
 
-- [ ] **IDENT-01**: Interfaces Solidity pour Identity Registry (ERC-3643)
-- [ ] **IDENT-02**: Interfaces Solidity pour Identity Registry Storage
-- [ ] **IDENT-03**: Interfaces Solidity pour Trusted Issuers Registry
-- [ ] **IDENT-04**: Interfaces Solidity pour Claim Topics Registry
-- [ ] **IDENT-05**: Specification ONCHAINID pour participants (marques, utilisateurs)
-- [ ] **IDENT-06**: Specification W3C Verifiable Credentials pour claims
+- [x] **IDENT-01**: Interfaces Solidity pour Identity Registry (ERC-3643)
+- [x] **IDENT-02**: Interfaces Solidity pour Identity Registry Storage
+- [x] **IDENT-03**: Interfaces Solidity pour Trusted Issuers Registry
+- [x] **IDENT-04**: Interfaces Solidity pour Claim Topics Registry
+- [x] **IDENT-05**: Specification ONCHAINID pour participants (marques, utilisateurs)
+- [x] **IDENT-06**: Specification W3C Verifiable Credentials pour claims
 
 ### Token & Compliance (TOKEN)
 
@@ -121,12 +121,12 @@ Quel phase couvre quel requirement. Mis a jour lors de la creation du roadmap.
 | FOUND-04 | Phase 3 | Complete |
 | FOUND-05 | Phase 6 | Pending |
 | FOUND-06 | Phase 2 | Complete |
-| IDENT-01 | Phase 4 | Pending |
-| IDENT-02 | Phase 4 | Pending |
-| IDENT-03 | Phase 4 | Pending |
-| IDENT-04 | Phase 4 | Pending |
-| IDENT-05 | Phase 4 | Pending |
-| IDENT-06 | Phase 4 | Pending |
+| IDENT-01 | Phase 4 | Complete |
+| IDENT-02 | Phase 4 | Complete |
+| IDENT-03 | Phase 4 | Complete |
+| IDENT-04 | Phase 4 | Complete |
+| IDENT-05 | Phase 4 | Complete |
+| IDENT-06 | Phase 4 | Complete |
 | TOKEN-01 | Phase 5 | Pending |
 | TOKEN-02 | Phase 5 | Pending |
 | TOKEN-03 | Phase 5 | Pending |
@@ -161,4 +161,4 @@ Quel phase couvre quel requirement. Mis a jour lors de la creation du roadmap.
 
 ---
 *Requirements defined: 2026-01-30*
-*Last updated: 2026-01-30 (Phase 3 requirements complete)*
+*Last updated: 2026-01-31 (Phase 4 requirements complete)*

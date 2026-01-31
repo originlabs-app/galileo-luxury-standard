@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Governance Foundation** - Establish neutral governance before technical work (TradeLens lesson)
 - [x] **Phase 2: Architecture Foundation** - Define hybrid on-chain/off-chain architecture and cryptographic patterns
 - [x] **Phase 3: Core Data Models** - Complete ESPR-ready DPP and lifecycle event schemas
-- [ ] **Phase 4: Identity Infrastructure** - Enable participant verification via ERC-3643 identity layer
+- [x] **Phase 4: Identity Infrastructure** - Enable participant verification via ERC-3643 identity layer
 - [ ] **Phase 5: Token & Compliance Layer** - Enable compliant ownership transfer (depends on Phase 4)
 - [ ] **Phase 6: GS1 Resolver Integration** - Bridge physical products to digital identities
 - [ ] **Phase 7: Infrastructure & Security** - Complete operational infrastructure specifications
@@ -91,12 +91,12 @@ Plans:
   3. Claim Topics Registry defines standard claim types for luxury domain (KYC verified, KYB verified, jurisdiction, authorized retailer)
   4. ONCHAINID specification enables ERC-734/735 compliant identity contracts
   5. W3C Verifiable Credentials specification enables privacy-preserving off-chain claim issuance
-**Plans**: TBD
+**Plans**: 3 plans in 2 waves
 
 Plans:
-- [ ] 04-01: TBD (identity registry interfaces)
-- [ ] 04-02: TBD (registries: issuers and claims)
-- [ ] 04-03: TBD (ONCHAINID and VCs)
+- [x] 04-01-PLAN.md — Identity Registry Interfaces: Extended ERC-3643 IIdentityRegistry, IIdentityRegistryStorage, event definitions (IDENT-01, IDENT-02)
+- [x] 04-02-PLAN.md — Trust and Claims Registries: ITrustedIssuersRegistry, IClaimTopicsRegistry, predefined claim topics (IDENT-03, IDENT-04)
+- [x] 04-03-PLAN.md — ONCHAINID and Verifiable Credentials: ONCHAINID specification, W3C VC 2.0 integration, JSON Schema (IDENT-05, IDENT-06)
 
 **Note**: CRITICAL DEPENDENCY - Token layer (Phase 5) cannot function without identity infrastructure complete.
 
@@ -182,7 +182,7 @@ Note: Phase 3 and 4 can proceed in parallel after Phase 2 completes (no dependen
 | 1. Governance Foundation | 6/6 | Complete | 2026-01-30 |
 | 2. Architecture Foundation | 3/3 | Complete | 2026-01-30 |
 | 3. Core Data Models | 3/3 | Complete | 2026-01-30 |
-| 4. Identity Infrastructure | 0/TBD | Not started | - |
+| 4. Identity Infrastructure | 3/3 | Complete | 2026-01-31 |
 | 5. Token & Compliance Layer | 0/TBD | Not started | - |
 | 6. GS1 Resolver Integration | 0/TBD | Not started | - |
 | 7. Infrastructure & Security | 0/TBD | Not started | - |
@@ -235,4 +235,4 @@ Phase 3 (Data)    Phase 4 (Identity)
 
 ---
 *Roadmap created: 2026-01-30*
-*Last updated: 2026-01-30 (Phase 3 complete)*
+*Last updated: 2026-01-31 (Phase 4 complete)*
