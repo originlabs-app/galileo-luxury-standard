@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-30)
 
 **Core value:** Proteger le patrimoine des marques et le savoir-faire humain en etablissant un langage commun interoperable
-**Current focus:** Phase 4 (Identity Infrastructure) - COMPLETE. Ready for Phase 5 (Token Infrastructure)
+**Current focus:** Phase 5 (Token & Compliance Layer) - IN PROGRESS
 
 ## Current Position
 
-Phase: 4 of 8 (Identity Infrastructure) - COMPLETE
-Plan: 3 of 3 in current phase
-Status: Phase complete
-Last activity: 2026-01-31 - Completed 04-03-PLAN.md (ONCHAINID and Verifiable Credentials)
+Phase: 5 of 8 (Token & Compliance Layer)
+Plan: 1 of 6 in current phase
+Status: In progress
+Last activity: 2026-01-31 - Completed 05-01-PLAN.md (Token Interfaces)
 
-Progress: [███████████████░    ] ~62%
+Progress: [████████████████░   ] ~67%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 15
+- Total plans completed: 16
 - Average duration: 5 min
-- Total execution time: 70 min
+- Total execution time: 74 min
 
 **By Phase:**
 
@@ -31,9 +31,10 @@ Progress: [███████████████░    ] ~62%
 | 2. Architecture Foundation | 3/6 | 9 min | 3 min |
 | 3. Core Data Models | 3/3 | 20 min | 7 min |
 | 4. Identity Infrastructure | 3/3 | 14 min | 5 min |
+| 5. Token & Compliance | 1/6 | 4 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-03 (7 min), 04-01 (3 min), 04-02 (6 min), 04-03 (5 min)
+- Last 5 plans: 04-01 (3 min), 04-02 (6 min), 04-03 (5 min), 05-01 (4 min)
 - Trend: Consistent execution
 
 *Updated after each plan completion*
@@ -125,6 +126,11 @@ Recent decisions affecting current work:
 - 04-03: On-chain consent with expiry for GDPR-compliant cross-brand sharing
 - 04-03: Roles (service_center, authenticator) via claim topics, not ParticipantType
 - 04-03: CREATE2 factory deployment for cross-chain address consistency
+- 05-01: Single-supply pattern: Each product gets separate token deployment with totalSupply = 1
+- 05-01: Re-export ERC-3643 IToken with comprehensive NatSpec for Galileo context
+- 05-01: CPO certification as first-class interface feature with certify/revoke lifecycle
+- 05-01: Transfer with reason codes using keccak256 hashes for compliance audit trail
+- 05-01: Event library pattern (TokenEvents) matching Phase 4 IdentityEvents approach
 
 ### Pending Todos
 
@@ -142,7 +148,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-31T14:19:XX Z
-Stopped at: Completed 04-03-PLAN.md (ONCHAINID and Verifiable Credentials)
+Last session: 2026-01-31T15:35:XX Z
+Stopped at: Completed 05-01-PLAN.md (Token Interfaces)
 Resume file: None
-Next plan: 05-01-PLAN.md (Phase 5 - Token Infrastructure)
+Next plan: 05-02-PLAN.md (Modular Compliance Interfaces)
