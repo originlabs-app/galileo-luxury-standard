@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-30)
 ## Current Position
 
 Phase: 5 of 8 (Token & Compliance Layer)
-Plan: 2 of 6 in current phase
+Plan: 4 of 6 in current phase
 Status: In progress
-Last activity: 2026-01-31 - Completed 05-02-PLAN.md (Modular Compliance)
+Last activity: 2026-01-31 - Completed 05-04-PLAN.md (Jurisdiction and Transfer Flows)
 
-Progress: [█████████████████░  ] ~71%
+Progress: [██████████████████░ ] ~76%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 17
+- Total plans completed: 19
 - Average duration: 5 min
-- Total execution time: 79 min
+- Total execution time: 93 min
 
 **By Phase:**
 
@@ -31,10 +31,10 @@ Progress: [█████████████████░  ] ~71%
 | 2. Architecture Foundation | 3/6 | 9 min | 3 min |
 | 3. Core Data Models | 3/3 | 20 min | 7 min |
 | 4. Identity Infrastructure | 3/3 | 14 min | 5 min |
-| 5. Token & Compliance | 2/6 | 9 min | 5 min |
+| 5. Token & Compliance | 4/6 | 23 min | 6 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-02 (6 min), 04-03 (5 min), 05-01 (4 min), 05-02 (5 min)
+- Last 5 plans: 04-03 (5 min), 05-01 (4 min), 05-02 (5 min), 05-03 (7 min), 05-04 (7 min)
 - Trend: Consistent execution
 
 *Updated after each plan completion*
@@ -136,6 +136,12 @@ Recent decisions affecting current work:
 - 05-02: CPOMode enum: NOT_REQUIRED, REQUIRED_FOR_RESALE, ALWAYS_REQUIRED for flexibility
 - 05-02: Five service types: REPAIR, RESTORATION, AUTHENTICATION, CUSTOMIZATION, INSPECTION
 - 05-02: All compliance modules include identityRegistry() for IGalileoIdentityRegistry.batchVerify()
+- 05-04: ISO 3166-1 numeric codes (uint16) for country identification per ERC-3643 standard
+- 05-04: Allow/Restrict dual-mode pattern for jurisdiction modules (whitelist vs blacklist)
+- 05-04: Predefined country groups: OFAC_SANCTIONED, EU_SANCTIONED, FATF_GREYLIST, etc.
+- 05-04: Sanctions check always highest priority in conflict resolution
+- 05-04: 8-step transfer validation sequence: pause -> freeze -> identity -> compliance -> execute -> notify
+- 05-04: Standard transfer reason codes (12 types) for complete audit trail
 
 ### Pending Todos
 
@@ -153,7 +159,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-31T15:36:XX Z
-Stopped at: Completed 05-02-PLAN.md (Modular Compliance)
+Last session: 2026-01-31T15:45:XX Z
+Stopped at: Completed 05-04-PLAN.md (Jurisdiction and Transfer Flows)
 Resume file: None
-Next plan: 05-03-PLAN.md (Token Registry Interfaces)
+Next plan: 05-05-PLAN.md (Token Factory)
