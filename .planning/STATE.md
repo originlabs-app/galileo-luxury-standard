@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-30)
 ## Current Position
 
 Phase: 4 of 8 (Identity Infrastructure)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-01-31 - Completed 04-01-PLAN.md (Identity Registry Interfaces)
+Last activity: 2026-01-31 - Completed 04-02-PLAN.md (Trust and Claims Registries)
 
-Progress: [█████████████░      ] ~54%
+Progress: [██████████████░     ] ~58%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 13
+- Total plans completed: 14
 - Average duration: 5 min
-- Total execution time: 59 min
+- Total execution time: 65 min
 
 **By Phase:**
 
@@ -30,11 +30,11 @@ Progress: [█████████████░      ] ~54%
 | 1. Governance Foundation | 6/6 | 27 min | 5 min |
 | 2. Architecture Foundation | 3/6 | 9 min | 3 min |
 | 3. Core Data Models | 3/3 | 20 min | 7 min |
-| 4. Identity Infrastructure | 1/3 | 3 min | 3 min |
+| 4. Identity Infrastructure | 2/3 | 9 min | 5 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-01 (7 min), 03-02 (6 min), 03-03 (7 min), 04-01 (3 min)
-- Trend: Consistent, 04-01 faster due to clear interface specs
+- Last 5 plans: 03-02 (6 min), 03-03 (7 min), 04-01 (3 min), 04-02 (6 min)
+- Trend: Consistent execution
 
 *Updated after each plan completion*
 
@@ -110,6 +110,13 @@ Recent decisions affecting current work:
 - 04-01: Consent verification as view function querying ONCHAINID hasConsent()
 - 04-01: Brand DID required in storage binding for audit trail
 - 04-01: Events organized in library pattern for reuse across implementations
+- 04-02: keccak256 for topic IDs - deterministic, collision-resistant, EVM-native
+- 04-02: IClaimIssuer type (not address) per ERC-3643 standard for interface enforcement
+- 04-02: Compliance vs heritage topic classification (365-day renewal vs permanent)
+- 04-02: Granular topic revocation - issuer can lose authority for specific claims only
+- 04-02: Issuer suspension mechanism for investigation without permanent action
+- 04-02: 365-day default expiry aligns with regulatory reporting cycles
+- 04-02: Heritage topics (origin, authenticity) permanent until fraud discovered
 
 ### Pending Todos
 
@@ -127,7 +134,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-31T14:06:XX Z
-Stopped at: Completed 04-01-PLAN.md (Identity Registry Interfaces)
+Last session: 2026-01-31T14:09:XX Z
+Stopped at: Completed 04-02-PLAN.md (Trust and Claims Registries)
 Resume file: None
-Next plan: 04-02-PLAN.md (Trusted Issuers Registry)
+Next plan: 04-03-PLAN.md (ONCHAINID Integration)
