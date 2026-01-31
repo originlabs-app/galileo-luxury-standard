@@ -12,16 +12,16 @@ See: .planning/PROJECT.md (updated 2026-01-30)
 Phase: 7 of 8 (Infrastructure & Security)
 Plan: 2 of ? in current phase
 Status: In progress
-Last activity: 2026-01-31 - Completed 07-02-PLAN.md (Retention & Hybrid Sync)
+Last activity: 2026-01-31 - Completed 07-01-PLAN.md (Access Control & Audit)
 
-Progress: [█████████████████████░] ~88%
+Progress: [█████████████████████░] ~89%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 22
+- Total plans completed: 23
 - Average duration: 5 min
-- Total execution time: 109 min
+- Total execution time: 115 min
 
 **By Phase:**
 
@@ -33,10 +33,10 @@ Progress: [█████████████████████░] ~
 | 4. Identity Infrastructure | 3/3 | 14 min | 5 min |
 | 5. Token & Compliance | 4/6 | 23 min | 6 min |
 | 6. GS1 Resolver | 2/2 | 12 min | 6 min |
-| 7. Infrastructure & Security | 1/? | 4 min | 4 min |
+| 7. Infrastructure & Security | 2/? | 10 min | 5 min |
 
 **Recent Trend:**
-- Last 5 plans: 05-03 (7 min), 05-04 (7 min), 06-01 (4 min), 06-02 (8 min), 07-02 (4 min)
+- Last 5 plans: 05-04 (7 min), 06-01 (4 min), 06-02 (8 min), 07-02 (4 min), 07-01 (6 min)
 - Trend: Consistent execution
 
 *Updated after each plan completion*
@@ -166,6 +166,12 @@ Recent decisions affecting current work:
 - 07-02: ORPHANED vs MISSING distinction: expected erasure vs data loss incident
 - 07-02: Daily scheduled reconciliation with P1 alerts for any mismatch or missing
 - 07-02: RFC 8785 JSON Canonicalization Scheme (JCS) for deterministic hashing
+- 07-01: Five core RBAC roles: brand_admin, operator, auditor, regulator, service_center
+- 07-01: Two-tier access control: Layer 1 (off-chain JWT) + Layer 2 (on-chain ONCHAINID claims)
+- 07-01: 5-minute max cache TTL for RBAC verification results
+- 07-01: Daily Merkle tree anchoring for audit trail (~50k gas per anchor)
+- 07-01: 7-year audit retention (SOX) with 3-year archive, total 10 years
+- 07-01: Two-phase role grants (request-confirm) for privileged roles
 
 ### Pending Todos
 
@@ -180,11 +186,11 @@ None yet.
 - **Phase 4 (Identity):** COMPLETE - ONCHAINID integration patterns fully specified
 - **Phase 5 (Token):** Requires legal review for jurisdiction-specific compliance modules
 - **Phase 6 (Resolver):** COMPLETE - Resolution protocol, context routing, access control specified
-- **Phase 7 (Infrastructure):** IN PROGRESS - Data retention and hybrid sync specified
+- **Phase 7 (Infrastructure):** IN PROGRESS - RBAC framework, audit trail, retention, hybrid sync specified
 
 ## Session Continuity
 
-Last session: 2026-01-31T19:24:XX Z
-Stopped at: Completed 07-02-PLAN.md (Retention & Hybrid Sync)
+Last session: 2026-01-31T19:26:XX Z
+Stopped at: Completed 07-01-PLAN.md (Access Control & Audit)
 Resume file: None
-Next plan: Continue Phase 7 (RBAC Framework, Audit Trail)
+Next plan: Continue Phase 7 infrastructure specifications
