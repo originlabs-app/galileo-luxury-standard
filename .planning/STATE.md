@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-30)
 
 **Core value:** Proteger le patrimoine des marques et le savoir-faire humain en etablissant un langage commun interoperable
-**Current focus:** Phase 6 (GS1 Resolver Integration) - COMPLETE
+**Current focus:** Phase 7 (Infrastructure & Security) - IN PROGRESS
 
 ## Current Position
 
-Phase: 6 of 8 (GS1 Resolver Integration)
-Plan: 2 of 2 in current phase
-Status: Phase complete
-Last activity: 2026-01-31 - Completed 06-02-PLAN.md (Context-Aware Resolution)
+Phase: 7 of 8 (Infrastructure & Security)
+Plan: 2 of ? in current phase
+Status: In progress
+Last activity: 2026-01-31 - Completed 07-02-PLAN.md (Retention & Hybrid Sync)
 
-Progress: [████████████████████░] ~85%
+Progress: [█████████████████████░] ~88%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 21
+- Total plans completed: 22
 - Average duration: 5 min
-- Total execution time: 105 min
+- Total execution time: 109 min
 
 **By Phase:**
 
@@ -33,9 +33,10 @@ Progress: [████████████████████░] ~85%
 | 4. Identity Infrastructure | 3/3 | 14 min | 5 min |
 | 5. Token & Compliance | 4/6 | 23 min | 6 min |
 | 6. GS1 Resolver | 2/2 | 12 min | 6 min |
+| 7. Infrastructure & Security | 1/? | 4 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 05-02 (5 min), 05-03 (7 min), 05-04 (7 min), 06-01 (4 min), 06-02 (8 min)
+- Last 5 plans: 05-03 (7 min), 05-04 (7 min), 06-01 (4 min), 06-02 (8 min), 07-02 (4 min)
 - Trend: Consistent execution
 
 *Updated after each plan completion*
@@ -159,6 +160,12 @@ Recent decisions affecting current work:
 - 06-02: SERVICE_CENTER verification via ONCHAINID claim (no JWT-only path)
 - 06-02: 1-hour maximum JWT token lifetime for security
 - 06-02: Rate limiting tiers: 100/1K/10K/50K req/min by auth level
+- 07-02: 5-year AML retention (5AMLD Art. 40), 7-year audit trail (SOX), GDPR Art. 17(3)(b) for refusal
+- 07-02: Off-chain write MUST complete before on-chain anchor (prevents orphaned references)
+- 07-02: 5 consistency states: VERIFIED, PENDING, MISMATCH, ORPHANED, MISSING
+- 07-02: ORPHANED vs MISSING distinction: expected erasure vs data loss incident
+- 07-02: Daily scheduled reconciliation with P1 alerts for any mismatch or missing
+- 07-02: RFC 8785 JSON Canonicalization Scheme (JCS) for deterministic hashing
 
 ### Pending Todos
 
@@ -173,10 +180,11 @@ None yet.
 - **Phase 4 (Identity):** COMPLETE - ONCHAINID integration patterns fully specified
 - **Phase 5 (Token):** Requires legal review for jurisdiction-specific compliance modules
 - **Phase 6 (Resolver):** COMPLETE - Resolution protocol, context routing, access control specified
+- **Phase 7 (Infrastructure):** IN PROGRESS - Data retention and hybrid sync specified
 
 ## Session Continuity
 
-Last session: 2026-01-31T18:56:XX Z
-Stopped at: Completed 06-02-PLAN.md (Context-Aware Resolution) - Phase 6 Complete
+Last session: 2026-01-31T19:24:XX Z
+Stopped at: Completed 07-02-PLAN.md (Retention & Hybrid Sync)
 Resume file: None
-Next plan: Phase 7 (DPP Schema) when ready
+Next plan: Continue Phase 7 (RBAC Framework, Audit Trail)
