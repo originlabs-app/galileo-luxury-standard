@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-01-30)
 ## Current Position
 
 Phase: 5 of 8 (Token & Compliance Layer)
-Plan: 1 of 6 in current phase
+Plan: 2 of 6 in current phase
 Status: In progress
-Last activity: 2026-01-31 - Completed 05-01-PLAN.md (Token Interfaces)
+Last activity: 2026-01-31 - Completed 05-02-PLAN.md (Modular Compliance)
 
-Progress: [████████████████░   ] ~67%
+Progress: [█████████████████░  ] ~71%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 16
+- Total plans completed: 17
 - Average duration: 5 min
-- Total execution time: 74 min
+- Total execution time: 79 min
 
 **By Phase:**
 
@@ -31,10 +31,10 @@ Progress: [████████████████░   ] ~67%
 | 2. Architecture Foundation | 3/6 | 9 min | 3 min |
 | 3. Core Data Models | 3/3 | 20 min | 7 min |
 | 4. Identity Infrastructure | 3/3 | 14 min | 5 min |
-| 5. Token & Compliance | 1/6 | 4 min | 4 min |
+| 5. Token & Compliance | 2/6 | 9 min | 5 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-01 (3 min), 04-02 (6 min), 04-03 (5 min), 05-01 (4 min)
+- Last 5 plans: 04-02 (6 min), 04-03 (5 min), 05-01 (4 min), 05-02 (5 min)
 - Trend: Consistent execution
 
 *Updated after each plan completion*
@@ -131,6 +131,11 @@ Recent decisions affecting current work:
 - 05-01: CPO certification as first-class interface feature with certify/revoke lifecycle
 - 05-01: Transfer with reason codes using keccak256 hashes for compliance audit trail
 - 05-01: Event library pattern (TokenEvents) matching Phase 4 IdentityEvents approach
+- 05-02: Re-export ERC-3643 IModularCompliance with documentation (not redefine)
+- 05-02: ModuleTypes library with 8 types: JURISDICTION, BALANCE, TIME, ROLE, SANCTIONS, BRAND, CERTIFICATION, SERVICE
+- 05-02: CPOMode enum: NOT_REQUIRED, REQUIRED_FOR_RESALE, ALWAYS_REQUIRED for flexibility
+- 05-02: Five service types: REPAIR, RESTORATION, AUTHENTICATION, CUSTOMIZATION, INSPECTION
+- 05-02: All compliance modules include identityRegistry() for IGalileoIdentityRegistry.batchVerify()
 
 ### Pending Todos
 
@@ -148,7 +153,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-31T15:35:XX Z
-Stopped at: Completed 05-01-PLAN.md (Token Interfaces)
+Last session: 2026-01-31T15:36:XX Z
+Stopped at: Completed 05-02-PLAN.md (Modular Compliance)
 Resume file: None
-Next plan: 05-02-PLAN.md (Modular Compliance Interfaces)
+Next plan: 05-03-PLAN.md (Token Registry Interfaces)
