@@ -27,12 +27,12 @@ Requirements pour la specification technique publiable. Chaque requirement corre
 
 ### Token & Compliance (TOKEN)
 
-- [ ] **TOKEN-01**: Interfaces Solidity Token ERC-3643 (sans implementation complete)
-- [ ] **TOKEN-02**: Interfaces Solidity Modular Compliance
-- [ ] **TOKEN-03**: Schema de hooks KYC/KYB (interfaces, pas implementation)
-- [ ] **TOKEN-04**: Schema de hooks AML/Sanctions screening
-- [ ] **TOKEN-05**: Schema de restrictions juridictionnelles (export controls)
-- [ ] **TOKEN-06**: Specification de transfert de propriete (basic ownership transfer)
+- [x] **TOKEN-01**: Interfaces Solidity Token ERC-3643 (sans implementation complete)
+- [x] **TOKEN-02**: Interfaces Solidity Modular Compliance
+- [x] **TOKEN-03**: Schema de hooks KYC/KYB (interfaces, pas implementation)
+- [x] **TOKEN-04**: Schema de hooks AML/Sanctions screening
+- [x] **TOKEN-05**: Schema de restrictions juridictionnelles (export controls)
+- [x] **TOKEN-06**: Specification de transfert de propriete (basic ownership transfer)
 
 ### Lifecycle Events (EVENT)
 
@@ -127,12 +127,12 @@ Quel phase couvre quel requirement. Mis a jour lors de la creation du roadmap.
 | IDENT-04 | Phase 4 | Complete |
 | IDENT-05 | Phase 4 | Complete |
 | IDENT-06 | Phase 4 | Complete |
-| TOKEN-01 | Phase 5 | Pending |
-| TOKEN-02 | Phase 5 | Pending |
-| TOKEN-03 | Phase 5 | Pending |
-| TOKEN-04 | Phase 5 | Pending |
-| TOKEN-05 | Phase 5 | Pending |
-| TOKEN-06 | Phase 5 | Pending |
+| TOKEN-01 | Phase 5 | Complete |
+| TOKEN-02 | Phase 5 | Complete |
+| TOKEN-03 | Phase 5 | Complete |
+| TOKEN-04 | Phase 5 | Complete |
+| TOKEN-05 | Phase 5 | Complete |
+| TOKEN-06 | Phase 5 | Complete |
 | EVENT-01 | Phase 3 | Complete |
 | EVENT-02 | Phase 3 | Complete |
 | EVENT-03 | Phase 3 | Complete |
@@ -161,4 +161,4 @@ Quel phase couvre quel requirement. Mis a jour lors de la creation du roadmap.
 
 ---
 *Requirements defined: 2026-01-30*
-*Last updated: 2026-01-31 (Phase 4 requirements complete)*
+*Last updated: 2026-01-31 (Phase 5 requirements complete)*

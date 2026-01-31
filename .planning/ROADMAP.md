@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Architecture Foundation** - Define hybrid on-chain/off-chain architecture and cryptographic patterns
 - [x] **Phase 3: Core Data Models** - Complete ESPR-ready DPP and lifecycle event schemas
 - [x] **Phase 4: Identity Infrastructure** - Enable participant verification via ERC-3643 identity layer
-- [ ] **Phase 5: Token & Compliance Layer** - Enable compliant ownership transfer (depends on Phase 4)
+- [x] **Phase 5: Token & Compliance Layer** - Enable compliant ownership transfer (depends on Phase 4)
 - [ ] **Phase 6: GS1 Resolver Integration** - Bridge physical products to digital identities
 - [ ] **Phase 7: Infrastructure & Security** - Complete operational infrastructure specifications
 - [ ] **Phase 8: Compliance Documentation** - Enable adopters to achieve regulatory compliance
@@ -112,12 +112,13 @@ Plans:
   3. KYC/KYB hooks specification enables pre-transfer identity verification
   4. AML/sanctions screening hooks specification enables transfer blocking for compliance
   5. Ownership transfer specification enables basic sale and resale flows with compliance checks
-**Plans**: TBD
+**Plans**: 4 plans in 2 waves
 
 Plans:
-- [ ] 05-01: TBD (token interfaces)
-- [ ] 05-02: TBD (compliance modules)
-- [ ] 05-03: TBD (hooks and transfer flow)
+- [x] 05-01-PLAN.md — Token Interfaces: Extended ERC-3643 IToken, IGalileoToken, TokenEvents (TOKEN-01)
+- [x] 05-02-PLAN.md — Modular Compliance: IModularCompliance, IComplianceModule, luxury modules (TOKEN-02)
+- [x] 05-03-PLAN.md — KYC/AML Hooks: KYC/KYB verification hooks, AML screening, ISanctionsModule (TOKEN-03, TOKEN-04)
+- [x] 05-04-PLAN.md — Jurisdiction & Transfer: Jurisdiction rules, ownership transfer specification (TOKEN-05, TOKEN-06)
 
 **Note**: Research flag - Requires legal review for jurisdiction-specific compliance module design.
 
@@ -183,7 +184,7 @@ Note: Phase 3 and 4 can proceed in parallel after Phase 2 completes (no dependen
 | 2. Architecture Foundation | 3/3 | Complete | 2026-01-30 |
 | 3. Core Data Models | 3/3 | Complete | 2026-01-30 |
 | 4. Identity Infrastructure | 3/3 | Complete | 2026-01-31 |
-| 5. Token & Compliance Layer | 0/TBD | Not started | - |
+| 5. Token & Compliance Layer | 4/4 | Complete | 2026-01-31 |
 | 6. GS1 Resolver Integration | 0/TBD | Not started | - |
 | 7. Infrastructure & Security | 0/TBD | Not started | - |
 | 8. Compliance Documentation | 0/TBD | Not started | - |
@@ -235,4 +236,4 @@ Phase 3 (Data)    Phase 4 (Identity)
 
 ---
 *Roadmap created: 2026-01-30*
-*Last updated: 2026-01-31 (Phase 4 complete)*
+*Last updated: 2026-01-31 (Phase 5 complete)*
