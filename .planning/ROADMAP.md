@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Core Data Models** - Complete ESPR-ready DPP and lifecycle event schemas
 - [x] **Phase 4: Identity Infrastructure** - Enable participant verification via ERC-3643 identity layer
 - [x] **Phase 5: Token & Compliance Layer** - Enable compliant ownership transfer (depends on Phase 4)
-- [ ] **Phase 6: GS1 Resolver Integration** - Bridge physical products to digital identities
+- [x] **Phase 6: GS1 Resolver Integration** - Bridge physical products to digital identities
 - [ ] **Phase 7: Infrastructure & Security** - Complete operational infrastructure specifications
 - [ ] **Phase 8: Compliance Documentation** - Enable adopters to achieve regulatory compliance
 
@@ -132,11 +132,13 @@ Plans:
   1. GS1 Digital Link URI structure defined (https://id.galileo.luxury/01/{GTIN}/21/{Serial})
   2. Context-aware routing delivers role-appropriate views (consumer vs. brand vs. regulator)
   3. Resolution protocol connects physical product identifiers to on-chain and off-chain data
-**Plans**: TBD
+**Plans**: 2 plans in 2 waves
 
 Plans:
-- [ ] 06-01: TBD (URI structure and resolution)
-- [ ] 06-02: TBD (context routing)
+- [x] 06-01-PLAN.md — GS1 Digital Link Specification: URI syntax, GTIN normalization, linkset schema (FOUND-03)
+- [x] 06-02-PLAN.md — Context-Aware Resolution: Resolution protocol, role-based routing, access control (FOUND-05, INFRA-01)
+
+**Note**: Research complete - GS1 Digital Link 1.6.0 and Resolver 1.2.0 standards documented in 06-RESEARCH.md.
 
 ---
 
@@ -185,7 +187,7 @@ Note: Phase 3 and 4 can proceed in parallel after Phase 2 completes (no dependen
 | 3. Core Data Models | 3/3 | Complete | 2026-01-30 |
 | 4. Identity Infrastructure | 3/3 | Complete | 2026-01-31 |
 | 5. Token & Compliance Layer | 4/4 | Complete | 2026-01-31 |
-| 6. GS1 Resolver Integration | 0/TBD | Not started | - |
+| 6. GS1 Resolver Integration | 2/2 | Complete | 2026-01-31 |
 | 7. Infrastructure & Security | 0/TBD | Not started | - |
 | 8. Compliance Documentation | 0/TBD | Not started | - |
 
@@ -236,4 +238,4 @@ Phase 3 (Data)    Phase 4 (Identity)
 
 ---
 *Roadmap created: 2026-01-30*
-*Last updated: 2026-01-31 (Phase 5 complete)*
+*Last updated: 2026-01-31 (Phase 6 complete)*

@@ -11,9 +11,9 @@ Requirements pour la specification technique publiable. Chaque requirement corre
 
 - [x] **FOUND-01**: Architecture document decrivant le modele hybride on-chain/off-chain
 - [x] **FOUND-02**: Schema d'identite produit base sur W3C DID
-- [ ] **FOUND-03**: Specification d'integration GS1 Digital Link
+- [x] **FOUND-03**: Specification d'integration GS1 Digital Link
 - [x] **FOUND-04**: Schema DPP Core Data (JSON-LD conforme ESPR)
-- [ ] **FOUND-05**: Schema de resolution context-aware (routing dynamique par role)
+- [x] **FOUND-05**: Schema de resolution context-aware (routing dynamique par role)
 - [x] **FOUND-06**: Specification crypto-agile (preparation PQC, certificats hybrides)
 
 ### Identity (IDENT)
@@ -47,7 +47,7 @@ Requirements pour la specification technique publiable. Chaque requirement corre
 
 ### Infrastructure (INFRA)
 
-- [ ] **INFRA-01**: Specification GS1 Resolver (resolution protocol)
+- [x] **INFRA-01**: Specification GS1 Resolver (resolution protocol)
 - [ ] **INFRA-02**: Specification Access Control Framework (RBAC)
 - [ ] **INFRA-03**: Specification Audit Trail (journal immutable)
 - [ ] **INFRA-04**: Specification Data Retention Policies (GDPR/AML alignment)
@@ -117,9 +117,9 @@ Quel phase couvre quel requirement. Mis a jour lors de la creation du roadmap.
 |-------------|-------|--------|
 | FOUND-01 | Phase 2 | Complete |
 | FOUND-02 | Phase 2 | Complete |
-| FOUND-03 | Phase 6 | Pending |
+| FOUND-03 | Phase 6 | Complete |
 | FOUND-04 | Phase 3 | Complete |
-| FOUND-05 | Phase 6 | Pending |
+| FOUND-05 | Phase 6 | Complete |
 | FOUND-06 | Phase 2 | Complete |
 | IDENT-01 | Phase 4 | Complete |
 | IDENT-02 | Phase 4 | Complete |
@@ -141,7 +141,7 @@ Quel phase couvre quel requirement. Mis a jour lors de la creation du roadmap.
 | EVENT-06 | Phase 3 | Complete |
 | EVENT-07 | Phase 3 | Complete |
 | EVENT-08 | Phase 3 | Complete |
-| INFRA-01 | Phase 6 | Pending |
+| INFRA-01 | Phase 6 | Complete |
 | INFRA-02 | Phase 7 | Pending |
 | INFRA-03 | Phase 7 | Pending |
 | INFRA-04 | Phase 7 | Pending |
@@ -161,4 +161,4 @@ Quel phase couvre quel requirement. Mis a jour lors de la creation du roadmap.
 
 ---
 *Requirements defined: 2026-01-30*
-*Last updated: 2026-01-31 (Phase 5 requirements complete)*
+*Last updated: 2026-01-31 (Phase 6 requirements complete)*
