@@ -80,6 +80,8 @@ Progress: [████████████████░░░░░░░
 | Section order: Hero-Value-Arch-Features-Std-Reg-Footer | Logical flow from vision to technical to compliance to action | Implemented |
 | File-based MDX for blog | Simple, git-tracked, no CMS dependency | Implemented |
 | next-mdx-remote RSC | Server component MDX rendering, zero client JS | Implemented |
+| Bold markdown metadata parsing | Galileo specs use **Status:** format, not YAML frontmatter | Implemented |
+| Recursive spec directory reading | Support nested folders like schemas/dpp/, schemas/events/ | Implemented |
 
 ### Phase 9.1 Complete (Spatial UI Upgrade)
 
@@ -100,6 +102,23 @@ Progress: [████████████████░░░░░░░
 - DocsSidebar with collapsible sections
 - Prose styling for documentation typography
 - Human verification approved
+
+### Phase 11 Progress (Specifications Viewer)
+
+**Plan 01 Complete (Infrastructure):**
+- File system utilities: getSpecCategories, getSpecifications, getSpecification
+- Custom metadata parser for bold markdown headers (not YAML frontmatter)
+- Dynamic navigation builder: buildSpecsNavigation
+- SpecsSidebar component with collapsible sections and status dots
+- /specifications layout and landing page with category grid
+- Supports 46 specs across 8 categories (contracts excluded)
+
+**Files created:**
+- `website/src/lib/specifications.ts` — File system utilities (244 lines)
+- `website/src/lib/specs-navigation.ts` — Navigation builder (94 lines)
+- `website/src/components/specifications/SpecsSidebar.tsx` — Sidebar component (138 lines)
+- `website/src/app/specifications/layout.tsx` — Layout with sidebar (43 lines)
+- `website/src/app/specifications/page.tsx` — Landing page with category grid (163 lines)
 
 ### Phase 12 Progress (Blog Section)
 
@@ -126,6 +145,7 @@ Progress: [████████████████░░░░░░░
 None.
 
 ---
-*State updated: 2026-02-01T15:04:04Z*
+*State updated: 2026-02-01T15:08:00Z*
 *Milestone: v1.1 Website & Documentation Portal*
+*Phase 11 (Specifications Viewer) IN PROGRESS — Plan 01 complete*
 *Phase 12 (Blog Section) IN PROGRESS — Plan 01 complete, Plan 02 pending*
