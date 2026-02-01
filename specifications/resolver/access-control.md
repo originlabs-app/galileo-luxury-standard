@@ -352,7 +352,7 @@ async function authorizeBrand(
     };
   }
 
-  // Get product's controller
+  // Get product's controller (ONCHAINID address)
   const productRecord = await registry.getRecord(productDID);
   if (!productRecord) {
     return {
@@ -362,15 +362,30 @@ async function authorizeBrand(
     };
   }
 
-  // Brand DID must match controller
-  if (claims.brand_did !== productRecord.controllerDID) {
+  // Resolve controller ONCHAINID address to brand DID
+  // ProductRecord.controller is an address, not a DID
+  // We must resolve it via the identity registry
+  const controllerDID = await resolveControllerDID(productRecord.controller);
+  if (!controllerDID) {
+    return {
+      authorized: false,
+      error: "controller_resolution_failed",
+      status: 500,
+      details: {
+        controllerAddress: productRecord.controller
+      }
+    };
+  }
+
+  // Brand DID must match resolved controller DID
+  if (claims.brand_did !== controllerDID) {
     return {
       authorized: false,
       error: "brand_did_mismatch",
       status: 403,
       details: {
         provided: claims.brand_did,
-        expected: productRecord.controllerDID
+        expected: controllerDID
       }
     };
   }
@@ -383,6 +398,41 @@ async function authorizeBrand(
   };
 }
 ```
+
+### 4.3.1 Controller DID Resolution
+
+The `ProductRecord.controller` field stores an ONCHAINID contract address, not a DID string. Resolution is required:
+
+```typescript
+/**
+ * Resolve ONCHAINID address to brand DID
+ * Uses the identity's DID claim or derives from address
+ */
+async function resolveControllerDID(
+  controllerAddress: string
+): Promise<string | null> {
+  // Option 1: Query ONCHAINID for stored DID claim
+  const didClaim = await identityRegistry.getClaim(
+    controllerAddress,
+    DID_CLAIM_TOPIC  // e.g., galileo.luxury.did
+  );
+
+  if (didClaim && didClaim.data) {
+    return decodeString(didClaim.data);
+  }
+
+  // Option 2: Derive DID from brand entity name
+  // Requires brand registry lookup
+  const brandInfo = await brandRegistry.getBrandByIdentity(controllerAddress);
+  if (brandInfo) {
+    return `did:galileo:brand:${brandInfo.name}`;
+  }
+
+  return null;
+}
+```
+
+**Reference:** [DID-METHOD.md Section 2.4](../identity/DID-METHOD.md#24-examples) for brand DID format.
 
 ### 4.4 Regulator Authorization
 
@@ -400,8 +450,24 @@ async function authorizeRegulator(
     };
   }
 
-  // Regulators are pre-verified at token issuance
+  // SECURITY DESIGN DECISION: JWT-only verification for regulators
+  //
+  // Unlike service centers, regulators are NOT verified via ONCHAINID.
+  // This is an explicit security choice:
+  //
+  // 1. Regulatory authorities operate outside commercial blockchain networks
+  // 2. Regulator verification occurs at token issuance by auth.galileo.luxury
+  // 3. The auth service maintains a whitelist of approved regulatory bodies
+  // 4. Token issuance requires out-of-band verification (legal agreements)
+  //
+  // This means the security boundary is the JWT issuer (auth.galileo.luxury),
+  // NOT the on-chain identity registry. The auth service is responsible for
+  // validating regulator identity before issuing tokens.
+  //
+  // See: TSC decision TSC-2026-007 (Regulator Authentication Policy)
+
   // Optional: check jurisdiction against product geo-restrictions
+  // (e.g., FR regulator can only access EU-market products)
 
   return {
     authorized: true,

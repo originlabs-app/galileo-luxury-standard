@@ -331,7 +331,11 @@ interface ProductRecord {
 }
 
 async function queryRegistry(did: string): Promise<ProductRecord | null> {
-  const didHash = keccak256(did.toLowerCase());
+  // Normalize DID per DID-METHOD.md Section 2.6:
+  // - Lowercase method portion (did:galileo:)
+  // - Preserve AI values and serial case (serials are case-sensitive)
+  const normalizedDID = normalizeDID(did);
+  const didHash = keccak256(normalizedDID);
   const record = await productRegistry.getRecord(didHash);
 
   if (record.createdAt === 0) {
@@ -339,6 +343,22 @@ async function queryRegistry(did: string): Promise<ProductRecord | null> {
   }
 
   return record;
+}
+```
+
+**DID Normalization:**
+
+Per [DID-METHOD.md Section 2.6](../identity/DID-METHOD.md#26-normalization):
+
+```typescript
+function normalizeDID(did: string): string {
+  // Extract method prefix (case-insensitive)
+  const match = did.match(/^(did:galileo:)(.*)$/i);
+  if (!match) throw new Error("Invalid did:galileo format");
+
+  // Lowercase method, preserve identifier case
+  // Serials (AI 21) are case-sensitive per GS1
+  return `did:galileo:${match[2]}`;
 }
 ```
 

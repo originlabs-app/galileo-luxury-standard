@@ -480,11 +480,29 @@ GS1 URI:    https://id.galileo.luxury/{ai}/{value}[/{ai2}/{value2}]
 did:galileo: did:galileo:{ai}:{value}[:{ai2}:{value2}]
 ```
 
+**DID-Supported Application Identifiers:**
+
+Only the following AIs are included in the `did:galileo` mapping:
+
+| AI | Included in DID | Rationale |
+|----|-----------------|-----------|
+| **01** | Yes | Primary GTIN identifier |
+| **8006** | Yes | ITIP for pieces/sets |
+| **8010** | Yes | Component identifier |
+| **253** | Yes | Document identifier |
+| **21** | Yes | Serial number (uniqueness) |
+| **10** | **No** | Batch/lot (operational, not identity) |
+| **17** | **No** | Expiry date (mutable, not identity) |
+| **3103** | **No** | Net weight (mutable, not identity) |
+
+**Note:** Qualifiers like AI 10 (batch), AI 17 (expiry), and AI 3103 (weight) are valid in GS1 Digital Link URIs for routing and display purposes, but are NOT included in `did:galileo` identifiers. These AIs represent mutable operational data rather than immutable product identity.
+
 **Transformation Rules:**
 1. Remove `https://id.galileo.luxury/` prefix
-2. Replace `/` path separators with `:` colons
-3. Prepend `did:galileo:`
-4. Strip query parameters (not part of DID)
+2. Remove non-identity AIs (10, 17, 3103) from path
+3. Replace `/` path separators with `:` colons
+4. Prepend `did:galileo:`
+5. Strip query parameters (not part of DID)
 
 ### 6.2 Mapping Examples
 

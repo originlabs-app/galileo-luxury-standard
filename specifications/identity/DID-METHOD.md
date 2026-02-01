@@ -104,7 +104,7 @@ serial-component = "21:" serial-value
 serial-value = 1*ALPHANUM
     ; 1-20 alphanumeric characters per GS1
 
-entity-type = "brand" / "retailer" / "issuer" / "artisan" / "verifier"
+entity-type = "brand" / "retailer" / "issuer" / "artisan" / "verifier" / "customer" / "regulator"
 
 entity-name = 1*64(ALPHA / DIGIT / "-")
 ```
@@ -160,6 +160,12 @@ did:galileo:artisan:pierresmith
 
 did:galileo:verifier:sgs
     ; Third-party verification service
+
+did:galileo:customer:0x1234abcd
+    ; End customer (pseudonymous identifier)
+
+did:galileo:regulator:dgccrf-fr
+    ; Regulatory authority (e.g., DGCCRF France)
 ```
 
 ### 2.5 ABNF Grammar
