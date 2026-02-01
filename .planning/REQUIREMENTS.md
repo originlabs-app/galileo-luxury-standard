@@ -9,20 +9,20 @@
 
 Requirements for the presentation website and documentation portal.
 
-### Landing Page (LAND)
+### Landing Page (LAND) ✓
 
-- [ ] **LAND-01**: User sees hero section with tagline, value proposition, and CTAs
-- [ ] **LAND-02**: User sees value proposition cards (Heritage, Precision, Compliance)
-- [ ] **LAND-03**: User sees architecture overview diagram (hybrid on/off-chain)
-- [ ] **LAND-04**: User sees standards compliance table (W3C, ERC-3643, GS1)
-- [ ] **LAND-05**: User sees regulatory readiness section (GDPR, MiCA, ESPR deadlines)
-- [ ] **LAND-06**: User sees CTA section linking to docs and GitHub
+- [x] **LAND-01**: User sees hero section with tagline, value proposition, and CTAs
+- [x] **LAND-02**: User sees value proposition cards (Heritage, Precision, Compliance)
+- [x] **LAND-03**: User sees architecture overview diagram (hybrid on/off-chain)
+- [x] **LAND-04**: User sees standards compliance table (W3C, ERC-3643, GS1)
+- [x] **LAND-05**: User sees regulatory readiness section (GDPR, MiCA, ESPR deadlines)
+- [x] **LAND-06**: User sees CTA section linking to docs and GitHub
 
-### Navigation (NAV)
+### Navigation (NAV) ✓
 
-- [ ] **NAV-01**: User can navigate via fixed header with logo and links
-- [ ] **NAV-02**: User can use mobile hamburger menu on small screens
-- [ ] **NAV-03**: User sees footer with navigation links, GitHub, and legal
+- [x] **NAV-01**: User can navigate via fixed header with logo and links
+- [x] **NAV-02**: User can use mobile hamburger menu on small screens
+- [x] **NAV-03**: User sees footer with navigation links, GitHub, and legal
 
 ### Documentation (DOCS)
 
@@ -217,8 +217,8 @@ Quel phase couvre quel requirement. Mis a jour lors de la creation du roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| LAND-01..06 | Phase 9 | Pending |
-| NAV-01..03 | Phase 9 | Pending |
+| LAND-01..06 | Phase 9 | Complete |
+| NAV-01..03 | Phase 9 | Complete |
 | DOCS-01..07 | Phase 10 | Pending |
 | SPEC-01..04 | Phase 11 | Pending |
 | BLOG-01..03 | Phase 12 | Pending |
@@ -227,8 +227,10 @@ Quel phase couvre quel requirement. Mis a jour lors de la creation du roadmap.
 **Coverage (v1.1):**
 - v1.1 requirements: 22 total
 - Mapped to phases: 22
-- Unmapped: 0
+- Complete: 9 (LAND + NAV)
+- Pending: 13
 
 ---
 *Requirements defined: 2026-01-30*
 *v1.1 requirements added: 2026-02-01*
+*Phase 9 complete: 2026-02-01*

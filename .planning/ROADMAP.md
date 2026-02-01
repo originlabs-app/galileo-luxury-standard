@@ -25,7 +25,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 ### v1.1 — Website & Documentation Portal (Active)
 
-- [ ] **Phase 9: Landing Page** - Complete home page with all sections and navigation
+- [x] **Phase 9: Landing Page** - Complete home page with all sections and navigation
+- [ ] **Phase 9.1: Spatial UI Upgrade** - INSERTED: Mesh gradients, Bento layout, Angle Glow borders
 - [ ] **Phase 10: Documentation Portal** - MDX-powered docs with sidebar navigation
 - [ ] **Phase 11: Specifications Viewer** - Browse specifications by category with status badges
 - [ ] **Phase 12: Blog Section** - Blog listing and post pages with v1.0.0 announcement
@@ -203,10 +204,24 @@ Plans:
 **Plans**: 4 plans in 3 waves
 
 Plans:
-- [ ] 09-01-PLAN.md — Foundation: Install shiki + lucide-react, create CodeBlock component
-- [ ] 09-02-PLAN.md — Architecture & Features: SVG diagram, JSON-LD + Solidity code examples
-- [ ] 09-03-PLAN.md — Standards & Regulatory: Compliance table, regulatory deadlines section
-- [ ] 09-04-PLAN.md — Footer & Integration: Footer component, compose page.tsx, visual verification
+- [x] 09-01-PLAN.md — Foundation: Install shiki + lucide-react, create CodeBlock component
+- [x] 09-02-PLAN.md — Architecture & Features: SVG diagram, JSON-LD + Solidity code examples
+- [x] 09-03-PLAN.md — Standards & Regulatory: Compliance table, regulatory deadlines section
+- [x] 09-04-PLAN.md — Footer & Integration: Footer component, compose page.tsx, visual verification
+
+---
+
+### Phase 9.1: Spatial UI Upgrade (INSERTED)
+**Goal**: Upgrade landing page from classic "Obsidian" design to 2026 Spatial UI with dynamic effects
+**Depends on**: Phase 9
+**Requirements**: None (enhancement, not new requirements)
+**Success Criteria** (what must be TRUE):
+  1. User sees mesh gradient background with subtle movement
+  2. User sees Bento-style asymmetric layout for Features section
+  3. User sees angle glow borders on glass cards
+  4. User experiences micro-interactions on buttons (haptic feedback)
+  5. User sees "Deep Space & Aurora" palette (Champagne Platinum, Deep Plum accents)
+**Plans**: TBD
 
 ---
 
@@ -286,7 +301,8 @@ v1.1: Phases 9-13 (phases 10 and 12 can run in parallel after phase 9)
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 9. Landing Page | 0/4 | Ready | — |
+| 9. Landing Page | 4/4 | Complete | 2026-02-01 |
+| 9.1 Spatial UI Upgrade | 0/? | Not Started | — |
 | 10. Documentation Portal | 0/? | Not Started | — |
 | 11. Specifications Viewer | 0/? | Not Started | — |
 | 12. Blog Section | 0/? | Not Started | — |
