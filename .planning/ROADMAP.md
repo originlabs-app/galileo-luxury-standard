@@ -245,7 +245,14 @@ Plans:
   5. User can read Token documentation (ERC-3643 extension, compliance modules)
   6. User can read Compliance guides (GDPR, MiCA, ESPR)
   7. User sees code blocks with syntax highlighting (JetBrains Mono)
-**Plans**: TBD
+**Plans**: 5 plans in 3 waves
+
+Plans:
+- [ ] 10-01-PLAN.md — Infrastructure: Docs layout, sidebar component, navigation config, prose styles
+- [ ] 10-02-PLAN.md — Getting Started: Introduction, Quick Start, Core Concepts pages
+- [ ] 10-03-PLAN.md — Architecture & Identity: Hybrid model, DID method, ONCHAINID, VCs
+- [ ] 10-04-PLAN.md — Token & Compliance: ERC-3643, ownership transfer, GDPR/MiCA/ESPR guides
+- [ ] 10-05-PLAN.md — Verification: Full requirements checklist, prose styling audit
 
 ---
 
