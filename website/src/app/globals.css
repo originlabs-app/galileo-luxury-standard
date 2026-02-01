@@ -684,3 +684,145 @@ code, pre {
     --section-padding: 3rem;
   }
 }
+
+/* ============================================
+   BLOG PROSE ENHANCEMENTS
+   Visually distinct from documentation
+   ============================================ */
+
+.prose-blog {
+  max-width: 70ch;
+}
+
+/* Gold list markers for blog */
+.prose-blog ul li::marker,
+.prose-blog ol li::marker {
+  color: var(--antique-gold);
+}
+
+/* H2 with subtle gold underline */
+.prose-blog h2 {
+  position: relative;
+  padding-bottom: 0.75rem;
+  border-bottom: none;
+}
+
+.prose-blog h2::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 60px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--antique-gold), transparent);
+}
+
+/* Strong text in gold */
+.prose-blog strong {
+  color: var(--antique-gold);
+}
+
+/* Blockquotes with Cormorant font and gold border */
+.prose-blog blockquote {
+  font-family: var(--font-serif);
+  font-size: 1.125rem;
+  font-style: italic;
+  border-left: 3px solid var(--antique-gold);
+  padding-left: 1.5rem;
+  margin: 2rem 0;
+  color: var(--platinum);
+  background: rgba(212, 175, 55, 0.03);
+  padding: 1.5rem;
+  padding-left: 1.5rem;
+  border-radius: 0 8px 8px 0;
+}
+
+.prose-blog blockquote p {
+  margin: 0;
+  color: var(--platinum);
+}
+
+/* HR with gradient separator */
+.prose-blog hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--antique-gold) 20%,
+    var(--antique-gold) 80%,
+    transparent
+  );
+  margin: 3rem 0;
+  opacity: 0.5;
+}
+
+/* Blog callout boxes with gold accent */
+.prose-blog .callout {
+  background: rgba(212, 175, 55, 0.05);
+  border-left: 4px solid var(--antique-gold);
+  padding: 1.25rem 1.5rem;
+  border-radius: 0 8px 8px 0;
+  margin: 2rem 0;
+}
+
+.prose-blog .callout p {
+  margin: 0;
+  color: var(--platinum);
+}
+
+/* Code blocks in blog - slightly warmer */
+.prose-blog pre {
+  background: var(--obsidian-elevated);
+  border: 1px solid rgba(212, 175, 55, 0.1);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+}
+
+/* Inline code in blog */
+.prose-blog code:not(pre code) {
+  background: rgba(212, 175, 55, 0.1);
+  color: var(--antique-gold);
+  padding: 0.2em 0.5em;
+  border-radius: 4px;
+  font-size: 0.875em;
+}
+
+/* Links in blog - gold hover */
+.prose-blog a {
+  color: var(--precision-blue);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+  border-bottom: 1px solid transparent;
+}
+
+.prose-blog a:hover {
+  color: var(--antique-gold);
+  border-bottom-color: var(--antique-gold);
+  text-decoration: none;
+}
+
+/* Tables in blog */
+.prose-blog table {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(212, 175, 55, 0.15);
+}
+
+.prose-blog th {
+  background: rgba(212, 175, 55, 0.08);
+  color: var(--antique-gold);
+  font-weight: 600;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+}
+
+.prose-blog td {
+  border-color: rgba(229, 229, 229, 0.05);
+}
+
+/* First paragraph emphasis */
+.prose-blog > p:first-of-type {
+  font-size: 1.125rem;
+  line-height: 1.8;
+  color: var(--platinum);
+}

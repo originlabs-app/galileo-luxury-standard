@@ -53,16 +53,17 @@ export async function generateMetadata({
 
 /**
  * MDX components for custom rendering
+ * Blog-specific styling: gold accents, Cormorant blockquotes, gradient HR
  */
 const mdxComponents = {
-  // Custom heading styles
+  // Custom heading styles with gold underline accent
   h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
     <h1 {...props} className="text-3xl font-bold text-[var(--platinum)] mb-6" />
   ),
   h2: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
     <h2
       {...props}
-      className="text-2xl font-semibold text-[var(--platinum)] mt-10 mb-4 pb-2 border-b border-[rgba(229,229,229,0.1)]"
+      className="relative text-2xl font-semibold text-[var(--platinum)] mt-10 mb-4 pb-3 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-16 after:h-0.5 after:bg-gradient-to-r after:from-[var(--antique-gold)] after:to-transparent"
     />
   ),
   h3: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
@@ -71,18 +72,18 @@ const mdxComponents = {
       className="text-xl font-semibold text-[var(--platinum)] mt-8 mb-3"
     />
   ),
-  // Links
+  // Links with gold hover and bottom border
   a: (props: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
     <a
       {...props}
-      className="text-[var(--precision-blue)] hover:text-[var(--antique-gold)] transition-colors underline"
+      className="text-[var(--precision-blue)] hover:text-[var(--antique-gold)] transition-colors border-b border-transparent hover:border-[var(--antique-gold)]"
     />
   ),
-  // Code blocks
+  // Code blocks with warm gold border
   pre: (props: React.HTMLAttributes<HTMLPreElement>) => (
     <pre
       {...props}
-      className="bg-[var(--obsidian-elevated)] border border-[rgba(229,229,229,0.08)] rounded-lg p-4 overflow-x-auto my-6"
+      className="bg-[var(--obsidian-elevated)] border border-[rgba(212,175,55,0.1)] rounded-xl p-5 overflow-x-auto my-6"
     />
   ),
   code: (props: React.HTMLAttributes<HTMLElement>) => {
@@ -94,37 +95,44 @@ const mdxComponents = {
     return (
       <code
         {...props}
-        className="bg-[var(--obsidian-elevated)] px-1.5 py-0.5 rounded text-sm font-mono text-[var(--precision-blue)]"
+        className="bg-[rgba(212,175,55,0.1)] px-2 py-0.5 rounded text-sm font-mono text-[var(--antique-gold)]"
       />
     );
   },
-  // Lists
+  // Lists with gold markers
   ul: (props: React.HTMLAttributes<HTMLUListElement>) => (
-    <ul {...props} className="list-disc list-inside my-4 space-y-2 text-[var(--platinum-dim)]" />
+    <ul {...props} className="list-disc my-4 space-y-2 text-[var(--platinum-dim)] pl-5 marker:text-[var(--antique-gold)]" />
   ),
   ol: (props: React.HTMLAttributes<HTMLOListElement>) => (
-    <ol {...props} className="list-decimal list-inside my-4 space-y-2 text-[var(--platinum-dim)]" />
+    <ol {...props} className="list-decimal my-4 space-y-2 text-[var(--platinum-dim)] pl-5 marker:text-[var(--antique-gold)]" />
   ),
   li: (props: React.LiHTMLAttributes<HTMLLIElement>) => (
-    <li {...props} className="leading-relaxed" />
+    <li {...props} className="leading-relaxed pl-1" />
   ),
-  // Blockquote
+  // Blockquote with Cormorant font and gold accent
   blockquote: (props: React.BlockquoteHTMLAttributes<HTMLQuoteElement>) => (
     <blockquote
       {...props}
-      className="border-l-4 border-[var(--antique-gold)] pl-4 my-6 italic text-[var(--platinum-dim)]"
+      className="border-l-4 border-[var(--antique-gold)] pl-6 pr-6 py-4 my-8 bg-[rgba(212,175,55,0.03)] rounded-r-lg font-serif text-lg italic text-[var(--platinum)]"
     />
   ),
   // Paragraph
   p: (props: React.HTMLAttributes<HTMLParagraphElement>) => (
     <p {...props} className="my-4 leading-relaxed text-[var(--platinum-dim)]" />
   ),
-  // Strong
+  // Strong text in gold
   strong: (props: React.HTMLAttributes<HTMLElement>) => (
-    <strong {...props} className="font-semibold text-[var(--platinum)]" />
+    <strong {...props} className="font-semibold text-[var(--antique-gold)]" />
   ),
-  // Horizontal rule
-  hr: () => <hr className="my-8 border-t border-[rgba(229,229,229,0.1)]" />,
+  // Horizontal rule with gold gradient
+  hr: () => (
+    <hr
+      className="my-10 border-0 h-px opacity-50"
+      style={{
+        background: 'linear-gradient(90deg, transparent, var(--antique-gold) 20%, var(--antique-gold) 80%, transparent)'
+      }}
+    />
+  ),
 };
 
 /**
