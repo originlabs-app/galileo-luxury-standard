@@ -296,10 +296,16 @@ Plans:
 **Depends on**: Phases 9, 10, 11, 12
 **Requirements**: DEPLOY-01, DEPLOY-02, DEPLOY-03
 **Success Criteria** (what must be TRUE):
-  1. Site is deployed to production (Vercel or GitHub Pages) with HTTPS
+  1. Site is deployed to production (Vercel) with HTTPS
   2. Site has proper meta tags (title, description, Open Graph, Twitter cards)
   3. Site passes Lighthouse performance audit (>90 on all categories)
-**Plans**: TBD
+**Plans**: 4 plans in 3 waves
+
+Plans:
+- [ ] 13-01-PLAN.md — Metadata & SEO: metadataBase, OG image, robots.ts, sitemap.ts, next.config
+- [ ] 13-02-PLAN.md — CI/CD Pipeline: GitHub Actions for TypeScript/ESLint and Lighthouse CI
+- [ ] 13-03-PLAN.md — Domain & Performance: Replace galileo.luxury with galileoprotocol.io, image optimization
+- [ ] 13-04-PLAN.md — Deployment: Vercel CLI deploy, DNS configuration, production verification
 
 ---
 
@@ -331,7 +337,7 @@ v1.1: Phases 9-13 (phases 10 and 12 can run in parallel after phase 9)
 | 10. Documentation Portal | 5/5 | Complete | 2026-02-01 |
 | 11. Specifications Viewer | 3/3 | Complete | 2026-02-01 |
 | 12. Blog Section | 3/3 | Complete | 2026-02-01 |
-| 13. Production Deployment | 0/? | Not Started | — |
+| 13. Production Deployment | 0/4 | Planned | — |
 
 ## Dependency Graph
 
@@ -415,4 +421,4 @@ Phase 11 (Specs)      |
 ---
 *Roadmap created: 2026-01-30*
 *v1.1 phases added: 2026-02-01*
-*Phase 9 planned: 2026-02-01*
+*Phase 13 planned: 2026-02-01*
