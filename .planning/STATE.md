@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-01)
 ## Current Position
 
 Phase: 10 of 13 (Documentation Portal)
-Plan: 02/04 complete
+Plan: 03/04 complete
 Status: Phase 10 in progress
-Last activity: 2026-02-01 — Completed 10-02-PLAN.md (Getting Started)
+Last activity: 2026-02-01 — Completed 10-03-PLAN.md (Architecture & Identity)
 
-Progress: [████████████████░░░░░░░░░░░░░░░░] 50% of Phase 10 plans (2/4)
+Progress: [████████████████████████░░░░░░░░] 75% of Phase 10 plans (3/4)
 
 ## Milestone Context
 
@@ -115,6 +115,20 @@ Progress: [████████████████░░░░░░░
 - `website/src/app/docs/quick-start/page.tsx` — Quick start guide with code examples
 - `website/src/app/docs/concepts/page.tsx` — Core concepts glossary
 
+**Plan 03 Complete (Architecture & Identity):**
+- Architecture page at /docs/architecture with three-layer model ASCII diagram
+- Identity overview at /docs/identity with product/participant identity
+- DID Method specification at /docs/identity/did-method
+- ONCHAINID integration at /docs/identity/onchainid with claim topics
+- Verifiable Credentials at /docs/identity/verifiable-credentials
+
+**Files created:**
+- `website/src/app/docs/architecture/page.tsx` — Hybrid architecture overview
+- `website/src/app/docs/identity/page.tsx` — Identity system overview
+- `website/src/app/docs/identity/did-method/page.tsx` — DID method specification
+- `website/src/app/docs/identity/onchainid/page.tsx` — ONCHAINID integration
+- `website/src/app/docs/identity/verifiable-credentials/page.tsx` — Verifiable Credentials
+
 ### Pending Todos
 
 - [ ] Shiki: Personnaliser github-dark avec couleurs Platinum/Gold (defer v1.2)
@@ -125,6 +139,6 @@ Progress: [████████████████░░░░░░░
 None.
 
 ---
-*State updated: 2026-02-01T13:35:00Z*
+*State updated: 2026-02-01T12:33:31Z*
 *Milestone: v1.1 Website & Documentation Portal*
-*Phase 10 (Documentation Portal) in progress — Plan 02/04 complete*
+*Phase 10 (Documentation Portal) in progress — Plan 03/04 complete*
