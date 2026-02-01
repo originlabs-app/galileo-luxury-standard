@@ -27,7 +27,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 9: Landing Page** - Complete home page with all sections and navigation
 - [x] **Phase 9.1: Spatial UI Upgrade** - INSERTED: Mesh gradients, Bento layout, Angle Glow borders
-- [ ] **Phase 10: Documentation Portal** - MDX-powered docs with sidebar navigation
+- [x] **Phase 10: Documentation Portal** - MDX-powered docs with sidebar navigation
 - [ ] **Phase 11: Specifications Viewer** - Browse specifications by category with status badges
 - [ ] **Phase 12: Blog Section** - Blog listing and post pages with v1.0.0 announcement
 - [ ] **Phase 13: Production Deployment** - Deploy optimized site with meta tags and performance
@@ -248,11 +248,11 @@ Plans:
 **Plans**: 5 plans in 3 waves
 
 Plans:
-- [ ] 10-01-PLAN.md — Infrastructure: Docs layout, sidebar component, navigation config, prose styles
-- [ ] 10-02-PLAN.md — Getting Started: Introduction, Quick Start, Core Concepts pages
-- [ ] 10-03-PLAN.md — Architecture & Identity: Hybrid model, DID method, ONCHAINID, VCs
-- [ ] 10-04-PLAN.md — Token & Compliance: ERC-3643, ownership transfer, GDPR/MiCA/ESPR guides
-- [ ] 10-05-PLAN.md — Verification: Full requirements checklist, prose styling audit
+- [x] 10-01-PLAN.md — Infrastructure: Docs layout, sidebar component, navigation config, prose styles
+- [x] 10-02-PLAN.md — Getting Started: Introduction, Quick Start, Core Concepts pages
+- [x] 10-03-PLAN.md — Architecture & Identity: Hybrid model, DID method, ONCHAINID, VCs
+- [x] 10-04-PLAN.md — Token & Compliance: ERC-3643, ownership transfer, GDPR/MiCA/ESPR guides
+- [x] 10-05-PLAN.md — Verification: Full requirements checklist, prose styling audit
 
 ---
 
@@ -317,8 +317,8 @@ v1.1: Phases 9-13 (phases 10 and 12 can run in parallel after phase 9)
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 9. Landing Page | 4/4 | Complete | 2026-02-01 |
-| 9.1 Spatial UI Upgrade | 0/? | Not Started | — |
-| 10. Documentation Portal | 0/? | Not Started | — |
+| 9.1 Spatial UI Upgrade | 4/4 | Complete | 2026-02-01 |
+| 10. Documentation Portal | 5/5 | Complete | 2026-02-01 |
 | 11. Specifications Viewer | 0/? | Not Started | — |
 | 12. Blog Section | 0/? | Not Started | — |
 | 13. Production Deployment | 0/? | Not Started | — |
