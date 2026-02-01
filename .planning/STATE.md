@@ -60,6 +60,11 @@ Progress: [░░░░░░░░░░░░░░░░░░░░░░░
 | Next.js 14 over Docusaurus | Better control over design system, native MDX support | Implemented |
 | "Obsidian Precision" design | Luxury aesthetic matching brand positioning | Implemented |
 | Static generation | Fast, secure, easy to deploy (no server) | Pending |
+| MDX consumes /specifications/ | Single Source of Truth — docs never desync from specs | Pending |
+| Unified Docs/Specs navigation | Same sidebar, same design system for fluid UX | Pending |
+| Features with real code | Show JSON-LD/Solidity excerpts as proof of standard | Pending |
+| Fuse.js local search | Lightweight search for specs viewer (no Algolia dependency) | Pending |
+| Premium OG images | Core Web Vitals + OpenGraph for luxury LinkedIn/Twitter sharing | Pending |
 
 ### Pending Todos
 
