@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-01)
 
 ## Current Position
 
-Phase: 9.1 of 13 (Spatial UI Upgrade) — Complete
-Plan: 04/04 complete (all plans in phase 9.1 done)
-Status: Phase 9.1 complete — Ready for Phase 10 (Documentation Portal)
-Last activity: 2026-02-01 — Spatial UI upgrade verified and approved
+Phase: 10 of 13 (Documentation Portal)
+Plan: 01/04 complete
+Status: Phase 10 in progress
+Last activity: 2026-02-01 — Completed 10-01-PLAN.md (Docs Infrastructure)
 
-Progress: [████████████████████████████████] 100% of Phase 9.1 plans (4/4)
+Progress: [████████░░░░░░░░░░░░░░░░░░░░░░░░] 25% of Phase 10 plans (1/4)
 
 ## Milestone Context
 
@@ -89,6 +89,22 @@ Progress: [███████████████████████
 - Micro-haptic button feedback (scale 0.98)
 - Full prefers-reduced-motion support
 
+### Phase 10 Progress (Documentation Portal)
+
+**Plan 01 Complete (Docs Infrastructure):**
+- Navigation configuration with 5 sections (Getting Started, Architecture, Identity, Token, Compliance)
+- DocsSidebar component with collapsible sections, active page highlighting
+- Docs layout with sidebar (w-64) + content (max-w-3xl)
+- Prose styling for documentation typography
+- /docs route with placeholder content
+
+**Files created:**
+- `website/src/lib/docs-navigation.ts` — Navigation structure
+- `website/src/components/docs/DocsSidebar.tsx` — Sidebar component
+- `website/src/app/docs/layout.tsx` — Docs layout
+- `website/src/app/docs/page.tsx` — Docs index page
+- `website/src/app/globals.css` — Added prose styling (174 lines)
+
 ### Pending Todos
 
 - [ ] Shiki: Personnaliser github-dark avec couleurs Platinum/Gold (defer v1.2)
@@ -99,6 +115,6 @@ Progress: [███████████████████████
 None.
 
 ---
-*State updated: 2026-02-01T14:30:00Z*
+*State updated: 2026-02-01T12:27:22Z*
 *Milestone: v1.1 Website & Documentation Portal*
-*Phase 9.1 (Spatial UI Upgrade) complete — Next: Phase 10 (Documentation Portal)*
+*Phase 10 (Documentation Portal) in progress — Plan 01/04 complete*
