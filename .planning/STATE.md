@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-01)
 ## Current Position
 
 Phase: 10 of 13 (Documentation Portal)
-Plan: 01/04 complete
+Plan: 02/04 complete
 Status: Phase 10 in progress
-Last activity: 2026-02-01 — Completed 10-01-PLAN.md (Docs Infrastructure)
+Last activity: 2026-02-01 — Completed 10-02-PLAN.md (Getting Started)
 
-Progress: [████████░░░░░░░░░░░░░░░░░░░░░░░░] 25% of Phase 10 plans (1/4)
+Progress: [████████████████░░░░░░░░░░░░░░░░] 50% of Phase 10 plans (2/4)
 
 ## Milestone Context
 
@@ -105,6 +105,16 @@ Progress: [████████░░░░░░░░░░░░░░░
 - `website/src/app/docs/page.tsx` — Docs index page
 - `website/src/app/globals.css` — Added prose styling (174 lines)
 
+**Plan 02 Complete (Getting Started):**
+- Introduction page at /docs with Why/Principles/What/Who/Next sections
+- Quick Start guide at /docs/quick-start with 5-minute tutorial
+- Core Concepts glossary at /docs/concepts with 15 key terms
+
+**Files created/modified:**
+- `website/src/app/docs/page.tsx` — Comprehensive introduction (replaced placeholder)
+- `website/src/app/docs/quick-start/page.tsx` — Quick start guide with code examples
+- `website/src/app/docs/concepts/page.tsx` — Core concepts glossary
+
 ### Pending Todos
 
 - [ ] Shiki: Personnaliser github-dark avec couleurs Platinum/Gold (defer v1.2)
@@ -115,6 +125,6 @@ Progress: [████████░░░░░░░░░░░░░░░
 None.
 
 ---
-*State updated: 2026-02-01T12:27:22Z*
+*State updated: 2026-02-01T13:35:00Z*
 *Milestone: v1.1 Website & Documentation Portal*
-*Phase 10 (Documentation Portal) in progress — Plan 01/04 complete*
+*Phase 10 (Documentation Portal) in progress — Plan 02/04 complete*
