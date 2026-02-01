@@ -32,8 +32,28 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Galileo Luxury Standard',
-  description: 'The open standard for luxury product authenticity and compliance.',
+  metadataBase: new URL('https://galileoprotocol.io'),
+  title: {
+    default: 'Galileo Protocol',
+    template: '%s | Galileo Protocol',
+  },
+  description: 'Open standard for luxury product authentication and provenance',
+  openGraph: {
+    title: 'Galileo Protocol',
+    description: 'Open standard for luxury product authentication and provenance',
+    url: 'https://galileoprotocol.io',
+    siteName: 'Galileo Protocol',
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Galileo Protocol',
+    description: 'Open standard for luxury product authentication and provenance',
+  },
+  alternates: {
+    canonical: '/',
+  },
 };
 
 export default function RootLayout({
