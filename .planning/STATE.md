@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-01)
 ## Current Position
 
 Phase: 9 of 13 (Landing Page) — In progress
-Plan: 03 complete
-Status: Completed 09-03-PLAN.md (Standards and Regulatory sections)
-Last activity: 2026-02-01 — Completed plan 09-03 (Standards.tsx, Regulatory.tsx)
+Plan: 02, 03 complete
+Status: Completed 09-02-PLAN.md (Architecture and Features sections)
+Last activity: 2026-02-01 — Completed plan 09-02 (Architecture.tsx, Features.tsx)
 
 Progress: [█████████████████████████████░░░] 93%
 
@@ -39,6 +39,8 @@ Progress: [███████████████████████
 - `website/src/components/layout/Navigation.tsx` — Header component
 - `website/src/components/sections/Hero.tsx` — Hero section
 - `website/src/components/sections/ValueProposition.tsx` — Value cards
+- `website/src/components/sections/Architecture.tsx` — SVG hybrid architecture diagram
+- `website/src/components/sections/Features.tsx` — Code examples with shiki highlighting
 - `website/src/components/sections/Standards.tsx` — Standards compliance grid (6 standards)
 - `website/src/components/sections/Regulatory.tsx` — Regulatory timeline (GDPR, MiCA, ESPR)
 - `website/src/components/ui/CodeBlock.tsx` — Async server component for syntax highlighting
@@ -65,7 +67,7 @@ Progress: [███████████████████████
 | Static generation | Fast, secure, easy to deploy (no server) | Pending |
 | MDX consumes /specifications/ | Single Source of Truth — docs never desync from specs | Pending |
 | Unified Docs/Specs navigation | Same sidebar, same design system for fluid UX | Pending |
-| Features with real code | Show JSON-LD/Solidity excerpts as proof of standard | In progress (CodeBlock ready) |
+| Features with real code | Show JSON-LD/Solidity excerpts as proof of standard | Implemented |
 | Async Server Component for code | Zero client JS, VS Code-accurate highlighting via shiki | Implemented |
 | Fuse.js local search | Lightweight search for specs viewer (no Algolia dependency) | Pending |
 | Premium OG images | Core Web Vitals + OpenGraph for luxury LinkedIn/Twitter sharing | Pending |
@@ -80,5 +82,5 @@ Progress: [███████████████████████
 None.
 
 ---
-*State updated: 2026-02-01T10:47:36Z*
+*State updated: 2026-02-01T10:48:15Z*
 *Milestone: v1.1 Website & Documentation Portal*
