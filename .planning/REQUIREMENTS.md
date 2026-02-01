@@ -3,9 +3,61 @@
 **Defined:** 2026-01-30
 **Core Value:** Proteger le patrimoine des marques et le savoir-faire humain en etablissant un langage commun interoperable
 
-## v1 Requirements
+---
 
-Requirements pour la specification technique publiable. Chaque requirement correspond a un artefact de documentation.
+## v1.1 Requirements — Website & Documentation Portal
+
+Requirements for the presentation website and documentation portal.
+
+### Landing Page (LAND)
+
+- [ ] **LAND-01**: User sees hero section with tagline, value proposition, and CTAs
+- [ ] **LAND-02**: User sees value proposition cards (Heritage, Precision, Compliance)
+- [ ] **LAND-03**: User sees architecture overview diagram (hybrid on/off-chain)
+- [ ] **LAND-04**: User sees standards compliance table (W3C, ERC-3643, GS1)
+- [ ] **LAND-05**: User sees regulatory readiness section (GDPR, MiCA, ESPR deadlines)
+- [ ] **LAND-06**: User sees CTA section linking to docs and GitHub
+
+### Navigation (NAV)
+
+- [ ] **NAV-01**: User can navigate via fixed header with logo and links
+- [ ] **NAV-02**: User can use mobile hamburger menu on small screens
+- [ ] **NAV-03**: User sees footer with navigation links, GitHub, and legal
+
+### Documentation (DOCS)
+
+- [ ] **DOCS-01**: User can browse documentation with sidebar navigation
+- [ ] **DOCS-02**: User can read Getting Started guide
+- [ ] **DOCS-03**: User can read Architecture overview with diagrams
+- [ ] **DOCS-04**: User can read Identity (DID method) documentation
+- [ ] **DOCS-05**: User can read Token (ERC-3643) documentation
+- [ ] **DOCS-06**: User can read Compliance guides (GDPR, MiCA, ESPR)
+- [ ] **DOCS-07**: User sees code blocks with syntax highlighting
+
+### Specifications Viewer (SPEC)
+
+- [ ] **SPEC-01**: User can browse specifications by category
+- [ ] **SPEC-02**: User sees status badges (Standard, Active, Draft)
+- [ ] **SPEC-03**: User can view specification details with metadata
+- [ ] **SPEC-04**: User can access JSON schema files directly
+
+### Blog (BLOG)
+
+- [ ] **BLOG-01**: User can view blog post listing with metadata
+- [ ] **BLOG-02**: User can read individual blog posts
+- [ ] **BLOG-03**: User sees v1.0.0 release announcement post
+
+### Deployment (DEPLOY)
+
+- [ ] **DEPLOY-01**: Site is deployed to production (Vercel or GitHub Pages)
+- [ ] **DEPLOY-02**: Site has proper meta tags and Open Graph images
+- [ ] **DEPLOY-03**: Site passes Lighthouse performance audit (>90)
+
+---
+
+## v1.0.0 Requirements (Complete)
+
+All 38 requirements shipped in v1.0.0. Archived for reference.
 
 ### Foundation (FOUND)
 
@@ -154,11 +206,29 @@ Quel phase couvre quel requirement. Mis a jour lors de la creation du roadmap.
 | COMPL-02 | Phase 8 | Complete |
 | COMPL-03 | Phase 8 | Complete |
 
-**Coverage:**
-- v1 requirements: 38 total
+**Coverage (v1.0.0):**
+- v1.0.0 requirements: 38 total
 - Mapped to phases: 38
+- Status: ALL COMPLETE
+
+---
+
+## v1.1 Traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| LAND-01..06 | Phase 9 | Pending |
+| NAV-01..03 | Phase 9 | Pending |
+| DOCS-01..07 | Phase 10 | Pending |
+| SPEC-01..04 | Phase 11 | Pending |
+| BLOG-01..03 | Phase 12 | Pending |
+| DEPLOY-01..03 | Phase 13 | Pending |
+
+**Coverage (v1.1):**
+- v1.1 requirements: 22 total
+- Mapped to phases: 22
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-01-30*
-*Last updated: 2026-02-01 (ALL REQUIREMENTS COMPLETE)*
+*v1.1 requirements added: 2026-02-01*
