@@ -200,7 +200,13 @@ Plans:
   5. User sees regulatory readiness section with GDPR/MiCA/ESPR deadlines
   6. User can navigate via fixed header on desktop and hamburger menu on mobile
   7. User sees footer with links to GitHub, docs, governance, and legal
-**Plans**: TBD
+**Plans**: 4 plans in 3 waves
+
+Plans:
+- [ ] 09-01-PLAN.md — Foundation: Install shiki + lucide-react, create CodeBlock component
+- [ ] 09-02-PLAN.md — Architecture & Features: SVG diagram, JSON-LD + Solidity code examples
+- [ ] 09-03-PLAN.md — Standards & Regulatory: Compliance table, regulatory deadlines section
+- [ ] 09-04-PLAN.md — Footer & Integration: Footer component, compose page.tsx, visual verification
 
 ---
 
@@ -280,7 +286,7 @@ v1.1: Phases 9-13 (phases 10 and 12 can run in parallel after phase 9)
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 9. Landing Page | 0/? | Not Started | — |
+| 9. Landing Page | 0/4 | Ready | — |
 | 10. Documentation Portal | 0/? | Not Started | — |
 | 11. Specifications Viewer | 0/? | Not Started | — |
 | 12. Blog Section | 0/? | Not Started | — |
@@ -368,3 +374,4 @@ Phase 11 (Specs)      |
 ---
 *Roadmap created: 2026-01-30*
 *v1.1 phases added: 2026-02-01*
+*Phase 9 planned: 2026-02-01*
