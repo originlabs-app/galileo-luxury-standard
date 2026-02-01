@@ -78,7 +78,7 @@ GTIN-14: 01234567890123 (no padding)`}</code></pre>
       <h3>Read (Resolve)</h3>
       <p>
         Anyone can resolve a DID to its document. The resolver returns different
-        views based on the requester's role.
+        views based on the requester&apos;s role.
       </p>
 
       <h3>Update</h3>

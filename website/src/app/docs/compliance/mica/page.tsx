@@ -25,7 +25,7 @@ export default function MiCAGuidePage() {
 
       <h2>Whitepaper Requirements</h2>
       <p>
-        MiCA requires a whitepaper for crypto-asset offerings. Galileo's DPP
+        MiCA requires a whitepaper for crypto-asset offerings. Galileo&apos;s DPP
         satisfies this requirement:
       </p>
       <ul>

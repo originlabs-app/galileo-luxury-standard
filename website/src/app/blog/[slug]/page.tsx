@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import { getAllPostSlugs, getPostBySlug, formatDate } from '@/lib/blog';
-import { Calendar, User, Tag, ArrowLeft } from 'lucide-react';
+import { Calendar, User, ArrowLeft } from 'lucide-react';
 
 /**
  * Generate static params for all blog posts

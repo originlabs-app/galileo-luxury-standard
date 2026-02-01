@@ -9,8 +9,8 @@ export default function IdentityPage() {
       <h1>Identity System</h1>
 
       <p>
-        Galileo's identity layer enables decentralized, verifiable identification
-        of both products and participants. It's built on W3C standards and
+        Galileo&apos;s identity layer enables decentralized, verifiable identification
+        of both products and participants. It&apos;s built on W3C standards and
         integrates with ERC-3643 for compliant token transfers.
       </p>
 

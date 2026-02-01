@@ -76,7 +76,7 @@ export default function OnchainIDPage() {
       <h2>Transfer Verification Flow</h2>
       <ol>
         <li>Token transfer initiated</li>
-        <li>Compliance module queries receiver's ONCHAINID</li>
+        <li>Compliance module queries receiver&apos;s ONCHAINID</li>
         <li>Required claim topics checked (KYC, COUNTRY, etc.)</li>
         <li>Issuer validity verified against TrustedIssuersRegistry</li>
         <li>Transfer approved or rejected</li>

@@ -68,7 +68,7 @@ export default function CompliancePage() {
       <h2>ESPR Compliance</h2>
       <p>
         The Ecodesign for Sustainable Products Regulation mandates Digital Product
-        Passports. Galileo's DPP schema is designed for ESPR:
+        Passports. Galileo&apos;s DPP schema is designed for ESPR:
       </p>
       <ul>
         <li><strong>Mandatory Fields</strong> — All ESPR-required attributes included</li>

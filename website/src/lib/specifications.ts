@@ -248,8 +248,6 @@ function parseJSONMetadata(content: string, filename: string): SpecMetadata {
                   json.name ||
                   formatFilenameAsTitle(filename);
 
-    const description = json.description || '';
-
     // Extract version from $id or use default
     const versionMatch = json.$id?.match(/\/v(\d+\.\d+\.\d+)\//);
     const version = versionMatch ? versionMatch[1] : '1.0.0';

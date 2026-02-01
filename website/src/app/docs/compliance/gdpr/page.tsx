@@ -15,14 +15,14 @@ export default function GDPRGuidePage() {
 
       <h2>The Challenge</h2>
       <p>
-        GDPR Article 17 grants data subjects the "right to erasure" (right to be forgotten).
-        This conflicts with blockchain's immutability. Galileo solves this through
+        GDPR Article 17 grants data subjects the &quot;right to erasure&quot; (right to be forgotten).
+        This conflicts with blockchain&apos;s immutability. Galileo solves this through
         architectural separation.
       </p>
 
       <h2>CRAB Model</h2>
       <p>
-        Galileo's CRAB (Claim-Raw-Access-Blinded) model provides GDPR compliance:
+        Galileo&apos;s CRAB (Claim-Raw-Access-Blinded) model provides GDPR compliance:
       </p>
 
       <h3>C — Claim Hash On-Chain</h3>

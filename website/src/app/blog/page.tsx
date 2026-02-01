@@ -1,6 +1,6 @@
 import { getAllPosts, formatDate } from '@/lib/blog';
 import Link from 'next/link';
-import { Calendar, User, Tag } from 'lucide-react';
+import { Calendar, User } from 'lucide-react';
 
 export const metadata = {
   title: 'Blog | Galileo Luxury Standard',

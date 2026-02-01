@@ -10,7 +10,7 @@ export default function ESPRGuidePage() {
 
       <p>
         The Ecodesign for Sustainable Products Regulation (ESPR) mandates Digital
-        Product Passports for certain product categories starting 2027. Galileo's
+        Product Passports for certain product categories starting 2027. Galileo&apos;s
         DPP schema is designed for full ESPR compliance.
       </p>
 

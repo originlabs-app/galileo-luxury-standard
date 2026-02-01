@@ -96,7 +96,7 @@ export default function ArchitecturePage() {
         When a product is sold:
       </p>
       <ol>
-        <li>Buyer's identity is verified via ONCHAINID claims</li>
+        <li>Buyer&apos;s identity is verified via ONCHAINID claims</li>
         <li>Compliance modules check transfer rules</li>
         <li>Token ownership transfers on-chain</li>
         <li>Sale event recorded off-chain (EPCIS)</li>

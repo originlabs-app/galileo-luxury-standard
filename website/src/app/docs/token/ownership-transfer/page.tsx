@@ -115,7 +115,7 @@ event RecoveryCompleted(
         <li>Transfer event indexed by event listener</li>
         <li>EPCIS TransactionEvent created</li>
         <li>DPP owner reference updated</li>
-        <li>Previous owner's access revoked (configurable)</li>
+        <li>Previous owner&apos;s access revoked (configurable)</li>
       </ol>
 
       <h2>Error Codes</h2>

@@ -18,7 +18,7 @@ export default function DocsIntroduction() {
         The luxury industry faces unprecedented challenges: counterfeiting costs brands
         billions annually, new regulations like ESPR mandate Digital Product Passports,
         and consumers demand transparency. Existing solutions are proprietary silos that
-        don't interoperate.
+        don&apos;t interoperate.
       </p>
       <p>
         Galileo solves this by providing a neutral, open standard that any brand can adopt.
@@ -45,7 +45,7 @@ export default function DocsIntroduction() {
         </li>
       </ul>
 
-      <h2>What's in the Standard?</h2>
+      <h2>What&apos;s in the Standard?</h2>
       <p>
         Galileo v1.0.0 includes 38 specifications covering:
       </p>

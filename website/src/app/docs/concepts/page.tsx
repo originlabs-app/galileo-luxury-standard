@@ -17,7 +17,7 @@ export default function ConceptsPage() {
 
       <h3>DID (Decentralized Identifier)</h3>
       <p>
-        A globally unique identifier that doesn't require a central registry.
+        A globally unique identifier that doesn&apos;t require a central registry.
         Galileo uses the <code>did:galileo</code> method based on W3C DID Core.
       </p>
 
@@ -49,7 +49,7 @@ export default function ConceptsPage() {
 
       <h3>Single-Supply Pattern</h3>
       <p>
-        Galileo's approach where each physical product is represented by exactly one
+        Galileo&apos;s approach where each physical product is represented by exactly one
         token deployment with a supply of 1. This ensures 1:1 correspondence.
       </p>
 
@@ -63,7 +63,7 @@ export default function ConceptsPage() {
 
       <h3>Digital Product Passport (DPP)</h3>
       <p>
-        A comprehensive data record containing a product's attributes, provenance,
+        A comprehensive data record containing a product&apos;s attributes, provenance,
         sustainability data, and compliance declarations. Required by ESPR 2027.
       </p>
 
@@ -75,7 +75,7 @@ export default function ConceptsPage() {
 
       <h3>EPCIS Event</h3>
       <p>
-        A standardized record of "what, where, when, why" for supply chain events.
+        A standardized record of &quot;what, where, when, why&quot; for supply chain events.
         Galileo uses EPCIS 2.0 for lifecycle tracking.
       </p>
 
@@ -89,7 +89,7 @@ export default function ConceptsPage() {
 
       <h3>Context-Aware Resolution</h3>
       <p>
-        The resolver returns different data views based on the requester's role
+        The resolver returns different data views based on the requester&apos;s role
         and permissions. Consumers see public data; brands see full history.
       </p>
 
@@ -97,7 +97,7 @@ export default function ConceptsPage() {
       <p>
         <strong>C</strong>laim hash on-chain, <strong>R</strong>aw data off-chain,
         <strong>A</strong>ccess controlled, <strong>B</strong>linded deletion.
-        Galileo's approach to GDPR compliance.
+        Galileo&apos;s approach to GDPR compliance.
       </p>
 
       <h2>Regulatory Terms</h2>
@@ -117,7 +117,7 @@ export default function ConceptsPage() {
       <h3>GDPR</h3>
       <p>
         General Data Protection Regulation. Requires personal data minimization
-        and right to erasure, addressed by Galileo's CRAB model.
+        and right to erasure, addressed by Galileo&apos;s CRAB model.
       </p>
     </>
   );

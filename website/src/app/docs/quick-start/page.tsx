@@ -10,7 +10,7 @@ export default function QuickStartPage() {
 
       <p>
         This guide walks you through the key concepts of Galileo in 5 minutes.
-        By the end, you'll understand how products are identified, tracked, and
+        By the end, you&apos;ll understand how products are identified, tracked, and
         transferred using the standard.
       </p>
 
@@ -21,7 +21,7 @@ export default function QuickStartPage() {
       <pre><code>did:galileo:01:00614141123452:21:ABC123DEF456</code></pre>
       <p>
         This DID encodes the GS1 GTIN (product type) and serial number (individual item).
-        It's globally unique, resolvable, and not controlled by any single party.
+        It&apos;s globally unique, resolvable, and not controlled by any single party.
       </p>
 
       <h2>2. Digital Product Passport</h2>
@@ -62,7 +62,7 @@ export default function QuickStartPage() {
 
       <h2>4. Lifecycle Events</h2>
       <p>
-        Every significant event in a product's life is recorded:
+        Every significant event in a product&apos;s life is recorded:
       </p>
       <ul>
         <li><strong>Creation</strong> — Product manufactured</li>
@@ -79,7 +79,7 @@ export default function QuickStartPage() {
       </p>
       <pre><code>https://id.galileoprotocol.io/01/00614141123452/21/ABC123DEF456</code></pre>
       <p>
-        The resolver returns different views based on who's asking:
+        The resolver returns different views based on who&apos;s asking:
         consumers see authenticity info, brands see full history,
         regulators see compliance data.
       </p>
