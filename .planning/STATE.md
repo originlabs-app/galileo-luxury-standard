@@ -83,6 +83,8 @@ Progress: [███████████████████████
 | Bold markdown metadata parsing | Galileo specs use **Status:** format, not YAML frontmatter | Implemented |
 | Recursive spec directory reading | Support nested folders like schemas/dpp/, schemas/events/ | Implemented |
 | Gold-accent blog styling | Visual distinction from docs: gold markers, serif quotes, gradient HR | Implemented |
+| JSX expression escaping for MDX | Escape `{variable}` patterns in spec content for safe rendering | Implemented |
+| Custom JSON syntax highlighter | Built-in highlighter vs external library for bundle size | Implemented |
 
 ### Phase 9.1 Complete (Spatial UI Upgrade)
 
@@ -114,12 +116,25 @@ Progress: [███████████████████████
 - /specifications layout and landing page with category grid
 - Supports 46 specs across 8 categories (contracts excluded)
 
+**Plan 02 Complete (Content Rendering):**
+- StatusBadge component with color-coded indicators (Standard/Active/Draft)
+- SpecMetadata component showing version, date, spec ID
+- JSONSchemaViewer with syntax highlighting and copy-to-clipboard
+- Spec detail pages for all 46 specifications with MDX rendering
+- Category listing pages for all 8 categories with subcategory grouping
+- JSX expression escaping for safe MDX rendering of spec content
+
 **Files created:**
 - `website/src/lib/specifications.ts` — File system utilities (244 lines)
 - `website/src/lib/specs-navigation.ts` — Navigation builder (94 lines)
 - `website/src/components/specifications/SpecsSidebar.tsx` — Sidebar component (138 lines)
+- `website/src/components/specifications/StatusBadge.tsx` — Color-coded status badges
+- `website/src/components/specifications/SpecMetadata.tsx` — Full metadata display
+- `website/src/components/specifications/JSONSchemaViewer.tsx` — JSON schema viewer
 - `website/src/app/specifications/layout.tsx` — Layout with sidebar (43 lines)
 - `website/src/app/specifications/page.tsx` — Landing page with category grid (163 lines)
+- `website/src/app/specifications/[category]/page.tsx` — Category listing pages
+- `website/src/app/specifications/[category]/[slug]/page.tsx` — Spec detail pages
 
 ### Phase 12 Complete (Blog Section)
 
@@ -152,7 +167,7 @@ Progress: [███████████████████████
 None.
 
 ---
-*State updated: 2026-02-01T15:14:00Z*
+*State updated: 2026-02-01T15:20:00Z*
 *Milestone: v1.1 Website & Documentation Portal*
-*Phase 11 (Specifications Viewer) Complete — Plan 01 complete*
+*Phase 11 (Specifications Viewer) IN PROGRESS — Plan 01-02 complete*
 *Phase 12 (Blog Section) COMPLETE — Plan 01-02 complete*
