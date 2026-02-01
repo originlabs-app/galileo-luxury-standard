@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-01)
 
 ## Current Position
 
-Phase: 12 of 13 (Blog Section)
-Plan: 3/3 complete (including checkpoint)
-Status: Phases 11 & 12 COMPLETE ✓
-Last activity: 2026-02-01 — Phases 11 & 12 checkpoints approved
+Phase: 13 of 13 (Production Deployment)
+Plan: 1/4 complete (13-02)
+Status: Phase 13 IN PROGRESS
+Last activity: 2026-02-01 — Completed 13-02-PLAN.md (CI/CD Pipeline)
 
-Progress: [████████████████████████████████] 100% of Phases 11 & 12
+Progress: [████████░░░░░░░░░░░░░░░░░░░░░░░░] 25% of Phase 13
 
 ## Milestone Context
 
@@ -85,6 +85,9 @@ Progress: [███████████████████████
 | Gold-accent blog styling | Visual distinction from docs: gold markers, serif quotes, gradient HR | Implemented |
 | JSX expression escaping for MDX | Escape `{variable}` patterns in spec content for safe rendering | Implemented |
 | Custom JSON syntax highlighter | Built-in highlighter vs external library for bundle size | Implemented |
+| GitHub Actions CI/CD | TypeScript and ESLint checks on push/PR, Lighthouse on PR | Implemented |
+| Lighthouse >90 budget | Enforce performance, accessibility, best-practices, SEO standards | Implemented |
+| Node 20 LTS for CI | Current long-term support version for stability | Implemented |
 
 ### Phase 9.1 Complete (Spatial UI Upgrade)
 
@@ -157,6 +160,19 @@ Progress: [███████████████████████
 - `website/src/app/blog/[slug]/page.tsx` — Blog post page (269 lines)
 - `website/content/blog/2026-02-01-v1-release.mdx` — v1.0.0 announcement (230 lines)
 
+### Phase 13 Progress (Production Deployment)
+
+**Plan 02 Complete (CI/CD Pipeline):**
+- CI workflow with TypeScript and ESLint checks on push/PR to main
+- Lighthouse CI workflow for PR preview audits (waits for Vercel)
+- Performance budget enforcing >90 scores on all 4 categories
+- Node 20 LTS, npm caching, website/ subdirectory
+
+**Files created:**
+- `.github/workflows/ci.yml` — CI workflow (33 lines)
+- `.github/workflows/lighthouse.yml` — Lighthouse CI workflow (30 lines)
+- `website/lighthouse-budget.json` — Performance budget (12 lines)
+
 ### Pending Todos
 
 - [ ] Shiki: Personnaliser github-dark avec couleurs Platinum/Gold (defer v1.2)
@@ -170,7 +186,7 @@ Progress: [███████████████████████
 None.
 
 ---
-*State updated: 2026-02-01T15:20:00Z*
+*State updated: 2026-02-01T16:37:45Z*
 *Milestone: v1.1 Website & Documentation Portal*
-*Phase 11 (Specifications Viewer) COMPLETE — 3/3 plans (checkpoint approved)*
-*Phase 12 (Blog Section) COMPLETE — 3/3 plans (checkpoint approved)*
+*Phase 13 (Production Deployment) IN PROGRESS — 1/4 plans complete*
+*Next: 13-03 (Sitemap, robots.txt, Analytics) or 13-01/13-04*
