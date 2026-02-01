@@ -2,7 +2,7 @@
 
 ## Overview
 
-This roadmap transforms the Galileo Luxury Standard from concept to publishable specification through 8 phases. Following research guidance (TradeLens failure analysis), governance is established FIRST before any technical work. Phases progress through architectural foundations, data models, identity infrastructure (critical dependency for tokens), token/compliance layer, GS1 resolver integration, infrastructure specifications, and compliance documentation. Every phase delivers concrete, verifiable specification artifacts.
+This roadmap covers both the core specification (v1.0.0, complete) and the presentation website (v1.1, in progress). The website phases (9-13) deliver a professional documentation portal enabling industry adoption and developer onboarding.
 
 ## Phases
 
@@ -12,14 +12,24 @@ This roadmap transforms the Galileo Luxury Standard from concept to publishable 
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [x] **Phase 1: Governance Foundation** - Establish neutral governance before technical work (TradeLens lesson)
-- [x] **Phase 2: Architecture Foundation** - Define hybrid on-chain/off-chain architecture and cryptographic patterns
+### v1.0.0 — Core Specification (Complete)
+
+- [x] **Phase 1: Governance Foundation** - Establish neutral governance before technical work
+- [x] **Phase 2: Architecture Foundation** - Define hybrid on-chain/off-chain architecture
 - [x] **Phase 3: Core Data Models** - Complete ESPR-ready DPP and lifecycle event schemas
-- [x] **Phase 4: Identity Infrastructure** - Enable participant verification via ERC-3643 identity layer
-- [x] **Phase 5: Token & Compliance Layer** - Enable compliant ownership transfer (depends on Phase 4)
+- [x] **Phase 4: Identity Infrastructure** - Enable participant verification via ERC-3643
+- [x] **Phase 5: Token & Compliance Layer** - Enable compliant ownership transfer
 - [x] **Phase 6: GS1 Resolver Integration** - Bridge physical products to digital identities
 - [x] **Phase 7: Infrastructure & Security** - Complete operational infrastructure specifications
 - [x] **Phase 8: Compliance Documentation** - Enable adopters to achieve regulatory compliance
+
+### v1.1 — Website & Documentation Portal (Active)
+
+- [ ] **Phase 9: Landing Page** - Complete home page with all sections and navigation
+- [ ] **Phase 10: Documentation Portal** - MDX-powered docs with sidebar navigation
+- [ ] **Phase 11: Specifications Viewer** - Browse specifications by category with status badges
+- [ ] **Phase 12: Blog Section** - Blog listing and post pages with v1.0.0 announcement
+- [ ] **Phase 13: Production Deployment** - Deploy optimized site with meta tags and performance
 
 ## Phase Details
 
@@ -178,11 +188,82 @@ Plans:
 
 ---
 
+### Phase 9: Landing Page
+**Goal**: Complete home page with hero, value proposition, architecture, standards, regulatory sections, and navigation
+**Depends on**: Nothing (first v1.1 phase, website already scaffolded)
+**Requirements**: LAND-01, LAND-02, LAND-03, LAND-04, LAND-05, LAND-06, NAV-01, NAV-02, NAV-03
+**Success Criteria** (what must be TRUE):
+  1. User sees hero section with tagline and CTAs that clearly communicate the project's purpose
+  2. User sees three value proposition cards (Heritage, Precision, Compliance) with icons
+  3. User sees architecture diagram showing hybrid on/off-chain model
+  4. User sees standards compliance table (W3C, ERC-3643, GS1, EPCIS)
+  5. User sees regulatory readiness section with GDPR/MiCA/ESPR deadlines
+  6. User can navigate via fixed header on desktop and hamburger menu on mobile
+  7. User sees footer with links to GitHub, docs, governance, and legal
+**Plans**: TBD
+
+---
+
+### Phase 10: Documentation Portal
+**Goal**: Create MDX-powered documentation with sidebar navigation covering all key topics
+**Depends on**: Phase 9
+**Requirements**: DOCS-01, DOCS-02, DOCS-03, DOCS-04, DOCS-05, DOCS-06, DOCS-07
+**Success Criteria** (what must be TRUE):
+  1. User can browse documentation via collapsible sidebar navigation
+  2. User can read complete Getting Started guide (installation, first steps)
+  3. User can read Architecture overview with diagrams explaining hybrid model
+  4. User can read Identity documentation (DID method, ONCHAINID, VCs)
+  5. User can read Token documentation (ERC-3643 extension, compliance modules)
+  6. User can read Compliance guides (GDPR, MiCA, ESPR)
+  7. User sees code blocks with syntax highlighting (JetBrains Mono)
+**Plans**: TBD
+
+---
+
+### Phase 11: Specifications Viewer
+**Goal**: Create browsable specification viewer organized by category with status badges
+**Depends on**: Phase 10
+**Requirements**: SPEC-01, SPEC-02, SPEC-03, SPEC-04
+**Success Criteria** (what must be TRUE):
+  1. User can browse specifications by category (Architecture, Identity, Token, Events, etc.)
+  2. User sees status badges (Standard, Active, Draft) for each specification
+  3. User can view specification details with metadata (version, dependencies, compliance)
+  4. User can access JSON schema files directly via links
+**Plans**: TBD
+
+---
+
+### Phase 12: Blog Section
+**Goal**: Create blog listing and post pages with v1.0.0 release announcement
+**Depends on**: Phase 9
+**Requirements**: BLOG-01, BLOG-02, BLOG-03
+**Success Criteria** (what must be TRUE):
+  1. User can view blog post listing with title, date, excerpt, and author
+  2. User can read individual blog posts with full content
+  3. User sees v1.0.0 release announcement post highlighting key features
+**Plans**: TBD
+
+---
+
+### Phase 13: Production Deployment
+**Goal**: Deploy optimized site to production with proper meta tags and performance
+**Depends on**: Phases 9, 10, 11, 12
+**Requirements**: DEPLOY-01, DEPLOY-02, DEPLOY-03
+**Success Criteria** (what must be TRUE):
+  1. Site is deployed to production (Vercel or GitHub Pages) with HTTPS
+  2. Site has proper meta tags (title, description, Open Graph, Twitter cards)
+  3. Site passes Lighthouse performance audit (>90 on all categories)
+**Plans**: TBD
+
+---
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
-Note: Phase 3 and 4 can proceed in parallel after Phase 2 completes (no dependency between them).
+v1.0.0: Phases 1-8 (complete)
+v1.1: Phases 9-13 (phases 10 and 12 can run in parallel after phase 9)
+
+### v1.0.0 Progress (Complete)
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -195,7 +276,19 @@ Note: Phase 3 and 4 can proceed in parallel after Phase 2 completes (no dependen
 | 7. Infrastructure & Security | 2/2 | Complete | 2026-01-31 |
 | 8. Compliance Documentation | 1/1 | Complete | 2026-02-01 |
 
+### v1.1 Progress (Active)
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 9. Landing Page | 0/? | Not Started | — |
+| 10. Documentation Portal | 0/? | Not Started | — |
+| 11. Specifications Viewer | 0/? | Not Started | — |
+| 12. Blog Section | 0/? | Not Started | — |
+| 13. Production Deployment | 0/? | Not Started | — |
+
 ## Dependency Graph
+
+### v1.0.0 (Complete)
 
 ```
 Phase 1 (Governance)
@@ -223,7 +316,28 @@ Phase 3 (Data)    Phase 4 (Identity)
        Phase 8 (Compliance Docs)
 ```
 
+### v1.1 (Active)
+
+```
+       Phase 9 (Landing Page)
+             |
+    +--------+--------+
+    |                 |
+    v                 v
+Phase 10 (Docs)   Phase 12 (Blog)
+    |                 |
+    v                 |
+Phase 11 (Specs)      |
+    |                 |
+    +--------+--------+
+             |
+             v
+       Phase 13 (Deploy)
+```
+
 ## Coverage Summary
+
+### v1.0.0 (38 requirements, complete)
 
 | Category | Requirements | Phase | Count |
 |----------|--------------|-------|-------|
@@ -238,8 +352,19 @@ Phase 3 (Data)    Phase 4 (Identity)
 | Infrastructure (INFRA) | INFRA-02 to INFRA-05 | 7 | 4 |
 | Compliance (COMPL) | COMPL-01 to COMPL-03 | 8 | 3 |
 
-**Total: 38 requirements mapped across 8 phases**
+### v1.1 (22 requirements, active)
+
+| Category | Requirements | Phase | Count |
+|----------|--------------|-------|-------|
+| Landing Page (LAND) | LAND-01 to LAND-06 | 9 | 6 |
+| Navigation (NAV) | NAV-01 to NAV-03 | 9 | 3 |
+| Documentation (DOCS) | DOCS-01 to DOCS-07 | 10 | 7 |
+| Specifications (SPEC) | SPEC-01 to SPEC-04 | 11 | 4 |
+| Blog (BLOG) | BLOG-01 to BLOG-03 | 12 | 3 |
+| Deployment (DEPLOY) | DEPLOY-01 to DEPLOY-03 | 13 | 3 |
+
+**Total: 60 requirements across 13 phases (38 complete + 22 active)**
 
 ---
 *Roadmap created: 2026-01-30*
-*Last updated: 2026-02-01 (ALL PHASES COMPLETE)*
+*v1.1 phases added: 2026-02-01*
