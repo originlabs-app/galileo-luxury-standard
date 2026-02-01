@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-01)
 ## Current Position
 
 Phase: 12 of 13 (Blog Section)
-Plan: 1/2 complete
-Status: In progress
-Last activity: 2026-02-01 — Completed 12-01-PLAN.md (Blog Infrastructure)
+Plan: 2/2 complete
+Status: Phase complete
+Last activity: 2026-02-01 — Completed 12-02-PLAN.md (Blog Content & Styling)
 
-Progress: [████████████████░░░░░░░░░░░░░░░░] 50% of Phase 12 plans (1/2)
+Progress: [████████████████████████████████] 100% of Phase 12 plans (2/2)
 
 ## Milestone Context
 
@@ -82,6 +82,7 @@ Progress: [████████████████░░░░░░░
 | next-mdx-remote RSC | Server component MDX rendering, zero client JS | Implemented |
 | Bold markdown metadata parsing | Galileo specs use **Status:** format, not YAML frontmatter | Implemented |
 | Recursive spec directory reading | Support nested folders like schemas/dpp/, schemas/events/ | Implemented |
+| Gold-accent blog styling | Visual distinction from docs: gold markers, serif quotes, gradient HR | Implemented |
 
 ### Phase 9.1 Complete (Spatial UI Upgrade)
 
@@ -120,7 +121,7 @@ Progress: [████████████████░░░░░░░
 - `website/src/app/specifications/layout.tsx` — Layout with sidebar (43 lines)
 - `website/src/app/specifications/page.tsx` — Landing page with category grid (163 lines)
 
-### Phase 12 Progress (Blog Section)
+### Phase 12 Complete (Blog Section)
 
 **Plan 01 Complete (Blog Infrastructure):**
 - Blog utilities: getAllPosts, getPostBySlug, getAllPostSlugs, formatDate
@@ -129,11 +130,17 @@ Progress: [████████████████░░░░░░░
 - MDXRemote with custom prose components
 - OpenGraph and Twitter metadata generation
 
+**Plan 02 Complete (Blog Content & Styling):**
+- v1.0.0 release announcement post (230 lines)
+- Blog-specific CSS with gold accents
+- MDX components updated with blog styling
+
 **Files created:**
 - `website/content/blog/.gitkeep` — Blog content directory
 - `website/src/lib/blog.ts` — Blog utilities (158 lines)
 - `website/src/app/blog/page.tsx` — Blog listing (115 lines)
-- `website/src/app/blog/[slug]/page.tsx` — Blog post page (224 lines)
+- `website/src/app/blog/[slug]/page.tsx` — Blog post page (269 lines)
+- `website/content/blog/2026-02-01-v1-release.mdx` — v1.0.0 announcement (230 lines)
 
 ### Pending Todos
 
@@ -145,7 +152,7 @@ Progress: [████████████████░░░░░░░
 None.
 
 ---
-*State updated: 2026-02-01T15:08:00Z*
+*State updated: 2026-02-01T15:14:00Z*
 *Milestone: v1.1 Website & Documentation Portal*
-*Phase 11 (Specifications Viewer) IN PROGRESS — Plan 01 complete*
-*Phase 12 (Blog Section) IN PROGRESS — Plan 01 complete, Plan 02 pending*
+*Phase 11 (Specifications Viewer) Complete — Plan 01 complete*
+*Phase 12 (Blog Section) COMPLETE — Plan 01-02 complete*
