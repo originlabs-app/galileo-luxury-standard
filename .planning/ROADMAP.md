@@ -216,12 +216,20 @@ Plans:
 **Depends on**: Phase 9
 **Requirements**: None (enhancement, not new requirements)
 **Success Criteria** (what must be TRUE):
-  1. User sees mesh gradient background with subtle movement
-  2. User sees Bento-style asymmetric layout for Features section
-  3. User sees angle glow borders on glass cards
-  4. User experiences micro-interactions on buttons (haptic feedback)
-  5. User sees "Deep Space & Aurora" palette (Champagne Platinum, Deep Plum accents)
-**Plans**: TBD
+  1. Typography uses Swiss-Luxe stack (Outfit titles, Satoshi body, Cormorant accents)
+  2. User sees mesh gradient "Deep Space" background with subtle depth
+  3. User sees Bento-style asymmetric layout for Features section
+  4. User sees angle glow borders on cards (conic gradient, hover-activated)
+  5. User experiences micro-haptic feedback on buttons (scale 0.98 on click)
+  6. Hero has asymmetric layout (text left, floating architecture right)
+  7. Cards have Liquid Glass mouse-tracking light effect
+**Plans**: 4 plans in 3 waves
+
+Plans:
+- [ ] 09.1-01-PLAN.md — Foundation: Typography (Outfit/Inter), spatial background, angle-glow utilities
+- [ ] 09.1-02-PLAN.md — Hero Refactor: Asymmetric layout, floating architecture visual, micro-haptic CTAs
+- [ ] 09.1-03-PLAN.md — Features Bento: BentoCard component, Liquid Glass effect, asymmetric grid
+- [ ] 09.1-04-PLAN.md — Verification: Visual checklist, reduced-motion audit, integration test
 
 ---
 
