@@ -47,7 +47,7 @@
     "provider": {
       "description": "DID of the authentication provider (ISO 17025 accredited lab)",
       "type": "string",
-      "pattern": "^did:galileo:(issuer|verifier):[a-z0-9\\-]{1,64}$"
+      "pattern": "^did:galileo:(issuer|verifier):[a-z0-9\\-]{1,80}$"
     },
     "providerName": {
       "description": "Human-readable name of the authentication provider",

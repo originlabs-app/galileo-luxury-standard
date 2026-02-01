@@ -58,7 +58,7 @@
         "galileo:commissioningFacility": {
           "type": "string",
           "description": "Facility DID where commissioning occurred",
-          "pattern": "^did:galileo:facility:[a-z0-9\\-]{1,64}$"
+          "pattern": "^did:galileo:facility:[a-z0-9\\-]{1,80}$"
         },
         "galileo:nfcTagId": {
           "type": "string",
@@ -93,7 +93,7 @@
         "galileo:commissionOperator": {
           "type": "string",
           "description": "Operator DID who performed commissioning",
-          "pattern": "^did:galileo:operator:[a-z0-9\\-]{1,64}$"
+          "pattern": "^did:galileo:operator:[a-z0-9\\-]{1,80}$"
         },
         "galileo:verificationPerformed": {
           "type": "boolean",

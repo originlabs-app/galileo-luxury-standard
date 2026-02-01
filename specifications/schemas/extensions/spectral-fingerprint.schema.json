@@ -137,7 +137,7 @@
     "laboratoryId": {
       "description": "DID of the laboratory that performed the analysis",
       "type": "string",
-      "pattern": "^did:galileo:(issuer|verifier):[a-z0-9\\-]{1,64}$"
+      "pattern": "^did:galileo:(issuer|verifier):[a-z0-9\\-]{1,80}$"
     },
     "analystId": {
       "description": "Identifier of the analyst who performed measurement",

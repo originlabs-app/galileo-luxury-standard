@@ -85,7 +85,7 @@
           "source": {
             "type": "string",
             "description": "Anonymized seller DID or marketplace DID",
-            "pattern": "^did:galileo:(customer:anon-[a-f0-9]{64}|marketplace:[a-z0-9\\-]{1,64}|brand:[a-z0-9\\-]{1,64})$"
+            "pattern": "^did:galileo:(customer:anon-[a-f0-9]{64}|marketplace:[a-z0-9\\-]{1,80}|brand:[a-z0-9\\-]{1,80})$"
           }
         }
       }
@@ -131,7 +131,7 @@
         "marketplace": {
           "type": "string",
           "description": "Marketplace DID if sold through platform",
-          "pattern": "^did:galileo:marketplace:[a-z0-9\\-]{1,64}$"
+          "pattern": "^did:galileo:marketplace:[a-z0-9\\-]{1,80}$"
         },
         "marketplaceName": {
           "type": "string",
@@ -140,7 +140,7 @@
         "authenticatedBy": {
           "type": "string",
           "description": "Authenticator DID who verified the product",
-          "pattern": "^did:galileo:(verifier|brand|marketplace):[a-z0-9\\-]{1,64}$"
+          "pattern": "^did:galileo:(verifier|brand|marketplace):[a-z0-9\\-]{1,80}$"
         },
         "authenticationDate": {
           "type": "string",
@@ -254,7 +254,7 @@
           "properties": {
             "performedBy": {
               "type": "string",
-              "pattern": "^did:galileo:(brand|verifier|workshop):[a-z0-9\\-]{1,64}$"
+              "pattern": "^did:galileo:(brand|verifier|workshop):[a-z0-9\\-]{1,80}$"
             },
             "services": {
               "type": "array",
@@ -282,7 +282,7 @@
         "auctionHouse": {
           "type": "string",
           "description": "Auction house DID",
-          "pattern": "^did:galileo:marketplace:[a-z0-9\\-]{1,64}$"
+          "pattern": "^did:galileo:marketplace:[a-z0-9\\-]{1,80}$"
         },
         "auctionHouseName": {
           "type": "string"
@@ -351,7 +351,7 @@
       "properties": {
         "assessedBy": {
           "type": "string",
-          "pattern": "^did:galileo:(verifier|marketplace):[a-z0-9\\-]{1,64}$"
+          "pattern": "^did:galileo:(verifier|marketplace):[a-z0-9\\-]{1,80}$"
         },
         "assessmentDate": {
           "type": "string",

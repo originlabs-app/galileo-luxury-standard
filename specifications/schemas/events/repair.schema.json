@@ -99,7 +99,7 @@
         "galileo:technicianId": {
           "type": "string",
           "description": "Pseudonymous technician DID for privacy-preserving attribution",
-          "pattern": "^did:galileo:technician:[a-z0-9\\-]{1,64}$"
+          "pattern": "^did:galileo:technician:[a-z0-9\\-]{1,80}$"
         },
         "galileo:technicianCertifications": {
           "type": "array",
@@ -131,7 +131,7 @@
               "supplierDID": {
                 "type": "string",
                 "description": "Supplier DID for traceability",
-                "pattern": "^did:galileo:supplier:[a-z0-9\\-]{1,64}$"
+                "pattern": "^did:galileo:supplier:[a-z0-9\\-]{1,80}$"
               },
               "material": {
                 "type": "string"
@@ -154,7 +154,7 @@
         "galileo:serviceCenter": {
           "type": "string",
           "description": "Service center DID",
-          "pattern": "^did:galileo:(brand|workshop|facility):[a-z0-9\\-]{1,64}$"
+          "pattern": "^did:galileo:(brand|workshop|facility):[a-z0-9\\-]{1,80}$"
         },
         "galileo:serviceCenterName": {
           "type": "string"
@@ -190,7 +190,7 @@
         },
         "galileo:qcInspectorId": {
           "type": "string",
-          "pattern": "^did:galileo:inspector:[a-z0-9\\-]{1,64}$"
+          "pattern": "^did:galileo:inspector:[a-z0-9\\-]{1,80}$"
         },
         "galileo:testingPerformed": {
           "type": "array",

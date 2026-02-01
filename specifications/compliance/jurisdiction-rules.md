@@ -202,7 +202,7 @@ Individual products can have territory restrictions that override brand defaults
 
 ```json
 {
-  "productDID": "did:galileo:product:01234567890128:SN123456",
+  "productDID": "did:galileo:01:01234567890128:21:SN123456",
   "territoryOverride": {
     "mode": "ALLOW",
     "countries": [392],

@@ -97,7 +97,7 @@
           "source": {
             "type": "string",
             "description": "Brand or retailer DID",
-            "pattern": "^did:galileo:(brand|retailer):[a-z0-9\\-]{1,64}$"
+            "pattern": "^did:galileo:(brand|retailer):[a-z0-9\\-]{1,80}$"
           }
         }
       }
@@ -204,14 +204,14 @@
         },
         "retailerDID": {
           "type": "string",
-          "pattern": "^did:galileo:retailer:[a-z0-9\\-]{1,64}$"
+          "pattern": "^did:galileo:retailer:[a-z0-9\\-]{1,80}$"
         }
       }
     },
     "galileo:salesAssociate": {
       "type": "string",
       "description": "Pseudonymous sales associate identifier",
-      "pattern": "^did:galileo:associate:[a-z0-9\\-]{1,64}$"
+      "pattern": "^did:galileo:associate:[a-z0-9\\-]{1,80}$"
     },
     "galileo:giftPurchase": {
       "type": "boolean",

@@ -784,7 +784,7 @@
         },
         "serviceProviderDID": {
           "type": "string",
-          "pattern": "^did:galileo:(brand|retailer|issuer):[a-z0-9\\-]{1,64}$"
+          "pattern": "^did:galileo:(brand|retailer|issuer|artisan|verifier|customer|regulator|facility|technician|supplier|inspector|operator|recycler|marketplace|workshop|associate|official):[a-z0-9\\-]{1,80}$"
         },
         "authorizedService": {
           "type": "boolean"

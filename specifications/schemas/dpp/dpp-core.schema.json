@@ -204,7 +204,7 @@
         "@id": {
           "type": "string",
           "description": "Brand DID (did:galileo:brand:name)",
-          "pattern": "^did:galileo:brand:[a-z0-9\\-]{1,64}$"
+          "pattern": "^did:galileo:brand:[a-z0-9\\-]{1,80}$"
         },
         "name": {
           "type": "string",
@@ -232,7 +232,7 @@
         "@id": {
           "type": "string",
           "description": "Organization DID",
-          "pattern": "^did:galileo:(brand|retailer|issuer|verifier):[a-z0-9\\-]{1,64}$"
+          "pattern": "^did:galileo:(brand|retailer|issuer|artisan|verifier|customer|regulator|facility|technician|supplier|inspector|operator|recycler|marketplace|workshop|associate|official):[a-z0-9\\-]{1,80}$"
         },
         "name": {
           "type": "string",
@@ -601,7 +601,7 @@
         "artisanDID": {
           "type": "string",
           "description": "Artisan DID (did:galileo:artisan:pseudonym)",
-          "pattern": "^did:galileo:artisan:[a-z0-9\\-]{1,64}$"
+          "pattern": "^did:galileo:artisan:[a-z0-9\\-]{1,80}$"
         },
         "artisanPseudonym": {
           "type": "string",

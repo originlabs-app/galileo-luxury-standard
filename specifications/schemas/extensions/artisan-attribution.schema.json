@@ -24,7 +24,7 @@
     "artisanDID": {
       "description": "Pseudonymous DID for the artisan (did:galileo:artisan:xxx)",
       "type": "string",
-      "pattern": "^did:galileo:artisan:[a-z0-9\\-]{1,64}$"
+      "pattern": "^did:galileo:artisan:[a-z0-9\\-]{1,80}$"
     },
     "attributionType": {
       "description": "Role of artisan in production",
@@ -128,7 +128,7 @@
     "atelier": {
       "description": "Facility DID where artisan works",
       "type": "string",
-      "pattern": "^did:galileo:facility:[a-z0-9\\-]{1,64}$"
+      "pattern": "^did:galileo:facility:[a-z0-9\\-]{1,80}$"
     },
     "atelierName": {
       "description": "Human-readable atelier name",
@@ -255,7 +255,7 @@
       "properties": {
         "artisanDID": {
           "type": "string",
-          "pattern": "^did:galileo:artisan:[a-z0-9\\-]{1,64}$"
+          "pattern": "^did:galileo:artisan:[a-z0-9\\-]{1,80}$"
         },
         "role": {
           "type": "string",

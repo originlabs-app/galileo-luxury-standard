@@ -79,7 +79,7 @@
     "laboratoryId": {
       "description": "DID of the laboratory that performed analysis",
       "type": "string",
-      "pattern": "^did:galileo:(issuer|verifier):[a-z0-9\\-]{1,64}$"
+      "pattern": "^did:galileo:(issuer|verifier):[a-z0-9\\-]{1,80}$"
     },
     "laboratoryName": {
       "description": "Name of the analyzing laboratory",

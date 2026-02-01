@@ -172,7 +172,7 @@
         "galileo:facilityDID": {
           "description": "Galileo DID for the facility",
           "type": "string",
-          "pattern": "^did:galileo:facility:[a-z0-9\\-]{1,64}$"
+          "pattern": "^did:galileo:facility:[a-z0-9\\-]{1,80}$"
         },
         "geo:lat": {
           "description": "Latitude coordinate",

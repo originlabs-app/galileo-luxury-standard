@@ -104,7 +104,7 @@ serial-component = "21:" serial-value
 serial-value = 1*ALPHANUM
     ; 1-20 alphanumeric characters per GS1
 
-entity-type = "brand" / "retailer" / "issuer" / "artisan" / "verifier" / "customer" / "regulator"
+entity-type = "brand" / "retailer" / "issuer" / "artisan" / "verifier" / "customer" / "regulator" / "facility" / "technician" / "supplier" / "inspector" / "operator" / "recycler" / "marketplace" / "workshop" / "associate" / "official"
 
 entity-name = 1*80(ALPHA / DIGIT / "-")
 ```
@@ -184,7 +184,7 @@ serial             = 1*20(ALPHA / DIGIT / "-" / ".")
 
 ; Entity identifiers
 entity-id          = entity-type ":" entity-name
-entity-type        = "brand" / "retailer" / "issuer" / "artisan" / "verifier" / "customer" / "regulator"
+entity-type        = "brand" / "retailer" / "issuer" / "artisan" / "verifier" / "customer" / "regulator" / "facility" / "technician" / "supplier" / "inspector" / "operator" / "recycler" / "marketplace" / "workshop" / "associate" / "official"
 entity-name        = 1*80(ALPHA / DIGIT / "-")
 
 ; Character classes
@@ -625,7 +625,7 @@ async function resolveGalileoDID(did: string): Promise<DIDResolutionResult> {
  * Returns null if syntax is invalid.
  */
 function parseGalileoDID(did: string): ParsedDID | null {
-  const regex = /^did:galileo:(?:(?:(01|8006|8010|253):(\d{8,14})(?::21:([A-Za-z0-9\-\.]{1,20}))?)|(?:(brand|retailer|issuer|artisan|verifier|customer|regulator):([a-z0-9\-]{1,80})))$/i;
+  const regex = /^did:galileo:(?:(?:(01|8006|8010|253):(\d{8,14})(?::21:([A-Za-z0-9\-\.]{1,20}))?)|(?:(brand|retailer|issuer|artisan|verifier|customer|regulator|facility|technician|supplier|inspector|operator|recycler|marketplace|workshop|associate|official):([a-z0-9\-]{1,80})))$/i;
 
   const match = did.match(regex);
   if (!match) return null;

@@ -22,7 +22,7 @@ import {IToken} from "@erc3643org/erc-3643/contracts/token/IToken.sol";
  *      **Product Metadata:**
  *      Each token stores references to the product's decentralized identifier (DID),
  *      brand information, and off-chain metadata. The product DID follows the
- *      did:galileo:product:* scheme and resolves to complete product information.
+ *      did:galileo:01:{gtin}:21:{serial} scheme and resolves to complete product information.
  *
  *      **CPO (Certified Pre-Owned) Status:**
  *      The interface includes CPO certification management critical for luxury resale.
@@ -79,7 +79,7 @@ interface IGalileoToken is IToken {
 
     /**
      * @notice Thrown when product DID format is invalid
-     * @dev Product DIDs must follow the did:galileo:product:* scheme
+     * @dev Product DIDs must follow the did:galileo:01:{gtin}:21:{serial} scheme
      * @param providedDID The invalid DID that was provided
      */
     error InvalidProductDID(string providedDID);
@@ -169,14 +169,14 @@ interface IGalileoToken is IToken {
 
     /**
      * @notice Returns the product's decentralized identifier (DID)
-     * @dev The product DID follows the did:galileo:product:{gtin}:{serial} scheme.
+     * @dev The product DID follows the did:galileo:01:{gtin}:21:{serial} scheme.
      *      The DID resolves to a DID Document containing:
      *      - Product specifications
      *      - Manufacturing details
      *      - Provenance information
      *      - Verification methods
      *
-     *      Example: "did:galileo:product:01234567890128:SN123456"
+     *      Example: "did:galileo:01:01234567890128:21:SN123456"
      *
      * @return The product DID string
      */

@@ -68,7 +68,7 @@
         "galileo:artisanId": {
           "type": "string",
           "description": "Pseudonymous artisan DID for privacy-preserving attribution",
-          "pattern": "^did:galileo:artisan:[a-z0-9\\-]{1,64}$"
+          "pattern": "^did:galileo:artisan:[a-z0-9\\-]{1,80}$"
         },
         "galileo:qualityGrade": {
           "type": "string",
@@ -83,7 +83,7 @@
         "galileo:productionFacility": {
           "type": "string",
           "description": "Manufacturing facility DID",
-          "pattern": "^did:galileo:facility:[a-z0-9\\-]{1,64}$"
+          "pattern": "^did:galileo:facility:[a-z0-9\\-]{1,80}$"
         },
         "galileo:productionLine": {
           "type": "string",
@@ -122,7 +122,7 @@
               },
               "supplierDID": {
                 "type": "string",
-                "pattern": "^did:galileo:supplier:[a-z0-9\\-]{1,64}$"
+                "pattern": "^did:galileo:supplier:[a-z0-9\\-]{1,80}$"
               },
               "origin": {
                 "type": "string",
@@ -137,7 +137,7 @@
           "properties": {
             "inspectorId": {
               "type": "string",
-              "pattern": "^did:galileo:inspector:[a-z0-9\\-]{1,64}$"
+              "pattern": "^did:galileo:inspector:[a-z0-9\\-]{1,80}$"
             },
             "inspectionDate": {
               "type": "string",

@@ -30,7 +30,7 @@
     "tanneryId": {
       "description": "DID of the tannery facility",
       "type": "string",
-      "pattern": "^did:galileo:facility:[a-z0-9\\-]{1,64}$"
+      "pattern": "^did:galileo:facility:[a-z0-9\\-]{1,80}$"
     },
     "tanneryName": {
       "description": "Human-readable tannery name",

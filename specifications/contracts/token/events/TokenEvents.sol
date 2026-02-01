@@ -405,7 +405,7 @@ library TokenEvents {
      *      - category: Product taxonomy classification
      *
      * @param token The newly created token contract address
-     * @param productDID The product's decentralized identifier (did:galileo:product:*)
+     * @param productDID The product's decentralized identifier (did:galileo:01:{gtin}:21:{serial})
      * @param brandDID The brand's decentralized identifier (did:galileo:brand:*)
      * @param category Product category (WATCH, JEWELRY, HANDBAG, etc.)
      */
