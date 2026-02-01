@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-01)
 ## Current Position
 
 Phase: 13 of 13 (Production Deployment)
-Plan: 1/4 complete (13-02)
+Plan: 2/4 complete (13-01, 13-02)
 Status: Phase 13 IN PROGRESS
-Last activity: 2026-02-01 — Completed 13-02-PLAN.md (CI/CD Pipeline)
+Last activity: 2026-02-01 — Completed 13-01-PLAN.md (SEO & Metadata)
 
-Progress: [████████░░░░░░░░░░░░░░░░░░░░░░░░] 25% of Phase 13
+Progress: [████████████████░░░░░░░░░░░░░░░░] 50% of Phase 13
 
 ## Milestone Context
 
@@ -76,7 +76,7 @@ Progress: [████████░░░░░░░░░░░░░░░
 | Features with real code | Show JSON-LD/Solidity excerpts as proof of standard | Implemented |
 | Async Server Component for code | Zero client JS, VS Code-accurate highlighting via shiki | Implemented |
 | Fuse.js local search | Lightweight search for specs viewer (no Algolia dependency) | Pending |
-| Premium OG images | Core Web Vitals + OpenGraph for luxury LinkedIn/Twitter sharing | Pending |
+| Premium OG images | Core Web Vitals + OpenGraph for luxury LinkedIn/Twitter sharing | Implemented |
 | Section order: Hero-Value-Arch-Features-Std-Reg-Footer | Logical flow from vision to technical to compliance to action | Implemented |
 | File-based MDX for blog | Simple, git-tracked, no CMS dependency | Implemented |
 | next-mdx-remote RSC | Server component MDX rendering, zero client JS | Implemented |
@@ -87,6 +87,8 @@ Progress: [████████░░░░░░░░░░░░░░░
 | Custom JSON syntax highlighter | Built-in highlighter vs external library for bundle size | Implemented |
 | GitHub Actions CI/CD | TypeScript and ESLint checks on push/PR, Lighthouse on PR | Implemented |
 | Lighthouse >90 budget | Enforce performance, accessibility, best-practices, SEO standards | Implemented |
+| next/og for OG image | ImageResponse API vs external service for branded social sharing | Implemented |
+| ESLint via CLI only | Next.js 16+ no longer supports eslint in next.config.ts | Implemented |
 | Node 20 LTS for CI | Current long-term support version for stability | Implemented |
 
 ### Phase 9.1 Complete (Spatial UI Upgrade)
@@ -162,6 +164,24 @@ Progress: [████████░░░░░░░░░░░░░░░
 
 ### Phase 13 Progress (Production Deployment)
 
+**Plan 01 Complete (SEO & Metadata):**
+- metadataBase set to https://galileoprotocol.io
+- Title template pattern for consistent page titles
+- OpenGraph and Twitter card metadata
+- OG image with obsidian design and gold accents (1200x630)
+- robots.ts allowing all crawlers
+- sitemap.ts with main pages (/, /docs, /specifications, /blog)
+- TypeScript enforcement during builds
+
+**Files created:**
+- `website/src/app/opengraph-image.tsx` — OG image generation (96 lines)
+- `website/src/app/robots.ts` — Crawling rules (11 lines)
+- `website/src/app/sitemap.ts` — Dynamic sitemap (36 lines)
+
+**Files modified:**
+- `website/src/app/layout.tsx` — Added comprehensive metadata
+- `website/next.config.ts` — Added TypeScript enforcement
+
 **Plan 02 Complete (CI/CD Pipeline):**
 - CI workflow with TypeScript and ESLint checks on push/PR to main
 - Lighthouse CI workflow for PR preview audits (waits for Vercel)
@@ -186,7 +206,7 @@ Progress: [████████░░░░░░░░░░░░░░░
 None.
 
 ---
-*State updated: 2026-02-01T16:37:45Z*
+*State updated: 2026-02-01T17:00:00Z*
 *Milestone: v1.1 Website & Documentation Portal*
-*Phase 13 (Production Deployment) IN PROGRESS — 1/4 plans complete*
-*Next: 13-03 (Sitemap, robots.txt, Analytics) or 13-01/13-04*
+*Phase 13 (Production Deployment) IN PROGRESS — 2/4 plans complete*
+*Next: 13-03 (Analytics & Monitoring) or 13-04 (DNS & Deployment)*
