@@ -169,10 +169,12 @@ Plans:
   1. GDPR guide enables adopters to implement right-to-erasure in hybrid architecture (CRAB model)
   2. MiCA guide maps specification to CASP requirements and Travel Rule compliance (June 2026 deadline)
   3. ESPR guide provides DPP readiness checklist for 2027 mandatory compliance
-**Plans**: TBD
+**Plans**: 1 plan in 1 wave
 
 Plans:
-- [ ] 08-01: TBD (regulatory guides)
+- [ ] 08-01-PLAN.md — Compliance Guides: GDPR (CRAB model), MiCA (CASP/Travel Rule), ESPR (DPP readiness) (COMPL-01, COMPL-02, COMPL-03)
+
+**Note**: Research complete - EDPB Guidelines 02/2025, MiCA 2023/1114, ESPR 2024/1781 documented in 08-RESEARCH.md.
 
 ---
 
@@ -191,7 +193,7 @@ Note: Phase 3 and 4 can proceed in parallel after Phase 2 completes (no dependen
 | 5. Token & Compliance Layer | 4/4 | Complete | 2026-01-31 |
 | 6. GS1 Resolver Integration | 2/2 | Complete | 2026-01-31 |
 | 7. Infrastructure & Security | 2/2 | Complete | 2026-01-31 |
-| 8. Compliance Documentation | 0/TBD | Not started | - |
+| 8. Compliance Documentation | 0/1 | Ready | - |
 
 ## Dependency Graph
 
@@ -240,4 +242,4 @@ Phase 3 (Data)    Phase 4 (Identity)
 
 ---
 *Roadmap created: 2026-01-30*
-*Last updated: 2026-01-31 (Phase 7 complete)*
+*Last updated: 2026-02-01 (Phase 8 planned)*
