@@ -62,9 +62,9 @@ Requirements pour la specification technique publiable. Chaque requirement corre
 
 ### Compliance Documentation (COMPL)
 
-- [ ] **COMPL-01**: Guide de conformite GDPR (right to erasure, data minimization)
-- [ ] **COMPL-02**: Guide de conformite MiCA (CASP requirements, Travel Rule)
-- [ ] **COMPL-03**: Guide de preparation ESPR/DPP (readiness checklist)
+- [x] **COMPL-01**: Guide de conformite GDPR (right to erasure, data minimization)
+- [x] **COMPL-02**: Guide de conformite MiCA (CASP requirements, Travel Rule)
+- [x] **COMPL-03**: Guide de preparation ESPR/DPP (readiness checklist)
 
 ## v2 Requirements
 
@@ -150,9 +150,9 @@ Quel phase couvre quel requirement. Mis a jour lors de la creation du roadmap.
 | GOV-02 | Phase 1 | Complete |
 | GOV-03 | Phase 1 | Complete |
 | GOV-04 | Phase 1 | Complete |
-| COMPL-01 | Phase 8 | Pending |
-| COMPL-02 | Phase 8 | Pending |
-| COMPL-03 | Phase 8 | Pending |
+| COMPL-01 | Phase 8 | Complete |
+| COMPL-02 | Phase 8 | Complete |
+| COMPL-03 | Phase 8 | Complete |
 
 **Coverage:**
 - v1 requirements: 38 total
@@ -161,4 +161,4 @@ Quel phase couvre quel requirement. Mis a jour lors de la creation du roadmap.
 
 ---
 *Requirements defined: 2026-01-30*
-*Last updated: 2026-01-31 (Phase 7 requirements complete)*
+*Last updated: 2026-02-01 (ALL REQUIREMENTS COMPLETE)*
