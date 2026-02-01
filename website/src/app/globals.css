@@ -502,6 +502,180 @@ code, pre {
 }
 
 /* ============================================
+   DOCUMENTATION PROSE
+   ============================================ */
+
+.prose {
+  max-width: 65ch;
+  color: var(--platinum);
+  font-family: var(--font-satoshi);
+}
+
+.prose h1 {
+  font-family: var(--font-outfit);
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--platinum);
+  margin-bottom: 1.5rem;
+  line-height: 1.1;
+}
+
+.prose h2 {
+  font-family: var(--font-outfit);
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--platinum);
+  margin-top: 3rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(229, 229, 229, 0.1);
+}
+
+.prose h3 {
+  font-family: var(--font-outfit);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--platinum);
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.prose h4 {
+  font-family: var(--font-outfit);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--platinum);
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.prose p {
+  margin: 1.25rem 0;
+  line-height: 1.75;
+  color: var(--platinum-dim);
+}
+
+.prose strong {
+  color: var(--platinum);
+  font-weight: 600;
+}
+
+.prose a {
+  color: var(--precision-blue);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.prose a:hover {
+  color: var(--antique-gold);
+  text-decoration: underline;
+}
+
+.prose code:not(pre code) {
+  background: var(--obsidian-elevated);
+  padding: 0.2em 0.4em;
+  border-radius: 4px;
+  font-size: 0.875em;
+  font-family: var(--font-mono);
+  color: var(--precision-blue);
+}
+
+.prose pre {
+  background: var(--obsidian-elevated);
+  border: 1px solid rgba(229, 229, 229, 0.08);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  overflow-x: auto;
+  margin: 1.5rem 0;
+}
+
+.prose pre code {
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.prose ul, .prose ol {
+  padding-left: 1.5rem;
+  margin: 1.25rem 0;
+  color: var(--platinum-dim);
+}
+
+.prose li {
+  margin: 0.5rem 0;
+  line-height: 1.6;
+}
+
+.prose li::marker {
+  color: var(--antique-gold);
+}
+
+.prose blockquote {
+  border-left: 3px solid var(--antique-gold);
+  padding-left: 1rem;
+  margin: 1.5rem 0;
+  color: var(--platinum-dim);
+  font-style: italic;
+}
+
+.prose hr {
+  border: none;
+  border-top: 1px solid rgba(229, 229, 229, 0.1);
+  margin: 2rem 0;
+}
+
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-size: 0.9rem;
+}
+
+.prose th, .prose td {
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(229, 229, 229, 0.1);
+  text-align: left;
+}
+
+.prose th {
+  background: var(--obsidian-surface);
+  font-weight: 600;
+  color: var(--platinum);
+}
+
+.prose td {
+  color: var(--platinum-dim);
+}
+
+.prose img {
+  max-width: 100%;
+  border-radius: 8px;
+  margin: 1.5rem 0;
+}
+
+/* Callout boxes */
+.prose .callout {
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  margin: 1.5rem 0;
+  border-left: 4px solid;
+}
+
+.prose .callout-info {
+  background: rgba(0, 163, 255, 0.1);
+  border-color: var(--precision-blue);
+}
+
+.prose .callout-warning {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: var(--warning);
+}
+
+.prose .callout-success {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: var(--success);
+}
+
+/* ============================================
    RESPONSIVE
    ============================================ */
 
