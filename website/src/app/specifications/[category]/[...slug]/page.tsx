@@ -19,7 +19,7 @@ import { JSONSchemaViewer } from '@/components/specifications/JSONSchemaViewer';
 
 /**
  * Generate static params for all specifications across all categories.
- * This enables static generation at build time for all 42 specs.
+ * This enables static generation at build time for all 46 specs.
  *
  * Handles both root-level specs and nested specs in subdirectories:
  * - /specifications/identity/DID-METHOD → slug: ["DID-METHOD"]
