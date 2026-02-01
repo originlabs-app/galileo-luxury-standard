@@ -265,7 +265,12 @@ Plans:
   2. User sees status badges (Standard, Active, Draft) for each specification
   3. User can view specification details with metadata (version, dependencies, compliance)
   4. User can access JSON schema files directly via links
-**Plans**: TBD
+**Plans**: 3 plans in 3 waves
+
+Plans:
+- [ ] 11-01-PLAN.md — Infrastructure: Specs sidebar, layout, file reading utilities, navigation config
+- [ ] 11-02-PLAN.md — Content Rendering: Spec detail pages, status badges, metadata display, JSON schema viewer, category listings
+- [ ] 11-03-PLAN.md — Verification: Human checkpoint to verify all 42 specs render correctly
 
 ---
 
@@ -324,7 +329,7 @@ v1.1: Phases 9-13 (phases 10 and 12 can run in parallel after phase 9)
 | 9. Landing Page | 4/4 | Complete | 2026-02-01 |
 | 9.1 Spatial UI Upgrade | 4/4 | Complete | 2026-02-01 |
 | 10. Documentation Portal | 5/5 | Complete | 2026-02-01 |
-| 11. Specifications Viewer | 0/? | Not Started | — |
+| 11. Specifications Viewer | 0/3 | Planned | — |
 | 12. Blog Section | 0/3 | Planned | — |
 | 13. Production Deployment | 0/? | Not Started | — |
 
