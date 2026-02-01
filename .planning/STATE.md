@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-01-30)
 
 **Core value:** Proteger le patrimoine des marques et le savoir-faire humain en etablissant un langage commun interoperable
-**Current focus:** Phase 7 (Infrastructure & Security) - IN PROGRESS
+**Current focus:** Phase 8 (Compliance Documentation) - IN PROGRESS
 
 ## Current Position
 
-Phase: 7 of 8 (Infrastructure & Security)
-Plan: 2 of ? in current phase
+Phase: 8 of 8 (Compliance Documentation)
+Plan: 1 of ? in current phase
 Status: In progress
-Last activity: 2026-01-31 - Completed 07-01-PLAN.md (Access Control & Audit)
+Last activity: 2026-02-01 - Completed 08-01-PLAN.md (Compliance Guides)
 
-Progress: [█████████████████████░] ~89%
+Progress: [██████████████████████░] ~92%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 23
+- Total plans completed: 24
 - Average duration: 5 min
-- Total execution time: 115 min
+- Total execution time: 123 min
 
 **By Phase:**
 
@@ -34,9 +34,10 @@ Progress: [█████████████████████░] ~
 | 5. Token & Compliance | 4/6 | 23 min | 6 min |
 | 6. GS1 Resolver | 2/2 | 12 min | 6 min |
 | 7. Infrastructure & Security | 2/? | 10 min | 5 min |
+| 8. Compliance Documentation | 1/? | 8 min | 8 min |
 
 **Recent Trend:**
-- Last 5 plans: 05-04 (7 min), 06-01 (4 min), 06-02 (8 min), 07-02 (4 min), 07-01 (6 min)
+- Last 5 plans: 06-01 (4 min), 06-02 (8 min), 07-02 (4 min), 07-01 (6 min), 08-01 (8 min)
 - Trend: Consistent execution
 
 *Updated after each plan completion*
@@ -172,6 +173,10 @@ Recent decisions affecting current work:
 - 07-01: Daily Merkle tree anchoring for audit trail (~50k gas per anchor)
 - 07-01: 7-year audit retention (SOX) with 3-year archive, total 10 years
 - 07-01: Two-phase role grants (request-confirm) for privileged roles
+- 08-01: Compliance guide structure: 10 sections (Overview through References) with ToC
+- 08-01: Checklist item format: # | Requirement | Regulation | Verification | Galileo Reference
+- 08-01: Code examples in TypeScript derived from research (erasure, Travel Rule, DPP validation)
+- 08-01: Cross-reference to existing specs rather than duplicate content
 
 ### Pending Todos
 
@@ -186,11 +191,12 @@ None yet.
 - **Phase 4 (Identity):** COMPLETE - ONCHAINID integration patterns fully specified
 - **Phase 5 (Token):** Requires legal review for jurisdiction-specific compliance modules
 - **Phase 6 (Resolver):** COMPLETE - Resolution protocol, context routing, access control specified
-- **Phase 7 (Infrastructure):** IN PROGRESS - RBAC framework, audit trail, retention, hybrid sync specified
+- **Phase 7 (Infrastructure):** COMPLETE - RBAC framework, audit trail, retention, hybrid sync specified
+- **Phase 8 (Compliance Docs):** IN PROGRESS - GDPR, MiCA, ESPR guides complete (08-01)
 
 ## Session Continuity
 
-Last session: 2026-01-31T19:26:XX Z
-Stopped at: Completed 07-01-PLAN.md (Access Control & Audit)
+Last session: 2026-02-01T08:33:XX Z
+Stopped at: Completed 08-01-PLAN.md (Compliance Guides)
 Resume file: None
-Next plan: Continue Phase 7 infrastructure specifications
+Next plan: Continue Phase 8 compliance documentation
