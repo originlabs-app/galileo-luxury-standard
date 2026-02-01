@@ -127,9 +127,9 @@ Galileo resolver JWTs follow RFC 7519 with specific claim requirements.
 **Payload:**
 ```json
 {
-  "iss": "https://auth.galileo.luxury",
+  "iss": "https://auth.galileoprotocol.io",
   "sub": "did:galileo:brand:hermesparis",
-  "aud": "https://id.galileo.luxury",
+  "aud": "https://id.galileoprotocol.io",
   "iat": 1738345200,
   "exp": 1738348800,
   "role": "brand",
@@ -142,9 +142,9 @@ Galileo resolver JWTs follow RFC 7519 with specific claim requirements.
 
 | Claim | Type | Description | Validation |
 |-------|------|-------------|------------|
-| `iss` | string | Token issuer | Must be `https://auth.galileo.luxury` |
+| `iss` | string | Token issuer | Must be `https://auth.galileoprotocol.io` |
 | `sub` | string | Subject identifier (user/org DID) | Valid DID format |
-| `aud` | string/array | Audience (resolver domain) | Must include `https://id.galileo.luxury` |
+| `aud` | string/array | Audience (resolver domain) | Must include `https://id.galileoprotocol.io` |
 | `iat` | number | Issued at (Unix timestamp) | Not in future |
 | `exp` | number | Expiration (Unix timestamp) | Not expired (max 1 hour from iat) |
 | `role` | string | Requester role | One of: `brand`, `regulator`, `service_center` |
@@ -457,11 +457,11 @@ async function authorizeRegulator(
   // This is an explicit security choice:
   //
   // 1. Regulatory authorities operate outside commercial blockchain networks
-  // 2. Regulator verification occurs at token issuance by auth.galileo.luxury
+  // 2. Regulator verification occurs at token issuance by auth.galileoprotocol.io
   // 3. The auth service maintains a whitelist of approved regulatory bodies
   // 4. Token issuance requires out-of-band verification (legal agreements)
   //
-  // This means the security boundary is the JWT issuer (auth.galileo.luxury),
+  // This means the security boundary is the JWT issuer (auth.galileoprotocol.io),
   // NOT the on-chain identity registry. The auth service is responsible for
   // validating regulator identity before issuing tokens.
   //
@@ -548,7 +548,7 @@ async function authorizeServiceCenter(
 The Galileo authentication service publishes keys at:
 
 ```
-https://auth.galileo.luxury/.well-known/jwks.json
+https://auth.galileoprotocol.io/.well-known/jwks.json
 ```
 
 ### 5.2 JWKS Structure
@@ -946,7 +946,7 @@ Service center authorization requires on-chain identity verification via ONCHAIN
 
 ### 9.2 SERVICE_CENTER Claim Topic
 
-**Namespace:** `galileo.luxury.service_center`
+**Namespace:** `galileoprotocol.io.service_center`
 
 **Topic ID:**
 ```
@@ -955,7 +955,7 @@ Service center authorization requires on-chain identity verification via ONCHAIN
 
 **Computation:**
 ```solidity
-uint256 topicId = uint256(keccak256(bytes("galileo.luxury.service_center")));
+uint256 topicId = uint256(keccak256(bytes("galileoprotocol.io.service_center")));
 ```
 
 ### 9.3 Claim Verification Interface
@@ -1103,9 +1103,9 @@ async function verifyServiceCenterClaim(
     "kid": "galileo-key-1"
   },
   "payload": {
-    "iss": "https://auth.galileo.luxury",
+    "iss": "https://auth.galileoprotocol.io",
     "sub": "did:galileo:brand:hermesparis",
-    "aud": "https://id.galileo.luxury",
+    "aud": "https://id.galileoprotocol.io",
     "iat": 1738345200,
     "exp": 1738348800,
     "role": "brand",
@@ -1125,9 +1125,9 @@ async function verifyServiceCenterClaim(
     "kid": "galileo-key-2"
   },
   "payload": {
-    "iss": "https://auth.galileo.luxury",
+    "iss": "https://auth.galileoprotocol.io",
     "sub": "did:galileo:regulator:dgccrf-fr",
-    "aud": "https://id.galileo.luxury",
+    "aud": "https://id.galileoprotocol.io",
     "iat": 1738345200,
     "exp": 1738348800,
     "role": "regulator",
@@ -1148,9 +1148,9 @@ async function verifyServiceCenterClaim(
     "kid": "galileo-key-1"
   },
   "payload": {
-    "iss": "https://auth.galileo.luxury",
+    "iss": "https://auth.galileoprotocol.io",
     "sub": "did:galileo:service:paris-atelier",
-    "aud": "https://id.galileo.luxury",
+    "aud": "https://id.galileoprotocol.io",
     "iat": 1738345200,
     "exp": 1738348800,
     "role": "service_center",

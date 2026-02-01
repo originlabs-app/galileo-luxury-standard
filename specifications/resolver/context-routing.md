@@ -482,15 +482,15 @@ async function detectContext(
 
 | Link Type | Full URI | Description |
 |-----------|----------|-------------|
-| `galileo:authenticity` | `https://vocab.galileo.luxury/authenticity` | Authenticity verification proof |
-| `galileo:provenance` | `https://vocab.galileo.luxury/provenance` | Origin and chain of custody |
-| `galileo:internalDPP` | `https://vocab.galileo.luxury/internalDPP` | Complete DPP with all fields |
-| `galileo:auditTrail` | `https://vocab.galileo.luxury/auditTrail` | Full audit and event history |
-| `galileo:serviceInfo` | `https://vocab.galileo.luxury/serviceInfo` | Service center access data |
-| `galileo:technicalSpec` | `https://vocab.galileo.luxury/technicalSpec` | Technical specifications |
-| `galileo:repairHistory` | `https://vocab.galileo.luxury/repairHistory` | Repair and service history |
-| `galileo:complianceDPP` | `https://vocab.galileo.luxury/complianceDPP` | ESPR mandatory fields only |
-| `galileo:espr` | `https://vocab.galileo.luxury/espr` | ESPR compliance bundle |
+| `galileo:authenticity` | `https://vocab.galileoprotocol.io/authenticity` | Authenticity verification proof |
+| `galileo:provenance` | `https://vocab.galileoprotocol.io/provenance` | Origin and chain of custody |
+| `galileo:internalDPP` | `https://vocab.galileoprotocol.io/internalDPP` | Complete DPP with all fields |
+| `galileo:auditTrail` | `https://vocab.galileoprotocol.io/auditTrail` | Full audit and event history |
+| `galileo:serviceInfo` | `https://vocab.galileoprotocol.io/serviceInfo` | Service center access data |
+| `galileo:technicalSpec` | `https://vocab.galileoprotocol.io/technicalSpec` | Technical specifications |
+| `galileo:repairHistory` | `https://vocab.galileoprotocol.io/repairHistory` | Repair and service history |
+| `galileo:complianceDPP` | `https://vocab.galileoprotocol.io/complianceDPP` | ESPR mandatory fields only |
+| `galileo:espr` | `https://vocab.galileoprotocol.io/espr` | ESPR compliance bundle |
 
 ### 4.3 Role-to-Link-Types Mapping
 
@@ -652,8 +652,8 @@ function shortenLinkType(fullUri: string): string {
   if (fullUri.startsWith("https://gs1.org/voc/")) {
     return "gs1:" + fullUri.slice("https://gs1.org/voc/".length);
   }
-  if (fullUri.startsWith("https://vocab.galileo.luxury/")) {
-    return "galileo:" + fullUri.slice("https://vocab.galileo.luxury/".length);
+  if (fullUri.startsWith("https://vocab.galileoprotocol.io/")) {
+    return "galileo:" + fullUri.slice("https://vocab.galileoprotocol.io/".length);
   }
   return fullUri;
 }
@@ -712,7 +712,7 @@ function buildLinksetResponse(
       "href": "@id",
       "linkset": "@graph",
       "gs1": "https://gs1.org/voc/",
-      "galileo": "https://vocab.galileo.luxury/"
+      "galileo": "https://vocab.galileoprotocol.io/"
     },
     "linkset": [{
       "anchor": anchor,

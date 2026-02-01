@@ -26,7 +26,7 @@
 
 ### 1.1 Purpose
 
-This specification defines the complete resolution protocol for the Galileo GS1-conformant resolver at `id.galileo.luxury`. The resolver bridges physical product identifiers (encoded in QR codes, NFC tags) to digital identities, enabling ESPR-mandated Digital Product Passport access with context-aware routing.
+This specification defines the complete resolution protocol for the Galileo GS1-conformant resolver at `id.galileoprotocol.io`. The resolver bridges physical product identifiers (encoded in QR codes, NFC tags) to digital identities, enabling ESPR-mandated Digital Product Passport access with context-aware routing.
 
 The resolution protocol:
 - Connects physical products to their digital twins
@@ -82,7 +82,7 @@ This resolution protocol fulfills these requirements by providing context-aware 
                               v                   |
                      +------------------+         |
                      |  Galileo Resolver |        |
-                     |  (id.galileo.luxury)       |
+                     |  (id.galileoprotocol.io)       |
                      +------------------+         |
                               |                   |
          +--------------------+--------------------+
@@ -142,9 +142,9 @@ This resolution protocol fulfills these requirements by providing context-aware 
 
 | Domain | Purpose | URL |
 |--------|---------|-----|
-| `id.galileo.luxury` | GS1 Digital Link resolver | Primary entry point for QR/NFC |
-| `resolver.galileo.luxury` | Service endpoint host | DPP, events, verification endpoints |
-| `auth.galileo.luxury` | Authentication service | JWT issuance, JWKS |
+| `id.galileoprotocol.io` | GS1 Digital Link resolver | Primary entry point for QR/NFC |
+| `resolver.galileoprotocol.io` | Service endpoint host | DPP, events, verification endpoints |
+| `auth.galileoprotocol.io` | Authentication service | JWT issuance, JWKS |
 
 ---
 
@@ -173,7 +173,7 @@ interface ParsedGS1URI {
 }
 
 function parseGS1DigitalLink(uri: string): ParsedGS1URI | null {
-  // Validate domain is id.galileo.luxury
+  // Validate domain is id.galileoprotocol.io
   // Extract path segments as AI/value pairs
   // Parse query parameters
   // Reference: digital-link-uri.md Section 2
@@ -288,7 +288,7 @@ async function detectContext(
 
 **Mapping Pattern:**
 ```
-GS1 URI:     https://id.galileo.luxury/{ai}/{value}/{ai2}/{value2}
+GS1 URI:     https://id.galileoprotocol.io/{ai}/{value}/{ai2}/{value2}
 did:galileo: did:galileo:{ai}:{value}:{ai2}:{value2}
 ```
 
@@ -513,53 +513,53 @@ function buildResponse(
 
 **Product Resolution (GTIN + Serial):**
 ```
-GET https://id.galileo.luxury/01/{gtin}/21/{serial}
+GET https://id.galileoprotocol.io/01/{gtin}/21/{serial}
 ```
 
 **Product Resolution (GTIN only):**
 ```
-GET https://id.galileo.luxury/01/{gtin}
+GET https://id.galileoprotocol.io/01/{gtin}
 ```
 
 **Component Resolution:**
 ```
-GET https://id.galileo.luxury/8010/{cpid}/21/{serial}
+GET https://id.galileoprotocol.io/8010/{cpid}/21/{serial}
 ```
 
 **Document Resolution:**
 ```
-GET https://id.galileo.luxury/253/{gdti}
+GET https://id.galileoprotocol.io/253/{gdti}
 ```
 
 ### 4.2 Linkset Endpoint
 
 Explicit linkset request:
 ```
-GET https://id.galileo.luxury/01/{gtin}/21/{serial}?linkType=linkset
+GET https://id.galileoprotocol.io/01/{gtin}/21/{serial}?linkType=linkset
 ```
 
 ### 4.3 Well-Known Endpoint
 
 Resolver metadata per GS1 standard:
 ```
-GET https://id.galileo.luxury/.well-known/gs1resolver
+GET https://id.galileoprotocol.io/.well-known/gs1resolver
 ```
 
 Response:
 ```json
 {
   "name": "Galileo Luxury Standard Resolver",
-  "resolverRoot": "https://id.galileo.luxury",
+  "resolverRoot": "https://id.galileoprotocol.io",
   "supportedLinkTypes": [
     "https://gs1.org/voc/pip",
     "https://gs1.org/voc/sustainabilityInfo",
     "https://gs1.org/voc/instructions",
     "https://gs1.org/voc/traceability",
     "https://gs1.org/voc/certificationInfo",
-    "https://vocab.galileo.luxury/authenticity",
-    "https://vocab.galileo.luxury/internalDPP",
-    "https://vocab.galileo.luxury/auditTrail",
-    "https://vocab.galileo.luxury/serviceInfo"
+    "https://vocab.galileoprotocol.io/authenticity",
+    "https://vocab.galileoprotocol.io/internalDPP",
+    "https://vocab.galileoprotocol.io/auditTrail",
+    "https://vocab.galileoprotocol.io/serviceInfo"
   ],
   "supportedContextValues": ["consumer", "brand", "regulator", "service_center"],
   "supportsLinkset": true,
@@ -596,21 +596,21 @@ Response:
 
 ```bash
 # Default consumer redirect
-curl https://id.galileo.luxury/01/09506000134352/21/ABC123
+curl https://id.galileoprotocol.io/01/09506000134352/21/ABC123
 
 # Request linkset
-curl "https://id.galileo.luxury/01/09506000134352/21/ABC123?linkType=linkset"
+curl "https://id.galileoprotocol.io/01/09506000134352/21/ABC123?linkType=linkset"
 
 # Request specific link type
-curl "https://id.galileo.luxury/01/09506000134352/21/ABC123?linkType=gs1:pip"
+curl "https://id.galileoprotocol.io/01/09506000134352/21/ABC123?linkType=gs1:pip"
 
 # Authenticated brand access
 curl -H "Authorization: Bearer {jwt}" \
-  "https://id.galileo.luxury/01/09506000134352/21/ABC123?linkType=galileo:internalDPP"
+  "https://id.galileoprotocol.io/01/09506000134352/21/ABC123?linkType=galileo:internalDPP"
 
 # Language preference
 curl -H "Accept-Language: fr-FR, en;q=0.8" \
-  "https://id.galileo.luxury/01/09506000134352/21/ABC123?linkType=gs1:instructions"
+  "https://id.galileoprotocol.io/01/09506000134352/21/ABC123?linkType=gs1:instructions"
 ```
 
 ---
@@ -624,8 +624,8 @@ Default response when a single link matches.
 **Response:**
 ```http
 HTTP/1.1 307 Temporary Redirect
-Location: https://resolver.galileo.luxury/dpp/09506000134352/ABC123
-Link: <https://id.galileo.luxury/01/09506000134352/21/ABC123?linkType=linkset>; rel="linkset"
+Location: https://resolver.galileoprotocol.io/dpp/09506000134352/ABC123
+Link: <https://id.galileoprotocol.io/01/09506000134352/21/ABC123?linkType=linkset>; rel="linkset"
 Cache-Control: public, max-age=300
 ```
 
@@ -654,35 +654,35 @@ Cache-Control: public, max-age=300
     "href": "@id",
     "linkset": "@graph",
     "gs1": "https://gs1.org/voc/",
-    "galileo": "https://vocab.galileo.luxury/"
+    "galileo": "https://vocab.galileoprotocol.io/"
   },
   "linkset": [
     {
-      "anchor": "https://id.galileo.luxury/01/09506000134352/21/ABC123",
+      "anchor": "https://id.galileoprotocol.io/01/09506000134352/21/ABC123",
       "itemDescription": "Birkin 25 Togo Gold",
       "https://gs1.org/voc/defaultLink": [
         {
-          "href": "https://resolver.galileo.luxury/dpp/09506000134352/ABC123",
+          "href": "https://resolver.galileoprotocol.io/dpp/09506000134352/ABC123",
           "title": "Digital Product Passport",
           "type": "application/ld+json"
         }
       ],
       "https://gs1.org/voc/pip": [
         {
-          "href": "https://resolver.galileo.luxury/pip/09506000134352/ABC123",
+          "href": "https://resolver.galileoprotocol.io/pip/09506000134352/ABC123",
           "hreflang": ["en", "fr", "zh"],
           "title": "Product Information"
         }
       ],
       "https://gs1.org/voc/sustainabilityInfo": [
         {
-          "href": "https://resolver.galileo.luxury/sustainability/09506000134352/ABC123",
+          "href": "https://resolver.galileoprotocol.io/sustainability/09506000134352/ABC123",
           "title": "Sustainability Data"
         }
       ],
-      "https://vocab.galileo.luxury/authenticity": [
+      "https://vocab.galileoprotocol.io/authenticity": [
         {
-          "href": "https://resolver.galileo.luxury/verify/09506000134352/ABC123",
+          "href": "https://resolver.galileoprotocol.io/verify/09506000134352/ABC123",
           "title": "Authenticity Verification"
         }
       ]
@@ -735,8 +735,8 @@ Content-Type: application/json
   "deactivationReason": "destroyed",
   "deactivatedAt": "2026-01-15T10:30:00Z",
   "did": "did:galileo:01:09506000134352:21:ABC123",
-  "gs1Uri": "https://id.galileo.luxury/01/09506000134352/21/ABC123",
-  "provenanceLink": "https://resolver.galileo.luxury/provenance/09506000134352/ABC123"
+  "gs1Uri": "https://id.galileoprotocol.io/01/09506000134352/21/ABC123",
+  "provenanceLink": "https://resolver.galileoprotocol.io/provenance/09506000134352/ABC123"
 }
 ```
 
@@ -757,10 +757,10 @@ Deactivated products remain resolvable for provenance verification:
 
 ```bash
 # Returns 410 with deactivation metadata
-curl https://id.galileo.luxury/01/09506000134352/21/ABC123
+curl https://id.galileoprotocol.io/01/09506000134352/21/ABC123
 
 # Provenance link still works
-curl https://resolver.galileo.luxury/provenance/09506000134352/ABC123
+curl https://resolver.galileoprotocol.io/provenance/09506000134352/ABC123
 ```
 
 ---
@@ -835,7 +835,7 @@ On event receipt:
 All responses include linkset reference:
 
 ```http
-Link: <https://id.galileo.luxury/01/{gtin}/21/{serial}?linkType=linkset>; rel="linkset"
+Link: <https://id.galileoprotocol.io/01/{gtin}/21/{serial}?linkType=linkset>; rel="linkset"
 ```
 
 ---
@@ -850,7 +850,7 @@ Link: <https://id.galileo.luxury/01/{gtin}/21/{serial}?linkType=linkset>; rel="l
   "errorCode": "SPECIFIC_ERROR_CODE",
   "message": "Human-readable description",
   "did": "did:galileo:...",
-  "gs1Uri": "https://id.galileo.luxury/...",
+  "gs1Uri": "https://id.galileoprotocol.io/...",
   "details": {
     "field": "value",
     "expected": "value",
@@ -863,7 +863,7 @@ Link: <https://id.galileo.luxury/01/{gtin}/21/{serial}?linkType=linkset>; rel="l
 
 | Error Type | Error Code | HTTP Status | Description |
 |------------|------------|-------------|-------------|
-| `invalidIdentifier` | `INVALID_DOMAIN` | 400 | Domain is not id.galileo.luxury |
+| `invalidIdentifier` | `INVALID_DOMAIN` | 400 | Domain is not id.galileoprotocol.io |
 | `invalidIdentifier` | `INVALID_SCHEME` | 400 | Scheme is not HTTPS |
 | `invalidIdentifier` | `MISSING_IDENTIFIER` | 400 | No AI/value pair in URI |
 | `invalidIdentifier` | `INVALID_PRIMARY_AI` | 400 | Unsupported primary AI |
@@ -889,7 +889,7 @@ Link: <https://id.galileo.luxury/01/{gtin}/21/{serial}?linkType=linkset>; rel="l
   "error": "invalidIdentifier",
   "errorCode": "INVALID_GTIN_CHECK_DIGIT",
   "message": "GTIN check digit validation failed",
-  "gs1Uri": "https://id.galileo.luxury/01/09506000134353/21/ABC123",
+  "gs1Uri": "https://id.galileoprotocol.io/01/09506000134353/21/ABC123",
   "details": {
     "ai": "01",
     "value": "09506000134353",
@@ -905,7 +905,7 @@ Link: <https://id.galileo.luxury/01/{gtin}/21/{serial}?linkType=linkset>; rel="l
   "error": "unauthorized",
   "errorCode": "MISSING_TOKEN",
   "message": "Authentication required for link type galileo:internalDPP",
-  "gs1Uri": "https://id.galileo.luxury/01/09506000134352/21/ABC123",
+  "gs1Uri": "https://id.galileoprotocol.io/01/09506000134352/21/ABC123",
   "details": {
     "requestedLinkType": "galileo:internalDPP",
     "requiredRole": "brand"
@@ -919,7 +919,7 @@ Link: <https://id.galileo.luxury/01/{gtin}/21/{serial}?linkType=linkset>; rel="l
   "error": "forbidden",
   "errorCode": "INSUFFICIENT_ROLE",
   "message": "Your role 'consumer' cannot access link type 'galileo:auditTrail'",
-  "gs1Uri": "https://id.galileo.luxury/01/09506000134352/21/ABC123",
+  "gs1Uri": "https://id.galileoprotocol.io/01/09506000134352/21/ABC123",
   "details": {
     "yourRole": "consumer",
     "requiredRole": ["brand", "regulator"],
@@ -1023,7 +1023,7 @@ interface AuthServiceInterface {
 }
 ```
 
-**Endpoint:** `https://auth.galileo.luxury/.well-known/jwks.json`
+**Endpoint:** `https://auth.galileoprotocol.io/.well-known/jwks.json`
 **Algorithms:** RS256, ES256 (asymmetric only)
 
 **Reference:** [access-control.md](./access-control.md)
@@ -1036,7 +1036,7 @@ interface AuthServiceInterface {
 
 ```
 1. Consumer scans QR code on handbag
-   URI: https://id.galileo.luxury/01/09506000134352/21/ABC123
+   URI: https://id.galileoprotocol.io/01/09506000134352/21/ABC123
 
 2. Resolver parses URI
    - AI 01: GTIN = 09506000134352
@@ -1054,14 +1054,14 @@ interface AuthServiceInterface {
 7. Filter links for consumer role: 4 links visible
 
 8. Response: 307 redirect to gs1:defaultLink
-   Location: https://resolver.galileo.luxury/dpp/09506000134352/ABC123
+   Location: https://resolver.galileoprotocol.io/dpp/09506000134352/ABC123
 ```
 
 ### Example 2: Brand Admin Requests Audit Trail
 
 ```
 1. Brand system requests audit trail
-   URI: https://id.galileo.luxury/01/09506000134352/21/ABC123?linkType=galileo:auditTrail
+   URI: https://id.galileoprotocol.io/01/09506000134352/21/ABC123?linkType=galileo:auditTrail
    Authorization: Bearer eyJhbGc...
 
 2. Resolver parses URI and token
@@ -1079,7 +1079,7 @@ interface AuthServiceInterface {
 7. Filter links: auditTrail link visible for brand role
 
 8. Response: 307 redirect to audit trail
-   Location: https://resolver.galileo.luxury/audit/09506000134352/ABC123
+   Location: https://resolver.galileoprotocol.io/audit/09506000134352/ABC123
    Cache-Control: private, no-store
 ```
 
@@ -1087,7 +1087,7 @@ interface AuthServiceInterface {
 
 ```
 1. Request for deactivated product
-   URI: https://id.galileo.luxury/01/09506000134352/21/DESTROYED001
+   URI: https://id.galileoprotocol.io/01/09506000134352/21/DESTROYED001
 
 2. Parse and validate: OK
 
@@ -1097,7 +1097,7 @@ interface AuthServiceInterface {
    {
      "error": "deactivated",
      "deactivationReason": "destroyed",
-     "provenanceLink": "https://resolver.galileo.luxury/provenance/..."
+     "provenanceLink": "https://resolver.galileoprotocol.io/provenance/..."
    }
 ```
 

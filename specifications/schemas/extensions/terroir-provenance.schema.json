@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://schemas.galileo.luxury/extensions/terroir-provenance.schema.json",
+  "$id": "https://schemas.galileoprotocol.io/extensions/terroir-provenance.schema.json",
   "title": "Galileo Terroir Provenance Schema",
   "description": "Extension schema for geographic origin authentication via isotopic analysis. Uses stable isotope ratios to verify the claimed geographic origin of materials through comparison with reference databases. Applicable to leather, textiles, precious metals, and gemstones.",
   "type": "object",

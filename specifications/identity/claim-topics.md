@@ -50,7 +50,7 @@ modifier   = 1*(ALPHA | "_")
 |-----------|-------------|
 | `galileo.kyc.basic` | Basic KYC verification |
 | `galileo.kyc.eu.mifid` | EU MiFID-compliant KYC |
-| `galileo.luxury.authorized_retailer` | Authorized retailer certification |
+| `galileoprotocol.io.authorized_retailer` | Authorized retailer certification |
 | `galileo.heritage.origin_certified` | Origin certification |
 
 ### 1.3 Topic ID Computation
@@ -100,10 +100,10 @@ The Galileo ecosystem launches with 12 predefined claim topics organized into fo
 | 4 | `galileo.kyc.eu.mifid` | `0xdef3dcc6fc6fe64114e865ad812264af037f0d3a36cb446920d32ace7ee3bdbc` | EU MiFID II compliant KYC | 365 days | Yes | mifidCategory, investorClassification, appropriatenessCheck |
 | 5 | `galileo.kyc.us.sec` | `0x2a04959391be0b39934421c3fc7eb5559602ff59b49d93ae63a7741f0c5ce5ac` | US SEC/FinCEN compliant KYC | 365 days | Yes | accreditationStatus, ofacCheck, amlCheckDate |
 | 6 | `galileo.kyc.apac.sg` | `0x15a365872e74a520ca7755fae1160f13ab5209d51e117a5555c669c9cc7648e4` | Singapore MAS compliant KYC | 365 days | Yes | masCompliance, residencyStatus, customerRiskRating |
-| 7 | `galileo.luxury.authorized_retailer` | `0xfc1ed2540d1f8160d9b67d6e66b3e918d6029031f419be09f5e5865c2a74c75a` | Authorized retailer certification | 365 days | Yes | brandDID, territory[], categories[], authorizationDate |
-| 8 | `galileo.luxury.service_center` | `0x10830870ec631edcb6878ba73b73764c94401f5fd6d4b09e57afb7b1ac948ff2` | Authorized service center certification | 365 days | Yes | brandDID, serviceTypes[], certifiedTechnicians, authorizationDate |
-| 9 | `galileo.luxury.authenticator` | `0xda684ab89dbe929e1da9afb6a82d42762bb88db87f85e2041b5a2867ec6a6767` | Third-party authenticator certification | 365 days | Yes | accreditationBody, methodology, categories[], insuranceRef |
-| 10 | `galileo.luxury.auction_house` | `0x4c471013436dbf8b498b1c5c007748f97d055151ff587e3c94de8738376aaf7d` | Authorized auction house certification | 365 days | Yes | licenseNumber, insuranceAmount, jurisdictions[], saleCategories[] |
+| 7 | `galileoprotocol.io.authorized_retailer` | `0xfc1ed2540d1f8160d9b67d6e66b3e918d6029031f419be09f5e5865c2a74c75a` | Authorized retailer certification | 365 days | Yes | brandDID, territory[], categories[], authorizationDate |
+| 8 | `galileoprotocol.io.service_center` | `0x10830870ec631edcb6878ba73b73764c94401f5fd6d4b09e57afb7b1ac948ff2` | Authorized service center certification | 365 days | Yes | brandDID, serviceTypes[], certifiedTechnicians, authorizationDate |
+| 9 | `galileoprotocol.io.authenticator` | `0xda684ab89dbe929e1da9afb6a82d42762bb88db87f85e2041b5a2867ec6a6767` | Third-party authenticator certification | 365 days | Yes | accreditationBody, methodology, categories[], insuranceRef |
+| 10 | `galileoprotocol.io.auction_house` | `0x4c471013436dbf8b498b1c5c007748f97d055151ff587e3c94de8738376aaf7d` | Authorized auction house certification | 365 days | Yes | licenseNumber, insuranceAmount, jurisdictions[], saleCategories[] |
 | 11 | `galileo.heritage.origin_certified` | `0x1e1c32d6fc1988653c0708c2e488cfef18382e584dbad1834629ffaba627b427` | Certified origin claim | Permanent | No | manufacturingLocation, materialsSource, chainOfCustody[], certificationDate |
 | 12 | `galileo.heritage.authenticity_verified` | `0x4fc95faf30f177afc2bdb8d67630d7d32f38116d3ed16938544efcee5cc52ed2` | Authenticity verification claim | Permanent | No | verificationMethod, verifierDID, evidenceHash, verificationDate |
 
@@ -319,7 +319,7 @@ These topics define the trust relationships within the luxury goods ecosystem.
 
 ### 4.1 Authorized Retailer
 
-**Namespace:** `galileo.luxury.authorized_retailer`
+**Namespace:** `galileoprotocol.io.authorized_retailer`
 **Topic ID:** `0xfc1ed2540d1f8160d9b67d6e66b3e918d6029031f419be09f5e5865c2a74c75a`
 
 Certification that an entity is an authorized retail partner for specific brands.
@@ -346,7 +346,7 @@ Certification that an entity is an authorized retail partner for specific brands
 
 ### 4.2 Service Center
 
-**Namespace:** `galileo.luxury.service_center`
+**Namespace:** `galileoprotocol.io.service_center`
 **Topic ID:** `0x10830870ec631edcb6878ba73b73764c94401f5fd6d4b09e57afb7b1ac948ff2`
 
 Certification for authorized repair and service centers.
@@ -383,7 +383,7 @@ Certification for authorized repair and service centers.
 
 ### 4.3 Authenticator
 
-**Namespace:** `galileo.luxury.authenticator`
+**Namespace:** `galileoprotocol.io.authenticator`
 **Topic ID:** `0xda684ab89dbe929e1da9afb6a82d42762bb88db87f85e2041b5a2867ec6a6767`
 
 Certification for third-party authentication services.
@@ -419,7 +419,7 @@ Certification for third-party authentication services.
 
 ### 4.4 Auction House
 
-**Namespace:** `galileo.luxury.auction_house`
+**Namespace:** `galileoprotocol.io.auction_house`
 **Topic ID:** `0x4c471013436dbf8b498b1c5c007748f97d055151ff587e3c94de8738376aaf7d`
 
 Certification for auction houses authorized to sell luxury goods.
@@ -704,8 +704,8 @@ The following topics are anticipated for future RFC proposals:
 
 | Namespace | Description | Target Date |
 |-----------|-------------|-------------|
-| `galileo.luxury.master_craftsman` | MOF/Living Treasure certification | 2026 |
-| `galileo.luxury.insurance_approved` | Insurance-approved valuation | 2026 |
+| `galileoprotocol.io.master_craftsman` | MOF/Living Treasure certification | 2026 |
+| `galileoprotocol.io.insurance_approved` | Insurance-approved valuation | 2026 |
 | `galileo.heritage.exhibition_loan` | Museum/exhibition loan history | 2027 |
 
 **Technology Topics:**
@@ -724,7 +724,7 @@ The following namespace prefixes are reserved:
 |--------|--------------|
 | `galileo.kyc.*` | KYC-related topics |
 | `galileo.kyb.*` | KYB-related topics |
-| `galileo.luxury.*` | Luxury industry topics |
+| `galileoprotocol.io.*` | Luxury industry topics |
 | `galileo.heritage.*` | Provenance/heritage topics |
 | `galileo.espr.*` | EU ESPR compliance topics |
 | `galileo.reg.*` | Regulatory compliance topics |

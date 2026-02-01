@@ -177,7 +177,7 @@ The Galileo ecosystem defines five core roles with distinct responsibilities and
 - Issue service attestations
 
 **On-Chain Verification Required:**
-- **Claim Topic:** `galileo.luxury.service_center`
+- **Claim Topic:** `galileoprotocol.io.service_center`
 - **Topic ID:** `0x10830870ec631edcb6878ba73b73764c94401f5fd6d4b09e57afb7b1ac948ff2`
 - **Expiry:** 365 days (requires annual facility inspection renewal)
 
@@ -371,7 +371,7 @@ Roles requiring on-chain verification are mapped to specific ONCHAINID claim top
 | Role | Claim Namespace | Topic ID | Computation |
 |------|-----------------|----------|-------------|
 | `brand_admin` | `galileo.kyb.verified` | `0x1dd5129846e72f7ee2dade96e3dcd50954f280b8f76579868e4721b5c8c69c56` | `keccak256("galileo.kyb.verified")` |
-| `service_center` | `galileo.luxury.service_center` | `0x10830870ec631edcb6878ba73b73764c94401f5fd6d4b09e57afb7b1ac948ff2` | `keccak256("galileo.luxury.service_center")` |
+| `service_center` | `galileoprotocol.io.service_center` | `0x10830870ec631edcb6878ba73b73764c94401f5fd6d4b09e57afb7b1ac948ff2` | `keccak256("galileoprotocol.io.service_center")` |
 
 ### 5.2 Topic ID Constants (Solidity)
 
@@ -382,7 +382,7 @@ bytes32 constant KYB_VERIFIED_TOPIC =
     // = 0x1dd5129846e72f7ee2dade96e3dcd50954f280b8f76579868e4721b5c8c69c56
 
 bytes32 constant SERVICE_CENTER_TOPIC =
-    keccak256("galileo.luxury.service_center");
+    keccak256("galileoprotocol.io.service_center");
     // = 0x10830870ec631edcb6878ba73b73764c94401f5fd6d4b09e57afb7b1ac948ff2
 ```
 

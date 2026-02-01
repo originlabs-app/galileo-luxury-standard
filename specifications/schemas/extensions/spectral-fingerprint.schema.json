@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://schemas.galileo.luxury/extensions/spectral-fingerprint.schema.json",
+  "$id": "https://schemas.galileoprotocol.io/extensions/spectral-fingerprint.schema.json",
   "title": "Galileo Spectral Fingerprint Schema",
   "description": "Extension schema for material authentication via spectroscopic methods including NIR, Raman, and FTIR spectroscopy. Enables non-destructive verification of material composition and authenticity.",
   "type": "object",

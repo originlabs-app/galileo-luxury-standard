@@ -82,7 +82,7 @@ All Galileo Verifiable Credentials MUST include both the W3C and Galileo context
 {
   "@context": [
     "https://www.w3.org/ns/credentials/v2",
-    "https://vocab.galileo.luxury/contexts/galileo.jsonld"
+    "https://vocab.galileoprotocol.io/contexts/galileo.jsonld"
   ]
 }
 ```
@@ -139,9 +139,9 @@ For compliance claims (KYC/KYB verification). These credentials have expiry date
 {
   "@context": [
     "https://www.w3.org/ns/credentials/v2",
-    "https://vocab.galileo.luxury/contexts/galileo.jsonld"
+    "https://vocab.galileoprotocol.io/contexts/galileo.jsonld"
   ],
-  "id": "https://vc.galileo.luxury/credentials/kyc/2026/abc123",
+  "id": "https://vc.galileoprotocol.io/credentials/kyc/2026/abc123",
   "type": ["VerifiableCredential", "GalileoKYCCredential"],
   "issuer": {
     "id": "did:galileo:issuer:onfido",
@@ -157,11 +157,11 @@ For compliance claims (KYC/KYB verification). These credentials have expiry date
     "galileo:verificationMethod": "document_and_biometric"
   },
   "credentialStatus": {
-    "id": "https://status.galileo.luxury/credentials/1#94567",
+    "id": "https://status.galileoprotocol.io/credentials/1#94567",
     "type": "BitstringStatusListEntry",
     "statusPurpose": "revocation",
     "statusListIndex": "94567",
-    "statusListCredential": "https://status.galileo.luxury/credentials/1"
+    "statusListCredential": "https://status.galileoprotocol.io/credentials/1"
   },
   "proof": {
     "type": "DataIntegrityProof",
@@ -201,9 +201,9 @@ For luxury-specific authorization claims (retailer certification, service center
 {
   "@context": [
     "https://www.w3.org/ns/credentials/v2",
-    "https://vocab.galileo.luxury/contexts/galileo.jsonld"
+    "https://vocab.galileoprotocol.io/contexts/galileo.jsonld"
   ],
-  "id": "https://vc.galileo.luxury/credentials/luxury/2026/ret-456",
+  "id": "https://vc.galileoprotocol.io/credentials/luxury/2026/ret-456",
   "type": ["VerifiableCredential", "GalileoLuxuryCredential"],
   "issuer": {
     "id": "did:galileo:brand:hermes",
@@ -220,11 +220,11 @@ For luxury-specific authorization claims (retailer certification, service center
     "galileo:authorizedSince": "2018-03-15"
   },
   "credentialStatus": {
-    "id": "https://status.galileo.luxury/credentials/2#12345",
+    "id": "https://status.galileoprotocol.io/credentials/2#12345",
     "type": "BitstringStatusListEntry",
     "statusPurpose": "revocation",
     "statusListIndex": "12345",
-    "statusListCredential": "https://status.galileo.luxury/credentials/2"
+    "statusListCredential": "https://status.galileoprotocol.io/credentials/2"
   },
   "proof": {
     "type": "DataIntegrityProof",
@@ -243,9 +243,9 @@ For luxury-specific authorization claims (retailer certification, service center
 {
   "@context": [
     "https://www.w3.org/ns/credentials/v2",
-    "https://vocab.galileo.luxury/contexts/galileo.jsonld"
+    "https://vocab.galileoprotocol.io/contexts/galileo.jsonld"
   ],
-  "id": "https://vc.galileo.luxury/credentials/luxury/2026/svc-789",
+  "id": "https://vc.galileoprotocol.io/credentials/luxury/2026/svc-789",
   "type": ["VerifiableCredential", "GalileoLuxuryCredential"],
   "issuer": {
     "id": "did:galileo:brand:rolex",
@@ -262,11 +262,11 @@ For luxury-specific authorization claims (retailer certification, service center
     "galileo:facilityInspectionDate": "2025-11-15"
   },
   "credentialStatus": {
-    "id": "https://status.galileo.luxury/credentials/2#23456",
+    "id": "https://status.galileoprotocol.io/credentials/2#23456",
     "type": "BitstringStatusListEntry",
     "statusPurpose": "revocation",
     "statusListIndex": "23456",
-    "statusListCredential": "https://status.galileo.luxury/credentials/2"
+    "statusListCredential": "https://status.galileoprotocol.io/credentials/2"
   },
   "proof": {
     "type": "DataIntegrityProof",
@@ -308,9 +308,9 @@ For permanent heritage claims (origin certification, authenticity verification).
 {
   "@context": [
     "https://www.w3.org/ns/credentials/v2",
-    "https://vocab.galileo.luxury/contexts/galileo.jsonld"
+    "https://vocab.galileoprotocol.io/contexts/galileo.jsonld"
   ],
-  "id": "https://vc.galileo.luxury/credentials/heritage/2026/auth-xyz",
+  "id": "https://vc.galileoprotocol.io/credentials/heritage/2026/auth-xyz",
   "type": ["VerifiableCredential", "GalileoHeritageCredential"],
   "issuer": {
     "id": "did:galileo:issuer:entrupy",
@@ -326,11 +326,11 @@ For permanent heritage claims (origin certification, authenticity verification).
     "galileo:reportURI": "https://reports.entrupy.com/verify/abc123"
   },
   "credentialStatus": {
-    "id": "https://status.galileo.luxury/credentials/3#67890",
+    "id": "https://status.galileoprotocol.io/credentials/3#67890",
     "type": "BitstringStatusListEntry",
     "statusPurpose": "revocation",
     "statusListIndex": "67890",
-    "statusListCredential": "https://status.galileo.luxury/credentials/3"
+    "statusListCredential": "https://status.galileoprotocol.io/credentials/3"
   },
   "proof": {
     "type": "DataIntegrityProof",
@@ -349,9 +349,9 @@ For permanent heritage claims (origin certification, authenticity verification).
 {
   "@context": [
     "https://www.w3.org/ns/credentials/v2",
-    "https://vocab.galileo.luxury/contexts/galileo.jsonld"
+    "https://vocab.galileoprotocol.io/contexts/galileo.jsonld"
   ],
-  "id": "https://vc.galileo.luxury/credentials/heritage/2026/origin-def",
+  "id": "https://vc.galileoprotocol.io/credentials/heritage/2026/origin-def",
   "type": ["VerifiableCredential", "GalileoHeritageCredential"],
   "issuer": {
     "id": "did:galileo:brand:hermes",
@@ -377,11 +377,11 @@ For permanent heritage claims (origin certification, authenticity verification).
     ]
   },
   "credentialStatus": {
-    "id": "https://status.galileo.luxury/credentials/3#78901",
+    "id": "https://status.galileoprotocol.io/credentials/3#78901",
     "type": "BitstringStatusListEntry",
     "statusPurpose": "revocation",
     "statusListIndex": "78901",
-    "statusListCredential": "https://status.galileo.luxury/credentials/3"
+    "statusListCredential": "https://status.galileoprotocol.io/credentials/3"
   },
   "proof": {
     "type": "DataIntegrityProof",
@@ -432,7 +432,7 @@ bytes memory claimData = abi.encode(
 | Component | Value |
 |-----------|-------|
 | Content Hash | `0x7a3b5c2d1e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b` |
-| VC URI | `https://vc.galileo.luxury/credentials/kyc/2026/abc123` |
+| VC URI | `https://vc.galileoprotocol.io/credentials/kyc/2026/abc123` |
 
 ### 4.2 Canonicalization (RFC 8785 JCS)
 
@@ -591,12 +591,12 @@ Galileo uses W3C BitstringStatusList v1.0 for efficient credential revocation an
   "@context": [
     "https://www.w3.org/ns/credentials/v2"
   ],
-  "id": "https://status.galileo.luxury/credentials/1",
+  "id": "https://status.galileoprotocol.io/credentials/1",
   "type": ["VerifiableCredential", "BitstringStatusListCredential"],
   "issuer": "did:galileo:consortium",
   "validFrom": "2026-01-01T00:00:00Z",
   "credentialSubject": {
-    "id": "https://status.galileo.luxury/credentials/1#list",
+    "id": "https://status.galileoprotocol.io/credentials/1#list",
     "type": "BitstringStatusList",
     "statusPurpose": "revocation",
     "encodedList": "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAfgYnLJ..."
@@ -635,9 +635,9 @@ Galileo operates three status list credentials, organized by credential type:
 
 | Status List | URL | Credential Types | Purposes |
 |-------------|-----|------------------|----------|
-| KYC/Compliance | `https://status.galileo.luxury/credentials/1` | GalileoKYCCredential | revocation, suspension |
-| Luxury Authorizations | `https://status.galileo.luxury/credentials/2` | GalileoLuxuryCredential | revocation, suspension |
-| Heritage Claims | `https://status.galileo.luxury/credentials/3` | GalileoHeritageCredential | revocation only |
+| KYC/Compliance | `https://status.galileoprotocol.io/credentials/1` | GalileoKYCCredential | revocation, suspension |
+| Luxury Authorizations | `https://status.galileoprotocol.io/credentials/2` | GalileoLuxuryCredential | revocation, suspension |
+| Heritage Claims | `https://status.galileoprotocol.io/credentials/3` | GalileoHeritageCredential | revocation only |
 
 **Why No Suspension for Heritage:**
 
@@ -649,11 +649,11 @@ Each credential includes a status entry pointing to its position in the list:
 
 ```json
 "credentialStatus": {
-  "id": "https://status.galileo.luxury/credentials/1#94567",
+  "id": "https://status.galileoprotocol.io/credentials/1#94567",
   "type": "BitstringStatusListEntry",
   "statusPurpose": "revocation",
   "statusListIndex": "94567",
-  "statusListCredential": "https://status.galileo.luxury/credentials/1"
+  "statusListCredential": "https://status.galileoprotocol.io/credentials/1"
 }
 ```
 
@@ -854,7 +854,7 @@ During hybrid period, BOTH proofs must be valid. After 2030, PQC-only credential
 The Galileo JSON-LD context is published at:
 
 ```
-https://vocab.galileo.luxury/contexts/galileo.jsonld
+https://vocab.galileoprotocol.io/contexts/galileo.jsonld
 ```
 
 This context defines all `galileo:` prefixed terms used in credentials.
@@ -864,7 +864,7 @@ This context defines all `galileo:` prefixed terms used in credentials.
 All Galileo VCs can be validated against:
 
 ```
-https://schemas.galileo.luxury/credentials/v1/galileo-vc.schema.json
+https://schemas.galileoprotocol.io/credentials/v1/galileo-vc.schema.json
 ```
 
 See `specifications/schemas/identity/galileo-vc.schema.json` for the complete JSON Schema.

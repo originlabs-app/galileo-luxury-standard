@@ -1,10 +1,10 @@
 {
   "@context": {
     "@version": 1.1,
-    "@base": "https://vocab.galileo.luxury/molecular/",
+    "@base": "https://vocab.galileoprotocol.io/molecular/",
 
-    "galileo": "https://vocab.galileo.luxury/",
-    "molecular": "https://vocab.galileo.luxury/molecular/",
+    "galileo": "https://vocab.galileoprotocol.io/",
+    "molecular": "https://vocab.galileoprotocol.io/molecular/",
     "schema": "https://schema.org/",
     "xsd": "http://www.w3.org/2001/XMLSchema#",
     "did": "https://www.w3.org/ns/did#",

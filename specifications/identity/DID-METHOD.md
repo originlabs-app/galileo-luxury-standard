@@ -262,7 +262,7 @@ Resolution is the primary read operation. See [Section 4](#4-resolution-protocol
 **Quick Resolution:**
 
 ```
-GET https://resolver.galileo.luxury/1.0/identifiers/{did}
+GET https://resolver.galileoprotocol.io/1.0/identifiers/{did}
 ```
 
 Returns `DIDResolutionResult` per W3C DID Resolution specification.
@@ -399,27 +399,27 @@ DID Resolution Flow:
 **Primary (HTTPS):**
 
 ```
-GET https://resolver.galileo.luxury/1.0/identifiers/{did}
+GET https://resolver.galileoprotocol.io/1.0/identifiers/{did}
 ```
 
 **GS1 Digital Link (for products):**
 
 ```
-GET https://id.galileo.luxury/01/{gtin}/21/{serial}?linkType=gs1:did
+GET https://id.galileoprotocol.io/01/{gtin}/21/{serial}?linkType=gs1:did
 ```
 
 **Example Requests:**
 
 ```bash
 # Standard resolution
-curl https://resolver.galileo.luxury/1.0/identifiers/did:galileo:01:09506000134352:21:ABC123
+curl https://resolver.galileoprotocol.io/1.0/identifiers/did:galileo:01:09506000134352:21:ABC123
 
 # GS1 Digital Link resolution
-curl "https://id.galileo.luxury/01/09506000134352/21/ABC123?linkType=gs1:did"
+curl "https://id.galileoprotocol.io/01/09506000134352/21/ABC123?linkType=gs1:did"
 
 # With specific representation
 curl -H "Accept: application/did+ld+json" \
-  https://resolver.galileo.luxury/1.0/identifiers/did:galileo:01:09506000134352:21:ABC123
+  https://resolver.galileoprotocol.io/1.0/identifiers/did:galileo:01:09506000134352:21:ABC123
 ```
 
 ### 4.3 Resolution Result

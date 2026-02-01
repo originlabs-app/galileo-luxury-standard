@@ -241,13 +241,13 @@ Per GS1 Digital Link 1.6.0:
 | Error correction | Level M minimum (15%), Level Q recommended (25%) |
 | Quiet zone | 4 modules minimum |
 | Content | GS1 Digital Link URI |
-| Format | `https://id.galileo.luxury/01/{GTIN}/21/{Serial}` |
+| Format | `https://id.galileoprotocol.io/01/{GTIN}/21/{Serial}` |
 
 **Reference:** `specifications/resolver/digital-link-uri.md` Section 9.1
 
 **Example QR Data:**
 ```
-https://id.galileo.luxury/01/09506000134352/21/HK2024A001
+https://id.galileoprotocol.io/01/09506000134352/21/HK2024A001
 ```
 
 ### 4.3 NFC Requirements
@@ -262,7 +262,7 @@ https://id.galileo.luxury/01/09506000134352/21/HK2024A001
 
 **NDEF Structure:**
 ```
-[TNF=0x01][Type="U"][URI Identifier=0x04][URI=id.galileo.luxury/01/...]
+[TNF=0x01][Type="U"][URI Identifier=0x04][URI=id.galileoprotocol.io/01/...]
 ```
 
 ### 4.4 Tag Recommendations
@@ -304,12 +304,12 @@ All products MUST have a GS1 Global Trade Item Number (GTIN):
 ### 5.2 GS1 Digital Link URI Structure
 
 ```
-https://id.galileo.luxury/{AI}/{Value}/{AI2}/{Value2}
+https://id.galileoprotocol.io/{AI}/{Value}/{AI2}/{Value2}
 ```
 
 | Component | Description | Example |
 |-----------|-------------|---------|
-| Domain | Galileo resolver | `id.galileo.luxury` |
+| Domain | Galileo resolver | `id.galileoprotocol.io` |
 | AI 01 | GTIN | `01/09506000134352` |
 | AI 21 | Serial number | `21/HK2024A001` |
 | AI 10 | Batch/lot | `10/LOT2024` (optional) |
@@ -324,7 +324,7 @@ https://id.galileo.luxury/{AI}/{Value}/{AI2}/{Value2}
    Example: did:galileo:01:09506000134352:21:HK2024A001
 
 3. QR/NFC encodes GS1 Digital Link
-   Example: https://id.galileo.luxury/01/09506000134352/21/HK2024A001
+   Example: https://id.galileoprotocol.io/01/09506000134352/21/HK2024A001
 
 4. Resolver returns DPP JSON-LD via content negotiation
    Accept: application/ld+json -> DPP data
@@ -335,8 +335,8 @@ https://id.galileo.luxury/{AI}/{Value}/{AI2}/{Value2}
 
 | GS1 Digital Link URI | Galileo DID |
 |---------------------|-------------|
-| `https://id.galileo.luxury/01/09506000134352/21/HK2024A001` | `did:galileo:01:09506000134352:21:HK2024A001` |
-| `https://id.galileo.luxury/01/09506000134352` | `did:galileo:01:09506000134352` |
+| `https://id.galileoprotocol.io/01/09506000134352/21/HK2024A001` | `did:galileo:01:09506000134352:21:HK2024A001` |
+| `https://id.galileoprotocol.io/01/09506000134352` | `did:galileo:01:09506000134352` |
 
 **Reference:** `specifications/resolver/digital-link-uri.md` Section 6
 

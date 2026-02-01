@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://schemas.galileo.luxury/events/sale.schema.json",
+  "$id": "https://schemas.galileoprotocol.io/events/sale.schema.json",
   "title": "Galileo First Sale Event Schema",
   "description": "TransactionEvent for initial retail sale. Captures the first purchase of a new product from brand/retailer to customer, including warranty activation, purchase channel, and ownership transfer. Customer identity is anonymized per GDPR requirements.",
   "allOf": [
@@ -259,7 +259,7 @@
     {
       "@context": [
         "https://ref.gs1.org/standards/epcis/2.0.0/epcis-context.jsonld",
-        "https://vocab.galileo.luxury/context/galileo.jsonld"
+        "https://vocab.galileoprotocol.io/context/galileo.jsonld"
       ],
       "type": "TransactionEvent",
       "eventID": "ni:///sha-256;f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2?ver=CBV2.0",

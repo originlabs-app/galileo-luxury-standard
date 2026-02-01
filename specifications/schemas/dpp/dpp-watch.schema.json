@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://schemas.galileo.luxury/dpp/dpp-watch.schema.json",
+  "$id": "https://schemas.galileoprotocol.io/dpp/dpp-watch.schema.json",
   "title": "Galileo DPP Watch Schema",
   "description": "Digital Product Passport schema for timepieces. Extends dpp-core with movement details, case specifications, complications, and chronometry certifications for luxury watches.",
   "allOf": [
@@ -898,8 +898,8 @@
   "examples": [
     {
       "@context": [
-        "https://vocab.galileo.luxury/contexts/galileo.jsonld",
-        "https://vocab.galileo.luxury/contexts/luxury.jsonld"
+        "https://vocab.galileoprotocol.io/contexts/galileo.jsonld",
+        "https://vocab.galileoprotocol.io/contexts/luxury.jsonld"
       ],
       "@type": "IndividualProduct",
       "@id": "did:galileo:01:07611928123456:21:M9B3X7K2",

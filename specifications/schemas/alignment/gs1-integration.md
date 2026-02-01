@@ -97,7 +97,7 @@ Request:  GET https://id.gs1.org/01/09506000134352/21/HK2024A001
           Accept: application/json
 
 Response: HTTP 302 Found
-          Location: https://resolver.galileo.luxury/did/01:09506000134352:21:HK2024A001
+          Location: https://resolver.galileoprotocol.io/did/01:09506000134352:21:HK2024A001
 ```
 
 #### GS1 Resolver Configuration
@@ -110,15 +110,15 @@ Brands registered in Galileo configure their GS1 Company Prefix to redirect to t
   "redirects": [
     {
       "linkType": "https://gs1.org/voc/pip",
-      "targetUrl": "https://resolver.galileo.luxury/dpp/{gtin}/{serial}"
+      "targetUrl": "https://resolver.galileoprotocol.io/dpp/{gtin}/{serial}"
     },
     {
       "linkType": "https://gs1.org/voc/sustainabilityInfo",
-      "targetUrl": "https://resolver.galileo.luxury/sustainability/{gtin}/{serial}"
+      "targetUrl": "https://resolver.galileoprotocol.io/sustainability/{gtin}/{serial}"
     },
     {
       "linkType": "https://gs1.org/voc/traceability",
-      "targetUrl": "https://resolver.galileo.luxury/events/{gtin}/{serial}"
+      "targetUrl": "https://resolver.galileoprotocol.io/events/{gtin}/{serial}"
     }
   ]
 }
@@ -193,16 +193,16 @@ Context is determined in priority order:
 
 | Link Type | URI | Description |
 |-----------|-----|-------------|
-| Internal DPP | `https://vocab.galileo.luxury/internalDPP` | Full DPP (authenticated) |
-| Audit Trail | `https://vocab.galileo.luxury/auditTrail` | Complete event history |
-| Service Info | `https://vocab.galileo.luxury/serviceInfo` | Service/repair data |
-| Technical Spec | `https://vocab.galileo.luxury/technicalSpec` | Technical specifications |
-| Authenticity | `https://vocab.galileo.luxury/authenticity` | Verification proof |
+| Internal DPP | `https://vocab.galileoprotocol.io/internalDPP` | Full DPP (authenticated) |
+| Audit Trail | `https://vocab.galileoprotocol.io/auditTrail` | Complete event history |
+| Service Info | `https://vocab.galileoprotocol.io/serviceInfo` | Service/repair data |
+| Technical Spec | `https://vocab.galileoprotocol.io/technicalSpec` | Technical specifications |
+| Authenticity | `https://vocab.galileoprotocol.io/authenticity` | Verification proof |
 
 ### Authentication Flow
 
 ```
-1. Client requests: GET https://resolver.galileo.luxury/dpp/09506000134352/HK2024A001
+1. Client requests: GET https://resolver.galileoprotocol.io/dpp/09506000134352/HK2024A001
                     Authorization: Bearer {jwt}
                     Accept: application/ld+json
 
@@ -225,7 +225,7 @@ Context is determined in priority order:
 ### HTTP Resolution
 
 ```
-GET https://resolver.galileo.luxury/did/{method-specific-id}
+GET https://resolver.galileoprotocol.io/did/{method-specific-id}
 Accept: application/did+ld+json
 
 Response:
@@ -279,17 +279,17 @@ Response:
     {
       "id": "did:galileo:01:09506000134352:21:HK2024A001#dpp",
       "type": "GalileoDPP",
-      "serviceEndpoint": "https://resolver.galileo.luxury/dpp/09506000134352/HK2024A001"
+      "serviceEndpoint": "https://resolver.galileoprotocol.io/dpp/09506000134352/HK2024A001"
     },
     {
       "id": "did:galileo:01:09506000134352:21:HK2024A001#events",
       "type": "GalileoTraceability",
-      "serviceEndpoint": "https://resolver.galileo.luxury/events/09506000134352/HK2024A001"
+      "serviceEndpoint": "https://resolver.galileoprotocol.io/events/09506000134352/HK2024A001"
     },
     {
       "id": "did:galileo:01:09506000134352:21:HK2024A001#verify",
       "type": "GalileoAuthenticity",
-      "serviceEndpoint": "https://resolver.galileo.luxury/verify/09506000134352/HK2024A001"
+      "serviceEndpoint": "https://resolver.galileoprotocol.io/verify/09506000134352/HK2024A001"
     },
     {
       "id": "did:galileo:01:09506000134352:21:HK2024A001#gs1-link",
@@ -321,7 +321,7 @@ Response:
 2. Phone opens: https://id.gs1.org/01/09506000134352/21/HK2024A001
 
 3. GS1 resolver recognizes Galileo prefix (0950600)
-4. Redirects to: https://resolver.galileo.luxury/pip/09506000134352/HK2024A001
+4. Redirects to: https://resolver.galileoprotocol.io/pip/09506000134352/HK2024A001
 
 5. Galileo resolver returns public DPP:
    - Product name, brand, authenticity status
@@ -334,13 +334,13 @@ Response:
 
 ```
 1. Brand system authenticates:
-   POST https://auth.galileo.luxury/token
+   POST https://auth.galileoprotocol.io/token
    { "client_id": "hermes-ops", "client_secret": "..." }
 
 2. Receives JWT with role: "brand_admin"
 
 3. Requests full traceability:
-   GET https://resolver.galileo.luxury/events/09506000134352/HK2024A001
+   GET https://resolver.galileoprotocol.io/events/09506000134352/HK2024A001
    Authorization: Bearer {jwt}
    Accept: application/ld+json
 
@@ -355,7 +355,7 @@ Response:
 ```
 1. Regulator authenticates via verified credential
 2. Requests ESPR compliance data:
-   GET https://resolver.galileo.luxury/dpp/09506000134352/HK2024A001?context=regulator
+   GET https://resolver.galileoprotocol.io/dpp/09506000134352/HK2024A001?context=regulator
    Authorization: Bearer {jwt}
 
 3. Receives compliance-focused view:
@@ -372,7 +372,7 @@ Response:
 1. CPO platform receives product for resale
 2. Scans product, extracts DID from NFC
 3. Requests authenticity verification:
-   GET https://resolver.galileo.luxury/verify/09506000134352/HK2024A001
+   GET https://resolver.galileoprotocol.io/verify/09506000134352/HK2024A001
 
 4. Receives verification bundle:
    - Authenticity status: VERIFIED
@@ -431,9 +431,9 @@ For Phase 6 implementation, Galileo deploys a GS1 Resolver CE instance:
 
 ### Resolver Deployment
 
-- Primary: `resolver.galileo.luxury`
-- GS1 Digital Link: `id.galileo.luxury`
-- Fallback: `resolver2.galileo.luxury`
+- Primary: `resolver.galileoprotocol.io`
+- GS1 Digital Link: `id.galileoprotocol.io`
+- Fallback: `resolver2.galileoprotocol.io`
 
 ---
 

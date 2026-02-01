@@ -446,7 +446,7 @@ The TSC is responsible for Code of Conduct enforcement. Violations may result in
 
 ### 10.4 Reporting
 
-Violations may be reported to conduct@galileo.luxury (or designated address). All reports are treated confidentially.
+Violations may be reported to conduct@galileoprotocol.io (or designated address). All reports are treated confidentially.
 
 ---
 

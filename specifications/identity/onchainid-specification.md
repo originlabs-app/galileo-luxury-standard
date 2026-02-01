@@ -241,7 +241,7 @@ struct Claim {
 // Claim data encoding
 bytes memory claimData = abi.encode(
     keccak256(canonicalVCJson),  // Content hash of canonical VC (RFC 8785 JCS)
-    vcURI                         // "https://vc.galileo.luxury/credentials/{id}"
+    vcURI                         // "https://vc.galileoprotocol.io/credentials/{id}"
 );
 ```
 
@@ -528,7 +528,7 @@ interface IGalileoIdentity is IIdentity {
     /**
      * @notice Participant type within the Galileo ecosystem
      * @dev Service-center and authenticator roles are conveyed via claim
-     *      topics (galileo.luxury.service_center, galileo.luxury.authenticator),
+     *      topics (galileoprotocol.io.service_center, galileoprotocol.io.authenticator),
      *      not via ParticipantType enum.
      */
     enum ParticipantType {
@@ -698,10 +698,10 @@ CROSS-CHAIN IDENTITY DEPLOYMENT
 | Type | Key Configuration | Typical Claims Held | Typical Claims Issued |
 |------|-------------------|---------------------|----------------------|
 | INDIVIDUAL | Single MANAGEMENT key, optional guardian | `galileo.kyc.basic`, `galileo.kyc.enhanced` | None |
-| BRAND | Multi-sig MANAGEMENT, separate ACTION keys | `galileo.kyb.verified`, internal brand claims | `galileo.luxury.authorized_retailer`, `galileo.luxury.service_center` |
-| RETAILER | Brand-delegated ACTION key | `galileo.luxury.authorized_retailer` | None (receives, doesn't issue) |
+| BRAND | Multi-sig MANAGEMENT, separate ACTION keys | `galileo.kyb.verified`, internal brand claims | `galileoprotocol.io.authorized_retailer`, `galileoprotocol.io.service_center` |
+| RETAILER | Brand-delegated ACTION key | `galileoprotocol.io.authorized_retailer` | None (receives, doesn't issue) |
 | ISSUER | Lab/KYC provider MANAGEMENT | `galileo.kyb.verified`, accreditation claims | `galileo.kyc.*`, `galileo.heritage.*` |
-| VERIFIER | Regulator or audit body | Regulatory authorization | `galileo.luxury.authenticator`, `galileo.luxury.auction_house` |
+| VERIFIER | Regulator or audit body | Regulatory authorization | `galileoprotocol.io.authenticator`, `galileoprotocol.io.auction_house` |
 
 ### 6.2 Type-Specific Behaviors
 
@@ -722,7 +722,7 @@ CROSS-CHAIN IDENTITY DEPLOYMENT
 - Operates under brand delegation
 - ACTION keys granted by authorizing brand
 - Cannot issue claims
-- Authorization verified via `galileo.luxury.authorized_retailer` claim
+- Authorization verified via `galileoprotocol.io.authorized_retailer` claim
 
 **ISSUER:**
 - Registered in TrustedIssuersRegistry
@@ -743,9 +743,9 @@ Service-center and authenticator roles are NOT ParticipantType values. They are 
 
 | Role | ParticipantType | Claim Topic |
 |------|----------------|-------------|
-| Service Center | RETAILER or BRAND | `galileo.luxury.service_center` |
-| Authenticator | ISSUER | `galileo.luxury.authenticator` |
-| Auction House | RETAILER | `galileo.luxury.auction_house` |
+| Service Center | RETAILER or BRAND | `galileoprotocol.io.service_center` |
+| Authenticator | ISSUER | `galileoprotocol.io.authenticator` |
+| Auction House | RETAILER | `galileoprotocol.io.auction_house` |
 
 This design allows:
 - A RETAILER to also be an authorized service center (has both claims)
@@ -830,9 +830,9 @@ Quick reference for common topics:
 | `galileo.kyc.basic` | `0xd89b93fa...` | Compliance (365d) |
 | `galileo.kyc.enhanced` | `0xa1fecd52...` | Compliance (365d) |
 | `galileo.kyb.verified` | `0x1dd51298...` | Compliance (365d) |
-| `galileo.luxury.authorized_retailer` | `0xfc1ed254...` | Compliance (365d) |
-| `galileo.luxury.service_center` | `0x10830870...` | Compliance (365d) |
-| `galileo.luxury.authenticator` | `0xda684ab8...` | Compliance (365d) |
+| `galileoprotocol.io.authorized_retailer` | `0xfc1ed254...` | Compliance (365d) |
+| `galileoprotocol.io.service_center` | `0x10830870...` | Compliance (365d) |
+| `galileoprotocol.io.authenticator` | `0xda684ab8...` | Compliance (365d) |
 | `galileo.heritage.origin_certified` | `0x1e1c32d6...` | Heritage (permanent) |
 | `galileo.heritage.authenticity_verified` | `0x4fc95faf...` | Heritage (permanent) |
 

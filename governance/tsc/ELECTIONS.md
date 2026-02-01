@@ -102,7 +102,7 @@ A valid nomination includes:
 ### 3.3 Nomination Submission
 
 Nominations are submitted to:
-- **Email:** elections@galileo.luxury
+- **Email:** elections@galileoprotocol.io
 - **System:** [Election platform TBD]
 - **Deadline:** End of day (23:59 UTC) on the final day of nomination period
 

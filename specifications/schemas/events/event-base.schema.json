@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://schemas.galileo.luxury/events/event-base.schema.json",
+  "$id": "https://schemas.galileoprotocol.io/events/event-base.schema.json",
   "title": "Galileo Event Base Schema",
   "description": "Common EPCIS 2.0 event structure with Galileo extensions for luxury product lifecycle events. All event types extend this base schema per GS1 EPCIS 2.0 JSON-LD binding with CBV 2.0 vocabulary.",
   "type": "object",
@@ -27,7 +27,7 @@
       "minItems": 2,
       "default": [
         "https://ref.gs1.org/standards/epcis/2.0.0/epcis-context.jsonld",
-        "https://vocab.galileo.luxury/context/galileo.jsonld"
+        "https://vocab.galileoprotocol.io/context/galileo.jsonld"
       ]
     },
     "type": {
@@ -408,7 +408,7 @@
     {
       "@context": [
         "https://ref.gs1.org/standards/epcis/2.0.0/epcis-context.jsonld",
-        "https://vocab.galileo.luxury/context/galileo.jsonld"
+        "https://vocab.galileoprotocol.io/context/galileo.jsonld"
       ],
       "type": "ObjectEvent",
       "eventID": "ni:///sha-256;a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2?ver=CBV2.0",

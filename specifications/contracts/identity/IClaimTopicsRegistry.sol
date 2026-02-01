@@ -266,7 +266,7 @@ library GalileoClaimTopics {
 
     /**
      * @notice Authorized retailer certification
-     * @dev Namespace: "galileo.luxury.authorized_retailer"
+     * @dev Namespace: "galileoprotocol.io.authorized_retailer"
      *      Issued by brands to authorized retail partners
      *      Required fields: brand authorization, territory, categories
      */
@@ -275,7 +275,7 @@ library GalileoClaimTopics {
 
     /**
      * @notice Authorized service center certification
-     * @dev Namespace: "galileo.luxury.service_center"
+     * @dev Namespace: "galileoprotocol.io.service_center"
      *      Issued by brands to authorized repair centers
      *      Required fields: brand authorization, service types, technician certs
      */
@@ -284,7 +284,7 @@ library GalileoClaimTopics {
 
     /**
      * @notice Third-party authenticator certification
-     * @dev Namespace: "galileo.luxury.authenticator"
+     * @dev Namespace: "galileoprotocol.io.authenticator"
      *      Issued to authentication laboratories and services
      *      Required fields: accreditation, methodology, categories
      */
@@ -293,7 +293,7 @@ library GalileoClaimTopics {
 
     /**
      * @notice Authorized auction house certification
-     * @dev Namespace: "galileo.luxury.auction_house"
+     * @dev Namespace: "galileoprotocol.io.auction_house"
      *      Issued to auction houses authorized for luxury goods
      *      Required fields: license, insurance, jurisdictions
      */

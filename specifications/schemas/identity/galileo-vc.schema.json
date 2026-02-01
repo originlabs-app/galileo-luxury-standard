@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://schemas.galileo.luxury/credentials/v1/galileo-vc.schema.json",
+  "$id": "https://schemas.galileoprotocol.io/credentials/v1/galileo-vc.schema.json",
   "title": "Galileo Verifiable Credential",
   "description": "JSON Schema for validating Galileo Verifiable Credentials conforming to W3C VC Data Model 2.0",
 
@@ -21,7 +21,7 @@
             },
             {
               "contains": {
-                "const": "https://vocab.galileo.luxury/contexts/galileo.jsonld"
+                "const": "https://vocab.galileoprotocol.io/contexts/galileo.jsonld"
               }
             }
           ],

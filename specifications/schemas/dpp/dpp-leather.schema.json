@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://schemas.galileo.luxury/dpp/dpp-leather.schema.json",
+  "$id": "https://schemas.galileoprotocol.io/dpp/dpp-leather.schema.json",
   "title": "Galileo DPP Leather Schema",
   "description": "Digital Product Passport schema for leather goods. Extends dpp-core with leather type, tannery origin, hide grade, and leather-specific fields for bags, accessories, and small leather goods.",
   "allOf": [
@@ -570,8 +570,8 @@
   "examples": [
     {
       "@context": [
-        "https://vocab.galileo.luxury/contexts/galileo.jsonld",
-        "https://vocab.galileo.luxury/contexts/luxury.jsonld"
+        "https://vocab.galileoprotocol.io/contexts/galileo.jsonld",
+        "https://vocab.galileoprotocol.io/contexts/luxury.jsonld"
       ],
       "@type": "IndividualProduct",
       "@id": "did:galileo:01:09506000134352:21:BK2024A001",

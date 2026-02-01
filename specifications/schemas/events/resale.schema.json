@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://schemas.galileo.luxury/events/resale.schema.json",
+  "$id": "https://schemas.galileoprotocol.io/events/resale.schema.json",
   "title": "Galileo Resale Event Schema",
   "description": "TransactionEvent for secondary market transactions. Captures ownership transfer in the pre-owned market including CPO (Certified Pre-Owned) status, authentication verification, condition assessment, and marketplace context. Enables transparent provenance for luxury resale.",
   "allOf": [
@@ -384,7 +384,7 @@
     {
       "@context": [
         "https://ref.gs1.org/standards/epcis/2.0.0/epcis-context.jsonld",
-        "https://vocab.galileo.luxury/context/galileo.jsonld"
+        "https://vocab.galileoprotocol.io/context/galileo.jsonld"
       ],
       "type": "TransactionEvent",
       "eventID": "ni:///sha-256;a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3?ver=CBV2.0",
@@ -456,7 +456,7 @@
     {
       "@context": [
         "https://ref.gs1.org/standards/epcis/2.0.0/epcis-context.jsonld",
-        "https://vocab.galileo.luxury/context/galileo.jsonld"
+        "https://vocab.galileoprotocol.io/context/galileo.jsonld"
       ],
       "type": "TransactionEvent",
       "eventID": "ni:///sha-256;b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4?ver=CBV2.0",

@@ -27,7 +27,7 @@
 
 ### 1.1 Purpose
 
-This specification defines the GS1 Digital Link URI structure for the Galileo Luxury Standard resolver at `id.galileo.luxury`. The URI format bridges physical product identifiers (QR codes, NFC tags) to digital identities, enabling ESPR-mandated Digital Product Passport access.
+This specification defines the GS1 Digital Link URI structure for the Galileo Luxury Standard resolver at `id.galileoprotocol.io`. The URI format bridges physical product identifiers (QR codes, NFC tags) to digital identities, enabling ESPR-mandated Digital Product Passport access.
 
 ### 1.2 Conformance
 
@@ -64,11 +64,11 @@ The EU Ecodesign for Sustainable Products Regulation (ESPR) 2024/1781 mandates D
 The Galileo resolver accepts GS1 Digital Link URIs at:
 
 ```
-https://id.galileo.luxury/{ai}/{value}[/{ai2}/{value2}]...[?query]
+https://id.galileoprotocol.io/{ai}/{value}[/{ai2}/{value2}]...[?query]
 ```
 
 Where:
-- `id.galileo.luxury` is the resolver domain
+- `id.galileoprotocol.io` is the resolver domain
 - `{ai}` is a GS1 Application Identifier
 - `{value}` is the identifier value
 - Multiple AI/value pairs can be chained
@@ -79,12 +79,12 @@ Where:
 The primary pattern for product identification:
 
 ```
-https://id.galileo.luxury/01/{GTIN14}/21/{Serial}
+https://id.galileoprotocol.io/01/{GTIN14}/21/{Serial}
 ```
 
 Example:
 ```
-https://id.galileo.luxury/01/09506000134352/21/ABC123
+https://id.galileoprotocol.io/01/09506000134352/21/ABC123
 ```
 
 ### 2.3 ABNF Grammar
@@ -94,7 +94,7 @@ Formal ABNF grammar per RFC 5234:
 ```abnf
 gs1-digital-link     = "https://" authority path-abempty [ "?" query ]
 
-authority            = "id.galileo.luxury"
+authority            = "id.galileoprotocol.io"
 
 path-abempty         = "/" primary-key *( "/" qualifier )
 
@@ -193,7 +193,7 @@ GTIN-14 = [Indicator Digit][GS1 Company Prefix][Item Reference][Check Digit]
 
 **URI Example:**
 ```
-https://id.galileo.luxury/01/09506000134352/21/ABC123
+https://id.galileoprotocol.io/01/09506000134352/21/ABC123
 ```
 
 ### 3.3 AI 21: Serial Number
@@ -208,7 +208,7 @@ Provides item-level uniqueness when combined with GTIN.
 
 **URI Example:**
 ```
-https://id.galileo.luxury/01/09506000134352/21/HK-2024.A001
+https://id.galileoprotocol.io/01/09506000134352/21/HK-2024.A001
 ```
 
 ### 3.4 AI 10: Batch/Lot Number
@@ -221,7 +221,7 @@ Identifies a production batch or lot.
 
 **URI Example:**
 ```
-https://id.galileo.luxury/01/09506000134352/10/LOT2024-001
+https://id.galileoprotocol.io/01/09506000134352/10/LOT2024-001
 ```
 
 ### 3.5 AI 17: Expiry Date
@@ -237,7 +237,7 @@ Product expiration date (primarily for materials/chemicals).
 
 **URI Example:**
 ```
-https://id.galileo.luxury/01/09506000134352/17/261231
+https://id.galileoprotocol.io/01/09506000134352/17/261231
 ```
 
 ### 3.6 AI 3103: Net Weight (Grams)
@@ -250,7 +250,7 @@ Net weight of the product in grams.
 
 **URI Example:**
 ```
-https://id.galileo.luxury/01/09506000134352/3103/000450
+https://id.galileoprotocol.io/01/09506000134352/3103/000450
 ```
 
 ### 3.7 AI 8006: ITIP (Individual Trade Item Piece)
@@ -267,7 +267,7 @@ ITIP = [GTIN-14][Piece Number][Total Pieces]
 
 **URI Example:**
 ```
-https://id.galileo.luxury/8006/095060001343520102/21/SET001
+https://id.galileoprotocol.io/8006/095060001343520102/21/SET001
 ```
 (GTIN 09506000134352, Piece 01 of 02)
 
@@ -279,7 +279,7 @@ Identifies components or parts within a product.
 
 **URI Example:**
 ```
-https://id.galileo.luxury/8010/0614141123452/21/BUCKLE-001
+https://id.galileoprotocol.io/8010/0614141123452/21/BUCKLE-001
 ```
 
 ### 3.9 AI 253: GDTI (Global Document Type Identifier)
@@ -290,7 +290,7 @@ Identifies documents such as certificates of authenticity.
 
 **URI Example:**
 ```
-https://id.galileo.luxury/253/4000001123457AUTH2024001
+https://id.galileoprotocol.io/253/4000001123457AUTH2024001
 ```
 
 ---
@@ -454,7 +454,7 @@ Compressed URIs follow this structure:
 The Galileo resolver automatically detects and decompresses compressed URIs:
 
 1. Detect compression by header byte
-2. Extract encoded domain, verify against `id.galileo.luxury`
+2. Extract encoded domain, verify against `id.galileoprotocol.io`
 3. Decode Application Identifiers and values
 4. Reconstruct full URI for internal processing
 
@@ -476,7 +476,7 @@ GS1 Digital Link URIs map bidirectionally to `did:galileo` identifiers.
 
 **Mapping Pattern:**
 ```
-GS1 URI:    https://id.galileo.luxury/{ai}/{value}[/{ai2}/{value2}]
+GS1 URI:    https://id.galileoprotocol.io/{ai}/{value}[/{ai2}/{value2}]
 did:galileo: did:galileo:{ai}:{value}[:{ai2}:{value2}]
 ```
 
@@ -498,7 +498,7 @@ Only the following AIs are included in the `did:galileo` mapping:
 **Note:** Qualifiers like AI 10 (batch), AI 17 (expiry), and AI 3103 (weight) are valid in GS1 Digital Link URIs for routing and display purposes, but are NOT included in `did:galileo` identifiers. These AIs represent mutable operational data rather than immutable product identity.
 
 **Transformation Rules:**
-1. Remove `https://id.galileo.luxury/` prefix
+1. Remove `https://id.galileoprotocol.io/` prefix
 2. Remove non-identity AIs (10, 17, 3103) from path
 3. Replace `/` path separators with `:` colons
 4. Prepend `did:galileo:`
@@ -508,10 +508,10 @@ Only the following AIs are included in the `did:galileo` mapping:
 
 | GS1 Digital Link URI | did:galileo DID |
 |---------------------|-----------------|
-| `https://id.galileo.luxury/01/09506000134352/21/ABC123` | `did:galileo:01:09506000134352:21:ABC123` |
-| `https://id.galileo.luxury/01/09506000134352` | `did:galileo:01:09506000134352` |
-| `https://id.galileo.luxury/8006/095060001343520102/21/SET001` | `did:galileo:8006:095060001343520102:21:SET001` |
-| `https://id.galileo.luxury/253/4000001123457AUTH001` | `did:galileo:253:4000001123457AUTH001` |
+| `https://id.galileoprotocol.io/01/09506000134352/21/ABC123` | `did:galileo:01:09506000134352:21:ABC123` |
+| `https://id.galileoprotocol.io/01/09506000134352` | `did:galileo:01:09506000134352` |
+| `https://id.galileoprotocol.io/8006/095060001343520102/21/SET001` | `did:galileo:8006:095060001343520102:21:SET001` |
+| `https://id.galileoprotocol.io/253/4000001123457AUTH001` | `did:galileo:253:4000001123457AUTH001` |
 
 ### 6.3 Bidirectional Conversion
 
@@ -521,7 +521,7 @@ Only the following AIs are included in the `did:galileo` mapping:
 function gs1UriToDid(uri: string): string {
   const url = new URL(uri);
 
-  if (url.hostname !== 'id.galileo.luxury') {
+  if (url.hostname !== 'id.galileoprotocol.io') {
     throw new Error('Not a Galileo GS1 Digital Link');
   }
 
@@ -547,7 +547,7 @@ function didToGs1Uri(did: string): string {
   // Convert to path format
   const path = specificId.replace(/:/g, '/');
 
-  return `https://id.galileo.luxury/${path}`;
+  return `https://id.galileoprotocol.io/${path}`;
 }
 ```
 
@@ -591,17 +591,17 @@ Specifies the type of resource to return.
 
 | Value | Full URI | Description |
 |-------|----------|-------------|
-| `galileo:authenticity` | `https://vocab.galileo.luxury/authenticity` | Verification proof |
-| `galileo:internalDPP` | `https://vocab.galileo.luxury/internalDPP` | Complete DPP (brand only) |
-| `galileo:auditTrail` | `https://vocab.galileo.luxury/auditTrail` | Full event history |
-| `galileo:serviceInfo` | `https://vocab.galileo.luxury/serviceInfo` | Service/repair data |
-| `galileo:technicalSpec` | `https://vocab.galileo.luxury/technicalSpec` | Technical specifications |
-| `galileo:complianceDPP` | `https://vocab.galileo.luxury/complianceDPP` | ESPR mandatory fields |
-| `galileo:espr` | `https://vocab.galileo.luxury/espr` | ESPR compliance bundle |
+| `galileo:authenticity` | `https://vocab.galileoprotocol.io/authenticity` | Verification proof |
+| `galileo:internalDPP` | `https://vocab.galileoprotocol.io/internalDPP` | Complete DPP (brand only) |
+| `galileo:auditTrail` | `https://vocab.galileoprotocol.io/auditTrail` | Full event history |
+| `galileo:serviceInfo` | `https://vocab.galileoprotocol.io/serviceInfo` | Service/repair data |
+| `galileo:technicalSpec` | `https://vocab.galileoprotocol.io/technicalSpec` | Technical specifications |
+| `galileo:complianceDPP` | `https://vocab.galileoprotocol.io/complianceDPP` | ESPR mandatory fields |
+| `galileo:espr` | `https://vocab.galileoprotocol.io/espr` | ESPR compliance bundle |
 
 **Example:**
 ```
-https://id.galileo.luxury/01/09506000134352/21/ABC123?linkType=gs1:pip
+https://id.galileoprotocol.io/01/09506000134352/21/ABC123?linkType=gs1:pip
 ```
 
 ### 7.3 context Parameter
@@ -621,7 +621,7 @@ Hints the requester's role for response selection.
 
 **Example:**
 ```
-https://id.galileo.luxury/01/09506000134352/21/ABC123?context=regulator
+https://id.galileoprotocol.io/01/09506000134352/21/ABC123?context=regulator
 ```
 
 ### 7.4 lang Parameter
@@ -634,7 +634,7 @@ Specifies preferred response language(s).
 
 **Example:**
 ```
-https://id.galileo.luxury/01/09506000134352/21/ABC123?linkType=gs1:pip&lang=fr
+https://id.galileoprotocol.io/01/09506000134352/21/ABC123?linkType=gs1:pip&lang=fr
 ```
 
 ### 7.5 Parameter Combinations
@@ -642,7 +642,7 @@ https://id.galileo.luxury/01/09506000134352/21/ABC123?linkType=gs1:pip&lang=fr
 Parameters can be combined:
 
 ```
-https://id.galileo.luxury/01/09506000134352/21/ABC123?linkType=gs1:sustainabilityInfo&context=consumer&lang=en
+https://id.galileoprotocol.io/01/09506000134352/21/ABC123?linkType=gs1:sustainabilityInfo&context=consumer&lang=en
 ```
 
 ---
@@ -661,8 +661,8 @@ function validateGS1DigitalLinkURI(uri: string): boolean {
   const url = new URL(uri);
 
   // Validate domain
-  if (url.hostname !== 'id.galileo.luxury') {
-    throw new URIValidationError('INVALID_DOMAIN', 'Domain must be id.galileo.luxury');
+  if (url.hostname !== 'id.galileoprotocol.io') {
+    throw new URIValidationError('INVALID_DOMAIN', 'Domain must be id.galileoprotocol.io');
   }
 
   // Validate scheme
@@ -738,7 +738,7 @@ Invalid URIs return HTTP 400 with structured error:
   "error": "invalidIdentifier",
   "errorCode": "INVALID_GTIN_CHECK_DIGIT",
   "message": "GTIN check digit validation failed",
-  "uri": "https://id.galileo.luxury/01/09506000134353/21/ABC123",
+  "uri": "https://id.galileoprotocol.io/01/09506000134353/21/ABC123",
   "details": {
     "ai": "01",
     "value": "09506000134353",
@@ -752,7 +752,7 @@ Invalid URIs return HTTP 400 with structured error:
 
 | Error Code | HTTP Status | Description |
 |------------|-------------|-------------|
-| `INVALID_DOMAIN` | 400 | URI domain is not id.galileo.luxury |
+| `INVALID_DOMAIN` | 400 | URI domain is not id.galileoprotocol.io |
 | `INVALID_SCHEME` | 400 | URI scheme is not HTTPS |
 | `MISSING_IDENTIFIER` | 400 | No AI/value pair in URI |
 | `INVALID_PRIMARY_AI` | 400 | Primary AI not supported |
@@ -777,7 +777,7 @@ GS1 Digital Link URIs encode directly into QR codes.
 
 **Example QR Data:**
 ```
-https://id.galileo.luxury/01/09506000134352/21/ABC123
+https://id.galileoprotocol.io/01/09506000134352/21/ABC123
 ```
 
 **QR Code Versions by URI Length:**
@@ -804,7 +804,7 @@ For NFC tags, use NDEF URI Record format.
 
 **Payload:**
 ```
-[URI Identifier Code: 0x04][URI without scheme: id.galileo.luxury/01/...]
+[URI Identifier Code: 0x04][URI without scheme: id.galileoprotocol.io/01/...]
 ```
 
 ### 9.3 Tag Recommendations
@@ -831,83 +831,83 @@ For NFC tags, use NDEF URI Record format.
 
 **Basic Product (GTIN + Serial):**
 ```
-https://id.galileo.luxury/01/09506000134352/21/ABC123
+https://id.galileoprotocol.io/01/09506000134352/21/ABC123
 ```
 Maps to: `did:galileo:01:09506000134352:21:ABC123`
 
 **Product with Batch:**
 ```
-https://id.galileo.luxury/01/09506000134352/21/ABC123/10/LOT2024
+https://id.galileoprotocol.io/01/09506000134352/21/ABC123/10/LOT2024
 ```
 Maps to: `did:galileo:01:09506000134352:21:ABC123`
 
 **Product with Expiry:**
 ```
-https://id.galileo.luxury/01/09506000134352/17/261231
+https://id.galileoprotocol.io/01/09506000134352/17/261231
 ```
 Maps to: `did:galileo:01:09506000134352`
 
 **Set Piece (ITIP):**
 ```
-https://id.galileo.luxury/8006/095060001343520102/21/SET001
+https://id.galileoprotocol.io/8006/095060001343520102/21/SET001
 ```
 Maps to: `did:galileo:8006:095060001343520102:21:SET001`
 
 **Component (CPID):**
 ```
-https://id.galileo.luxury/8010/0614141123452/21/BUCKLE-001
+https://id.galileoprotocol.io/8010/0614141123452/21/BUCKLE-001
 ```
 Maps to: `did:galileo:8010:0614141123452:21:BUCKLE-001`
 
 **Certificate (GDTI):**
 ```
-https://id.galileo.luxury/253/4000001123457AUTH2024001
+https://id.galileoprotocol.io/253/4000001123457AUTH2024001
 ```
 Maps to: `did:galileo:253:4000001123457AUTH2024001`
 
 **With Query Parameters:**
 ```
-https://id.galileo.luxury/01/09506000134352/21/ABC123?linkType=gs1:pip&lang=fr
+https://id.galileoprotocol.io/01/09506000134352/21/ABC123?linkType=gs1:pip&lang=fr
 ```
 
 **Linkset Request:**
 ```
-https://id.galileo.luxury/01/09506000134352/21/ABC123?linkType=linkset
+https://id.galileoprotocol.io/01/09506000134352/21/ABC123?linkType=linkset
 ```
 
 ### 10.2 Invalid URI Examples
 
 **Invalid Check Digit:**
 ```
-https://id.galileo.luxury/01/09506000134353/21/ABC123
+https://id.galileoprotocol.io/01/09506000134353/21/ABC123
                               ^^^^^^^^^^^^^^ Check digit 3 should be 2
 Error: INVALID_GTIN_CHECK_DIGIT
 ```
 
 **Wrong GTIN Length:**
 ```
-https://id.galileo.luxury/01/950600013435/21/ABC123
+https://id.galileoprotocol.io/01/950600013435/21/ABC123
                             ^^^^^^^^^^^^^ Only 12 digits (must be 14)
 Error: INVALID_GTIN_FORMAT
 ```
 
 **Invalid Serial Characters:**
 ```
-https://id.galileo.luxury/01/09506000134352/21/ABC@123
+https://id.galileoprotocol.io/01/09506000134352/21/ABC@123
                                               ^^^^^^^ @ not allowed
 Error: INVALID_SERIAL
 ```
 
 **Missing Qualifier Value:**
 ```
-https://id.galileo.luxury/01/09506000134352/21
+https://id.galileoprotocol.io/01/09506000134352/21
                                             ^^ AI 21 without serial value
 Error: INCOMPLETE_QUALIFIER
 ```
 
 **Unsupported AI:**
 ```
-https://id.galileo.luxury/91/123456789012/21/ABC123
+https://id.galileoprotocol.io/91/123456789012/21/ABC123
                            ^^ AI 91 not supported
 Error: UNSUPPORTED_AI
 ```

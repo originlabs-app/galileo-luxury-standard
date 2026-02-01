@@ -61,7 +61,7 @@ Every Galileo DID document MUST include:
   "@context": [
     "https://www.w3.org/ns/did/v1",
     "https://w3id.org/security/suites/ed25519-2020/v1",
-    "https://galileo.luxury/ns/v1"
+    "https://galileoprotocol.io/ns/v1"
   ],
   "id": "did:galileo:01:09506000134352:21:ABC123",
   "controller": "did:galileo:brand:hermesparis"
@@ -79,7 +79,7 @@ Every Galileo DID document MUST include:
 The `@context` array MUST contain:
 1. `https://www.w3.org/ns/did/v1` - W3C DID Core context (REQUIRED, FIRST)
 2. Appropriate security suite contexts for verification methods used
-3. `https://galileo.luxury/ns/v1` - Galileo-specific terms
+3. `https://galileoprotocol.io/ns/v1` - Galileo-specific terms
 
 ### 2.2 Optional Properties
 
@@ -240,9 +240,9 @@ Define how keys are used:
 
 | Type | Purpose | Endpoint Pattern |
 |------|---------|------------------|
-| `DigitalProductPassport` | ESPR DPP access | `https://resolver.galileo.luxury/dpp/{gtin}/{serial}` |
-| `TraceabilityService` | Lifecycle events | `https://resolver.galileo.luxury/trace/{gtin}/{serial}` |
-| `AuthenticityVerification` | Verify product authenticity | `https://resolver.galileo.luxury/verify/{gtin}/{serial}` |
+| `DigitalProductPassport` | ESPR DPP access | `https://resolver.galileoprotocol.io/dpp/{gtin}/{serial}` |
+| `TraceabilityService` | Lifecycle events | `https://resolver.galileoprotocol.io/trace/{gtin}/{serial}` |
+| `AuthenticityVerification` | Verify product authenticity | `https://resolver.galileoprotocol.io/verify/{gtin}/{serial}` |
 | `LinkedDomains` | Brand website link | Brand's verified domain |
 | `CredentialRegistry` | VC status list | Claim issuer endpoint |
 | `OwnershipTransfer` | Initiate transfer | Transfer service endpoint |
@@ -257,15 +257,15 @@ Each service endpoint follows the W3C service structure:
   "service": [{
     "id": "did:galileo:01:09506000134352:21:ABC123#dpp",
     "type": "DigitalProductPassport",
-    "serviceEndpoint": "https://resolver.galileo.luxury/dpp/09506000134352/ABC123"
+    "serviceEndpoint": "https://resolver.galileoprotocol.io/dpp/09506000134352/ABC123"
   }, {
     "id": "did:galileo:01:09506000134352:21:ABC123#trace",
     "type": "TraceabilityService",
-    "serviceEndpoint": "https://resolver.galileo.luxury/trace/09506000134352/ABC123"
+    "serviceEndpoint": "https://resolver.galileoprotocol.io/trace/09506000134352/ABC123"
   }, {
     "id": "did:galileo:01:09506000134352:21:ABC123#verify",
     "type": "AuthenticityVerification",
-    "serviceEndpoint": "https://resolver.galileo.luxury/verify/09506000134352/ABC123"
+    "serviceEndpoint": "https://resolver.galileoprotocol.io/verify/09506000134352/ABC123"
   }, {
     "id": "did:galileo:01:09506000134352:21:ABC123#brand",
     "type": "LinkedDomains",
@@ -363,12 +363,12 @@ A complete DID document for a luxury product:
     "https://www.w3.org/ns/did/v1",
     "https://w3id.org/security/suites/ed25519-2020/v1",
     "https://w3id.org/security/suites/secp256k1-2019/v1",
-    "https://galileo.luxury/ns/v1"
+    "https://galileoprotocol.io/ns/v1"
   ],
   "id": "did:galileo:01:09506000134352:21:ABC123",
   "controller": "did:galileo:brand:hermesparis",
   "alsoKnownAs": [
-    "https://id.galileo.luxury/01/09506000134352/21/ABC123"
+    "https://id.galileoprotocol.io/01/09506000134352/21/ABC123"
   ],
   "verificationMethod": [{
     "id": "did:galileo:01:09506000134352:21:ABC123#key-1",
@@ -391,15 +391,15 @@ A complete DID document for a luxury product:
   "service": [{
     "id": "did:galileo:01:09506000134352:21:ABC123#dpp",
     "type": "DigitalProductPassport",
-    "serviceEndpoint": "https://resolver.galileo.luxury/dpp/09506000134352/ABC123"
+    "serviceEndpoint": "https://resolver.galileoprotocol.io/dpp/09506000134352/ABC123"
   }, {
     "id": "did:galileo:01:09506000134352:21:ABC123#trace",
     "type": "TraceabilityService",
-    "serviceEndpoint": "https://resolver.galileo.luxury/trace/09506000134352/ABC123"
+    "serviceEndpoint": "https://resolver.galileoprotocol.io/trace/09506000134352/ABC123"
   }, {
     "id": "did:galileo:01:09506000134352:21:ABC123#verify",
     "type": "AuthenticityVerification",
-    "serviceEndpoint": "https://resolver.galileo.luxury/verify/09506000134352/ABC123"
+    "serviceEndpoint": "https://resolver.galileoprotocol.io/verify/09506000134352/ABC123"
   }],
   "galileo:productType": "luxury-good",
   "galileo:category": "leather-goods",
@@ -417,7 +417,7 @@ A complete DID document for a brand entity:
   "@context": [
     "https://www.w3.org/ns/did/v1",
     "https://w3id.org/security/suites/ed25519-2020/v1",
-    "https://galileo.luxury/ns/v1"
+    "https://galileoprotocol.io/ns/v1"
   ],
   "id": "did:galileo:brand:hermesparis",
   "controller": "did:galileo:brand:hermesparis",
@@ -449,11 +449,11 @@ A complete DID document for a brand entity:
   }, {
     "id": "did:galileo:brand:hermesparis#products",
     "type": "ProductRegistry",
-    "serviceEndpoint": "https://api.galileo.luxury/brands/hermesparis/products"
+    "serviceEndpoint": "https://api.galileoprotocol.io/brands/hermesparis/products"
   }, {
     "id": "did:galileo:brand:hermesparis#verify",
     "type": "AuthenticityVerification",
-    "serviceEndpoint": "https://api.galileo.luxury/brands/hermesparis/verify"
+    "serviceEndpoint": "https://api.galileoprotocol.io/brands/hermesparis/verify"
   }],
   "galileo:entityType": "brand",
   "galileo:legalName": "Hermes International SCA",
@@ -470,7 +470,7 @@ A DID document for an individual artisan:
   "@context": [
     "https://www.w3.org/ns/did/v1",
     "https://w3id.org/security/suites/ed25519-2020/v1",
-    "https://galileo.luxury/ns/v1"
+    "https://galileoprotocol.io/ns/v1"
   ],
   "id": "did:galileo:artisan:pierresmith",
   "controller": [
@@ -492,7 +492,7 @@ A DID document for an individual artisan:
   "service": [{
     "id": "did:galileo:artisan:pierresmith#profile",
     "type": "ArtisanProfile",
-    "serviceEndpoint": "https://resolver.galileo.luxury/artisans/pierresmith"
+    "serviceEndpoint": "https://resolver.galileoprotocol.io/artisans/pierresmith"
   }]
 }
 ```
@@ -632,7 +632,7 @@ The Galileo JSON-LD context extends W3C DID with luxury product-specific terms:
 {
   "@context": {
     "@version": 1.1,
-    "galileo": "https://galileo.luxury/ns/v1#",
+    "galileo": "https://galileoprotocol.io/ns/v1#",
 
     "DigitalProductPassport": "galileo:DigitalProductPassport",
     "TraceabilityService": "galileo:TraceabilityService",
@@ -704,7 +704,7 @@ The Galileo JSON-LD context extends W3C DID with luxury product-specific terms:
 
 ### 7.2 Context URL
 
-Published at: `https://galileo.luxury/ns/v1`
+Published at: `https://galileoprotocol.io/ns/v1`
 
 **Requirements:**
 
@@ -716,8 +716,8 @@ Published at: `https://galileo.luxury/ns/v1`
 
 | Version | URL | Status |
 |---------|-----|--------|
-| v1 | `https://galileo.luxury/ns/v1` | Current |
-| v2 | `https://galileo.luxury/ns/v2` | Planned |
+| v1 | `https://galileoprotocol.io/ns/v1` | Current |
+| v2 | `https://galileoprotocol.io/ns/v2` | Planned |
 
 **Migration Policy:**
 
@@ -784,7 +784,7 @@ The complete resolution flow from DID to document:
    Returns: { controller, contentHash, createdAt, updatedAt, active }
 
 5. Resolver fetches: Off-chain store by contentHash
-   URL: https://storage.galileo.luxury/docs/{contentHash}
+   URL: https://storage.galileoprotocol.io/docs/{contentHash}
 
 6. Resolver verifies: SHA-256(canonicalize(document)) === contentHash
    If mismatch: Log integrity alert, continue with warning
@@ -852,7 +852,7 @@ JSON Schema for DID document validation:
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://galileo.luxury/schemas/did-document.json",
+  "$id": "https://galileoprotocol.io/schemas/did-document.json",
   "title": "Galileo DID Document",
   "type": "object",
   "required": ["@context", "id", "controller"],

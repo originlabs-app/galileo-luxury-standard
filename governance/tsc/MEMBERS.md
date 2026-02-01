@@ -188,7 +188,7 @@ Former TSC members who have made significant contributions to the Standard. Emer
 
 ### 8.1 TSC Communication
 
-- **TSC Email:** tsc@galileo.luxury
+- **TSC Email:** tsc@galileoprotocol.io
 - **Public Discussion:** [Forum/mailing list TBD]
 - **Meeting Calendar:** [Calendar link TBD]
 

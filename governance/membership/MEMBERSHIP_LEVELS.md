@@ -288,7 +288,7 @@ If dues are not paid:
 ### 6.5 Voluntary Withdrawal
 
 Members may withdraw at any time:
-- Submit written notice to membership@galileo.luxury
+- Submit written notice to membership@galileoprotocol.io
 - Effective immediately or at specified future date
 - No prorated refunds after 90-day window
 - May reapply in future
@@ -395,10 +395,10 @@ For 90 days following ratification:
 
 | Purpose | Contact |
 |---------|---------|
-| Membership inquiries | membership@galileo.luxury |
-| Dues and billing | billing@galileo.luxury |
-| Technical questions | tsc@galileo.luxury |
-| General information | info@galileo.luxury |
+| Membership inquiries | membership@galileoprotocol.io |
+| Dues and billing | billing@galileoprotocol.io |
+| Technical questions | tsc@galileoprotocol.io |
+| General information | info@galileoprotocol.io |
 
 ---
 

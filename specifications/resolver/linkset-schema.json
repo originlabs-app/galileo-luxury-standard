@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://spec.galileo.luxury/resolver/linkset/v1.0.0/schema.json",
+  "$id": "https://spec.galileoprotocol.io/resolver/linkset/v1.0.0/schema.json",
   "title": "Galileo GS1 Linkset Response Schema",
   "description": "JSON Schema for GS1 linkset responses per IETF RFC 9264 with Galileo extensions. Defines the structure returned by the Galileo resolver for link type requests.",
   "type": "object",
@@ -44,7 +44,7 @@
             },
             "galileo": {
               "type": "string",
-              "const": "https://vocab.galileo.luxury/",
+              "const": "https://vocab.galileoprotocol.io/",
               "description": "Galileo vocabulary namespace for custom link types"
             }
           },
@@ -87,7 +87,7 @@
           "description": "The GS1 Digital Link URI identifying the product",
           "pattern": "^https://id\\.galileo\\.luxury/(01|8006|8010|253)/",
           "examples": [
-            "https://id.galileo.luxury/01/09506000134352/21/ABC123"
+            "https://id.galileoprotocol.io/01/09506000134352/21/ABC123"
           ]
         },
         "itemDescription": {
@@ -136,39 +136,39 @@
           "$ref": "#/$defs/LinkArray",
           "description": "SmartLabel digital product label content"
         },
-        "https://vocab.galileo.luxury/authenticity": {
+        "https://vocab.galileoprotocol.io/authenticity": {
           "$ref": "#/$defs/LinkArray",
           "description": "Authenticity verification proof and status. Access: Public."
         },
-        "https://vocab.galileo.luxury/internalDPP": {
+        "https://vocab.galileoprotocol.io/internalDPP": {
           "$ref": "#/$defs/LinkArray",
           "description": "Complete Digital Product Passport with all fields. Access: Brand only (authenticated)."
         },
-        "https://vocab.galileo.luxury/auditTrail": {
+        "https://vocab.galileoprotocol.io/auditTrail": {
           "$ref": "#/$defs/LinkArray",
           "description": "Complete audit trail and ownership history. Access: Brand/Regulator (authenticated)."
         },
-        "https://vocab.galileo.luxury/serviceInfo": {
+        "https://vocab.galileoprotocol.io/serviceInfo": {
           "$ref": "#/$defs/LinkArray",
           "description": "Service and repair information. Access: Authorized service centers."
         },
-        "https://vocab.galileo.luxury/technicalSpec": {
+        "https://vocab.galileoprotocol.io/technicalSpec": {
           "$ref": "#/$defs/LinkArray",
           "description": "Technical specifications for repair/service. Access: Authorized service centers."
         },
-        "https://vocab.galileo.luxury/complianceDPP": {
+        "https://vocab.galileoprotocol.io/complianceDPP": {
           "$ref": "#/$defs/LinkArray",
           "description": "ESPR mandatory fields only for compliance verification. Access: Regulators."
         },
-        "https://vocab.galileo.luxury/espr": {
+        "https://vocab.galileoprotocol.io/espr": {
           "$ref": "#/$defs/LinkArray",
           "description": "ESPR compliance bundle with all required data. Access: Regulators."
         },
-        "https://vocab.galileo.luxury/provenance": {
+        "https://vocab.galileoprotocol.io/provenance": {
           "$ref": "#/$defs/LinkArray",
           "description": "Provenance information including origin and chain of custody"
         },
-        "https://vocab.galileo.luxury/repairHistory": {
+        "https://vocab.galileoprotocol.io/repairHistory": {
           "$ref": "#/$defs/LinkArray",
           "description": "Complete repair and service history. Access: Brand/Service centers."
         }
@@ -196,8 +196,8 @@
           "format": "uri",
           "description": "Target URL of the linked resource",
           "examples": [
-            "https://resolver.galileo.luxury/dpp/09506000134352/ABC123",
-            "https://resolver.galileo.luxury/pip/09506000134352/ABC123"
+            "https://resolver.galileoprotocol.io/dpp/09506000134352/ABC123",
+            "https://resolver.galileoprotocol.io/pip/09506000134352/ABC123"
           ]
         },
         "title": {
@@ -293,22 +293,22 @@
         "href": "@id",
         "linkset": "@graph",
         "gs1": "https://gs1.org/voc/",
-        "galileo": "https://vocab.galileo.luxury/"
+        "galileo": "https://vocab.galileoprotocol.io/"
       },
       "linkset": [
         {
-          "anchor": "https://id.galileo.luxury/01/09506000134352/21/ABC123",
+          "anchor": "https://id.galileoprotocol.io/01/09506000134352/21/ABC123",
           "itemDescription": "Birkin 25 Togo Gold",
           "https://gs1.org/voc/defaultLink": [
             {
-              "href": "https://resolver.galileo.luxury/dpp/09506000134352/ABC123",
+              "href": "https://resolver.galileoprotocol.io/dpp/09506000134352/ABC123",
               "title": "Digital Product Passport",
               "type": "application/ld+json"
             }
           ],
           "https://gs1.org/voc/pip": [
             {
-              "href": "https://resolver.galileo.luxury/pip/09506000134352/ABC123",
+              "href": "https://resolver.galileoprotocol.io/pip/09506000134352/ABC123",
               "hreflang": ["en", "fr", "zh"],
               "title": "Product Information",
               "type": "text/html"
@@ -316,62 +316,62 @@
           ],
           "https://gs1.org/voc/sustainabilityInfo": [
             {
-              "href": "https://resolver.galileo.luxury/sustainability/09506000134352/ABC123",
+              "href": "https://resolver.galileoprotocol.io/sustainability/09506000134352/ABC123",
               "title": "Sustainability Data",
               "type": "application/ld+json"
             }
           ],
           "https://gs1.org/voc/instructions": [
             {
-              "href": "https://resolver.galileo.luxury/care/09506000134352/ABC123",
+              "href": "https://resolver.galileoprotocol.io/care/09506000134352/ABC123",
               "hreflang": ["en"],
               "title": "Care Instructions",
               "type": "application/pdf"
             },
             {
-              "href": "https://resolver.galileo.luxury/care/09506000134352/ABC123?lang=fr",
+              "href": "https://resolver.galileoprotocol.io/care/09506000134352/ABC123?lang=fr",
               "hreflang": ["fr"],
               "title": "Instructions d'entretien",
               "type": "application/pdf"
             }
           ],
-          "https://vocab.galileo.luxury/authenticity": [
+          "https://vocab.galileoprotocol.io/authenticity": [
             {
-              "href": "https://resolver.galileo.luxury/verify/09506000134352/ABC123",
+              "href": "https://resolver.galileoprotocol.io/verify/09506000134352/ABC123",
               "title": "Authenticity Verification",
               "type": "application/ld+json"
             }
           ],
           "https://gs1.org/voc/traceability": [
             {
-              "href": "https://resolver.galileo.luxury/events/09506000134352/ABC123",
+              "href": "https://resolver.galileoprotocol.io/events/09506000134352/ABC123",
               "title": "Lifecycle Events",
               "type": "application/ld+json",
               "context": ["brand", "regulator"],
               "auth": "jwt"
             }
           ],
-          "https://vocab.galileo.luxury/internalDPP": [
+          "https://vocab.galileoprotocol.io/internalDPP": [
             {
-              "href": "https://resolver.galileo.luxury/internal/dpp/09506000134352/ABC123",
+              "href": "https://resolver.galileoprotocol.io/internal/dpp/09506000134352/ABC123",
               "title": "Complete Digital Product Passport",
               "type": "application/ld+json",
               "context": ["brand"],
               "auth": "jwt"
             }
           ],
-          "https://vocab.galileo.luxury/serviceInfo": [
+          "https://vocab.galileoprotocol.io/serviceInfo": [
             {
-              "href": "https://resolver.galileo.luxury/service/09506000134352/ABC123",
+              "href": "https://resolver.galileoprotocol.io/service/09506000134352/ABC123",
               "title": "Service Information",
               "type": "application/ld+json",
               "context": ["service_center"],
               "auth": "jwt"
             }
           ],
-          "https://vocab.galileo.luxury/complianceDPP": [
+          "https://vocab.galileoprotocol.io/complianceDPP": [
             {
-              "href": "https://resolver.galileo.luxury/compliance/09506000134352/ABC123",
+              "href": "https://resolver.galileoprotocol.io/compliance/09506000134352/ABC123",
               "title": "ESPR Compliance Data",
               "type": "application/ld+json",
               "context": ["regulator"],
@@ -388,22 +388,22 @@
         "href": "@id",
         "linkset": "@graph",
         "gs1": "https://gs1.org/voc/",
-        "galileo": "https://vocab.galileo.luxury/"
+        "galileo": "https://vocab.galileoprotocol.io/"
       },
       "linkset": [
         {
-          "anchor": "https://id.galileo.luxury/01/09506000134352",
+          "anchor": "https://id.galileoprotocol.io/01/09506000134352",
           "itemDescription": "Birkin 25 Togo (Model)",
           "https://gs1.org/voc/defaultLink": [
             {
-              "href": "https://resolver.galileo.luxury/product/09506000134352",
+              "href": "https://resolver.galileoprotocol.io/product/09506000134352",
               "title": "Product Model Page",
               "type": "text/html"
             }
           ],
           "https://gs1.org/voc/pip": [
             {
-              "href": "https://resolver.galileo.luxury/pip/09506000134352",
+              "href": "https://resolver.galileoprotocol.io/pip/09506000134352",
               "hreflang": ["en", "fr"],
               "title": "Model Information",
               "type": "text/html"
@@ -411,7 +411,7 @@
           ],
           "https://gs1.org/voc/hasRetailers": [
             {
-              "href": "https://resolver.galileo.luxury/retailers/09506000134352",
+              "href": "https://resolver.galileoprotocol.io/retailers/09506000134352",
               "title": "Authorized Retailers",
               "type": "application/json"
             }
@@ -426,22 +426,22 @@
         "href": "@id",
         "linkset": "@graph",
         "gs1": "https://gs1.org/voc/",
-        "galileo": "https://vocab.galileo.luxury/"
+        "galileo": "https://vocab.galileoprotocol.io/"
       },
       "linkset": [
         {
-          "anchor": "https://id.galileo.luxury/253/4000001123457AUTH2024001",
+          "anchor": "https://id.galileoprotocol.io/253/4000001123457AUTH2024001",
           "itemDescription": "Certificate of Authenticity #AUTH2024001",
           "https://gs1.org/voc/defaultLink": [
             {
-              "href": "https://resolver.galileo.luxury/certificate/4000001123457AUTH2024001",
+              "href": "https://resolver.galileoprotocol.io/certificate/4000001123457AUTH2024001",
               "title": "Certificate of Authenticity",
               "type": "application/pdf"
             }
           ],
           "https://gs1.org/voc/certificationInfo": [
             {
-              "href": "https://resolver.galileo.luxury/certificate/4000001123457AUTH2024001/data",
+              "href": "https://resolver.galileoprotocol.io/certificate/4000001123457AUTH2024001/data",
               "title": "Certificate Data",
               "type": "application/ld+json"
             }

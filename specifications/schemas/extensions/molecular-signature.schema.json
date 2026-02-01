@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://schemas.galileo.luxury/extensions/molecular-signature.schema.json",
+  "$id": "https://schemas.galileoprotocol.io/extensions/molecular-signature.schema.json",
   "title": "Galileo Molecular Authentication Schema",
   "description": "Extension schema for molecular-level authentication of luxury products. Supports DNA tagging, spectral fingerprinting, and isotopic analysis for ultra-high provenance verification. This schema is an optional extension to DPP documents.",
   "type": "object",
@@ -16,7 +16,7 @@
       "oneOf": [
         {
           "type": "string",
-          "const": "https://vocab.galileo.luxury/contexts/molecular.jsonld"
+          "const": "https://vocab.galileoprotocol.io/contexts/molecular.jsonld"
         },
         {
           "type": "array",
@@ -24,7 +24,7 @@
             "type": "string"
           },
           "contains": {
-            "const": "https://vocab.galileo.luxury/contexts/molecular.jsonld"
+            "const": "https://vocab.galileoprotocol.io/contexts/molecular.jsonld"
           }
         }
       ]
@@ -212,7 +212,7 @@
   ],
   "examples": [
     {
-      "@context": "https://vocab.galileo.luxury/contexts/molecular.jsonld",
+      "@context": "https://vocab.galileoprotocol.io/contexts/molecular.jsonld",
       "@type": "MolecularAuthentication",
       "@id": "urn:galileo:molecular:2024-HK2024A001-001",
       "signatureType": "DNA_TAGGANT",

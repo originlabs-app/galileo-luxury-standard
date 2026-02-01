@@ -1,9 +1,9 @@
 {
   "@context": {
     "@version": 1.1,
-    "@import": "https://vocab.galileo.luxury/contexts/galileo.jsonld",
+    "@import": "https://vocab.galileoprotocol.io/contexts/galileo.jsonld",
 
-    "luxury": "https://vocab.galileo.luxury/luxury/",
+    "luxury": "https://vocab.galileoprotocol.io/luxury/",
     "gs1": "https://gs1.org/voc/",
 
     "ArtisanAttribution": {

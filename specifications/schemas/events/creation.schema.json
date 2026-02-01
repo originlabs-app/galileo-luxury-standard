@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://schemas.galileo.luxury/events/creation.schema.json",
+  "$id": "https://schemas.galileoprotocol.io/events/creation.schema.json",
   "title": "Galileo Creation Event Schema",
   "description": "ObjectEvent for product creation/manufacturing. Captures initial product commissioning with ILMD containing immutable production attributes. This event marks the birth of a product in the Galileo ecosystem.",
   "allOf": [
@@ -172,7 +172,7 @@
     {
       "@context": [
         "https://ref.gs1.org/standards/epcis/2.0.0/epcis-context.jsonld",
-        "https://vocab.galileo.luxury/context/galileo.jsonld"
+        "https://vocab.galileoprotocol.io/context/galileo.jsonld"
       ],
       "type": "ObjectEvent",
       "eventID": "ni:///sha-256;b5bb9d8014a0f9b1d61e21e796d78dcc1ae0c12f89ca3b4a5f5e9c3f28b0d6a1?ver=CBV2.0",

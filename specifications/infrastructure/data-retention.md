@@ -788,7 +788,7 @@ When data subject requests correction:
 
 ```json
 {
-  "$schema": "https://spec.galileo.luxury/export/v1.0/schema.json",
+  "$schema": "https://spec.galileoprotocol.io/export/v1.0/schema.json",
   "exportId": "uuid",
   "dataSubject": "anonymized-id",
   "generatedAt": "ISO-8601",

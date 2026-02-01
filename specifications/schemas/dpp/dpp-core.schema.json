@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://schemas.galileo.luxury/dpp/dpp-core.schema.json",
+  "$id": "https://schemas.galileoprotocol.io/dpp/dpp-core.schema.json",
   "title": "Galileo DPP Core Schema",
   "description": "Digital Product Passport core schema with ESPR 2024/1781 mandatory fields. Uses Schema.org IndividualProduct as base vocabulary extended with Galileo namespace.",
   "type": "object",
@@ -26,7 +26,7 @@
       "oneOf": [
         {
           "type": "string",
-          "const": "https://vocab.galileo.luxury/contexts/galileo.jsonld"
+          "const": "https://vocab.galileoprotocol.io/contexts/galileo.jsonld"
         },
         {
           "type": "array",
@@ -34,7 +34,7 @@
             "type": "string"
           },
           "contains": {
-            "const": "https://vocab.galileo.luxury/contexts/galileo.jsonld"
+            "const": "https://vocab.galileoprotocol.io/contexts/galileo.jsonld"
           }
         }
       ]
@@ -713,7 +713,7 @@
   },
   "examples": [
     {
-      "@context": "https://vocab.galileo.luxury/contexts/galileo.jsonld",
+      "@context": "https://vocab.galileoprotocol.io/contexts/galileo.jsonld",
       "@type": "IndividualProduct",
       "@id": "did:galileo:01:09506000134352:21:HK2024A001",
       "identifier": {

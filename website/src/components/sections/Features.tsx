@@ -3,7 +3,7 @@ import { BentoCard } from '@/components/ui/BentoCard';
 import { Shield, Fingerprint, Scale } from 'lucide-react';
 
 const jsonLdExample = `{
-  "@context": ["https://w3.org/ns/credentials/v2", "https://galileo.luxury/v1"],
+  "@context": ["https://w3.org/ns/credentials/v2", "https://galileoprotocol.io/v1"],
   "type": ["VerifiableCredential", "DigitalProductPassport"],
   "issuer": "did:galileo:brand:lvmh:louisvuitton",
   "credentialSubject": {

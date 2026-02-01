@@ -32,7 +32,7 @@ This Membership Agreement ("Agreement") is entered into as of the Effective Date
 **Galileo Luxury Standard Foundation** (or the legal entity designated as custodian of the Standard)
 
 Address: [Foundation Address]
-Contact: membership@galileo.luxury
+Contact: membership@galileoprotocol.io
 
 Hereinafter referred to as "The Foundation"
 
@@ -268,7 +268,7 @@ The initial membership term is one (1) year from the Effective Date.
 
 The Member may terminate this Agreement:
 - At any time with thirty (30) days written notice
-- Notice to: membership@galileo.luxury
+- Notice to: membership@galileoprotocol.io
 - Effective at end of notice period or current term (whichever later, unless waived)
 
 ### 7.4 Termination by Foundation
@@ -487,7 +487,7 @@ The Member may not assign this Agreement without Foundation consent. The Foundat
 
 | To Foundation | To Member |
 |---------------|-----------|
-| membership@galileo.luxury | Email address on file |
+| membership@galileoprotocol.io | Email address on file |
 | [Physical address TBD] | Address on file |
 
 Notices effective upon receipt (email) or three (3) business days after mailing (postal).
@@ -566,7 +566,7 @@ Full text: [CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md)
 Key provisions:
 - Pledge to harassment-free participation
 - Four-level graduated enforcement
-- Reporting to conduct@galileo.luxury
+- Reporting to conduct@galileoprotocol.io
 - Appeal process to Governing Board
 
 ### Appendix D: Governance Documents Reference
@@ -593,7 +593,7 @@ Key provisions:
 
 > **REMINDER: This document requires legal review before execution.**
 >
-> Contact legal@galileo.luxury for the current approved version.
+> Contact legal@galileoprotocol.io for the current approved version.
 
 ---
 

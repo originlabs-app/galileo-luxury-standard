@@ -1,9 +1,9 @@
 {
   "@context": {
     "@version": 1.1,
-    "@import": "https://vocab.galileo.luxury/contexts/galileo.jsonld",
+    "@import": "https://vocab.galileoprotocol.io/contexts/galileo.jsonld",
 
-    "espr": "https://vocab.galileo.luxury/espr/",
+    "espr": "https://vocab.galileoprotocol.io/espr/",
     "iso14067": "https://www.iso.org/standard/71206.html#",
     "eu-espr": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1781#",
 

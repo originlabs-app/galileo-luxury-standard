@@ -294,7 +294,7 @@ The timestamp is a Unix epoch value indicating when deprecation was announced.
 Points to deprecation documentation:
 
 ```http
-Link: <https://spec.galileo.luxury/deprecations/field-xyz>; rel="deprecation"
+Link: <https://spec.galileoprotocol.io/deprecations/field-xyz>; rel="deprecation"
 ```
 
 ### Complete Example
@@ -306,7 +306,7 @@ HTTP/1.1 200 OK
 Content-Type: application/json
 Deprecation: @1735689600
 Sunset: Thu, 01 Jan 2036 00:00:00 GMT
-Link: <https://spec.galileo.luxury/deprecations/v1-legacy-endpoint>; rel="deprecation"
+Link: <https://spec.galileoprotocol.io/deprecations/v1-legacy-endpoint>; rel="deprecation"
 
 { "data": "..." }
 ```
@@ -351,7 +351,7 @@ Vulnerabilities are assessed using CVSS (Common Vulnerability Scoring System):
 
 ### Security Contact
 
-Report vulnerabilities to: **security@galileo.luxury** (placeholder)
+Report vulnerabilities to: **security@galileoprotocol.io** (placeholder)
 
 Include:
 - Description of the vulnerability
@@ -436,7 +436,7 @@ The JSON-LD @context includes version in the URL:
 
 ```json
 {
-  "@context": "https://spec.galileo.luxury/v1/context.jsonld"
+  "@context": "https://spec.galileoprotocol.io/v1/context.jsonld"
 }
 ```
 
@@ -450,7 +450,7 @@ Version in context URL:
 JSON schemas include full version:
 
 ```
-https://spec.galileo.luxury/schemas/v1.2.3/dpp.schema.json
+https://spec.galileoprotocol.io/schemas/v1.2.3/dpp.schema.json
 ```
 
 Schema URL resolution:
@@ -462,7 +462,7 @@ Schema URL resolution:
 Implementations can discover the current version via:
 
 ```http
-GET https://spec.galileo.luxury/.well-known/version
+GET https://spec.galileoprotocol.io/.well-known/version
 ```
 
 Response:

@@ -137,9 +137,9 @@ uint256 constant KYC_US_SEC = 0x2a049593...;    // galileo.kyc.us.sec
 uint256 constant KYC_APAC_SG = 0x15a36587...;   // galileo.kyc.apac.sg
 
 // Luxury-Specific Topics
-uint256 constant AUTHORIZED_RETAILER = 0xfc1ed254...;  // galileo.luxury.authorized_retailer
-uint256 constant SERVICE_CENTER = 0x10830870...;       // galileo.luxury.service_center
-uint256 constant AUCTION_HOUSE = 0x4c471013...;        // galileo.luxury.auction_house
+uint256 constant AUTHORIZED_RETAILER = 0xfc1ed254...;  // galileoprotocol.io.authorized_retailer
+uint256 constant SERVICE_CENTER = 0x10830870...;       // galileoprotocol.io.service_center
+uint256 constant AUCTION_HOUSE = 0x4c471013...;        // galileoprotocol.io.auction_house
 ```
 
 ---

@@ -106,7 +106,7 @@ Event-specific guidelines may supplement but not override this Code of Conduct.
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the enforcement team at:
 
-**conduct@galileo.luxury**
+**conduct@galileoprotocol.io**
 
 (Or designated alternative address published on the project website)
 
@@ -282,4 +282,4 @@ For answers to common questions about this code of conduct, see the FAQ at [http
 
 ---
 
-*For questions about this Code of Conduct, contact conduct@galileo.luxury or raise an issue in the governance repository.*
+*For questions about this Code of Conduct, contact conduct@galileoprotocol.io or raise an issue in the governance repository.*

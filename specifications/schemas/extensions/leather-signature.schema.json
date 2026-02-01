@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://schemas.galileo.luxury/extensions/leather-signature.schema.json",
+  "$id": "https://schemas.galileoprotocol.io/extensions/leather-signature.schema.json",
   "title": "Galileo Leather Signature Schema",
   "description": "Extension schema for leather goods provenance verification via DNA tagging and spectral analysis. Enables authentication from raw hide to finished product with full tannery traceability.",
   "type": "object",

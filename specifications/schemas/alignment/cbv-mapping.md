@@ -217,7 +217,7 @@ For errorDeclaration.reason, use CBV Error Reason codes.
 {
   "@context": [
     "https://ref.gs1.org/standards/epcis/2.0.0/epcis-context.jsonld",
-    "https://vocab.galileo.luxury/context/galileo.jsonld"
+    "https://vocab.galileoprotocol.io/context/galileo.jsonld"
   ],
   "type": "ObjectEvent",
   "eventID": "ni:///sha-256;a1b2c3d4e5f6...",
@@ -242,7 +242,7 @@ For errorDeclaration.reason, use CBV Error Reason codes.
 {
   "@context": [
     "https://ref.gs1.org/standards/epcis/2.0.0/epcis-context.jsonld",
-    "https://vocab.galileo.luxury/context/galileo.jsonld"
+    "https://vocab.galileoprotocol.io/context/galileo.jsonld"
   ],
   "type": "TransactionEvent",
   "eventID": "ni:///sha-256;b2c3d4e5f6a7...",
@@ -295,8 +295,8 @@ All standard CBV terms are registered under the GS1 namespace:
 ### Galileo Namespace (Extensions)
 
 Custom Galileo vocabulary extensions are registered under:
-- **Base URI:** `https://vocab.galileo.luxury/`
-- **JSON-LD Context:** `https://vocab.galileo.luxury/context/galileo.jsonld`
+- **Base URI:** `https://vocab.galileoprotocol.io/`
+- **JSON-LD Context:** `https://vocab.galileoprotocol.io/context/galileo.jsonld`
 
 ### Extension Policy
 

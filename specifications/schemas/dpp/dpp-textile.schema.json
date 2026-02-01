@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://schemas.galileo.luxury/dpp/dpp-textile.schema.json",
+  "$id": "https://schemas.galileoprotocol.io/dpp/dpp-textile.schema.json",
   "title": "Galileo DPP Textile Schema",
   "description": "Digital Product Passport schema for textile and apparel products. Extends dpp-core with fiber composition, care instructions, and textile-specific certifications.",
   "allOf": [
@@ -458,8 +458,8 @@
   "examples": [
     {
       "@context": [
-        "https://vocab.galileo.luxury/contexts/galileo.jsonld",
-        "https://vocab.galileo.luxury/contexts/luxury.jsonld"
+        "https://vocab.galileoprotocol.io/contexts/galileo.jsonld",
+        "https://vocab.galileoprotocol.io/contexts/luxury.jsonld"
       ],
       "@type": "IndividualProduct",
       "@id": "did:galileo:01:03612345678901:21:CH2024SS001",
