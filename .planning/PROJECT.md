@@ -10,31 +10,47 @@ Un standard industriel open-source, neutre et durable pour la traçabilité et l
 
 ## Requirements
 
-### Validated
+### Validated (v1.0.0)
 
-(None yet — ship to validate)
+- [x] Architecture document décrivant le modèle hybride on-chain/off-chain
+- [x] Data schemas JSON/TypeScript pour le Digital Product Passport (DPP)
+- [x] Data schemas pour les événements lifecycle (fabrication, vente, MRO)
+- [x] Interfaces Solidity basées sur ERC-3643 (conformité KYC/KYB)
+- [x] Interfaces Solidity pour ERC-4337 (account abstraction, gasless tx)
+- [x] Spécification du resolver GS1 Digital Link
+- [x] Charte de gouvernance avec processus de contribution
+- [x] Documentation de conformité GDPR-by-design
+- [x] Documentation de conformité MiCA
+- [x] Documentation de conformité ESPR (Digital Product Passport)
 
-### Active
+## Current Milestone: v1.1 Website & Documentation Portal
 
-- [ ] Architecture document décrivant le modèle hybride on-chain/off-chain
-- [ ] Data schemas JSON/TypeScript pour le Digital Product Passport (DPP)
-- [ ] Data schemas pour les événements lifecycle (fabrication, vente, MRO)
-- [ ] Interfaces Solidity basées sur ERC-3643 (conformité KYC/KYB)
-- [ ] Interfaces Solidity pour ERC-4337 (account abstraction, gasless tx)
-- [ ] Spécification du resolver GS1 Digital Link
-- [ ] Charte de gouvernance avec processus de contribution
-- [ ] Documentation de conformité GDPR-by-design
-- [ ] Documentation de conformité MiCA
-- [ ] Documentation de conformité ESPR (Digital Product Passport)
+**Goal:** Create a professional presentation website and documentation portal for the Galileo Luxury Standard, enabling industry adoption and developer onboarding.
 
-### Out of Scope
+**Target features:**
+- Landing page with "Obsidian Precision" design system (dark luxury aesthetic)
+- Interactive documentation portal (Getting Started, API Reference, Tutorials)
+- Specifications viewer with status badges (Standard/Active/Draft)
+- Blog for announcements and ecosystem updates
+- Production deployment (GitHub Pages or Vercel)
 
-- Implémentation complète des smart contracts — on livre les interfaces, pas le code de production
-- Interface utilisateur (frontend) — la spec est indépendante de toute UI
-- Infrastructure d'hébergement — on documente l'architecture, pas le déploiement
-- Intégration ERP spécifique (SAP, Oracle) — on définit les patterns, pas les connecteurs
-- Fonctionnalités spéculatives/trading — rejet explicite de la tokenisation financière
-- Mobile app — hors scope pour la spécification technique
+### Active (v1.1)
+
+- [ ] Landing page — Hero, value proposition, architecture overview, CTAs
+- [ ] Navigation — Header, mobile menu, footer with links
+- [ ] Documentation portal — MDX-powered docs with sidebar navigation
+- [ ] Specifications viewer — Browse specs by category with status badges
+- [ ] Blog section — Markdown posts with metadata and listing
+- [ ] Production deployment — Optimized build, CDN, custom domain
+
+### Out of Scope (v1.1)
+
+- Smart contract implementation code — specification website only
+- ERP/backend integrations — documentation and guides only
+- User authentication/accounts — static site, no login
+- Interactive playground/sandbox — future milestone
+- Localization (i18n) — English-first for v1.1
+- Mobile app — out of scope
 
 ## Context
 
@@ -80,4 +96,4 @@ Un standard industriel open-source, neutre et durable pour la traçabilité et l
 | Pas de tokenisation financière | Rejet explicite de la spéculation pour maintenir la neutralité industrielle | — Pending |
 
 ---
-*Last updated: 2026-01-30 after initialization*
+*Last updated: 2026-02-01 — Milestone v1.1 started*
