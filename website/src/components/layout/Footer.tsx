@@ -4,7 +4,7 @@ import { Github } from 'lucide-react';
 const footerLinks = {
   resources: [
     { label: 'Documentation', href: '/docs' },
-    { label: 'Specifications', href: '/specs' },
+    { label: 'Specifications', href: '/specifications' },
     { label: 'GitHub', href: 'https://github.com/originlabs-app/galileo-luxury-standard', external: true },
   ],
   governance: [
