@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-01)
 ## Current Position
 
 Phase: 13 of 13 (Production Deployment)
-Plan: 2/4 complete (13-01, 13-02)
+Plan: 3/4 complete (13-01, 13-02, 13-03)
 Status: Phase 13 IN PROGRESS
-Last activity: 2026-02-01 — Completed 13-01-PLAN.md (SEO & Metadata)
+Last activity: 2026-02-01 — Completed 13-03-PLAN.md (Domain References & Image Optimization)
 
-Progress: [████████████████░░░░░░░░░░░░░░░░] 50% of Phase 13
+Progress: [████████████████████████░░░░░░░░] 75% of Phase 13
 
 ## Milestone Context
 
@@ -90,6 +90,8 @@ Progress: [████████████████░░░░░░░
 | next/og for OG image | ImageResponse API vs external service for branded social sharing | Implemented |
 | ESLint via CLI only | Next.js 16+ no longer supports eslint in next.config.ts | Implemented |
 | Node 20 LTS for CI | Current long-term support version for stability | Implemented |
+| Desktop Lighthouse for local testing | Mobile throttling on localhost produces artificially low scores | Implemented |
+| CSS/SVG-only visuals | No raster images = optimal LCP, no priority prop needed | Implemented |
 
 ### Phase 9.1 Complete (Spatial UI Upgrade)
 
@@ -193,6 +195,14 @@ Progress: [████████████████░░░░░░░
 - `.github/workflows/lighthouse.yml` — Lighthouse CI workflow (30 lines)
 - `website/lighthouse-budget.json` — Performance budget (12 lines)
 
+**Plan 03 Complete (Domain References & Image Optimization):**
+- Replaced all galileo.luxury references with galileoprotocol.io (47 files)
+- Specifications: 39 .md + 16 .json + 4 .jsonld + 1 .sol files
+- Governance: 7 .md files
+- Website: Features.tsx JSON-LD example
+- Verified Lighthouse scores: Performance 94, Accessibility 98, Best Practices 100, SEO 100 (desktop)
+- Confirmed website uses CSS/SVG-only visuals (no raster images to optimize)
+
 ### Pending Todos
 
 - [ ] Shiki: Personnaliser github-dark avec couleurs Platinum/Gold (defer v1.2)
@@ -206,7 +216,7 @@ Progress: [████████████████░░░░░░░
 None.
 
 ---
-*State updated: 2026-02-01T17:00:00Z*
+*State updated: 2026-02-01T16:49:32Z*
 *Milestone: v1.1 Website & Documentation Portal*
-*Phase 13 (Production Deployment) IN PROGRESS — 2/4 plans complete*
-*Next: 13-03 (Analytics & Monitoring) or 13-04 (DNS & Deployment)*
+*Phase 13 (Production Deployment) IN PROGRESS — 3/4 plans complete*
+*Next: 13-04 (DNS & Deployment)*
