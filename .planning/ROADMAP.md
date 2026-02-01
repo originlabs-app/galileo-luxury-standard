@@ -277,7 +277,12 @@ Plans:
   1. User can view blog post listing with title, date, excerpt, and author
   2. User can read individual blog posts with full content
   3. User sees v1.0.0 release announcement post highlighting key features
-**Plans**: TBD
+**Plans**: 3 plans in 3 waves
+
+Plans:
+- [ ] 12-01-PLAN.md — Blog Infrastructure: Utilities (getAllPosts, getPostBySlug), listing page, post page
+- [ ] 12-02-PLAN.md — Blog Content: v1.0.0 announcement post, blog-specific styling enhancements
+- [ ] 12-03-PLAN.md — Verification: Blog rendering, styling, content quality checkpoint
 
 ---
 
@@ -320,7 +325,7 @@ v1.1: Phases 9-13 (phases 10 and 12 can run in parallel after phase 9)
 | 9.1 Spatial UI Upgrade | 4/4 | Complete | 2026-02-01 |
 | 10. Documentation Portal | 5/5 | Complete | 2026-02-01 |
 | 11. Specifications Viewer | 0/? | Not Started | — |
-| 12. Blog Section | 0/? | Not Started | — |
+| 12. Blog Section | 0/3 | Planned | — |
 | 13. Production Deployment | 0/? | Not Started | — |
 
 ## Dependency Graph
