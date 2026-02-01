@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-01)
 ## Current Position
 
 Phase: 12 of 13 (Blog Section)
-Plan: 2/2 complete
-Status: Phase complete
-Last activity: 2026-02-01 — Completed 12-02-PLAN.md (Blog Content & Styling)
+Plan: 3/3 complete (including checkpoint)
+Status: Phases 11 & 12 COMPLETE ✓
+Last activity: 2026-02-01 — Phases 11 & 12 checkpoints approved
 
-Progress: [████████████████████████████████] 100% of Phase 12 plans (2/2)
+Progress: [████████████████████████████████] 100% of Phases 11 & 12
 
 ## Milestone Context
 
@@ -161,6 +161,9 @@ Progress: [███████████████████████
 
 - [ ] Shiki: Personnaliser github-dark avec couleurs Platinum/Gold (defer v1.2)
 - [ ] A11y: Vérifier contraste #A3A3A3 sur labels < 14px
+- [ ] UX/UI: Améliorer cohérence visuelle specs viewer et blog (v1.2)
+- [ ] Sync: Lint CI pour vérifier que /docs cite des specs existantes (v1.2)
+- [ ] Sync: Générer certaines docs depuis specs (claim topics table, etc.) (v1.2)
 
 ### Blockers/Concerns
 
@@ -169,5 +172,5 @@ None.
 ---
 *State updated: 2026-02-01T15:20:00Z*
 *Milestone: v1.1 Website & Documentation Portal*
-*Phase 11 (Specifications Viewer) IN PROGRESS — Plan 01-02 complete*
-*Phase 12 (Blog Section) COMPLETE — Plan 01-02 complete*
+*Phase 11 (Specifications Viewer) COMPLETE — 3/3 plans (checkpoint approved)*
+*Phase 12 (Blog Section) COMPLETE — 3/3 plans (checkpoint approved)*

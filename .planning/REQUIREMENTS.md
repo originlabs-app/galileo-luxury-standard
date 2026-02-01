@@ -24,28 +24,28 @@ Requirements for the presentation website and documentation portal.
 - [x] **NAV-02**: User can use mobile hamburger menu on small screens
 - [x] **NAV-03**: User sees footer with navigation links, GitHub, and legal
 
-### Documentation (DOCS)
+### Documentation (DOCS) ✓
 
-- [ ] **DOCS-01**: User can browse documentation with sidebar navigation
-- [ ] **DOCS-02**: User can read Getting Started guide
-- [ ] **DOCS-03**: User can read Architecture overview with diagrams
-- [ ] **DOCS-04**: User can read Identity (DID method) documentation
-- [ ] **DOCS-05**: User can read Token (ERC-3643) documentation
-- [ ] **DOCS-06**: User can read Compliance guides (GDPR, MiCA, ESPR)
-- [ ] **DOCS-07**: User sees code blocks with syntax highlighting
+- [x] **DOCS-01**: User can browse documentation with sidebar navigation
+- [x] **DOCS-02**: User can read Getting Started guide
+- [x] **DOCS-03**: User can read Architecture overview with diagrams
+- [x] **DOCS-04**: User can read Identity (DID method) documentation
+- [x] **DOCS-05**: User can read Token (ERC-3643) documentation
+- [x] **DOCS-06**: User can read Compliance guides (GDPR, MiCA, ESPR)
+- [x] **DOCS-07**: User sees code blocks with syntax highlighting
 
-### Specifications Viewer (SPEC)
+### Specifications Viewer (SPEC) ✓
 
-- [ ] **SPEC-01**: User can browse specifications by category
-- [ ] **SPEC-02**: User sees status badges (Standard, Active, Draft)
-- [ ] **SPEC-03**: User can view specification details with metadata
-- [ ] **SPEC-04**: User can access JSON schema files directly
+- [x] **SPEC-01**: User can browse specifications by category
+- [x] **SPEC-02**: User sees status badges (Standard, Active, Draft)
+- [x] **SPEC-03**: User can view specification details with metadata
+- [x] **SPEC-04**: User can access JSON schema files directly
 
-### Blog (BLOG)
+### Blog (BLOG) ✓
 
-- [ ] **BLOG-01**: User can view blog post listing with metadata
-- [ ] **BLOG-02**: User can read individual blog posts
-- [ ] **BLOG-03**: User sees v1.0.0 release announcement post
+- [x] **BLOG-01**: User can view blog post listing with metadata
+- [x] **BLOG-02**: User can read individual blog posts
+- [x] **BLOG-03**: User sees v1.0.0 release announcement post
 
 ### Deployment (DEPLOY)
 
@@ -219,16 +219,16 @@ Quel phase couvre quel requirement. Mis a jour lors de la creation du roadmap.
 |-------------|-------|--------|
 | LAND-01..06 | Phase 9 | Complete |
 | NAV-01..03 | Phase 9 | Complete |
-| DOCS-01..07 | Phase 10 | Pending |
-| SPEC-01..04 | Phase 11 | Pending |
-| BLOG-01..03 | Phase 12 | Pending |
+| DOCS-01..07 | Phase 10 | Complete |
+| SPEC-01..04 | Phase 11 | Complete |
+| BLOG-01..03 | Phase 12 | Complete |
 | DEPLOY-01..03 | Phase 13 | Pending |
 
 **Coverage (v1.1):**
 - v1.1 requirements: 22 total
 - Mapped to phases: 22
-- Complete: 9 (LAND + NAV)
-- Pending: 13
+- Complete: 19 (LAND + NAV + DOCS + SPEC + BLOG)
+- Pending: 3 (DEPLOY)
 
 ---
 *Requirements defined: 2026-01-30*

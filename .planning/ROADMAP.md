@@ -28,8 +28,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 9: Landing Page** - Complete home page with all sections and navigation
 - [x] **Phase 9.1: Spatial UI Upgrade** - INSERTED: Mesh gradients, Bento layout, Angle Glow borders
 - [x] **Phase 10: Documentation Portal** - MDX-powered docs with sidebar navigation
-- [ ] **Phase 11: Specifications Viewer** - Browse specifications by category with status badges
-- [ ] **Phase 12: Blog Section** - Blog listing and post pages with v1.0.0 announcement
+- [x] **Phase 11: Specifications Viewer** - Browse specifications by category with status badges
+- [x] **Phase 12: Blog Section** - Blog listing and post pages with v1.0.0 announcement
 - [ ] **Phase 13: Production Deployment** - Deploy optimized site with meta tags and performance
 
 ## Phase Details
@@ -268,9 +268,9 @@ Plans:
 **Plans**: 3 plans in 3 waves
 
 Plans:
-- [ ] 11-01-PLAN.md — Infrastructure: Specs sidebar, layout, file reading utilities, navigation config
-- [ ] 11-02-PLAN.md — Content Rendering: Spec detail pages, status badges, metadata display, JSON schema viewer, category listings
-- [ ] 11-03-PLAN.md — Verification: Human checkpoint to verify all 42 specs render correctly
+- [x] 11-01-PLAN.md — Infrastructure: Specs sidebar, layout, file reading utilities, navigation config
+- [x] 11-02-PLAN.md — Content Rendering: Spec detail pages, status badges, metadata display, JSON schema viewer, category listings
+- [x] 11-03-PLAN.md — Verification: Human checkpoint to verify all 46 specs render correctly
 
 ---
 
@@ -285,9 +285,9 @@ Plans:
 **Plans**: 3 plans in 3 waves
 
 Plans:
-- [ ] 12-01-PLAN.md — Blog Infrastructure: Utilities (getAllPosts, getPostBySlug), listing page, post page
-- [ ] 12-02-PLAN.md — Blog Content: v1.0.0 announcement post, blog-specific styling enhancements
-- [ ] 12-03-PLAN.md — Verification: Blog rendering, styling, content quality checkpoint
+- [x] 12-01-PLAN.md — Blog Infrastructure: Utilities (getAllPosts, getPostBySlug), listing page, post page
+- [x] 12-02-PLAN.md — Blog Content: v1.0.0 announcement post, blog-specific styling enhancements
+- [x] 12-03-PLAN.md — Verification: Blog rendering, styling, content quality checkpoint
 
 ---
 
@@ -329,8 +329,8 @@ v1.1: Phases 9-13 (phases 10 and 12 can run in parallel after phase 9)
 | 9. Landing Page | 4/4 | Complete | 2026-02-01 |
 | 9.1 Spatial UI Upgrade | 4/4 | Complete | 2026-02-01 |
 | 10. Documentation Portal | 5/5 | Complete | 2026-02-01 |
-| 11. Specifications Viewer | 0/3 | Planned | — |
-| 12. Blog Section | 0/3 | Planned | — |
+| 11. Specifications Viewer | 3/3 | Complete | 2026-02-01 |
+| 12. Blog Section | 3/3 | Complete | 2026-02-01 |
 | 13. Production Deployment | 0/? | Not Started | — |
 
 ## Dependency Graph
