@@ -839,13 +839,13 @@ Maps to: `did:galileo:01:09506000134352:21:ABC123`
 ```
 https://id.galileo.luxury/01/09506000134352/21/ABC123/10/LOT2024
 ```
-Maps to: `did:galileo:01:09506000134352:21:ABC123:10:LOT2024`
+Maps to: `did:galileo:01:09506000134352:21:ABC123`
 
 **Product with Expiry:**
 ```
 https://id.galileo.luxury/01/09506000134352/17/261231
 ```
-Maps to: `did:galileo:01:09506000134352:17:261231`
+Maps to: `did:galileo:01:09506000134352`
 
 **Set Piece (ITIP):**
 ```

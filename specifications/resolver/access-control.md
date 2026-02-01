@@ -341,7 +341,8 @@ async function authorizeRequest(
 ```typescript
 async function authorizeBrand(
   claims: JWTPayload,
-  productDID: string
+  productDID: string,
+  didDocument?: DIDDocument
 ): Promise<AuthorizationResult> {
   // Brand DID must be present
   if (!claims.brand_did) {
@@ -365,7 +366,10 @@ async function authorizeBrand(
   // Resolve controller ONCHAINID address to brand DID
   // ProductRecord.controller is an address, not a DID
   // We must resolve it via the identity registry
-  const controllerDID = await resolveControllerDID(productRecord.controller);
+  const controllerDID = await resolveControllerDID(
+    productRecord.controller,
+    didDocument
+  );
   if (!controllerDID) {
     return {
       authorized: false,
@@ -409,23 +413,20 @@ The `ProductRecord.controller` field stores an ONCHAINID contract address, not a
  * Uses the identity's DID claim or derives from address
  */
 async function resolveControllerDID(
-  controllerAddress: string
+  controllerAddress: string,
+  didDocument?: DIDDocument
 ): Promise<string | null> {
-  // Option 1: Query ONCHAINID for stored DID claim
-  const didClaim = await identityRegistry.getClaim(
-    controllerAddress,
-    DID_CLAIM_TOPIC  // e.g., galileo.luxury.did
-  );
-
-  if (didClaim && didClaim.data) {
-    return decodeString(didClaim.data);
+  // Option 1 (preferred): Use controller from DID document
+  // The resolver already fetches the DID document in the resolution flow.
+  if (didDocument?.controller) {
+    return didDocument.controller;
   }
 
-  // Option 2: Derive DID from brand entity name
-  // Requires brand registry lookup
+  // Option 2: Resolve via consortium brand registry mapping
+  // Maps ONCHAINID controller address -> brand DID
   const brandInfo = await brandRegistry.getBrandByIdentity(controllerAddress);
-  if (brandInfo) {
-    return `did:galileo:brand:${brandInfo.name}`;
+  if (brandInfo?.did) {
+    return brandInfo.did;
   }
 
   return null;

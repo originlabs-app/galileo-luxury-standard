@@ -356,9 +356,27 @@ function normalizeDID(did: string): string {
   const match = did.match(/^(did:galileo:)(.*)$/i);
   if (!match) throw new Error("Invalid did:galileo format");
 
-  // Lowercase method, preserve identifier case
-  // Serials (AI 21) are case-sensitive per GS1
-  return `did:galileo:${match[2]}`;
+  const identifier = match[2];
+  const parts = identifier.split(":");
+  const entityTypes = new Set([
+    "brand",
+    "retailer",
+    "issuer",
+    "artisan",
+    "verifier",
+    "customer",
+    "regulator"
+  ]);
+
+  // Entity DID: normalize entity type + name to lowercase
+  const possibleEntityType = parts[0].toLowerCase();
+  if (entityTypes.has(possibleEntityType) && parts.length >= 2) {
+    const entityName = parts.slice(1).join(":").toLowerCase();
+    return `did:galileo:${possibleEntityType}:${entityName}`;
+  }
+
+  // Product DID: preserve identifier case (serials are case-sensitive per GS1)
+  return `did:galileo:${identifier}`;
 }
 ```
 
