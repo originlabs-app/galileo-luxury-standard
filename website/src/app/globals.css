@@ -1,0 +1,285 @@
+@import "tailwindcss";
+
+/* ============================================
+   OBSIDIAN PRECISION — Design System
+   Galileo Luxury Standard
+   ============================================ */
+
+:root {
+  /* Colors */
+  --obsidian: #050505;
+  --obsidian-surface: #0a0a0a;
+  --obsidian-elevated: #121212;
+  --obsidian-border: #1a1a1a;
+
+  --antique-gold: #D4AF37;
+  --antique-gold-dim: #B8973A;
+  --platinum: #E5E5E5;
+  --platinum-dim: #A3A3A3;
+
+  --precision-blue: #00A3FF;
+  --precision-blue-dim: #0080CC;
+
+  --success: #10B981;
+  --warning: #F59E0B;
+  --error: #EF4444;
+
+  /* Typography */
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-sans: 'Inter', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Spacing */
+  --section-padding: clamp(4rem, 10vw, 8rem);
+
+  /* Effects */
+  --glass-blur: 12px;
+  --glass-bg: rgba(18, 18, 18, 0.7);
+  --border-hairline: 0.5px solid rgba(229, 229, 229, 0.1);
+  --border-subtle: 1px solid rgba(229, 229, 229, 0.08);
+
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-smooth: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-spring: 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@theme inline {
+  --color-obsidian: var(--obsidian);
+  --color-obsidian-surface: var(--obsidian-surface);
+  --color-obsidian-elevated: var(--obsidian-elevated);
+  --color-gold: var(--antique-gold);
+  --color-platinum: var(--platinum);
+  --color-blue: var(--precision-blue);
+  --font-serif: var(--font-serif);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}
+
+/* Base Styles */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--obsidian);
+  color: var(--platinum);
+  font-family: var(--font-sans);
+  font-weight: 400;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); }
+h2 { font-size: clamp(2rem, 4vw, 3rem); }
+h3 { font-size: clamp(1.5rem, 3vw, 2rem); }
+h4 { font-size: clamp(1.25rem, 2vw, 1.5rem); }
+
+code, pre {
+  font-family: var(--font-mono);
+}
+
+/* Selection */
+::selection {
+  background: var(--antique-gold);
+  color: var(--obsidian);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--obsidian);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--obsidian-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--platinum-dim);
+}
+
+/* Glass Card */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: var(--border-hairline);
+  border-radius: 12px;
+}
+
+/* Gold Gradient Text */
+.text-gradient-gold {
+  background: linear-gradient(135deg, var(--antique-gold) 0%, #F5D77E 50%, var(--antique-gold) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Blue Glow */
+.glow-blue {
+  box-shadow: 0 0 20px rgba(0, 163, 255, 0.3);
+}
+
+/* Gold Glow */
+.glow-gold {
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+}
+
+/* Hairline Border */
+.border-hairline {
+  border: var(--border-hairline);
+}
+
+/* Animated Underline */
+.animated-underline {
+  position: relative;
+}
+
+.animated-underline::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: var(--antique-gold);
+  transition: width var(--transition-smooth);
+}
+
+.animated-underline:hover::after {
+  width: 100%;
+}
+
+/* Button Styles */
+.btn-primary {
+  background: var(--antique-gold);
+  color: var(--obsidian);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  padding: 0.875rem 2rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-primary:hover {
+  background: #E5C04A;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--platinum);
+  font-family: var(--font-sans);
+  font-weight: 500;
+  padding: 0.875rem 2rem;
+  border-radius: 6px;
+  border: 1px solid var(--platinum-dim);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-secondary:hover {
+  border-color: var(--platinum);
+  background: rgba(229, 229, 229, 0.05);
+}
+
+/* Code Block */
+.code-block {
+  background: var(--obsidian-elevated);
+  border: var(--border-subtle);
+  border-radius: 8px;
+  padding: 1.5rem;
+  overflow-x: auto;
+}
+
+.code-block code {
+  color: var(--precision-blue);
+  font-size: 0.875rem;
+}
+
+/* Spec Badge */
+.spec-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.spec-badge-standard {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.spec-badge-active {
+  background: rgba(0, 163, 255, 0.1);
+  color: var(--precision-blue);
+  border: 1px solid rgba(0, 163, 255, 0.2);
+}
+
+.spec-badge-draft {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--warning);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+/* Section */
+.section {
+  padding: var(--section-padding) 0;
+}
+
+/* Container */
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* Animate on scroll */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  :root {
+    --section-padding: 3rem;
+  }
+}
