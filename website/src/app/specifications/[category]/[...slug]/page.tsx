@@ -19,19 +19,28 @@ import { JSONSchemaViewer } from '@/components/specifications/JSONSchemaViewer';
 
 /**
  * Generate static params for all specifications across all categories.
- * This enables static generation at build time for all 46 specs.
+ * This enables static generation at build time for all 42 specs.
+ *
+ * Handles both root-level specs and nested specs in subdirectories:
+ * - /specifications/identity/DID-METHOD → slug: ["DID-METHOD"]
+ * - /specifications/schemas/dpp/dpp-core.schema → slug: ["dpp", "dpp-core.schema"]
  */
 export async function generateStaticParams() {
   const categories = await getSpecCategories();
-  const params: { category: string; slug: string }[] = [];
+  const params: { category: string; slug: string[] }[] = [];
 
   for (const category of categories) {
     const specs = await getSpecifications(category);
 
     for (const spec of specs) {
+      // Build slug array based on whether spec has subcategory
+      const slugParts = spec.subcategory
+        ? [spec.subcategory, spec.slug]
+        : [spec.slug];
+
       params.push({
         category,
-        slug: spec.slug,
+        slug: slugParts,
       });
     }
   }
@@ -46,10 +55,15 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ category: string; slug: string }>;
+  params: Promise<{ category: string; slug: string[] }>;
 }): Promise<Metadata> {
   const { category, slug } = await params;
-  const spec = await getSpecification(category, slug);
+
+  // Parse slug array: [subcategory?, actualSlug]
+  const subcategory = slug.length > 1 ? slug[0] : undefined;
+  const actualSlug = slug.length > 1 ? slug[1] : slug[0];
+
+  const spec = await getSpecification(category, actualSlug, subcategory);
 
   if (!spec) {
     return {
@@ -221,10 +235,16 @@ function escapeJsxInMarkdown(content: string): string {
 export default async function SpecDetailPage({
   params,
 }: {
-  params: Promise<{ category: string; slug: string }>;
+  params: Promise<{ category: string; slug: string[] }>;
 }) {
   const { category, slug } = await params;
-  const spec = await getSpecification(category, slug);
+
+  // Parse slug array: [subcategory?, actualSlug]
+  // e.g., ["dpp", "dpp-core.schema"] or ["DID-METHOD"]
+  const subcategory = slug.length > 1 ? slug[0] : undefined;
+  const actualSlug = slug.length > 1 ? slug[1] : slug[0];
+
+  const spec = await getSpecification(category, actualSlug, subcategory);
 
   if (!spec) {
     notFound();

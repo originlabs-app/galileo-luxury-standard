@@ -39,7 +39,7 @@ Each brand's authentication system is an island. Resale platforms cannot verify 
 
 ## What's Included in v1.0.0
 
-Version 1.0.0 delivers **24 production-ready specifications** across 8 technical domains, providing complete coverage for luxury goods authentication.
+Version 1.0.0 delivers **42 specifications** (24 markdown documents + 18 JSON schemas) across 8 technical domains, providing complete coverage for luxury goods authentication.
 
 ### Architecture
 
@@ -50,7 +50,7 @@ The foundational [hybrid on/off-chain architecture](/docs/architecture) balances
 
 ### Identity Framework
 
-Our [identity system](/specifications/identity/overview) implements the ERC-3643 v4.1.3 standard with 12 claim topics covering:
+Our [identity system](/specifications/identity) implements the ERC-3643 v4.1.3 standard with 12 claim topics covering:
 
 - Brand identity verification
 - Artisan and craftsperson credentials
@@ -60,7 +60,7 @@ Our [identity system](/specifications/identity/overview) implements the ERC-3643
 
 ### Token Standard
 
-The [single-supply token model](/specifications/token/single-supply) enforces a strict 1:1 relationship between physical items and digital certificates:
+The [ownership transfer specification](/specifications/token/ownership-transfer) enforces a strict 1:1 relationship between physical items and digital certificates:
 
 - 5 compliance modules for regulatory requirements
 - 8-step validation pipeline ensuring data integrity
@@ -68,7 +68,7 @@ The [single-supply token model](/specifications/token/single-supply) enforces a 
 
 ### Resolver System
 
-The [GS1 Digital Link 1.6.0 resolver](/specifications/resolver/overview) enables universal lookups:
+The [GS1 Digital Link 1.6.0 resolver](/specifications/resolver/digital-link-uri) enables universal lookups:
 
 - 14-digit GTIN compatibility
 - 4 stakeholder role types with granular permissions
@@ -76,7 +76,7 @@ The [GS1 Digital Link 1.6.0 resolver](/specifications/resolver/overview) enables
 
 ### Data Schemas
 
-[EPCIS 2.0-aligned schemas](/specifications/schemas/alignment/epcis-2) for:
+[EPCIS 2.0-aligned schemas](/specifications/schemas/alignment/cbv-mapping) for:
 
 - Digital Product Passport (DPP) records
 - Provenance events with 5 quality grades
@@ -92,7 +92,7 @@ Built-in support for [regulatory frameworks](/docs/compliance):
 
 ### Infrastructure
 
-Enterprise-grade [operational specifications](/specifications/infrastructure/overview):
+Enterprise-grade [operational specifications](/specifications/infrastructure):
 
 - 5 RBAC roles for access control
 - 7-year audit trail retention
@@ -100,7 +100,7 @@ Enterprise-grade [operational specifications](/specifications/infrastructure/ove
 
 ### Cryptography
 
-[Post-quantum security](/specifications/crypto/pqc) future-proofing:
+[Post-quantum security](/specifications/crypto/CRYPTO-AGILITY) future-proofing:
 
 - ML-DSA-65 for standard operations
 - ML-DSA-87 for high-security contexts
