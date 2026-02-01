@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-01)
 
 **Core value:** Proteger le patrimoine des marques et le savoir-faire humain en etablissant un langage commun interoperable
-**Current focus:** v1.1 Website & Documentation Portal
+**Current focus:** v1.2 Polish & Governance
 
 ## Current Position
 
-Phase: 13 of 13 (Production Deployment)
-Plan: 3/4 complete (13-01, 13-02, 13-03)
-Status: Phase 13 IN PROGRESS
-Last activity: 2026-02-01 — Completed 13-03-PLAN.md (Domain References & Image Optimization)
+Phase: 0 of ? (v1.2 planning)
+Plan: —
+Status: v1.1 COMPLETE ✓ — Starting v1.2
+Last activity: 2026-02-01 — v1.1 deployed to Vercel
 
-Progress: [████████████████████████░░░░░░░░] 75% of Phase 13
+Progress: [████████████████████████████████] 100% of v1.1
 
 ## Milestone Context
 
@@ -203,20 +203,28 @@ Progress: [███████████████████████
 - Verified Lighthouse scores: Performance 94, Accessibility 98, Best Practices 100, SEO 100 (desktop)
 - Confirmed website uses CSS/SVG-only visuals (no raster images to optimize)
 
-### Pending Todos
+**Plan 04 Complete (Deployment):**
+- Pushed 78 commits to GitHub origin/main
+- Imported project in Vercel (root: website/)
+- Site live at https://galileo-luxury-standard.vercel.app
+- Fixed navigation link /specs → /specifications
+- Auto-deploy on push to main working
+- Custom domain (galileoprotocol.io) deferred to v1.2
 
-- [ ] Shiki: Personnaliser github-dark avec couleurs Platinum/Gold (defer v1.2)
+### v1.2 Scope (Polish & Governance)
+
+- [ ] Page Governance: /governance avec TSC, charter, contribution process
+- [ ] Shiki: Personnaliser github-dark avec couleurs Platinum/Gold
 - [ ] A11y: Vérifier contraste #A3A3A3 sur labels < 14px
-- [ ] UX/UI: Améliorer cohérence visuelle specs viewer et blog (v1.2)
-- [ ] Sync: Lint CI pour vérifier que /docs cite des specs existantes (v1.2)
-- [ ] Sync: Générer certaines docs depuis specs (claim topics table, etc.) (v1.2)
+- [ ] UX/UI: Améliorer cohérence visuelle specs viewer et blog
+- [ ] Sync: Lint CI pour vérifier que /docs cite des specs existantes
+- [ ] Custom domain: galileoprotocol.io (DNS + Vercel)
 
 ### Blockers/Concerns
 
 None.
 
 ---
-*State updated: 2026-02-01T16:49:32Z*
-*Milestone: v1.1 Website & Documentation Portal*
-*Phase 13 (Production Deployment) IN PROGRESS — 3/4 plans complete*
-*Next: 13-04 (DNS & Deployment)*
+*State updated: 2026-02-01T17:30:00Z*
+*Milestone v1.1: COMPLETE ✓ — deployed at https://galileo-luxury-standard.vercel.app*
+*Next: v1.2 Polish & Governance*
