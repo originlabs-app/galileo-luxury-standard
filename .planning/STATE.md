@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-01)
 ## Current Position
 
 Phase: 10 of 13 (Documentation Portal)
-Plan: 03/04 complete
-Status: Phase 10 in progress
-Last activity: 2026-02-01 — Completed 10-03-PLAN.md (Architecture & Identity)
+Plan: 04/04 complete
+Status: Phase 10 COMPLETE
+Last activity: 2026-02-01 — Completed 10-04-PLAN.md (Token & Compliance)
 
-Progress: [████████████████████████░░░░░░░░] 75% of Phase 10 plans (3/4)
+Progress: [████████████████████████████████] 100% of Phase 10 plans (4/4)
 
 ## Milestone Context
 
@@ -129,6 +129,22 @@ Progress: [███████████████████████
 - `website/src/app/docs/identity/onchainid/page.tsx` — ONCHAINID integration
 - `website/src/app/docs/identity/verifiable-credentials/page.tsx` — Verifiable Credentials
 
+**Plan 04 Complete (Token & Compliance):**
+- Token overview at /docs/token with single-supply pattern, 5 compliance modules
+- Ownership transfer at /docs/token/ownership-transfer with 8-step validation
+- Compliance overview at /docs/compliance linking 3 guides
+- GDPR guide at /docs/compliance/gdpr with CRAB model
+- MiCA guide at /docs/compliance/mica with Travel Rule
+- ESPR guide at /docs/compliance/espr with DPP schema
+
+**Files created:**
+- `website/src/app/docs/token/page.tsx` — Token architecture
+- `website/src/app/docs/token/ownership-transfer/page.tsx` — Transfer specification
+- `website/src/app/docs/compliance/page.tsx` — Compliance overview
+- `website/src/app/docs/compliance/gdpr/page.tsx` — GDPR guide
+- `website/src/app/docs/compliance/mica/page.tsx` — MiCA guide
+- `website/src/app/docs/compliance/espr/page.tsx` — ESPR guide
+
 ### Pending Todos
 
 - [ ] Shiki: Personnaliser github-dark avec couleurs Platinum/Gold (defer v1.2)
@@ -139,6 +155,6 @@ Progress: [███████████████████████
 None.
 
 ---
-*State updated: 2026-02-01T12:33:31Z*
+*State updated: 2026-02-01T12:34:22Z*
 *Milestone: v1.1 Website & Documentation Portal*
-*Phase 10 (Documentation Portal) in progress — Plan 03/04 complete*
+*Phase 10 (Documentation Portal) COMPLETE — All 4/4 plans done*
