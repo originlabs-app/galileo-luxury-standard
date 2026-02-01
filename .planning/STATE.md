@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-01)
 
 ## Current Position
 
-Phase: 9 of 13 (Landing Page) — Ready to plan
-Plan: —
-Status: Roadmap complete, ready for `/gsd:plan-phase 9`
-Last activity: 2026-02-01 — Milestone v1.1 roadmap created
+Phase: 9 of 13 (Landing Page) — In progress
+Plan: 01 complete
+Status: Completed 09-01-PLAN.md (Dependencies and CodeBlock)
+Last activity: 2026-02-01 — Completed plan 09-01 (shiki, lucide-react, CodeBlock)
 
-Progress: [░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 0%
+Progress: [█░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 3%
 
 ## Milestone Context
 
@@ -39,6 +39,7 @@ Progress: [░░░░░░░░░░░░░░░░░░░░░░░
 - `website/src/components/layout/Navigation.tsx` — Header component
 - `website/src/components/sections/Hero.tsx` — Hero section
 - `website/src/components/sections/ValueProposition.tsx` — Value cards
+- `website/src/components/ui/CodeBlock.tsx` — Async server component for syntax highlighting
 
 ## Accumulated Context
 
@@ -62,18 +63,20 @@ Progress: [░░░░░░░░░░░░░░░░░░░░░░░
 | Static generation | Fast, secure, easy to deploy (no server) | Pending |
 | MDX consumes /specifications/ | Single Source of Truth — docs never desync from specs | Pending |
 | Unified Docs/Specs navigation | Same sidebar, same design system for fluid UX | Pending |
-| Features with real code | Show JSON-LD/Solidity excerpts as proof of standard | Pending |
+| Features with real code | Show JSON-LD/Solidity excerpts as proof of standard | In progress (CodeBlock ready) |
+| Async Server Component for code | Zero client JS, VS Code-accurate highlighting via shiki | Implemented |
 | Fuse.js local search | Lightweight search for specs viewer (no Algolia dependency) | Pending |
 | Premium OG images | Core Web Vitals + OpenGraph for luxury LinkedIn/Twitter sharing | Pending |
 
 ### Pending Todos
 
-None yet.
+- [ ] Shiki: Personnaliser github-dark avec couleurs Platinum/Gold (defer v1.2)
+- [ ] A11y: Vérifier contraste #A3A3A3 sur labels < 14px
 
 ### Blockers/Concerns
 
 None.
 
 ---
-*State updated: 2026-02-01*
+*State updated: 2026-02-01T10:43:32Z*
 *Milestone: v1.1 Website & Documentation Portal*
