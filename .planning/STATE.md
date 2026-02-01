@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-01)
 
 ## Current Position
 
-Phase: 9 of 13 (Landing Page) — Complete
-Plan: 04/04 complete (all plans in phase 09 done)
-Status: Phase 09 complete — Ready for Phase 9.1 (Spatial UI Upgrade)
-Last activity: 2026-02-01 — Completed phase verification, all requirements met
+Phase: 9.1 of 13 (Spatial UI Upgrade) — Complete
+Plan: 04/04 complete (all plans in phase 9.1 done)
+Status: Phase 9.1 complete — Ready for Phase 10 (Documentation Portal)
+Last activity: 2026-02-01 — Spatial UI upgrade verified and approved
 
-Progress: [████████████████████████████████] 100% of Phase 9 plans (4/4)
+Progress: [████████████████████████████████] 100% of Phase 9.1 plans (4/4)
 
 ## Milestone Context
 
@@ -77,17 +77,17 @@ Progress: [███████████████████████
 | Premium OG images | Core Web Vitals + OpenGraph for luxury LinkedIn/Twitter sharing | Pending |
 | Section order: Hero-Value-Arch-Features-Std-Reg-Footer | Logical flow from vision to technical to compliance to action | Implemented |
 
-### Phase 9.1 Planned (Spatial UI Upgrade)
+### Phase 9.1 Complete (Spatial UI Upgrade)
 
-User feedback: Current landing page functional but design feels "2023". Upgrade to 2026 spatial standards.
-
-**Planned enhancements:**
-- Mesh gradients (CSS conic-gradient, multi-stop radials)
-- Bento Grid layout for Value Proposition
-- Angle Glow borders (45deg animated pseudo-elements)
-- Deep Space & Aurora palette (Blue-Black #0A0E17, Aurora Cyan #00F0FF, Deep Gold #FFB800)
-- Subtle micro-animations with reduced-motion support
-- Glass-morphism cards with backdrop-blur
+**Delivered enhancements:**
+- Swiss-Luxe typography (Outfit titles, Satoshi/Inter body, Cormorant accents)
+- Deep Space mesh gradients (#1A0B2E Deep Plum, #020617 Midnight Blue)
+- Angle Glow borders (conic-gradient, subtle "éclat" on hover)
+- Hero asymmetric layout (60/40, floating architecture visual)
+- Bento Grid layout for Features (2:1 / 1:2 asymmetric)
+- Liquid Glass mouse-tracking effect
+- Micro-haptic button feedback (scale 0.98)
+- Full prefers-reduced-motion support
 
 ### Pending Todos
 
@@ -99,6 +99,6 @@ User feedback: Current landing page functional but design feels "2023". Upgrade 
 None.
 
 ---
-*State updated: 2026-02-01T12:00:00Z*
+*State updated: 2026-02-01T14:30:00Z*
 *Milestone: v1.1 Website & Documentation Portal*
-*Phase 09 (Landing Page) complete — Next: Phase 9.1 (Spatial UI Upgrade) or Phase 10 (Documentation Portal)*
+*Phase 9.1 (Spatial UI Upgrade) complete — Next: Phase 10 (Documentation Portal)*

@@ -26,7 +26,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 ### v1.1 — Website & Documentation Portal (Active)
 
 - [x] **Phase 9: Landing Page** - Complete home page with all sections and navigation
-- [ ] **Phase 9.1: Spatial UI Upgrade** - INSERTED: Mesh gradients, Bento layout, Angle Glow borders
+- [x] **Phase 9.1: Spatial UI Upgrade** - INSERTED: Mesh gradients, Bento layout, Angle Glow borders
 - [ ] **Phase 10: Documentation Portal** - MDX-powered docs with sidebar navigation
 - [ ] **Phase 11: Specifications Viewer** - Browse specifications by category with status badges
 - [ ] **Phase 12: Blog Section** - Blog listing and post pages with v1.0.0 announcement
@@ -226,10 +226,10 @@ Plans:
 **Plans**: 4 plans in 3 waves
 
 Plans:
-- [ ] 09.1-01-PLAN.md — Foundation: Typography (Outfit/Inter), spatial background, angle-glow utilities
-- [ ] 09.1-02-PLAN.md — Hero Refactor: Asymmetric layout, floating architecture visual, micro-haptic CTAs
-- [ ] 09.1-03-PLAN.md — Features Bento: BentoCard component, Liquid Glass effect, asymmetric grid
-- [ ] 09.1-04-PLAN.md — Verification: Visual checklist, reduced-motion audit, integration test
+- [x] 09.1-01-PLAN.md — Foundation: Typography (Outfit/Inter), spatial background, angle-glow utilities
+- [x] 09.1-02-PLAN.md — Hero Refactor: Asymmetric layout, floating architecture visual, micro-haptic CTAs
+- [x] 09.1-03-PLAN.md — Features Bento: BentoCard component, Liquid Glass effect, asymmetric grid
+- [x] 09.1-04-PLAN.md — Verification: Visual checklist, reduced-motion audit, integration test
 
 ---
 
