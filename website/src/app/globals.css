@@ -1,33 +1,42 @@
 @import "tailwindcss";
 
 /* ============================================
-   OBSIDIAN PRECISION — Design System
+   SPATIAL UI — Design System 2026
    Galileo Luxury Standard
+   "Obsidian Precision" → "Deep Space & Aurora"
    ============================================ */
 
 :root {
-  /* Colors */
+  /* Deep Space Palette */
   --obsidian: #050505;
   --obsidian-surface: #0a0a0a;
   --obsidian-elevated: #121212;
   --obsidian-border: #1a1a1a;
 
+  /* Aurora Accents */
+  --deep-plum: #1A0B2E;
+  --midnight-blue: #020617;
+
+  /* Heritage Colors */
   --antique-gold: #D4AF37;
   --antique-gold-dim: #B8973A;
   --platinum: #E5E5E5;
   --platinum-dim: #A3A3A3;
 
+  /* Tech Colors */
   --precision-blue: #00A3FF;
   --precision-blue-dim: #0080CC;
 
+  /* Status Colors */
   --success: #10B981;
   --warning: #F59E0B;
   --error: #EF4444;
 
-  /* Typography */
-  --font-serif: 'Cormorant Garamond', Georgia, serif;
-  --font-sans: 'Inter', -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  /* Swiss-Luxe Typography */
+  --font-outfit: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+  --font-satoshi: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-serif), 'Cormorant Garamond', Georgia, serif;
+  --font-mono: var(--font-mono), 'JetBrains Mono', ui-monospace, monospace;
 
   /* Spacing */
   --section-padding: clamp(4rem, 10vw, 8rem);
@@ -51,8 +60,10 @@
   --color-gold: var(--antique-gold);
   --color-platinum: var(--platinum);
   --color-blue: var(--precision-blue);
+  --color-deep-plum: var(--deep-plum);
+  --color-midnight-blue: var(--midnight-blue);
   --font-serif: var(--font-serif);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-satoshi);
   --font-mono: var(--font-mono);
 }
 
@@ -68,18 +79,18 @@ html {
 body {
   background: var(--obsidian);
   color: var(--platinum);
-  font-family: var(--font-sans);
+  font-family: var(--font-satoshi);
   font-weight: 400;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Typography */
+/* Swiss-Luxe Typography */
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-serif);
-  font-weight: 500;
-  line-height: 1.2;
+  font-family: var(--font-outfit);
+  font-weight: 600;
+  line-height: 1.1;
   letter-spacing: -0.02em;
 }
 
@@ -87,6 +98,12 @@ h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); }
 h2 { font-size: clamp(2rem, 4vw, 3rem); }
 h3 { font-size: clamp(1.5rem, 3vw, 2rem); }
 h4 { font-size: clamp(1.25rem, 2vw, 1.5rem); }
+
+/* Heritage Italic Accent */
+.italic-accent {
+  font-family: var(--font-serif);
+  font-style: italic;
+}
 
 code, pre {
   font-family: var(--font-mono);
@@ -98,7 +115,175 @@ code, pre {
   color: var(--obsidian);
 }
 
-/* Scrollbar */
+/* ============================================
+   SPATIAL BACKGROUND — Deep Space Mesh
+   ============================================ */
+
+.spatial-background {
+  background-color: var(--obsidian);
+  background-image:
+    /* Deep Plum nebula - top left */
+    radial-gradient(ellipse 80% 50% at 0% 0%, rgba(26, 11, 46, 0.15) 0%, transparent 50%),
+    /* Blue aurora - bottom right */
+    radial-gradient(ellipse 60% 40% at 100% 100%, rgba(0, 163, 255, 0.04) 0%, transparent 50%),
+    /* Center depth */
+    radial-gradient(ellipse 100% 80% at 50% 50%, rgba(26, 11, 46, 0.06) 0%, transparent 60%),
+    /* Midnight undertone */
+    radial-gradient(ellipse 120% 100% at 80% 20%, rgba(2, 6, 23, 0.3) 0%, transparent 70%);
+}
+
+/* ============================================
+   ANGLE GLOW — Subtle Corner Highlight
+   "Éclat" not "Néon"
+   ============================================ */
+
+.angle-glow {
+  position: relative;
+  border-radius: 16px;
+  background: var(--obsidian-surface);
+}
+
+.angle-glow::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(
+    from 45deg,
+    transparent 0deg,
+    rgba(212, 175, 55, 0.4) 20deg,
+    transparent 50deg,
+    transparent 180deg,
+    rgba(212, 175, 55, 0.4) 200deg,
+    transparent 230deg
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.angle-glow:hover::before {
+  opacity: 1;
+}
+
+/* Ambient variant: always visible but subtle */
+.angle-glow-ambient::before {
+  opacity: 0.25;
+}
+
+.angle-glow-ambient:hover::before {
+  opacity: 0.8;
+}
+
+/* Blue variant for tech elements */
+.angle-glow-blue::before {
+  background: conic-gradient(
+    from 45deg,
+    transparent 0deg,
+    rgba(0, 163, 255, 0.4) 20deg,
+    transparent 50deg,
+    transparent 180deg,
+    rgba(0, 163, 255, 0.4) 200deg,
+    transparent 230deg
+  );
+}
+
+/* ============================================
+   MICRO-HAPTIC — Button Feedback
+   ============================================ */
+
+.button-haptic {
+  transition: transform 0.1s ease-out;
+}
+
+.button-haptic:active {
+  transform: scale(0.98);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button-haptic:active {
+    transform: none;
+  }
+}
+
+/* ============================================
+   LIQUID GLASS — Mouse-Tracking Light
+   ============================================ */
+
+.liquid-glass {
+  --mouse-x: 50%;
+  --mouse-y: 50%;
+  position: relative;
+  overflow: hidden;
+}
+
+.liquid-glass::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    600px circle at var(--mouse-x) var(--mouse-y),
+    rgba(255, 255, 255, 0.04) 0%,
+    transparent 40%
+  );
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.liquid-glass:hover::after {
+  opacity: 1;
+}
+
+/* ============================================
+   FLOATING ANIMATIONS — Hero Visual
+   ============================================ */
+
+@keyframes float-slow {
+  0%, 100% { transform: rotate(-6deg) translateX(2rem) translateY(-1rem); }
+  50% { transform: rotate(-6deg) translateX(2rem) translateY(-1.5rem); }
+}
+
+@keyframes float-medium {
+  0%, 100% { transform: rotate(3deg) translateX(-1rem) translateY(0); }
+  50% { transform: rotate(3deg) translateX(-1rem) translateY(-0.5rem); }
+}
+
+@keyframes float-fast {
+  0%, 100% { transform: rotate(-3deg) translateY(2rem); }
+  50% { transform: rotate(-3deg) translateY(1.5rem); }
+}
+
+.animate-float-slow {
+  animation: float-slow 6s ease-in-out infinite;
+}
+
+.animate-float-medium {
+  animation: float-medium 5s ease-in-out infinite;
+}
+
+.animate-float-fast {
+  animation: float-fast 4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float-slow,
+  .animate-float-medium,
+  .animate-float-fast {
+    animation: none;
+  }
+}
+
+/* ============================================
+   SCROLLBAR
+   ============================================ */
+
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -117,7 +302,10 @@ code, pre {
   background: var(--platinum-dim);
 }
 
-/* Glass Card */
+/* ============================================
+   GLASS CARD
+   ============================================ */
+
 .glass-card {
   background: var(--glass-bg);
   backdrop-filter: blur(var(--glass-blur));
@@ -126,7 +314,10 @@ code, pre {
   border-radius: 12px;
 }
 
-/* Gold Gradient Text */
+/* ============================================
+   GRADIENT TEXT
+   ============================================ */
+
 .text-gradient-gold {
   background: linear-gradient(135deg, var(--antique-gold) 0%, #F5D77E 50%, var(--antique-gold) 100%);
   -webkit-background-clip: text;
@@ -134,22 +325,41 @@ code, pre {
   background-clip: text;
 }
 
-/* Blue Glow */
+.text-gradient-hero {
+  background: linear-gradient(90deg, var(--antique-gold) 0%, var(--platinum) 50%, var(--antique-gold) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ============================================
+   GLOWS
+   ============================================ */
+
 .glow-blue {
   box-shadow: 0 0 20px rgba(0, 163, 255, 0.3);
 }
 
-/* Gold Glow */
 .glow-gold {
   box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
 }
 
-/* Hairline Border */
+/* ============================================
+   BORDER UTILITIES
+   ============================================ */
+
 .border-hairline {
   border: var(--border-hairline);
 }
 
-/* Animated Underline */
+.border-subtle {
+  border: var(--border-subtle);
+}
+
+/* ============================================
+   ANIMATED UNDERLINE
+   ============================================ */
+
 .animated-underline {
   position: relative;
 }
@@ -169,14 +379,17 @@ code, pre {
   width: 100%;
 }
 
-/* Button Styles */
+/* ============================================
+   BUTTONS
+   ============================================ */
+
 .btn-primary {
   background: var(--antique-gold);
   color: var(--obsidian);
-  font-family: var(--font-sans);
+  font-family: var(--font-satoshi);
   font-weight: 600;
   padding: 0.875rem 2rem;
-  border-radius: 6px;
+  border-radius: 8px;
   border: none;
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -191,11 +404,11 @@ code, pre {
 .btn-secondary {
   background: transparent;
   color: var(--platinum);
-  font-family: var(--font-sans);
+  font-family: var(--font-satoshi);
   font-weight: 500;
   padding: 0.875rem 2rem;
-  border-radius: 6px;
-  border: 1px solid var(--platinum-dim);
+  border-radius: 8px;
+  border: 1px solid rgba(229, 229, 229, 0.2);
   cursor: pointer;
   transition: all var(--transition-fast);
 }
@@ -205,7 +418,10 @@ code, pre {
   background: rgba(229, 229, 229, 0.05);
 }
 
-/* Code Block */
+/* ============================================
+   CODE BLOCK
+   ============================================ */
+
 .code-block {
   background: var(--obsidian-elevated);
   border: var(--border-subtle);
@@ -219,7 +435,10 @@ code, pre {
   font-size: 0.875rem;
 }
 
-/* Spec Badge */
+/* ============================================
+   SPEC BADGES
+   ============================================ */
+
 .spec-badge {
   display: inline-flex;
   align-items: center;
@@ -249,19 +468,24 @@ code, pre {
   border: 1px solid rgba(245, 158, 11, 0.2);
 }
 
-/* Section */
+/* ============================================
+   LAYOUT
+   ============================================ */
+
 .section {
   padding: var(--section-padding) 0;
 }
 
-/* Container */
 .container {
   max-width: 1280px;
   margin: 0 auto;
   padding: 0 1.5rem;
 }
 
-/* Animate on scroll */
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -277,7 +501,10 @@ code, pre {
   animation: fadeInUp 0.6s ease-out forwards;
 }
 
-/* Responsive */
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
 @media (max-width: 768px) {
   :root {
     --section-padding: 3rem;
