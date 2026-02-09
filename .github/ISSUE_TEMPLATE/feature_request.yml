@@ -1,0 +1,49 @@
+name: Feature Request
+description: Propose a new feature or specification addition
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For significant specification changes, please follow the [RFC process](../../governance/rfcs/README.md).
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear description of the proposed feature
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case
+      description: What problem does this solve? Who benefits?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed Solution
+      description: How would you like this to work?
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Any alternative approaches you've considered
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Specification
+        - Website
+        - Documentation
+        - Governance
+        - Other
+    validations:
+      required: true

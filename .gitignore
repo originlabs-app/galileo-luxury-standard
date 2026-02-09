@@ -1,0 +1,54 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Dependencies
+node_modules/
+
+# Build
+dist/
+build/
+out/
+.next/
+
+# Environment
+.env
+.env.local
+.env.*.local
+.env.development
+.env.test
+.env.production
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Internal planning (not for public)
+.planning/
+
+# Debug artifacts
+*-full.png
+/*.pdf
+
+# Tools
+.playwright-mcp/
+.claude/
+
+# Security
+*.pem
+*.key
+*.p12
+
+# Misc
+.vercel
+*.tsbuildinfo
