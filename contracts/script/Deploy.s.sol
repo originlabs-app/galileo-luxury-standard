@@ -54,14 +54,15 @@ contract Deploy is Script {
     // ─── Entry point ─────────────────────────────────────────────────────────
 
     function run() external {
-        address deployer = msg.sender;
-        vm.startBroadcast(deployer);
+        // In this script the deployer is the admin for all contracts.
+        address admin = msg.sender;
+        vm.startBroadcast(admin);
 
-        _deployInfrastructure(deployer);
-        _deployModules(deployer);
-        _wireInfrastructure();
-        _configureModules();
-        _deployToken(deployer);
+        _deployInfrastructure(admin);
+        _deployModules(admin);
+        _wireInfrastructure(admin);
+        _configureModules(admin);
+        _deployToken(admin);
 
         vm.stopBroadcast();
 
@@ -97,7 +98,9 @@ contract Deploy is Script {
 
     // ─── Step 3: Wire identity layer ─────────────────────────────────────────
 
-    function _wireInfrastructure() internal {
+    // NOTE: admin_ is the deployer, who is the owner of idStorage and ctr.
+    //       These calls are restricted to admin, hence the explicit parameter.
+    function _wireInfrastructure(address /*admin_*/) internal {
         idStorage.bindIdentityRegistry(address(reg));
         ctr.addClaimTopic(GalileoClaimTopics.KYC_BASIC);
 
@@ -110,7 +113,9 @@ contract Deploy is Script {
 
     // ─── Step 4: Configure modules ───────────────────────────────────────────
 
-    function _configureModules() internal {
+    // NOTE: admin_ is the deployer and owner of all modules.
+    //       These calls are restricted to admin, hence the explicit parameter.
+    function _configureModules(address /*admin_*/) internal {
         // Allow all transfers — tighten for production use
         brandModule.setRequireRetailerForPrimarySale(false);
         brandModule.setAllowPeerToPeer(true);
@@ -127,12 +132,21 @@ contract Deploy is Script {
     // ─── Step 5 & 6: Predict token address, transfer compliance, deploy token ─
 
     function _deployToken(address admin) internal {
-        // EOA nonces increment on every transaction.
-        // transferOwnership() consumes the current nonce N → nonce becomes N+1.
+        // !! CRITICAL ORDERING CONSTRAINT !!
+        // No additional transactions may be inserted between
+        // compliance.transferOwnership() and new GalileoToken() below.
+        // If the require fires mid-broadcast, compliance is owned by an
+        // undeployed address and is unrecoverable without redeploying compliance.
+        //
+        // EOA nonces increment on every transaction (CALL or CREATE).
+        // transferOwnership() consumes nonce N → nonce becomes N+1.
         // new GalileoToken() will use nonce N+1.
         address predicted = vm.computeCreateAddress(admin, vm.getNonce(admin) + 1);
         compliance.transferOwnership(predicted);
+        // !! Do NOT add any transactions between here and `new GalileoToken` !!
 
+        // NOTE: initial token owner is `admin` here — a stand-in for the brand wallet.
+        // In production, replace the final `admin` arg with the brand's custody wallet.
         GalileoToken.ProductConfig memory cfg = GalileoToken.ProductConfig({
             tokenName:       "Galileo Luxury Product",
             tokenSymbol:     "GLP-001",

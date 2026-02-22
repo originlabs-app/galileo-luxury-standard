@@ -76,17 +76,18 @@ contract FullLifecycleTest is Test {
     address mockBrandId     = makeAddr("mockBrandId");
     address mockBuyer1Id    = makeAddr("mockBuyer1Id");
     address mockBuyer2Id    = makeAddr("mockBuyer2Id");
-    address mockCertifierId = makeAddr("mockCertifierId");
+    address mockCertifierId  = makeAddr("mockCertifierId");
+    address scCertifier      = makeAddr("scCertifier");
+    address mockSCCertifierId = makeAddr("mockSCCertifierId");
 
     // ═══════════════════════════════════════════════════════════════════
     // CONSTANTS (cached to avoid post-prank function calls)
     // ═══════════════════════════════════════════════════════════════════
 
     string  constant BRAND_DID              = "did:galileo:brand:rolex";
-    bytes32 constant REASON_SALE            = keccak256("SALE");
+    bytes32 constant REASON_SALE             = keccak256("SALE");
     bytes32 constant REASON_SERVICE_TRANSFER = keccak256("SERVICE_TRANSFER");
-    bytes32 constant REASON_GIFT            = keccak256("GIFT");
-    bytes32 constant REASON_INVALID         = keccak256("UNKNOWN_REASON_XYZ");
+    bytes32 constant REASON_INVALID          = keccak256("UNKNOWN_REASON_XYZ");
 
     uint256 constant TOPIC_KYC          = GalileoClaimTopics.KYC_BASIC;
     uint256 constant TOPIC_AUTHENTICATOR = GalileoClaimTopics.AUTHENTICATOR;
@@ -155,27 +156,40 @@ contract FullLifecycleTest is Test {
             vm.prank(admin);
             tir.addTrustedIssuer(IClaimIssuer(trustedIssuerAddr), kycTopics);
 
-            uint256[] memory bothTopics = new uint256[](2);
-            bothTopics[0] = TOPIC_KYC;
-            bothTopics[1] = TOPIC_AUTHENTICATOR;
+            uint256[] memory allTopics = new uint256[](3);
+            allTopics[0] = TOPIC_KYC;
+            allTopics[1] = TOPIC_AUTHENTICATOR;
+            allTopics[2] = TOPIC_SERVICE_CENTER;
             vm.prank(admin);
-            tir.updateIssuerClaimTopics(IClaimIssuer(trustedIssuerAddr), bothTopics);
+            tir.updateIssuerClaimTopics(IClaimIssuer(trustedIssuerAddr), allTopics);
         }
 
         // --- Register identities (agent is needed for registerIdentity) ---
-        _registerIdentity(brandWallet, mockBrandId,     250); // France
-        _registerIdentity(buyer1,      mockBuyer1Id,    840); // USA
-        _registerIdentity(buyer2,      mockBuyer2Id,    250); // France
-        _registerIdentity(certifier,   mockCertifierId, 840); // USA
+        _registerIdentity(brandWallet,  mockBrandId,      250); // France
+        _registerIdentity(buyer1,       mockBuyer1Id,    840); // USA
+        _registerIdentity(buyer2,       mockBuyer2Id,    250); // France
+        _registerIdentity(certifier,    mockCertifierId, 840); // USA
+        _registerIdentity(scCertifier,  mockSCCertifierId, 840); // USA
 
         // --- Mock KYC_BASIC claims for all wallets (required by isVerified) ---
-        _mockValidClaim(mockBrandId,     TOPIC_KYC);
-        _mockValidClaim(mockBuyer1Id,    TOPIC_KYC);
-        _mockValidClaim(mockBuyer2Id,    TOPIC_KYC);
-        _mockValidClaim(mockCertifierId, TOPIC_KYC);
+        _mockValidClaim(mockBrandId,      TOPIC_KYC);
+        _mockValidClaim(mockBuyer1Id,     TOPIC_KYC);
+        _mockValidClaim(mockBuyer2Id,     TOPIC_KYC);
+        _mockValidClaim(mockCertifierId,  TOPIC_KYC);
+        _mockValidClaim(mockSCCertifierId, TOPIC_KYC);
 
-        // --- Mock AUTHENTICATOR claim for certifier (required by certifyCPO) ---
+        // --- Mock certifier-role claims (required by certifyCPO) ---
+        // certifier holds AUTHENTICATOR (traditional CPO certifier)
         _mockValidClaim(mockCertifierId, TOPIC_AUTHENTICATOR);
+        // scCertifier holds SERVICE_CENTER only (alternative certification path)
+        _mockValidClaim(mockSCCertifierId, TOPIC_SERVICE_CENTER);
+
+        // --- Mock missing claims to prevent ABI decode errors in batchVerify ---
+        // Solidity 0.8.17: an EOA call that SUCCEEDS with empty data causes ABI decode
+        // failure that propagates past the inner try/catch in _verifySingleTopic.
+        // vm.mockCallRevert makes the call REVERT so the inner catch handles it correctly.
+        _mockMissingClaim(mockCertifierId,   TOPIC_SERVICE_CENTER); // certifier lacks SC
+        _mockMissingClaim(mockSCCertifierId, TOPIC_AUTHENTICATOR);  // scCertifier lacks AUTH
 
         // --- Predict token address and transfer compliance ownership ---
         // Contract nonces only increment on CREATE (not on CALL).
@@ -239,6 +253,18 @@ contract FullLifecycleTest is Test {
                 IIdentity(identityAddr), topic, sig, data
             ),
             abi.encode(true)
+        );
+    }
+
+    /// @dev Mocks a missing claim so getClaim reverts (caught by inner catch in
+    ///      _verifySingleTopic). Without this, a successful EOA call returning empty data
+    ///      causes an ABI decode failure that propagates PAST the catch block (Solidity 0.8.17).
+    function _mockMissingClaim(address identityAddr, uint256 topic) internal {
+        bytes32 claimId = keccak256(abi.encode(trustedIssuerAddr, topic));
+        vm.mockCallRevert(
+            identityAddr,
+            abi.encodeWithSelector(IERC735.getClaim.selector, claimId),
+            ""
         );
     }
 
@@ -371,9 +397,9 @@ contract FullLifecycleTest is Test {
     }
 
     function test_PrimarySale_AllModulesPass() public view {
-        // Verify compliance allows primary sale (from=address(0) for mint check)
+        // canTransfer checks all 5 modules; from=address(0) is the mint path
         assertTrue(compliance.canTransfer(address(0), buyer1, 1));
-        // And regular transfer from brand
+        // canTransfer also checks regular transfer from brand to buyer
         assertTrue(compliance.canTransfer(brandWallet, buyer1, 1));
     }
 
@@ -438,6 +464,15 @@ contract FullLifecycleTest is Test {
         token.revokeCPO("Self-revoked");
 
         assertFalse(token.isCPOCertified());
+    }
+
+    function test_CPO_CertifyViaSCClaim() public {
+        // scCertifier holds SERVICE_CENTER claim (not AUTHENTICATOR)
+        vm.prank(scCertifier);
+        token.certifyCPO("ipfs://sc-cert.json");
+
+        assertTrue(token.isCPOCertified(),           "Token should be CPO certified via SC claim");
+        assertEq(token.cpoCertifier(), scCertifier,  "Certifier should be scCertifier");
     }
 
     // ═══════════════════════════════════════════════════════════════════
