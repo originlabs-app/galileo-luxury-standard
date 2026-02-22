@@ -121,6 +121,67 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.0] — 2026-02-22
+
+### Added
+
+#### Smart Contract Implementations (Solidity / Foundry)
+
+Complete Solidity implementation of all Galileo Protocol interfaces defined in v1.0.0, built on ERC-3643 (T-REX v4.1.3) with OpenZeppelin v4.9.6.
+
+**Infrastructure**
+- `GalileoAccessControl.sol` — RBAC with ONCHAINID integration, 5 roles (Brand Admin, Operator, Auditor, Regulator, Service Center Admin), two-phase grants, suspension, emergency access (60 tests)
+
+**Identity Layer**
+- `GalileoClaimTopicsRegistry.sol` — Claim topic management with group organization, batch operations, and topic metadata (47 tests)
+- `GalileoTrustedIssuersRegistry.sol` — Trusted issuer registry with suspension/revocation, expiry tracking, and delegation (65 tests)
+- `GalileoIdentityRegistryStorage.sol` — Identity data storage with brand DID binding and federated lookup (68 tests)
+- `GalileoIdentityRegistry.sol` — Identity verification engine with consortium features, batch verification, and GDPR consent checking (61 tests)
+
+**Token**
+- `GalileoToken.sol` — Single-supply ERC-20 product token (1 token = 1 physical product) with ERC-3643 compliance pipeline, CPO certification lifecycle, `transferWithReason`, decommission, and freeze/unfreeze (141 tests)
+
+**Compliance Engine**
+- `GalileoCompliance.sol` — Modular compliance engine with ordered module execution, batch checks, detailed failure reasons, emergency pause, and module introspection (53 tests)
+- `BaseComplianceModule.sol` — Abstract base for all compliance modules with bind/unbind lifecycle
+- `BrandAuthorizationModule.sol` — Verifies authorized retailers via identity claims (35 tests)
+- `CPOCertificationModule.sol` — Enforces CPO requirements for secondary market sales (35 tests)
+- `JurisdictionModule.sol` — Country-based transfer restrictions and export controls (36 tests)
+- `SanctionsModule.sol` — OFAC/EU sanctions screening via Chainalysis oracle (40 tests)
+- `ServiceCenterModule.sol` — MRO authorization for service transfers (39 tests)
+
+**Integration & Deployment**
+- `FullLifecycle.t.sol` — End-to-end integration test covering the complete luxury product lifecycle: creation, compliance setup, identity verification, transfers, CPO certification, service center MRO, and decommission (40 tests)
+- `Deploy.s.sol` — Full-stack deployment script for all contracts
+
+**Test Coverage: 722 tests (0 failures, 0 skipped)**
+
+| Test Suite | Tests |
+|------------|-------|
+| GalileoToken | 141 |
+| IdentityRegistryStorage | 68 |
+| TrustedIssuersRegistry | 65 |
+| IdentityRegistry | 61 |
+| AccessControl | 60 |
+| GalileoCompliance | 53 |
+| ClaimTopicsRegistry | 47 |
+| FullLifecycle (integration) | 40 |
+| SanctionsModule | 40 |
+| ServiceCenterModule | 39 |
+| JurisdictionModule | 36 |
+| BrandAuthorizationModule | 35 |
+| CPOCertificationModule | 35 |
+| **Total** | **722** |
+
+### Fixed
+
+- `vm.prank` consumption by staticcalls in Foundry test arguments — cached role constants in `setUp()` to prevent external view calls from consuming prank context
+- Stale suspension flag deadlock in `TrustedIssuersRegistry.suspendIssuer` — uses live state check instead of cached flag
+- Decommissioned token allowing mint/forcedTransfer — added decommission guard to both operations
+- Identity registry claim verification robustness — added try/catch safety to `getClaim` and `getClaimIdsByTopic` external calls
+
+---
+
 ## [Unreleased]
 
 ### Planned for v2.0.0
