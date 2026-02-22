@@ -55,6 +55,9 @@ contract ServiceCenterModule is IServiceCenterModule, BaseComplianceModule {
     address[] private _serviceCenterList;
     mapping(address => bool) private _isInList;
 
+    /// @dev When true, addresses holding a service center claim but NOT in _serviceCenterList are rejected
+    bool private _requireExplicitAuthorization = true;
+
     /// @dev Service types that require authorization
     bytes32[] private _requiredServiceTypesList;
     mapping(bytes32 => bool) private _serviceTypeRequired;
@@ -130,10 +133,12 @@ contract ServiceCenterModule is IServiceCenterModule, BaseComplianceModule {
     ) external view override returns (bool) {
         // Burn: always allowed
         if (_to == address(0)) return true;
-        // If not a known/registered service center → pass (not our concern)
-        if (!_isKnownServiceCenter(_to)) return true;
-        // Is a service center → must be authorized
-        return isAuthorizedServiceCenter(_to);
+        // If known/registered service center → must be authorized
+        if (_isKnownServiceCenter(_to)) return isAuthorizedServiceCenter(_to);
+        // Not in list — if requireExplicitAuthorization is enabled, reject any address
+        // that holds a service center claim without being explicitly onboarded
+        if (_requireExplicitAuthorization && _hasServiceCenterClaim(_to)) return false;
+        return true;
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -249,6 +254,14 @@ contract ServiceCenterModule is IServiceCenterModule, BaseComplianceModule {
     // ═══════════════════════════════════════════════════════════════════
     // CONFIGURATION
     // ═══════════════════════════════════════════════════════════════════
+
+    function requireExplicitAuthorization() external view returns (bool) {
+        return _requireExplicitAuthorization;
+    }
+
+    function setRequireExplicitAuthorization(bool value_) external onlyOwner {
+        _requireExplicitAuthorization = value_;
+    }
 
     function serviceCenterClaimTopic() external view override returns (uint256) {
         return _serviceCenterClaimTopicValue;

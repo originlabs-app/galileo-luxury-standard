@@ -256,6 +256,13 @@ contract ServiceCenterModuleTest is Test {
         assertTrue(ok);
     }
 
+    function test_moduleCheck_rejectsUnregisteredServiceCenter() public {
+        // unknown holds a service center identity claim but is NOT in _serviceCenterList
+        _mockHasServiceClaim(unknown, true);
+        bool ok = module.moduleCheck(owner_, unknown, 1, compliance);
+        assertFalse(ok);
+    }
+
     function test_moduleCheck_fallbackToRegistryClaim() public {
         // serviceCenter is in the list (after authorize) but with identity registry claim
         // First add it to the list via authorize, then revoke internal auth
