@@ -38,6 +38,7 @@ contract JurisdictionModuleTest is Test {
     function setUp() public {
         // Start in RESTRICT mode (blacklist)
         module = new JurisdictionModule(admin, registry, IJurisdictionModule.JurisdictionMode.RESTRICT);
+        vm.prank(compliance);
         module.bindCompliance(compliance);
     }
 

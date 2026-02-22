@@ -33,6 +33,7 @@ contract CPOCertificationModuleTest is Test {
 
     function setUp() public {
         module = new CPOCertificationModule(admin, registry, 0);
+        vm.prank(compliance);
         module.bindCompliance(compliance);
         // Add a trusted certifier
         vm.prank(admin);
@@ -268,6 +269,38 @@ contract CPOCertificationModuleTest is Test {
         vm.prank(stranger);
         vm.expectRevert();
         module.setMinValidityPeriod(3600);
+    }
+
+    function test_certifyToken_enforcesMinValidityPeriod() public {
+        vm.prank(admin);
+        module.setMinValidityPeriod(7 days);
+
+        uint256 certifiedAt = block.timestamp;
+        uint256 badExpiry = certifiedAt + 1 days; // less than 7 days
+        vm.prank(certifier);
+        vm.expectRevert();
+        module.certifyToken(token, certifiedAt, badExpiry, "brand_certified");
+    }
+
+    function test_certifyToken_acceptsExpiryAboveMinValidityPeriod() public {
+        vm.prank(admin);
+        module.setMinValidityPeriod(7 days);
+
+        uint256 certifiedAt = block.timestamp;
+        uint256 goodExpiry = certifiedAt + 8 days;
+        vm.prank(certifier);
+        module.certifyToken(token, certifiedAt, goodExpiry, "brand_certified");
+        assertTrue(module.hasCPOCertification(token));
+    }
+
+    function test_certifyToken_allowsZeroExpiry_withMinValiditySet() public {
+        vm.prank(admin);
+        module.setMinValidityPeriod(7 days);
+
+        // expiresAt == 0 means "no expiry" — should be exempt from minValidity check
+        vm.prank(certifier);
+        module.certifyToken(token, block.timestamp, 0, "brand_certified");
+        assertTrue(module.hasCPOCertification(token));
     }
 
     // ═══════════════════════════════════════════════════════════════════

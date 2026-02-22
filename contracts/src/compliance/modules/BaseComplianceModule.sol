@@ -33,12 +33,16 @@ abstract contract BaseComplianceModule is IComplianceModule, Ownable {
     // ═══════════════════════════════════════════════════════════════════
 
     function bindCompliance(address _compliance) external override {
+        // Only the compliance contract itself may bind (self-binding pattern per ERC-3643)
+        if (msg.sender != _compliance) revert CallerNotBoundCompliance(msg.sender);
         if (_complianceBound[_compliance]) revert ComplianceAlreadyBound(_compliance);
         _complianceBound[_compliance] = true;
         emit ComplianceBound(_compliance);
     }
 
     function unbindCompliance(address _compliance) external override {
+        // Only the compliance contract itself may unbind
+        if (msg.sender != _compliance) revert CallerNotBoundCompliance(msg.sender);
         if (!_complianceBound[_compliance]) revert ComplianceNotBound(_compliance);
         _complianceBound[_compliance] = false;
         emit ComplianceUnbound(_compliance);

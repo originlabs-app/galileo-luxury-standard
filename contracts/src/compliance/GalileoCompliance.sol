@@ -57,6 +57,8 @@ contract GalileoCompliance is IGalileoCompliance, Ownable {
     error ModuleLimitReached(uint256 maximum);
     error ContractPaused();
     error ZeroAddress();
+    error ModuleCallFailed(address module, bytes4 selector);
+    error IndexOutOfBounds(uint256 index, uint256 length);
 
     // ═══════════════════════════════════════════════════════════════════
     // ADDITIONAL EVENTS (Pause)
@@ -144,6 +146,9 @@ contract GalileoCompliance is IGalileoCompliance, Ownable {
 
         IComplianceModule(_module).unbindCompliance(address(this));
 
+        // Capture old order before swap-and-pop
+        address[] memory oldOrder = _modules;
+
         uint256 len = _modules.length;
         for (uint256 i = 0; i < len; i++) {
             if (_modules[i] == _module) {
@@ -156,6 +161,8 @@ contract GalileoCompliance is IGalileoCompliance, Ownable {
 
         emit ModuleRemoved(_module);
         emit ModuleRemoved(_module, mType);
+        // Signal order change so callers can react (swap-and-pop shifts last element)
+        if (len > 1) emit ModuleOrderChanged(oldOrder, _modules);
     }
 
     function isModuleBound(address _module) external view override returns (bool) {
@@ -171,7 +178,7 @@ contract GalileoCompliance is IGalileoCompliance, Ownable {
         bytes4 selector = callData.length >= 4 ? bytes4(callData[:4]) : bytes4(0);
         // solhint-disable-next-line avoid-low-level-calls
         (bool success, ) = _module.call(callData);
-        require(success, "Module call failed");
+        if (!success) revert ModuleCallFailed(_module, selector);
         emit ModuleInteraction(_module, selector);
     }
 
@@ -353,7 +360,7 @@ contract GalileoCompliance is IGalileoCompliance, Ownable {
         bytes4 moduleType_,
         string memory moduleName
     ) {
-        require(index < _modules.length, "Index out of bounds");
+        if (index >= _modules.length) revert IndexOutOfBounds(index, _modules.length);
         module = _modules[index];
         try IComplianceModule(module).moduleType() returns (bytes4 t) {
             moduleType_ = t;
@@ -451,13 +458,4 @@ contract GalileoCompliance is IGalileoCompliance, Ownable {
         emit IdentityRegistrySet(registry_);
     }
 
-    // ═══════════════════════════════════════════════════════════════════
-    // INTERNAL HELPERS
-    // ═══════════════════════════════════════════════════════════════════
-
-    function _countTrue(bool[] memory arr) internal pure returns (uint256 count) {
-        for (uint256 i = 0; i < arr.length; i++) {
-            if (arr[i]) count++;
-        }
-    }
 }

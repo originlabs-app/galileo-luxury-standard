@@ -28,6 +28,7 @@ contract SanctionsModuleTest is Test {
 
     function setUp() public {
         module = new SanctionsModule(admin, oracle);
+        vm.prank(compliance);
         module.bindCompliance(compliance);
         // Mock oracle: returns false by default
         vm.mockCall(oracle, abi.encodeWithSelector(isSanctionedSel, alice), abi.encode(false));

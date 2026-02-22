@@ -191,10 +191,23 @@ contract GalileoComplianceTest is Test {
         _addModule(moduleA);
         vm.expectEmit(true, false, false, false);
         emit ModuleRemoved(moduleA);
+        // Single module removal: no ModuleOrderChanged emitted (nothing to reorder)
         vm.prank(admin);
         compliance.removeModule(moduleA);
         assertFalse(compliance.isModuleBound(moduleA));
         assertEq(compliance.moduleCount(), 0);
+    }
+
+    function test_removeModule_emitsModuleOrderChanged_whenNotLast() public {
+        _addModule(moduleA);
+        _addModule(moduleB);
+        // Removing moduleA (first) causes swap-and-pop: moduleB jumps to index 0
+        vm.prank(admin);
+        compliance.removeModule(moduleA);
+        // moduleB is still bound; order changed
+        assertTrue(compliance.isModuleBound(moduleB));
+        assertEq(compliance.moduleCount(), 1);
+        assertEq(compliance.getModuleOrder()[0], moduleB);
     }
 
     function test_removeModule_revertsIfNotBound() public {
@@ -316,6 +329,30 @@ contract GalileoComplianceTest is Test {
         uint256[] memory amounts = new uint256[](max);
         vm.expectRevert();
         compliance.canTransferBatch(froms, tos, amounts);
+    }
+
+    function test_canTransferBatch_partialFailure() public {
+        _addModule(moduleA);
+
+        address[] memory froms = new address[](3);
+        address[] memory tos = new address[](3);
+        uint256[] memory amounts = new uint256[](3);
+        froms[0] = alice; tos[0] = bob;   amounts[0] = 1;
+        froms[1] = bob;   tos[1] = alice; amounts[1] = 99;
+        froms[2] = alice; tos[2] = alice; amounts[2] = 5;
+
+        // Override the catch-all mock for the second transfer's specific args to return false
+        vm.mockCall(
+            moduleA,
+            abi.encodeWithSelector(MODULE_CHECK_SEL, bob, alice, uint256(99), address(compliance)),
+            abi.encode(false)
+        );
+
+        bool[] memory results = compliance.canTransferBatch(froms, tos, amounts);
+        assertEq(results.length, 3);
+        assertTrue(results[0]);
+        assertFalse(results[1]);  // specific mock returns false
+        assertTrue(results[2]);
     }
 
     function test_canTransferBatchWithReasons_success() public {

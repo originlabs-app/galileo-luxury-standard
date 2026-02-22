@@ -19,6 +19,8 @@ interface IJurisdictionRegistryMin {
  */
 contract JurisdictionModule is IJurisdictionModule, BaseComplianceModule {
 
+    error ZeroAddress();
+
     // ═══════════════════════════════════════════════════════════════════
     // STATE
     // ═══════════════════════════════════════════════════════════════════
@@ -40,7 +42,7 @@ contract JurisdictionModule is IJurisdictionModule, BaseComplianceModule {
     // ═══════════════════════════════════════════════════════════════════
 
     constructor(address admin_, address identityRegistry_, JurisdictionMode mode_) {
-        require(admin_ != address(0), "Zero admin");
+        if (admin_ == address(0)) revert ZeroAddress();
         _transferOwnership(admin_);
         _identityRegistryAddress = identityRegistry_;
         _mode = mode_;
@@ -324,11 +326,35 @@ contract JurisdictionModule is IJurisdictionModule, BaseComplianceModule {
             members[0] = 364; // Iran
             members[1] = 408; // North Korea
         } else if (groupId == CountryGroups.EU_MEMBERS) {
-            members = new uint16[](4);
-            members[0] = 276; // Germany
-            members[1] = 250; // France
-            members[2] = 380; // Italy
-            members[3] = 724; // Spain
+            // All 27 EU member states (ISO 3166-1 numeric codes)
+            members = new uint16[](27);
+            members[0]  = 40;  // Austria
+            members[1]  = 56;  // Belgium
+            members[2]  = 100; // Bulgaria
+            members[3]  = 191; // Croatia
+            members[4]  = 196; // Cyprus
+            members[5]  = 203; // Czech Republic
+            members[6]  = 208; // Denmark
+            members[7]  = 233; // Estonia
+            members[8]  = 246; // Finland
+            members[9]  = 250; // France
+            members[10] = 276; // Germany
+            members[11] = 300; // Greece
+            members[12] = 348; // Hungary
+            members[13] = 372; // Ireland
+            members[14] = 380; // Italy
+            members[15] = 428; // Latvia
+            members[16] = 440; // Lithuania
+            members[17] = 442; // Luxembourg
+            members[18] = 470; // Malta
+            members[19] = 528; // Netherlands
+            members[20] = 616; // Poland
+            members[21] = 620; // Portugal
+            members[22] = 642; // Romania
+            members[23] = 703; // Slovakia
+            members[24] = 705; // Slovenia
+            members[25] = 724; // Spain
+            members[26] = 752; // Sweden
         } else if (groupId == CountryGroups.GCC) {
             members = new uint16[](6);
             members[0] = 784; // UAE

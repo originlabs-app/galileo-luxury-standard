@@ -24,6 +24,8 @@ interface IServiceRegistryMin {
  */
 contract ServiceCenterModule is IServiceCenterModule, BaseComplianceModule {
 
+    error ZeroAddress();
+
     // ═══════════════════════════════════════════════════════════════════
     // SERVICE TYPE CONSTANTS
     // ═══════════════════════════════════════════════════════════════════
@@ -67,7 +69,7 @@ contract ServiceCenterModule is IServiceCenterModule, BaseComplianceModule {
         string memory brandDID_,
         uint256 claimTopic_
     ) {
-        require(admin_ != address(0), "Zero admin");
+        if (admin_ == address(0)) revert ZeroAddress();
         _transferOwnership(admin_);
         _identityRegistryAddress = identityRegistry_;
         _brandDIDValue = brandDID_;

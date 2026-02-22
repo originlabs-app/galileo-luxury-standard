@@ -18,6 +18,8 @@ interface ICPOComplianceMin {
  */
 contract CPOCertificationModule is ICPOCertificationModule, BaseComplianceModule {
 
+    error ZeroAddress();
+
     // ═══════════════════════════════════════════════════════════════════
     // STATE
     // ═══════════════════════════════════════════════════════════════════
@@ -53,7 +55,7 @@ contract CPOCertificationModule is ICPOCertificationModule, BaseComplianceModule
     // ═══════════════════════════════════════════════════════════════════
 
     constructor(address admin_, address identityRegistry_, uint256 authenticityTopic_) {
-        require(admin_ != address(0), "Zero admin");
+        if (admin_ == address(0)) revert ZeroAddress();
         _transferOwnership(admin_);
         _identityRegistryAddress = identityRegistry_;
         _authenticityClaimTopicValue = authenticityTopic_ != 0
@@ -166,6 +168,12 @@ contract CPOCertificationModule is ICPOCertificationModule, BaseComplianceModule
         string calldata level
     ) external {
         if (!_certifierSet[msg.sender]) revert CertifierNotTrusted(msg.sender);
+        // Enforce minimum validity period when set and expiry is provided
+        if (_minValidityPeriodValue > 0 && expiresAt_ != 0) {
+            if (expiresAt_ < certifiedAt_ + _minValidityPeriodValue) {
+                revert InvalidModuleConfiguration("Expiry below minimum validity period");
+            }
+        }
         _certifications[token] = CertData({
             certified: true,
             certifier: msg.sender,

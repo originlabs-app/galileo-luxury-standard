@@ -109,22 +109,6 @@ interface IGalileoCompliance is IModularCompliance {
     );
 
     /**
-     * @notice Emitted when a compliance check fails
-     * @param from The sender address
-     * @param to The recipient address
-     * @param amount The transfer amount
-     * @param failingModule The module that rejected the transfer
-     * @param reason Human-readable failure reason
-     */
-    event ComplianceCheckFailed(
-        address indexed from,
-        address indexed to,
-        uint256 amount,
-        address indexed failingModule,
-        string reason
-    );
-
-    /**
      * @notice Emitted when module execution order is changed
      * @param oldOrder Previous module order
      * @param newOrder New module order
@@ -132,18 +116,6 @@ interface IGalileoCompliance is IModularCompliance {
     event ModuleOrderChanged(
         address[] oldOrder,
         address[] newOrder
-    );
-
-    /**
-     * @notice Emitted when batch compliance check is performed
-     * @param caller The address that initiated the batch check
-     * @param transferCount Number of transfers checked
-     * @param passedCount Number of transfers that passed
-     */
-    event BatchComplianceChecked(
-        address indexed caller,
-        uint256 transferCount,
-        uint256 passedCount
     );
 
     // ═══════════════════════════════════════════════════════════════════════════

@@ -39,6 +39,7 @@ contract ServiceCenterModuleTest is Test {
 
     function setUp() public {
         module = new ServiceCenterModule(admin, registry, BRAND_DID, 0);
+        vm.prank(compliance);
         module.bindCompliance(compliance);
     }
 

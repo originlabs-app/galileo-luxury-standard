@@ -19,6 +19,8 @@ interface IBrandRegistryMin {
  */
 contract BrandAuthorizationModule is IBrandAuthorizationModule, BaseComplianceModule {
 
+    error ZeroAddress();
+
     // ═══════════════════════════════════════════════════════════════════
     // STATE
     // ═══════════════════════════════════════════════════════════════════
@@ -45,7 +47,7 @@ contract BrandAuthorizationModule is IBrandAuthorizationModule, BaseComplianceMo
         address identityRegistry_,
         uint256 claimTopic_
     ) {
-        require(admin_ != address(0), "Zero admin");
+        if (admin_ == address(0)) revert ZeroAddress();
         _transferOwnership(admin_);
         _brandDIDValue = brandDID_;
         _identityRegistryAddress = identityRegistry_;

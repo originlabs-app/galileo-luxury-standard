@@ -32,7 +32,8 @@ contract BrandAuthorizationModuleTest is Test {
     function setUp() public {
         claimTopic = uint256(keccak256("galileo.claim.authorized_retailer"));
         module = new BrandAuthorizationModule(admin, BRAND_DID, registry, 0);
-        // bindCompliance is callable by anyone per BaseComplianceModule
+        // compliance must self-bind (ERC-3643 pattern: compliance calls bindCompliance on module)
+        vm.prank(compliance);
         module.bindCompliance(compliance);
     }
 
@@ -102,25 +103,37 @@ contract BrandAuthorizationModuleTest is Test {
         address newCompliance = makeAddr("newComp");
         vm.expectEmit(true, false, false, false);
         emit ComplianceBound(newCompliance);
+        vm.prank(newCompliance);
         module.bindCompliance(newCompliance);
         assertTrue(module.isComplianceBound(newCompliance));
     }
 
     function test_bindCompliance_revertsIfAlreadyBound() public {
+        vm.prank(compliance);
         vm.expectRevert();
         module.bindCompliance(compliance);
+    }
+
+    function test_bindCompliance_revertsIfCallerIsNotCompliance() public {
+        address newCompliance = makeAddr("newComp2");
+        vm.prank(stranger);
+        vm.expectRevert();
+        module.bindCompliance(newCompliance);
     }
 
     function test_unbindCompliance_success() public {
         vm.expectEmit(true, false, false, false);
         emit ComplianceUnbound(compliance);
+        vm.prank(compliance);
         module.unbindCompliance(compliance);
         assertFalse(module.isComplianceBound(compliance));
     }
 
     function test_unbindCompliance_revertsIfNotBound() public {
+        address unbound = makeAddr("unbound");
+        vm.prank(unbound);
         vm.expectRevert();
-        module.unbindCompliance(makeAddr("unbound"));
+        module.unbindCompliance(unbound);
     }
 
     // ═══════════════════════════════════════════════════════════════════

@@ -21,6 +21,14 @@ contract SanctionsModule is ISanctionsModule, BaseComplianceModule {
     uint256 public constant MAX_GRACE_PERIOD = 86400; // 24 hours
 
     // ═══════════════════════════════════════════════════════════════════
+    // LOCAL ERRORS / EVENTS
+    // ═══════════════════════════════════════════════════════════════════
+
+    error ZeroAddress();
+
+    event GracePeriodUpdated(bool enabled, uint256 duration, address indexed updatedBy);
+
+    // ═══════════════════════════════════════════════════════════════════
     // STATE
     // ═══════════════════════════════════════════════════════════════════
 
@@ -41,7 +49,7 @@ contract SanctionsModule is ISanctionsModule, BaseComplianceModule {
     // ═══════════════════════════════════════════════════════════════════
 
     constructor(address admin_, address oracle_) {
-        require(admin_ != address(0), "Zero admin");
+        if (admin_ == address(0)) revert ZeroAddress();
         _transferOwnership(admin_);
         _sanctionsOracleAddress = oracle_;
         _strictMode = true;
@@ -152,7 +160,7 @@ contract SanctionsModule is ISanctionsModule, BaseComplianceModule {
     // ═══════════════════════════════════════════════════════════════════
 
     function addToBlocklist(address _address, string calldata _reason) external override onlyOwner {
-        if (_address == address(0)) revert InvalidOracleAddress();
+        if (_address == address(0)) revert ZeroAddress();
         if (_blocklist[_address]) revert AddressAlreadyBlocked(_address);
         _blocklist[_address] = true;
         _blocklistTimestamp[_address] = block.timestamp;
@@ -178,6 +186,7 @@ contract SanctionsModule is ISanctionsModule, BaseComplianceModule {
         if (_duration > MAX_GRACE_PERIOD) revert GracePeriodTooLong(_duration, MAX_GRACE_PERIOD);
         _gracePeriodEnabled = _enabled;
         _gracePeriodDuration = _duration;
+        emit GracePeriodUpdated(_enabled, _duration, msg.sender);
     }
 
     function isInGracePeriod(address _address) external view override returns (bool) {
