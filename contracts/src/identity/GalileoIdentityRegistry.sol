@@ -4,7 +4,6 @@ pragma solidity ^0.8.17;
 import {AccessControlEnumerable} from "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 import {IIdentity} from "@onchain-id/solidity/contracts/interface/IIdentity.sol";
 import {IClaimIssuer} from "@onchain-id/solidity/contracts/interface/IClaimIssuer.sol";
-import {IERC735} from "@onchain-id/solidity/contracts/interface/IERC735.sol";
 import {IClaimTopicsRegistry} from "@erc3643org/erc-3643/contracts/registry/interface/IClaimTopicsRegistry.sol";
 import {ITrustedIssuersRegistry} from "@erc3643org/erc-3643/contracts/registry/interface/ITrustedIssuersRegistry.sol";
 import {IIdentityRegistryStorage} from "@erc3643org/erc-3643/contracts/registry/interface/IIdentityRegistryStorage.sol";
@@ -445,6 +444,12 @@ contract GalileoIdentityRegistry is IGalileoIdentityRegistry, AccessControlEnume
      * @dev Verify a single claim topic for a user.
      *      Returns true if the user's identity has at least one valid claim
      *      from a trusted issuer for the given topic.
+     *
+     *      Algorithm:
+     *      1. Get all trusted issuers for the topic from TIR
+     *      2. For each issuer, compute the canonical ERC-735 claim ID
+     *      3. Fetch the claim; skip if topic doesn't match (claim absent or wrong topic)
+     *      4. Validate the claim via IClaimIssuer.isClaimValid
      */
     function _verifySingleTopic(address _userAddress, uint256 _claimTopic) internal view returns (bool) {
         IIdentity userIdentity = identity(_userAddress);
@@ -455,14 +460,24 @@ contract GalileoIdentityRegistry is IGalileoIdentityRegistry, AccessControlEnume
         if (trustedIssuers.length == 0) return false;
 
         for (uint256 i = 0; i < trustedIssuers.length; i++) {
-            bytes32 claimId = keccak256(abi.encode(trustedIssuers[i], _claimTopic));
-            (
-                uint256 foundTopic,
-                ,
-                address issuer,
-                bytes memory sig,
-                bytes memory data,
-            ) = userIdentity.getClaim(claimId);
+            // ERC-735 canonical claim ID: keccak256(abi.encode(issuerAddress, topic))
+            bytes32 claimId = keccak256(abi.encode(address(trustedIssuers[i]), _claimTopic));
+
+            uint256 foundTopic;
+            address issuer;
+            bytes memory sig;
+            bytes memory data;
+
+            try userIdentity.getClaim(claimId) returns (
+                uint256 t, uint256, address i_, bytes memory s, bytes memory d, string memory
+            ) {
+                foundTopic = t;
+                issuer = i_;
+                sig = s;
+                data = d;
+            } catch {
+                continue; // claim absent or identity reverted — skip
+            }
 
             if (foundTopic != _claimTopic) continue;
 
@@ -487,7 +502,10 @@ contract GalileoIdentityRegistry is IGalileoIdentityRegistry, AccessControlEnume
         IIdentity userIdentity = identity(_userAddress);
         if (address(userIdentity) == address(0)) return false;
         uint256 consentTopic = uint256(keccak256(abi.encode("galileo.consent.brand", _requestingBrand)));
-        bytes32[] memory claimIds = IERC735(address(userIdentity)).getClaimIdsByTopic(consentTopic);
-        return claimIds.length > 0;
+        try userIdentity.getClaimIdsByTopic(consentTopic) returns (bytes32[] memory claimIds) {
+            return claimIds.length > 0;
+        } catch {
+            return false;
+        }
     }
 }
