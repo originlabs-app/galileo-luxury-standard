@@ -60,8 +60,8 @@ contract Deploy is Script {
 
         _deployInfrastructure(admin);
         _deployModules(admin);
-        _wireInfrastructure(admin);
-        _configureModules(admin);
+        _wireInfrastructure();
+        _configureModules();
         _deployToken(admin);
 
         vm.stopBroadcast();
@@ -98,9 +98,10 @@ contract Deploy is Script {
 
     // ─── Step 3: Wire identity layer ─────────────────────────────────────────
 
-    // NOTE: admin_ is the deployer, who is the owner of idStorage and ctr.
-    //       These calls are restricted to admin, hence the explicit parameter.
-    function _wireInfrastructure(address /*admin_*/) internal {
+    // NOTE: All calls below are admin-gated. They succeed because this function
+    //       runs inside vm.startBroadcast(admin), so every called contract sees
+    //       msg.sender == admin — the owner of idStorage and ctr.
+    function _wireInfrastructure() internal {
         idStorage.bindIdentityRegistry(address(reg));
         ctr.addClaimTopic(GalileoClaimTopics.KYC_BASIC);
 
@@ -113,9 +114,10 @@ contract Deploy is Script {
 
     // ─── Step 4: Configure modules ───────────────────────────────────────────
 
-    // NOTE: admin_ is the deployer and owner of all modules.
-    //       These calls are restricted to admin, hence the explicit parameter.
-    function _configureModules(address /*admin_*/) internal {
+    // NOTE: All calls below are admin-gated. They succeed because this function
+    //       runs inside vm.startBroadcast(admin), so every called contract sees
+    //       msg.sender == admin — the owner of all modules.
+    function _configureModules() internal {
         // Allow all transfers — tighten for production use
         brandModule.setRequireRetailerForPrimarySale(false);
         brandModule.setAllowPeerToPeer(true);

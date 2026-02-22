@@ -67,6 +67,7 @@ contract FullLifecycleTest is Test {
     address buyer1            = makeAddr("buyer1");
     address buyer2            = makeAddr("buyer2");
     address certifier         = makeAddr("certifier");
+    address scCertifier       = makeAddr("scCertifier"); // holds SERVICE_CENTER claim
     address trustedIssuerAddr = makeAddr("trustedIssuer");
 
     // ═══════════════════════════════════════════════════════════════════
@@ -76,8 +77,7 @@ contract FullLifecycleTest is Test {
     address mockBrandId     = makeAddr("mockBrandId");
     address mockBuyer1Id    = makeAddr("mockBuyer1Id");
     address mockBuyer2Id    = makeAddr("mockBuyer2Id");
-    address mockCertifierId  = makeAddr("mockCertifierId");
-    address scCertifier      = makeAddr("scCertifier");
+    address mockCertifierId   = makeAddr("mockCertifierId");
     address mockSCCertifierId = makeAddr("mockSCCertifierId");
 
     // ═══════════════════════════════════════════════════════════════════
@@ -259,6 +259,10 @@ contract FullLifecycleTest is Test {
     /// @dev Mocks a missing claim so getClaim reverts (caught by inner catch in
     ///      _verifySingleTopic). Without this, a successful EOA call returning empty data
     ///      causes an ABI decode failure that propagates PAST the catch block (Solidity 0.8.17).
+    ///
+    ///      NOTE: Only mocks the claimId for `trustedIssuerAddr`. If additional trusted
+    ///      issuers are registered in TIR, their corresponding claimIds must also be
+    ///      mocked as reverts to prevent ABI decode propagation for absent claims.
     function _mockMissingClaim(address identityAddr, uint256 topic) internal {
         bytes32 claimId = keccak256(abi.encode(trustedIssuerAddr, topic));
         vm.mockCallRevert(
@@ -339,10 +343,11 @@ contract FullLifecycleTest is Test {
     // ═══════════════════════════════════════════════════════════════════
 
     function test_IdentityRegistry_AllWalletsRegistered() public view {
-        assertTrue(reg.contains(brandWallet), "brandWallet not in registry");
-        assertTrue(reg.contains(buyer1),      "buyer1 not in registry");
-        assertTrue(reg.contains(buyer2),      "buyer2 not in registry");
-        assertTrue(reg.contains(certifier),   "certifier not in registry");
+        assertTrue(reg.contains(brandWallet),  "brandWallet not in registry");
+        assertTrue(reg.contains(buyer1),       "buyer1 not in registry");
+        assertTrue(reg.contains(buyer2),       "buyer2 not in registry");
+        assertTrue(reg.contains(certifier),    "certifier not in registry");
+        assertTrue(reg.contains(scCertifier),  "scCertifier not in registry");
     }
 
     function test_IdentityRegistry_BuyersAreVerified() public view {
@@ -468,11 +473,14 @@ contract FullLifecycleTest is Test {
 
     function test_CPO_CertifyViaSCClaim() public {
         // scCertifier holds SERVICE_CENTER claim (not AUTHENTICATOR)
+        string memory certURI = "ipfs://sc-cert.json";
         vm.prank(scCertifier);
-        token.certifyCPO("ipfs://sc-cert.json");
+        token.certifyCPO(certURI);
 
-        assertTrue(token.isCPOCertified(),           "Token should be CPO certified via SC claim");
-        assertEq(token.cpoCertifier(), scCertifier,  "Certifier should be scCertifier");
+        assertTrue(token.isCPOCertified(),                "Token should be CPO certified via SC claim");
+        assertEq(token.cpoCertifier(),    scCertifier,    "Certifier should be scCertifier");
+        assertEq(token.cpoCertificationDate(), 1_000_000, "Certification timestamp mismatch");
+        assertEq(token.cpoCertificationURI(),  certURI,   "Certification URI mismatch");
     }
 
     // ═══════════════════════════════════════════════════════════════════
