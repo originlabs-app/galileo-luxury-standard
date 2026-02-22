@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { ChevronDown, Menu, X } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import type { NavSection } from '@/lib/docs-navigation';
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { ChevronDown, Menu, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import type { NavSection } from "@/lib/docs-navigation";
 
 interface DocsSidebarProps {
   navigation: NavSection[];
@@ -13,32 +13,31 @@ interface DocsSidebarProps {
 export function DocsSidebar({ navigation }: DocsSidebarProps) {
   const pathname = usePathname();
   const [expanded, setExpanded] = useState<string[]>(
-    navigation.map((s) => s.title)
+    navigation.map((s) => s.title),
   );
   const [mobileOpen, setMobileOpen] = useState(false);
 
   // Close mobile sidebar on route change
   useEffect(() => {
-    setMobileOpen(false);
+    const id = requestAnimationFrame(() => setMobileOpen(false));
+    return () => cancelAnimationFrame(id);
   }, [pathname]);
 
   // Prevent body scroll when mobile sidebar is open
   useEffect(() => {
     if (mobileOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     }
     return () => {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     };
   }, [mobileOpen]);
 
   const toggleSection = (title: string) => {
     setExpanded((prev) =>
-      prev.includes(title)
-        ? prev.filter((t) => t !== title)
-        : [...prev, title]
+      prev.includes(title) ? prev.filter((t) => t !== title) : [...prev, title],
     );
   };
 
@@ -53,7 +52,7 @@ export function DocsSidebar({ navigation }: DocsSidebarProps) {
             {section.title}
             <ChevronDown
               className={`w-4 h-4 transition-transform duration-200 ${
-                expanded.includes(section.title) ? '' : '-rotate-90'
+                expanded.includes(section.title) ? "" : "-rotate-90"
               }`}
             />
           </button>
@@ -67,8 +66,8 @@ export function DocsSidebar({ navigation }: DocsSidebarProps) {
                       href={item.href}
                       className={`block py-1.5 text-sm transition-colors ${
                         isActive
-                          ? 'text-[var(--cyan-primary)] font-medium border-l-2 border-[var(--cyan-primary)] -ml-[calc(0.75rem+1px)] pl-[calc(0.75rem-1px)]'
-                          : 'text-[var(--platinum-dim)] hover:text-[var(--platinum)]'
+                          ? "text-[var(--cyan-primary)] font-medium border-l-2 border-[var(--cyan-primary)] -ml-[calc(0.75rem+1px)] pl-[calc(0.75rem-1px)]"
+                          : "text-[var(--platinum-dim)] hover:text-[var(--platinum)]"
                       }`}
                     >
                       {item.title}
@@ -104,7 +103,9 @@ export function DocsSidebar({ navigation }: DocsSidebarProps) {
           />
           <aside className="absolute left-0 top-0 bottom-0 w-72 bg-[var(--obsidian)] border-r border-[var(--platinum)]/10 overflow-y-auto">
             <div className="sticky top-0 z-10 flex items-center justify-between p-4 border-b border-[var(--platinum)]/10 bg-[var(--obsidian)]">
-              <span className="text-sm font-medium text-[var(--platinum)]">Documentation</span>
+              <span className="text-sm font-medium text-[var(--platinum)]">
+                Documentation
+              </span>
               <button
                 onClick={() => setMobileOpen(false)}
                 className="p-1 text-[var(--platinum-dim)] hover:text-[var(--platinum)] transition-colors"
@@ -113,9 +114,7 @@ export function DocsSidebar({ navigation }: DocsSidebarProps) {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <nav className="p-4 space-y-6">
-              {navContent}
-            </nav>
+            <nav className="p-4 space-y-6">{navContent}</nav>
           </aside>
         </div>
       )}
