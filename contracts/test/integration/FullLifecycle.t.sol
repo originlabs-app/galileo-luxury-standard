@@ -233,6 +233,8 @@ contract FullLifecycleTest is Test {
 
     /// @dev Mocks a valid claim for a given identity address and topic.
     ///      Uses trustedIssuerAddr as the claim issuer (consistent with TIR setup).
+    ///      If additional trusted issuers are registered in TIR, call _mockMissingClaim
+    ///      for each absent topic per issuer to prevent ABI decode propagation errors.
     function _mockValidClaim(address identityAddr, uint256 topic) internal {
         bytes memory sig  = abi.encodePacked("galileo:sig:", topic);
         bytes memory data = abi.encodePacked("galileo:data:", topic);
