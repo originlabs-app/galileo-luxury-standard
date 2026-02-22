@@ -724,6 +724,57 @@ contract GalileoAccessControlTest is Test {
     }
 
     // ─────────────────────────────────────────────────────────────────
+    // H-3 security fixes
+    // ─────────────────────────────────────────────────────────────────
+
+    /// @dev H-3: confirmRoleGrant must revert when the role has a claim requirement
+    ///      and identityAddress is address(0), preventing the unconditional else-branch bypass.
+    function test_confirmRoleGrant_revertsZeroIdentityWhenClaimRequired() public {
+        bytes32 role = ac.BRAND_ADMIN_ROLE();
+        uint256 delay = 1 days;
+
+        vm.startPrank(admin);
+        ac.setRoleGrantDelay(role, delay);
+        ac.setRoleClaimRequirement(role, KYB_TOPIC);
+        ac.requestRoleGrant(role, alice);
+        vm.stopPrank();
+
+        vm.warp(block.timestamp + delay);
+
+        vm.startPrank(admin);
+        vm.expectRevert("Identity required for this role");
+        ac.confirmRoleGrant(role, alice, address(0), KYB_TOPIC);
+        vm.stopPrank();
+
+        // Role must NOT have been granted
+        assertFalse(ac.hasRole(role, alice));
+    }
+
+    /// @dev H-3b: grantRoleWithIdentity must use the stored claim topic, not the caller-supplied
+    ///      one. A malicious admin cannot pass a topic the target already satisfies to bypass
+    ///      the actual requirement.
+    function test_grantRoleWithIdentity_usesStoredClaimTopic() public {
+        bytes32 role = ac.BRAND_ADMIN_ROLE();
+
+        // Store KYB_TOPIC as the on-chain requirement
+        vm.startPrank(admin);
+        ac.setRoleClaimRequirement(role, KYB_TOPIC);
+        vm.stopPrank();
+
+        // Alice is registered and identity matches, but KYB_TOPIC has no valid claims
+        _setupIdentityMocks(true, true, false);
+
+        // Admin tries to pass SERVICE_TOPIC (a different topic) to bypass KYB verification.
+        // The contract must use the stored KYB_TOPIC and revert.
+        vm.startPrank(admin);
+        vm.expectRevert(abi.encodeWithSelector(IGalileoAccessControl.ClaimNotValid.selector, alice, KYB_TOPIC));
+        ac.grantRoleWithIdentity(role, alice, mockIdentity, SERVICE_TOPIC);
+        vm.stopPrank();
+
+        assertFalse(ac.hasRole(role, alice));
+    }
+
+    // ─────────────────────────────────────────────────────────────────
     // Helpers
     // ─────────────────────────────────────────────────────────────────
 

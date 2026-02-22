@@ -150,17 +150,20 @@ contract GalileoAccessControl is AccessControlEnumerable, IGalileoAccessControl 
         if (_identityRegistryAddress == address(0)) revert IdentityRegistryNotSet();
         if (_suspensions[_keyFor(role, account)]) revert RoleIsSuspended(role, account);
 
-        (bool verified, string memory reason) = _checkIdentityClaim(account, identityAddress, requiredClaimTopic);
+        // H-3b: use the stored topic for verification; caller-supplied topic is ignored when a
+        //        requirement is configured, preventing a malicious admin from passing a weaker topic.
+        uint256 actualClaimTopic = _roleClaimRequirements[role] != 0 ? _roleClaimRequirements[role] : requiredClaimTopic;
+        (bool verified, string memory reason) = _checkIdentityClaim(account, identityAddress, actualClaimTopic);
         if (!verified) {
             emit RoleVerificationFailed(role, account, reason);
             // Provide a more precise revert
             IIdentityRegistry reg = IIdentityRegistry(_identityRegistryAddress);
             if (!reg.contains(account)) revert IdentityNotVerified(account);
-            revert ClaimNotValid(account, requiredClaimTopic);
+            revert ClaimNotValid(account, actualClaimTopic);
         }
 
         _grantRole(role, account);
-        emit RoleGrantedWithIdentity(role, account, identityAddress, requiredClaimTopic, msg.sender);
+        emit RoleGrantedWithIdentity(role, account, identityAddress, actualClaimTopic, msg.sender);
     }
 
     /// @inheritdoc IGalileoAccessControl
@@ -221,17 +224,21 @@ contract GalileoAccessControl is AccessControlEnumerable, IGalileoAccessControl 
         delete _grantRequests[key];
 
         // Perform grant with optional identity verification
-        if (_roleClaimRequirements[role] != 0 && identityAddress != address(0)) {
+        // H-3: when a claim is required, identityAddress must be non-zero — passing address(0)
+        //      previously bypassed verification by falling into the unconditional else branch.
+        if (_roleClaimRequirements[role] != 0) {
+            require(identityAddress != address(0), "Identity required for this role");
             if (_identityRegistryAddress == address(0)) revert IdentityRegistryNotSet();
-            (bool verified, string memory reason) = _checkIdentityClaim(account, identityAddress, claimTopic);
+            uint256 storedTopic = _roleClaimRequirements[role];
+            (bool verified, string memory reason) = _checkIdentityClaim(account, identityAddress, storedTopic);
             if (!verified) {
                 emit RoleVerificationFailed(role, account, reason);
                 IIdentityRegistry reg = IIdentityRegistry(_identityRegistryAddress);
                 if (!reg.contains(account)) revert IdentityNotVerified(account);
-                revert ClaimNotValid(account, claimTopic);
+                revert ClaimNotValid(account, storedTopic);
             }
             _grantRole(role, account);
-            emit RoleGrantedWithIdentity(role, account, identityAddress, claimTopic, msg.sender);
+            emit RoleGrantedWithIdentity(role, account, identityAddress, storedTopic, msg.sender);
         } else {
             _grantRole(role, account);
         }
