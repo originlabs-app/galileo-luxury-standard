@@ -847,6 +847,11 @@ contract GalileoTokenTest is Test {
     // ============ SECTION: Mint ============
 
     function test_mint_mintsTokens() public {
+        // Burn the existing token first so totalSupply == 0 (re-issuance scenario)
+        _mockDestroyed(owner1, 1);
+        vm.prank(agent);
+        token.burn(owner1, 1);
+
         address newAddr = makeAddr("newAddr");
         _mockIsVerified(newAddr, true);
         _mockCanTransfer(address(0), newAddr, 1, true);
@@ -854,10 +859,15 @@ contract GalileoTokenTest is Test {
         vm.prank(agent);
         token.mint(newAddr, 1);
         assertEq(token.balanceOf(newAddr), 1);
-        assertEq(token.totalSupply(), 2);
+        assertEq(token.totalSupply(), 1);
     }
 
     function test_mint_emitsTransfer() public {
+        // Burn the existing token first so totalSupply == 0 (re-issuance scenario)
+        _mockDestroyed(owner1, 1);
+        vm.prank(agent);
+        token.burn(owner1, 1);
+
         address newAddr = makeAddr("newAddr");
         _mockIsVerified(newAddr, true);
         _mockCanTransfer(address(0), newAddr, 1, true);
@@ -869,6 +879,11 @@ contract GalileoTokenTest is Test {
     }
 
     function test_mint_reverts_notVerified() public {
+        // Burn existing token so supply is 0, then hit the identity check
+        _mockDestroyed(owner1, 1);
+        vm.prank(agent);
+        token.burn(owner1, 1);
+
         address newAddr = makeAddr("newAddr");
         _mockIsVerified(newAddr, false);
         vm.prank(agent);
@@ -877,6 +892,11 @@ contract GalileoTokenTest is Test {
     }
 
     function test_mint_reverts_complianceBlocked() public {
+        // Burn existing token so supply is 0, then hit the compliance check
+        _mockDestroyed(owner1, 1);
+        vm.prank(agent);
+        token.burn(owner1, 1);
+
         address newAddr = makeAddr("newAddr");
         _mockIsVerified(newAddr, true);
         _mockCanTransfer(address(0), newAddr, 1, false);
@@ -889,6 +909,42 @@ contract GalileoTokenTest is Test {
         vm.prank(nobody);
         vm.expectRevert();
         token.mint(owner2, 1);
+    }
+
+    function test_mint_reverts_secondMint() public {
+        // totalSupply is already 1 from constructor — any further mint must revert
+        address newAddr = makeAddr("newAddr");
+        vm.prank(agent);
+        vm.expectRevert("Token already minted");
+        token.mint(newAddr, 1);
+    }
+
+    function test_batchMint_reverts_afterMint() public {
+        // totalSupply is already 1 from constructor — batchMint must revert
+        address[] memory tos = new address[](1);
+        tos[0] = makeAddr("addr1");
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = 1;
+        vm.prank(agent);
+        vm.expectRevert("Token already minted");
+        token.batchMint(tos, amounts);
+    }
+
+    function test_batchMint_reverts_multipleRecipients() public {
+        // Burn existing token so supply is 0, then try batch with 2 recipients
+        _mockDestroyed(owner1, 1);
+        vm.prank(agent);
+        token.burn(owner1, 1);
+
+        address[] memory tos = new address[](2);
+        tos[0] = makeAddr("addr1");
+        tos[1] = makeAddr("addr2");
+        uint256[] memory amounts = new uint256[](2);
+        amounts[0] = 1;
+        amounts[1] = 1;
+        vm.prank(agent);
+        vm.expectRevert("Single supply: batch limited to 1");
+        token.batchMint(tos, amounts);
     }
 
     function test_mint_reverts_whenDecommissioned() public {
@@ -1358,27 +1414,26 @@ contract GalileoTokenTest is Test {
         assertEq(token.balanceOf(owner2), 1);
     }
 
-    function test_batchMint_mintsToAll() public {
-        address addr1 = makeAddr("addr1");
-        address addr2 = makeAddr("addr2");
-        _mockIsVerified(addr1, true);
-        _mockIsVerified(addr2, true);
-        _mockCanTransfer(address(0), addr1, 1, true);
-        _mockCanTransfer(address(0), addr2, 1, true);
-        _mockCreated(addr1, 1);
-        _mockCreated(addr2, 1);
+    function test_batchMint_mintsToSingleRecipient() public {
+        // Burn the existing token first so totalSupply == 0 (re-issuance scenario)
+        _mockDestroyed(owner1, 1);
+        vm.prank(agent);
+        token.burn(owner1, 1);
 
-        address[] memory tos = new address[](2);
+        address addr1 = makeAddr("addr1");
+        _mockIsVerified(addr1, true);
+        _mockCanTransfer(address(0), addr1, 1, true);
+        _mockCreated(addr1, 1);
+
+        address[] memory tos = new address[](1);
         tos[0] = addr1;
-        tos[1] = addr2;
-        uint256[] memory amounts = new uint256[](2);
+        uint256[] memory amounts = new uint256[](1);
         amounts[0] = 1;
-        amounts[1] = 1;
 
         vm.prank(agent);
         token.batchMint(tos, amounts);
         assertEq(token.balanceOf(addr1), 1);
-        assertEq(token.balanceOf(addr2), 1);
+        assertEq(token.totalSupply(), 1);
     }
 
     function test_batchBurn_burnsAll() public {

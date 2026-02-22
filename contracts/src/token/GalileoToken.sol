@@ -312,6 +312,7 @@ contract GalileoToken is IGalileoToken, AccessControlEnumerable {
      *      re-issuance scenarios. Standard flow mints at construction.
      */
     function mint(address _to, uint256 _amount) public override onlyRole(AGENT_ROLE) {
+        require(_totalSupply == 0, "Token already minted");
         require(!_isDecommissioned, "Token decommissioned");
         require(_tokenIdentityRegistry.isVerified(_to), "Identity is not verified.");
         require(_tokenCompliance.canTransfer(address(0), _to, _amount), "Compliance not followed");
@@ -419,6 +420,8 @@ contract GalileoToken is IGalileoToken, AccessControlEnumerable {
      * @dev See {IToken-batchMint}.
      */
     function batchMint(address[] calldata _toList, uint256[] calldata _amounts) external override {
+        require(_totalSupply == 0, "Token already minted");
+        require(_toList.length == 1, "Single supply: batch limited to 1");
         for (uint256 i = 0; i < _toList.length; i++) {
             mint(_toList[i], _amounts[i]);
         }
