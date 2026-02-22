@@ -815,6 +815,25 @@ contract GalileoTrustedIssuersRegistryTest is Test {
         assertFalse(registry.isIssuerSuspended(address(issuer1)));
     }
 
+    function test_suspendIssuer_canResuspendAfterTimeLimitedExpiry() public {
+        vm.startPrank(admin);
+        registry.addTrustedIssuer(issuer1, _topics1());
+
+        // Suspend with a time-limited expiry
+        uint256 expiry = block.timestamp + 7 days;
+        registry.suspendIssuer(address(issuer1), "first", expiry);
+        assertTrue(registry.isIssuerSuspended(address(issuer1)));
+
+        // Warp past expiry — suspension naturally expires
+        vm.warp(expiry + 1);
+        assertFalse(registry.isIssuerSuspended(address(issuer1)));
+
+        // Should be able to suspend again without revert
+        registry.suspendIssuer(address(issuer1), "second", 0);
+        assertTrue(registry.isIssuerSuspended(address(issuer1)));
+        vm.stopPrank();
+    }
+
     // ============ Access control ============
 
     function test_accessControl_adminCanGrantRole() public {
