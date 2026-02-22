@@ -10,11 +10,11 @@ const seatTypes = [
     variant: 'default' as const,
     description: 'Chosen by active contributors through annual elections. Represents the meritocratic core of the TSC.',
     requirements: [
-      '6+ months of active contribution',
-      'Sponsored by existing TSC member',
-      'Demonstrated technical expertise',
+      '12 months of active contribution',
+      'Self-nomination with 2 endorsements',
+      'Ranked-choice voting by contributors',
     ],
-    term: '2-year terms, staggered',
+    term: '2-year terms, max 2 consecutive',
     icon: (
       <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
@@ -26,11 +26,11 @@ const seatTypes = [
     count: 3,
     color: 'var(--precision-blue)',
     variant: 'blue' as const,
-    description: 'Industry experts invited by the TSC to provide domain knowledge from luxury, blockchain, and standards bodies.',
+    description: 'Selected by the Governing Board to fill expertise and diversity gaps. Ensures geographic and industry segment balance.',
     requirements: [
-      'Recognized industry expertise',
-      'No commercial conflict of interest',
-      'Approved by 2/3 TSC vote',
+      'Fill expertise gaps in elected TSC',
+      'Geographic or segment diversity',
+      'Approved by Board majority vote',
     ],
     term: 'Renewable 2-year terms',
     icon: (
@@ -44,13 +44,13 @@ const seatTypes = [
     count: 2,
     color: 'var(--emerald-primary)',
     variant: 'default' as const,
-    description: 'Original architects who established the standard. Time-limited presence ensures eventual full community control.',
+    description: 'Reserved for founding organizations during the launch phase. Ensures early stewardship while maintaining meritocratic long-term governance.',
     requirements: [
-      'Initial specification authors',
-      'Committed to transition plan',
-      'No veto power on standard matters',
+      'Founding Partner organization',
+      'Jointly nominated by partners',
+      'Seats convert to elected on expiry',
     ],
-    term: 'Sunset after 5 years',
+    term: 'Sunset after 3 years',
     icon: (
       <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />

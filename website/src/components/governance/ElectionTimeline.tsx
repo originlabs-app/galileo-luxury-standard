@@ -13,7 +13,7 @@ const electionSteps = [
     duration: '2 weeks',
   },
   {
-    month: 'October',
+    month: 'September',
     title: 'Campaign Period',
     description: 'Nominees present their vision for the standard. Community Q&A sessions and written platforms.',
     icon: (
@@ -21,7 +21,7 @@ const electionSteps = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
       </svg>
     ),
-    duration: '3 weeks',
+    duration: '2 weeks',
   },
   {
     month: 'October',
@@ -35,7 +35,7 @@ const electionSteps = [
     duration: '1 week',
   },
   {
-    month: 'November',
+    month: 'October',
     title: 'Results Announced',
     description: 'Winners announced with full vote tallies. Transition planning for outgoing members begins.',
     icon: (
@@ -43,7 +43,7 @@ const electionSteps = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
       </svg>
     ),
-    duration: 'Immediate',
+    duration: 'Within 7 days',
   },
   {
     month: 'January 1',
@@ -132,7 +132,8 @@ export function ElectionTimeline() {
                 <h4 className="font-semibold text-[var(--platinum)] mb-1 group-hover:text-[var(--precision-blue)] transition-colors">Staggered Terms</h4>
                 <p className="text-sm text-[var(--silver)] leading-relaxed">
                   Only 3 elected seats are up for election each year, ensuring institutional memory
-                  and preventing complete turnover. Terms are 2 years with unlimited renewal through re-election.
+                  and preventing complete turnover. Terms are 2 years, renewable once. After two consecutive terms,
+                  a 1-year gap is required before re-election.
                 </p>
               </div>
             </div>

@@ -494,7 +494,7 @@ code, pre {
 .precision-line::after {
   content: '';
   position: absolute;
-  background: linear-gradient(90deg, transparent, var(--champagne), transparent);
+  background: linear-gradient(90deg, transparent, var(--cyan-dim), transparent);
   transition: opacity var(--duration-color) var(--ease-precision),
               transform var(--duration-layout) var(--ease-precision);
   opacity: 0;
@@ -532,7 +532,7 @@ code, pre {
   bottom: 10%;
   left: auto;
   right: auto;
-  background: linear-gradient(180deg, transparent, var(--champagne), transparent);
+  background: linear-gradient(180deg, transparent, var(--cyan-dim), transparent);
   transform: scaleY(0.5);
 }
 
@@ -619,6 +619,79 @@ code, pre {
     0 8px 16px rgba(0, 0, 0, 0.2),
     0 16px 32px rgba(0, 0, 0, 0.15),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Icon Halo
+   Bioluminescent glow behind feature icons
+   Intensifies on hover for "living light" effect */
+.icon-halo {
+  position: relative;
+}
+
+.icon-halo::before {
+  content: '';
+  position: absolute;
+  inset: -12px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at center,
+    var(--halo-color, rgba(0, 255, 255, 0.15)) 0%,
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 500ms var(--ease-precision);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.icon-halo:hover::before,
+.group:hover .icon-halo::before {
+  opacity: 1;
+}
+
+/* Corner Accents
+   24px L-shaped corner marks on cards
+   Color transitions from dim to full on hover */
+.corner-accent-tl,
+.corner-accent-br {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  transition: border-color 500ms var(--ease-precision);
+  pointer-events: none;
+}
+
+.corner-accent-tl {
+  top: 0;
+  left: 0;
+  border-left: 1px solid var(--accent-color, rgba(0, 255, 255, 0.3));
+  border-top: 1px solid var(--accent-color, rgba(0, 255, 255, 0.3));
+}
+
+.corner-accent-br {
+  bottom: 0;
+  right: 0;
+  border-right: 1px solid var(--accent-color, rgba(0, 255, 255, 0.3));
+  border-bottom: 1px solid var(--accent-color, rgba(0, 255, 255, 0.3));
+}
+
+/* Bottom Accent Line
+   Gradient line that expands from 25% to 100% on hover */
+.bottom-accent-line {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: 25%;
+  background: linear-gradient(90deg, var(--accent-color, var(--cyan-primary)), transparent);
+  transition: width 500ms var(--ease-precision),
+              background 500ms var(--ease-precision);
+  pointer-events: none;
+}
+
+.group:hover .bottom-accent-line,
+*:hover > .bottom-accent-line {
+  width: 100%;
 }
 
 /* Grain Texture
