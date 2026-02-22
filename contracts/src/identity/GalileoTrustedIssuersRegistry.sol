@@ -423,7 +423,7 @@ contract GalileoTrustedIssuersRegistry is IGalileoTrustedIssuersRegistry, Access
         uint256 _until
     ) external override onlyRole(REGISTRY_ADMIN_ROLE) {
         if (!_registered[_issuer]) revert IssuerNotRegistered(_issuer);
-        if (_suspended[_issuer]) revert IssuerAlreadySuspended(_issuer);
+        if (_isCurrentlySuspended(_issuer)) revert IssuerAlreadySuspended(_issuer);
         if (_until != 0 && _until <= block.timestamp) revert SuspensionInPast(_until);
 
         _suspended[_issuer] = true;
