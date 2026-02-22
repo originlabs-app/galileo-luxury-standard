@@ -37,6 +37,14 @@ contract GalileoAccessControlTest is Test {
     bytes  internal constant MOCK_SIG  = abi.encodePacked("sig");
     bytes  internal constant MOCK_DATA = abi.encodePacked("data");
 
+    // Cached role constants — avoids external calls to ac.ROLE() that consume vm.prank
+    bytes32 internal BRAND_ADMIN;
+    bytes32 internal OPERATOR;
+    bytes32 internal AUDITOR;
+    bytes32 internal REGULATOR;
+    bytes32 internal SERVICE_CENTER_ADMIN;
+    bytes32 internal DEFAULT_ADMIN;
+
     // ─────────────────────────────────────────────────────────────────
     // Setup
     // ─────────────────────────────────────────────────────────────────
@@ -44,6 +52,14 @@ contract GalileoAccessControlTest is Test {
     function setUp() public {
         vm.prank(admin);
         ac = new GalileoAccessControl(admin);
+
+        // Cache role constants to avoid external calls in test bodies
+        BRAND_ADMIN = ac.BRAND_ADMIN_ROLE();
+        OPERATOR = ac.OPERATOR_ROLE();
+        AUDITOR = ac.AUDITOR_ROLE();
+        REGULATOR = ac.REGULATOR_ROLE();
+        SERVICE_CENTER_ADMIN = ac.SERVICE_CENTER_ADMIN_ROLE();
+        DEFAULT_ADMIN = ac.DEFAULT_ADMIN_ROLE();
     }
 
     // ─────────────────────────────────────────────────────────────────
@@ -51,7 +67,7 @@ contract GalileoAccessControlTest is Test {
     // ─────────────────────────────────────────────────────────────────
 
     function test_constructor_grantsDefaultAdminToAdmin() public view {
-        assertTrue(ac.hasRole(ac.DEFAULT_ADMIN_ROLE(), admin));
+        assertTrue(ac.hasRole(DEFAULT_ADMIN, admin));
     }
 
     function test_constructor_rejectsZeroAdmin() public {
@@ -64,20 +80,20 @@ contract GalileoAccessControlTest is Test {
     // ─────────────────────────────────────────────────────────────────
 
     function test_roleConstants_returnCorrectValues() public view {
-        assertEq(ac.BRAND_ADMIN_ROLE(),         keccak256("BRAND_ADMIN_ROLE"));
-        assertEq(ac.OPERATOR_ROLE(),            keccak256("OPERATOR_ROLE"));
-        assertEq(ac.AUDITOR_ROLE(),             keccak256("AUDITOR_ROLE"));
-        assertEq(ac.REGULATOR_ROLE(),           keccak256("REGULATOR_ROLE"));
-        assertEq(ac.SERVICE_CENTER_ADMIN_ROLE(), keccak256("SERVICE_CENTER_ADMIN_ROLE"));
+        assertEq(BRAND_ADMIN,        keccak256("BRAND_ADMIN_ROLE"));
+        assertEq(OPERATOR,           keccak256("OPERATOR_ROLE"));
+        assertEq(AUDITOR,            keccak256("AUDITOR_ROLE"));
+        assertEq(REGULATOR,          keccak256("REGULATOR_ROLE"));
+        assertEq(SERVICE_CENTER_ADMIN, keccak256("SERVICE_CENTER_ADMIN_ROLE"));
     }
 
     function test_roleConstants_areDistinct() public view {
         bytes32[5] memory roles = [
-            ac.BRAND_ADMIN_ROLE(),
-            ac.OPERATOR_ROLE(),
-            ac.AUDITOR_ROLE(),
-            ac.REGULATOR_ROLE(),
-            ac.SERVICE_CENTER_ADMIN_ROLE()
+            BRAND_ADMIN,
+            OPERATOR,
+            AUDITOR,
+            REGULATOR,
+            SERVICE_CENTER_ADMIN
         ];
         for (uint256 i = 0; i < roles.length; i++) {
             for (uint256 j = i + 1; j < roles.length; j++) {
@@ -128,28 +144,28 @@ contract GalileoAccessControlTest is Test {
     function test_setRoleClaimRequirement_succeeds() public {
         vm.prank(admin);
         vm.expectEmit(true, true, false, true);
-        emit RoleClaimRequirementSet(ac.BRAND_ADMIN_ROLE(), KYB_TOPIC, 0);
-        ac.setRoleClaimRequirement(ac.BRAND_ADMIN_ROLE(), KYB_TOPIC);
-        assertEq(ac.getRoleClaimRequirement(ac.BRAND_ADMIN_ROLE()), KYB_TOPIC);
+        emit RoleClaimRequirementSet(BRAND_ADMIN, KYB_TOPIC, 0);
+        ac.setRoleClaimRequirement(BRAND_ADMIN, KYB_TOPIC);
+        assertEq(ac.getRoleClaimRequirement(BRAND_ADMIN), KYB_TOPIC);
     }
 
     function test_setRoleClaimRequirement_onlyAdmin() public {
         vm.prank(alice);
         vm.expectRevert();
-        ac.setRoleClaimRequirement(ac.BRAND_ADMIN_ROLE(), KYB_TOPIC);
+        ac.setRoleClaimRequirement(BRAND_ADMIN, KYB_TOPIC);
     }
 
     function test_setRoleClaimRequirement_canClearRequirement() public {
         vm.prank(admin);
-        ac.setRoleClaimRequirement(ac.BRAND_ADMIN_ROLE(), KYB_TOPIC);
+        ac.setRoleClaimRequirement(BRAND_ADMIN, KYB_TOPIC);
 
         vm.prank(admin);
-        ac.setRoleClaimRequirement(ac.BRAND_ADMIN_ROLE(), 0);
-        assertEq(ac.getRoleClaimRequirement(ac.BRAND_ADMIN_ROLE()), 0);
+        ac.setRoleClaimRequirement(BRAND_ADMIN, 0);
+        assertEq(ac.getRoleClaimRequirement(BRAND_ADMIN), 0);
     }
 
     function test_getRoleClaimRequirement_defaultsToZero() public view {
-        assertEq(ac.getRoleClaimRequirement(ac.BRAND_ADMIN_ROLE()), 0);
+        assertEq(ac.getRoleClaimRequirement(BRAND_ADMIN), 0);
     }
 
     // ─────────────────────────────────────────────────────────────────
@@ -208,16 +224,16 @@ contract GalileoAccessControlTest is Test {
 
         vm.prank(admin);
         vm.expectEmit(true, true, true, false);
-        emit RoleGrantedWithIdentity(ac.BRAND_ADMIN_ROLE(), alice, mockIdentity, KYB_TOPIC, admin);
-        ac.grantRoleWithIdentity(ac.BRAND_ADMIN_ROLE(), alice, mockIdentity, KYB_TOPIC);
+        emit RoleGrantedWithIdentity(BRAND_ADMIN, alice, mockIdentity, KYB_TOPIC, admin);
+        ac.grantRoleWithIdentity(BRAND_ADMIN, alice, mockIdentity, KYB_TOPIC);
 
-        assertTrue(ac.hasRole(ac.BRAND_ADMIN_ROLE(), alice));
+        assertTrue(ac.hasRole(BRAND_ADMIN, alice));
     }
 
     function test_grantRoleWithIdentity_revertsWhenRegistryNotSet() public {
         vm.prank(admin);
         vm.expectRevert(IGalileoAccessControl.IdentityRegistryNotSet.selector);
-        ac.grantRoleWithIdentity(ac.BRAND_ADMIN_ROLE(), alice, mockIdentity, KYB_TOPIC);
+        ac.grantRoleWithIdentity(BRAND_ADMIN, alice, mockIdentity, KYB_TOPIC);
     }
 
     function test_grantRoleWithIdentity_revertsWhenNotRegistered() public {
@@ -225,7 +241,7 @@ contract GalileoAccessControlTest is Test {
 
         vm.prank(admin);
         vm.expectRevert(abi.encodeWithSelector(IGalileoAccessControl.IdentityNotVerified.selector, alice));
-        ac.grantRoleWithIdentity(ac.BRAND_ADMIN_ROLE(), alice, mockIdentity, KYB_TOPIC);
+        ac.grantRoleWithIdentity(BRAND_ADMIN, alice, mockIdentity, KYB_TOPIC);
     }
 
     function test_grantRoleWithIdentity_revertsWhenIdentityMismatch() public {
@@ -233,7 +249,7 @@ contract GalileoAccessControlTest is Test {
 
         vm.prank(admin);
         vm.expectRevert(abi.encodeWithSelector(IGalileoAccessControl.ClaimNotValid.selector, alice, KYB_TOPIC));
-        ac.grantRoleWithIdentity(ac.BRAND_ADMIN_ROLE(), alice, mockIdentity, KYB_TOPIC);
+        ac.grantRoleWithIdentity(BRAND_ADMIN, alice, mockIdentity, KYB_TOPIC);
     }
 
     function test_grantRoleWithIdentity_revertsWhenClaimInvalid() public {
@@ -241,7 +257,7 @@ contract GalileoAccessControlTest is Test {
 
         vm.prank(admin);
         vm.expectRevert(abi.encodeWithSelector(IGalileoAccessControl.ClaimNotValid.selector, alice, KYB_TOPIC));
-        ac.grantRoleWithIdentity(ac.BRAND_ADMIN_ROLE(), alice, mockIdentity, KYB_TOPIC);
+        ac.grantRoleWithIdentity(BRAND_ADMIN, alice, mockIdentity, KYB_TOPIC);
     }
 
     function test_grantRoleWithIdentity_revertsWhenSuspended() public {
@@ -249,16 +265,16 @@ contract GalileoAccessControlTest is Test {
 
         // First grant, then suspend
         vm.prank(admin);
-        ac.grantRoleWithIdentity(ac.BRAND_ADMIN_ROLE(), alice, mockIdentity, KYB_TOPIC);
+        ac.grantRoleWithIdentity(BRAND_ADMIN, alice, mockIdentity, KYB_TOPIC);
         vm.prank(admin);
-        ac.suspendRole(ac.BRAND_ADMIN_ROLE(), alice, "investigation");
+        ac.suspendRole(BRAND_ADMIN, alice, "investigation");
 
         // Attempt re-grant while suspended
         vm.prank(admin);
         vm.expectRevert(
-            abi.encodeWithSelector(IGalileoAccessControl.RoleIsSuspended.selector, ac.BRAND_ADMIN_ROLE(), alice)
+            abi.encodeWithSelector(IGalileoAccessControl.RoleIsSuspended.selector, BRAND_ADMIN, alice)
         );
-        ac.grantRoleWithIdentity(ac.BRAND_ADMIN_ROLE(), alice, mockIdentity, KYB_TOPIC);
+        ac.grantRoleWithIdentity(BRAND_ADMIN, alice, mockIdentity, KYB_TOPIC);
     }
 
     function test_grantRoleWithIdentity_onlyRoleAdmin() public {
@@ -266,37 +282,37 @@ contract GalileoAccessControlTest is Test {
 
         vm.prank(alice);
         vm.expectRevert();
-        ac.grantRoleWithIdentity(ac.BRAND_ADMIN_ROLE(), bob, mockIdentity, KYB_TOPIC);
+        ac.grantRoleWithIdentity(BRAND_ADMIN, bob, mockIdentity, KYB_TOPIC);
     }
 
     function test_hasRoleWithIdentity_trueWhenNoClaimRequired() public {
         vm.prank(admin);
-        ac.grantRole(ac.OPERATOR_ROLE(), alice);
-        assertTrue(ac.hasRoleWithIdentity(ac.OPERATOR_ROLE(), alice));
+        ac.grantRole(OPERATOR, alice);
+        assertTrue(ac.hasRoleWithIdentity(OPERATOR, alice));
     }
 
     function test_hasRoleWithIdentity_trueWhenClaimValid() public {
         _setupIdentityMocks(true, true, true);
 
         vm.prank(admin);
-        ac.setRoleClaimRequirement(ac.BRAND_ADMIN_ROLE(), KYB_TOPIC);
+        ac.setRoleClaimRequirement(BRAND_ADMIN, KYB_TOPIC);
         vm.prank(admin);
-        ac.grantRole(ac.BRAND_ADMIN_ROLE(), alice);
+        ac.grantRole(BRAND_ADMIN, alice);
 
-        assertTrue(ac.hasRoleWithIdentity(ac.BRAND_ADMIN_ROLE(), alice));
+        assertTrue(ac.hasRoleWithIdentity(BRAND_ADMIN, alice));
     }
 
     function test_hasRoleWithIdentity_falseWhenRoleNotGranted() public view {
-        assertFalse(ac.hasRoleWithIdentity(ac.BRAND_ADMIN_ROLE(), alice));
+        assertFalse(ac.hasRoleWithIdentity(BRAND_ADMIN, alice));
     }
 
     function test_hasRoleWithIdentity_falseWhenRegistryNotSet() public {
         vm.prank(admin);
-        ac.grantRole(ac.BRAND_ADMIN_ROLE(), alice);
+        ac.grantRole(BRAND_ADMIN, alice);
         vm.prank(admin);
-        ac.setRoleClaimRequirement(ac.BRAND_ADMIN_ROLE(), KYB_TOPIC);
+        ac.setRoleClaimRequirement(BRAND_ADMIN, KYB_TOPIC);
 
-        assertFalse(ac.hasRoleWithIdentity(ac.BRAND_ADMIN_ROLE(), alice));
+        assertFalse(ac.hasRoleWithIdentity(BRAND_ADMIN, alice));
     }
 
     // ─────────────────────────────────────────────────────────────────
@@ -306,12 +322,12 @@ contract GalileoAccessControlTest is Test {
     function test_requestAndConfirmRoleGrant() public {
         uint256 delay = 2 days;
         vm.prank(admin);
-        ac.setRoleGrantDelay(ac.BRAND_ADMIN_ROLE(), delay);
+        ac.setRoleGrantDelay(BRAND_ADMIN, delay);
 
         vm.prank(admin);
-        ac.requestRoleGrant(ac.BRAND_ADMIN_ROLE(), alice);
+        ac.requestRoleGrant(BRAND_ADMIN, alice);
 
-        (address reqBy, uint256 reqAt, uint256 canConfirm) = ac.getRoleGrantRequest(ac.BRAND_ADMIN_ROLE(), alice);
+        (address reqBy, uint256 reqAt, uint256 canConfirm) = ac.getRoleGrantRequest(BRAND_ADMIN, alice);
         assertEq(reqBy, admin);
         assertEq(reqAt, block.timestamp);
         assertEq(canConfirm, block.timestamp + delay);
@@ -319,86 +335,85 @@ contract GalileoAccessControlTest is Test {
         vm.warp(block.timestamp + delay);
 
         vm.prank(admin);
-        ac.confirmRoleGrant(ac.BRAND_ADMIN_ROLE(), alice, address(0), 0);
-        assertTrue(ac.hasRole(ac.BRAND_ADMIN_ROLE(), alice));
+        ac.confirmRoleGrant(BRAND_ADMIN, alice, address(0), 0);
+        assertTrue(ac.hasRole(BRAND_ADMIN, alice));
     }
 
     function test_requestRoleGrant_revertsWithoutDelay() public {
         vm.prank(admin);
         vm.expectRevert("GalileoAccessControl: no delay configured for role");
-        ac.requestRoleGrant(ac.BRAND_ADMIN_ROLE(), alice);
+        ac.requestRoleGrant(BRAND_ADMIN, alice);
     }
 
     function test_requestRoleGrant_revertsDuplicateRequest() public {
         vm.prank(admin);
-        ac.setRoleGrantDelay(ac.BRAND_ADMIN_ROLE(), 1 days);
+        ac.setRoleGrantDelay(BRAND_ADMIN, 1 days);
 
         vm.prank(admin);
-        ac.requestRoleGrant(ac.BRAND_ADMIN_ROLE(), alice);
+        ac.requestRoleGrant(BRAND_ADMIN, alice);
 
         vm.prank(admin);
         vm.expectRevert("GalileoAccessControl: pending request exists");
-        ac.requestRoleGrant(ac.BRAND_ADMIN_ROLE(), alice);
+        ac.requestRoleGrant(BRAND_ADMIN, alice);
     }
 
     function test_confirmRoleGrant_revertsBeforeDelay() public {
         vm.prank(admin);
-        ac.setRoleGrantDelay(ac.BRAND_ADMIN_ROLE(), 2 days);
+        ac.setRoleGrantDelay(BRAND_ADMIN, 2 days);
         vm.prank(admin);
-        ac.requestRoleGrant(ac.BRAND_ADMIN_ROLE(), alice);
+        ac.requestRoleGrant(BRAND_ADMIN, alice);
 
         vm.warp(block.timestamp + 1 days);
         vm.prank(admin);
         vm.expectRevert(); // GrantDelayNotElapsed
-        ac.confirmRoleGrant(ac.BRAND_ADMIN_ROLE(), alice, address(0), 0);
+        ac.confirmRoleGrant(BRAND_ADMIN, alice, address(0), 0);
     }
 
     function test_confirmRoleGrant_revertsWithNoRequest() public {
         vm.prank(admin);
         vm.expectRevert(
-            abi.encodeWithSelector(IGalileoAccessControl.NoValidGrantRequest.selector, ac.BRAND_ADMIN_ROLE(), alice)
+            abi.encodeWithSelector(IGalileoAccessControl.NoValidGrantRequest.selector, BRAND_ADMIN, alice)
         );
-        ac.confirmRoleGrant(ac.BRAND_ADMIN_ROLE(), alice, address(0), 0);
+        ac.confirmRoleGrant(BRAND_ADMIN, alice, address(0), 0);
     }
 
     function test_cancelRoleGrantRequest_byRequester() public {
         vm.prank(admin);
-        ac.setRoleGrantDelay(ac.BRAND_ADMIN_ROLE(), 1 days);
+        ac.setRoleGrantDelay(BRAND_ADMIN, 1 days);
         vm.prank(admin);
-        ac.requestRoleGrant(ac.BRAND_ADMIN_ROLE(), alice);
+        ac.requestRoleGrant(BRAND_ADMIN, alice);
 
         vm.prank(admin);
         vm.expectEmit(true, true, false, false);
-        emit RoleGrantRequestCancelled(ac.BRAND_ADMIN_ROLE(), alice, admin);
-        ac.cancelRoleGrantRequest(ac.BRAND_ADMIN_ROLE(), alice);
+        emit RoleGrantRequestCancelled(BRAND_ADMIN, alice, admin);
+        ac.cancelRoleGrantRequest(BRAND_ADMIN, alice);
 
-        (address reqBy,,) = ac.getRoleGrantRequest(ac.BRAND_ADMIN_ROLE(), alice);
+        (address reqBy,,) = ac.getRoleGrantRequest(BRAND_ADMIN, alice);
         assertEq(reqBy, address(0));
     }
 
     function test_cancelRoleGrantRequest_revertsUnauthorized() public {
         vm.prank(admin);
-        ac.setRoleGrantDelay(ac.BRAND_ADMIN_ROLE(), 1 days);
+        ac.setRoleGrantDelay(BRAND_ADMIN, 1 days);
         vm.prank(admin);
-        ac.requestRoleGrant(ac.BRAND_ADMIN_ROLE(), alice);
+        ac.requestRoleGrant(BRAND_ADMIN, alice);
 
         vm.prank(alice);
         vm.expectRevert("GalileoAccessControl: not authorized to cancel");
-        ac.cancelRoleGrantRequest(ac.BRAND_ADMIN_ROLE(), alice);
+        ac.cancelRoleGrantRequest(BRAND_ADMIN, alice);
     }
 
     function test_cancelRoleGrantRequest_byDefaultAdmin() public {
-        // Grant a different account the brand admin role so they can be the requester
         vm.prank(admin);
-        ac.setRoleGrantDelay(ac.BRAND_ADMIN_ROLE(), 1 days);
+        ac.setRoleGrantDelay(BRAND_ADMIN, 1 days);
         vm.prank(admin);
-        ac.requestRoleGrant(ac.BRAND_ADMIN_ROLE(), alice);
+        ac.requestRoleGrant(BRAND_ADMIN, alice);
 
         // admin (DEFAULT_ADMIN_ROLE) can cancel even though alice != admin as requester
         vm.prank(admin);
-        ac.cancelRoleGrantRequest(ac.BRAND_ADMIN_ROLE(), alice);
+        ac.cancelRoleGrantRequest(BRAND_ADMIN, alice);
 
-        (address reqBy,,) = ac.getRoleGrantRequest(ac.BRAND_ADMIN_ROLE(), alice);
+        (address reqBy,,) = ac.getRoleGrantRequest(BRAND_ADMIN, alice);
         assertEq(reqBy, address(0));
     }
 
@@ -408,58 +423,58 @@ contract GalileoAccessControlTest is Test {
 
     function test_suspendRole_succeeds() public {
         vm.prank(admin);
-        ac.grantRole(ac.OPERATOR_ROLE(), alice);
+        ac.grantRole(OPERATOR, alice);
 
         vm.prank(admin);
         vm.expectEmit(true, true, false, false);
-        emit RoleSuspended(ac.OPERATOR_ROLE(), alice, "investigation", admin);
-        ac.suspendRole(ac.OPERATOR_ROLE(), alice, "investigation");
+        emit RoleSuspended(OPERATOR, alice, "investigation", admin);
+        ac.suspendRole(OPERATOR, alice, "investigation");
 
-        assertTrue(ac.isSuspended(ac.OPERATOR_ROLE(), alice));
+        assertTrue(ac.isSuspended(OPERATOR, alice));
     }
 
     function test_suspendRole_revertsWhenNotHolder() public {
         vm.prank(admin);
         vm.expectRevert("GalileoAccessControl: account does not have role");
-        ac.suspendRole(ac.OPERATOR_ROLE(), alice, "investigation");
+        ac.suspendRole(OPERATOR, alice, "investigation");
     }
 
     function test_suspendRole_revertsAlreadySuspended() public {
         vm.prank(admin);
-        ac.grantRole(ac.OPERATOR_ROLE(), alice);
+        ac.grantRole(OPERATOR, alice);
         vm.prank(admin);
-        ac.suspendRole(ac.OPERATOR_ROLE(), alice, "reason");
+        ac.suspendRole(OPERATOR, alice, "reason");
 
         vm.prank(admin);
         vm.expectRevert("GalileoAccessControl: role already suspended");
-        ac.suspendRole(ac.OPERATOR_ROLE(), alice, "reason2");
+        ac.suspendRole(OPERATOR, alice, "reason2");
     }
 
     function test_reinstateRole_succeeds() public {
         vm.prank(admin);
-        ac.grantRole(ac.OPERATOR_ROLE(), alice);
+        ac.grantRole(OPERATOR, alice);
         vm.prank(admin);
-        ac.suspendRole(ac.OPERATOR_ROLE(), alice, "reason");
+        ac.suspendRole(OPERATOR, alice, "reason");
 
         vm.prank(admin);
         vm.expectEmit(true, true, false, false);
-        emit RoleReinstated(ac.OPERATOR_ROLE(), alice, admin);
-        ac.reinstateRole(ac.OPERATOR_ROLE(), alice);
+        emit RoleReinstated(OPERATOR, alice, admin);
+        ac.reinstateRole(OPERATOR, alice);
 
-        assertFalse(ac.isSuspended(ac.OPERATOR_ROLE(), alice));
+        assertFalse(ac.isSuspended(OPERATOR, alice));
     }
 
     function test_reinstateRole_revertsWhenNotSuspended() public {
         vm.prank(admin);
-        ac.grantRole(ac.OPERATOR_ROLE(), alice);
+        ac.grantRole(OPERATOR, alice);
 
         vm.prank(admin);
         vm.expectRevert("GalileoAccessControl: role is not suspended");
-        ac.reinstateRole(ac.OPERATOR_ROLE(), alice);
+        ac.reinstateRole(OPERATOR, alice);
     }
 
     function test_isSuspended_defaultsFalse() public view {
-        assertFalse(ac.isSuspended(ac.OPERATOR_ROLE(), alice));
+        assertFalse(ac.isSuspended(OPERATOR, alice));
     }
 
     // ─────────────────────────────────────────────────────────────────
@@ -472,51 +487,52 @@ contract GalileoAccessControlTest is Test {
 
         vm.prank(admin);
         vm.expectEmit(true, true, false, true);
-        emit EmergencyAccessGranted(ac.OPERATOR_ROLE(), alice, duration, expiresAt, "incident");
-        ac.emergencyGrantRole(ac.OPERATOR_ROLE(), alice, duration, "incident");
+        emit EmergencyAccessGranted(OPERATOR, alice, duration, expiresAt, "incident");
+        ac.emergencyGrantRole(OPERATOR, alice, duration, "incident");
 
-        (bool hasEmergency, uint256 expiry) = ac.getEmergencyAccess(ac.OPERATOR_ROLE(), alice);
+        (bool hasEmergency, uint256 expiry) = ac.getEmergencyAccess(OPERATOR, alice);
         assertTrue(hasEmergency);
         assertEq(expiry, expiresAt);
     }
 
     function test_emergencyGrantRole_revertsExceedMaxDuration() public {
+        uint256 maxDuration = ac.MAX_EMERGENCY_DURATION();
         vm.prank(admin);
         vm.expectRevert(
             abi.encodeWithSelector(
                 IGalileoAccessControl.EmergencyDurationExceeded.selector,
                 8 days,
-                ac.MAX_EMERGENCY_DURATION()
+                maxDuration
             )
         );
-        ac.emergencyGrantRole(ac.OPERATOR_ROLE(), alice, 8 days, "reason");
+        ac.emergencyGrantRole(OPERATOR, alice, 8 days, "reason");
     }
 
     function test_emergencyGrantRole_revertsEmptyReason() public {
         vm.prank(admin);
         vm.expectRevert("GalileoAccessControl: reason required");
-        ac.emergencyGrantRole(ac.OPERATOR_ROLE(), alice, 1 days, "");
+        ac.emergencyGrantRole(OPERATOR, alice, 1 days, "");
     }
 
     function test_emergencyGrantRole_onlyAdmin() public {
         vm.prank(alice);
         vm.expectRevert();
-        ac.emergencyGrantRole(ac.OPERATOR_ROLE(), bob, 1 days, "reason");
+        ac.emergencyGrantRole(OPERATOR, bob, 1 days, "reason");
     }
 
     function test_getEmergencyAccess_falseWhenExpired() public {
         vm.prank(admin);
-        ac.emergencyGrantRole(ac.OPERATOR_ROLE(), alice, 1 hours, "reason");
+        ac.emergencyGrantRole(OPERATOR, alice, 1 hours, "reason");
 
         vm.warp(block.timestamp + 2 hours);
 
-        (bool hasEmergency, uint256 expiry) = ac.getEmergencyAccess(ac.OPERATOR_ROLE(), alice);
+        (bool hasEmergency, uint256 expiry) = ac.getEmergencyAccess(OPERATOR, alice);
         assertFalse(hasEmergency);
         assertTrue(expiry > 0); // expiry is set but in the past
     }
 
     function test_getEmergencyAccess_falseWhenNeverGranted() public view {
-        (bool hasEmergency, uint256 expiry) = ac.getEmergencyAccess(ac.OPERATOR_ROLE(), alice);
+        (bool hasEmergency, uint256 expiry) = ac.getEmergencyAccess(OPERATOR, alice);
         assertFalse(hasEmergency);
         assertEq(expiry, 0);
     }
@@ -524,17 +540,17 @@ contract GalileoAccessControlTest is Test {
     function test_emergencyRevokeAll_revokesRegularAndEmergencyRoles() public {
         // Grant alice some roles
         vm.startPrank(admin);
-        ac.grantRole(ac.OPERATOR_ROLE(), alice);
-        ac.grantRole(ac.AUDITOR_ROLE(), alice);
-        ac.emergencyGrantRole(ac.REGULATOR_ROLE(), alice, 1 days, "reason");
+        ac.grantRole(OPERATOR, alice);
+        ac.grantRole(AUDITOR, alice);
+        ac.emergencyGrantRole(REGULATOR, alice, 1 days, "reason");
         vm.stopPrank();
 
         vm.prank(admin);
         ac.emergencyRevokeAll(alice, "security incident");
 
-        assertFalse(ac.hasRole(ac.OPERATOR_ROLE(), alice));
-        assertFalse(ac.hasRole(ac.AUDITOR_ROLE(), alice));
-        (bool hasEmergency,) = ac.getEmergencyAccess(ac.REGULATOR_ROLE(), alice);
+        assertFalse(ac.hasRole(OPERATOR, alice));
+        assertFalse(ac.hasRole(AUDITOR, alice));
+        (bool hasEmergency,) = ac.getEmergencyAccess(REGULATOR, alice);
         assertFalse(hasEmergency);
     }
 
@@ -556,62 +572,62 @@ contract GalileoAccessControlTest is Test {
 
     function test_canExerciseRole_trueWhenHasRole() public {
         vm.prank(admin);
-        ac.grantRole(ac.OPERATOR_ROLE(), alice);
-        assertTrue(ac.canExerciseRole(ac.OPERATOR_ROLE(), alice));
+        ac.grantRole(OPERATOR, alice);
+        assertTrue(ac.canExerciseRole(OPERATOR, alice));
     }
 
     function test_canExerciseRole_falseWhenSuspended() public {
         vm.prank(admin);
-        ac.grantRole(ac.OPERATOR_ROLE(), alice);
+        ac.grantRole(OPERATOR, alice);
         vm.prank(admin);
-        ac.suspendRole(ac.OPERATOR_ROLE(), alice, "reason");
-        assertFalse(ac.canExerciseRole(ac.OPERATOR_ROLE(), alice));
+        ac.suspendRole(OPERATOR, alice, "reason");
+        assertFalse(ac.canExerciseRole(OPERATOR, alice));
     }
 
     function test_canExerciseRole_falseWhenNoRole() public view {
-        assertFalse(ac.canExerciseRole(ac.OPERATOR_ROLE(), alice));
+        assertFalse(ac.canExerciseRole(OPERATOR, alice));
     }
 
     function test_canExerciseRole_trueWithActiveEmergencyAccess() public {
         vm.prank(admin);
-        ac.emergencyGrantRole(ac.OPERATOR_ROLE(), alice, 1 days, "reason");
-        assertTrue(ac.canExerciseRole(ac.OPERATOR_ROLE(), alice));
+        ac.emergencyGrantRole(OPERATOR, alice, 1 days, "reason");
+        assertTrue(ac.canExerciseRole(OPERATOR, alice));
     }
 
     function test_canExerciseRole_falseWhenEmergencyExpired() public {
         vm.prank(admin);
-        ac.emergencyGrantRole(ac.OPERATOR_ROLE(), alice, 1 hours, "reason");
+        ac.emergencyGrantRole(OPERATOR, alice, 1 hours, "reason");
         vm.warp(block.timestamp + 2 hours);
-        assertFalse(ac.canExerciseRole(ac.OPERATOR_ROLE(), alice));
+        assertFalse(ac.canExerciseRole(OPERATOR, alice));
     }
 
     function test_getAccountRoles_returnsOwnedRoles() public {
         vm.startPrank(admin);
-        ac.grantRole(ac.OPERATOR_ROLE(), alice);
-        ac.grantRole(ac.AUDITOR_ROLE(), alice);
+        ac.grantRole(OPERATOR, alice);
+        ac.grantRole(AUDITOR, alice);
         vm.stopPrank();
 
         bytes32[] memory roles = ac.getAccountRoles(alice);
         assertEq(roles.length, 2);
-        _assertContains(roles, ac.OPERATOR_ROLE());
-        _assertContains(roles, ac.AUDITOR_ROLE());
+        _assertContains(roles, OPERATOR);
+        _assertContains(roles, AUDITOR);
     }
 
     function test_getAccountRoles_includesEmergencyAccess() public {
         vm.prank(admin);
-        ac.emergencyGrantRole(ac.REGULATOR_ROLE(), alice, 1 days, "reason");
+        ac.emergencyGrantRole(REGULATOR, alice, 1 days, "reason");
 
         bytes32[] memory roles = ac.getAccountRoles(alice);
-        _assertContains(roles, ac.REGULATOR_ROLE());
+        _assertContains(roles, REGULATOR);
     }
 
     function test_getAccountRoles_excludesExpiredEmergencyAccess() public {
         vm.prank(admin);
-        ac.emergencyGrantRole(ac.REGULATOR_ROLE(), alice, 1 hours, "reason");
+        ac.emergencyGrantRole(REGULATOR, alice, 1 hours, "reason");
         vm.warp(block.timestamp + 2 hours);
 
         bytes32[] memory roles = ac.getAccountRoles(alice);
-        _assertNotContains(roles, ac.REGULATOR_ROLE());
+        _assertNotContains(roles, REGULATOR);
     }
 
     function test_getAccountRoles_emptyForUnknownAccount() public view {
@@ -620,13 +636,13 @@ contract GalileoAccessControlTest is Test {
     }
 
     function test_getRoleGrantDelay_defaultsZero() public view {
-        assertEq(ac.getRoleGrantDelay(ac.BRAND_ADMIN_ROLE()), 0);
+        assertEq(ac.getRoleGrantDelay(BRAND_ADMIN), 0);
     }
 
     function test_setRoleGrantDelay_updatesDelay() public {
         vm.prank(admin);
-        ac.setRoleGrantDelay(ac.BRAND_ADMIN_ROLE(), 3 days);
-        assertEq(ac.getRoleGrantDelay(ac.BRAND_ADMIN_ROLE()), 3 days);
+        ac.setRoleGrantDelay(BRAND_ADMIN, 3 days);
+        assertEq(ac.getRoleGrantDelay(BRAND_ADMIN), 3 days);
     }
 
     // ─────────────────────────────────────────────────────────────────
@@ -635,24 +651,24 @@ contract GalileoAccessControlTest is Test {
 
     function test_standardGrantRole_works() public {
         vm.prank(admin);
-        ac.grantRole(ac.OPERATOR_ROLE(), alice);
-        assertTrue(ac.hasRole(ac.OPERATOR_ROLE(), alice));
+        ac.grantRole(OPERATOR, alice);
+        assertTrue(ac.hasRole(OPERATOR, alice));
     }
 
     function test_standardRevokeRole_works() public {
         vm.prank(admin);
-        ac.grantRole(ac.OPERATOR_ROLE(), alice);
+        ac.grantRole(OPERATOR, alice);
         vm.prank(admin);
-        ac.revokeRole(ac.OPERATOR_ROLE(), alice);
-        assertFalse(ac.hasRole(ac.OPERATOR_ROLE(), alice));
+        ac.revokeRole(OPERATOR, alice);
+        assertFalse(ac.hasRole(OPERATOR, alice));
     }
 
     function test_getRoleMemberCount_tracked() public {
         vm.prank(admin);
-        ac.grantRole(ac.OPERATOR_ROLE(), alice);
+        ac.grantRole(OPERATOR, alice);
         vm.prank(admin);
-        ac.grantRole(ac.OPERATOR_ROLE(), bob);
-        assertEq(ac.getRoleMemberCount(ac.OPERATOR_ROLE()), 2);
+        ac.grantRole(OPERATOR, bob);
+        assertEq(ac.getRoleMemberCount(OPERATOR), 2);
     }
 
     // ─────────────────────────────────────────────────────────────────
