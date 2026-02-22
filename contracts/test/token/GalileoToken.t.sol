@@ -891,6 +891,17 @@ contract GalileoTokenTest is Test {
         token.mint(owner2, 1);
     }
 
+    function test_mint_reverts_whenDecommissioned() public {
+        _mockDestroyed(owner1, 1);
+        vm.prank(agent);
+        token.decommission(owner1, "destroyed");
+        _mockIsVerified(owner2, true);
+        _mockCanTransfer(address(0), owner2, 1, true);
+        vm.prank(agent);
+        vm.expectRevert("Token decommissioned");
+        token.mint(owner2, 1);
+    }
+
     // ============ SECTION: Burn ============
 
     function test_burn_reducesBalance() public {
@@ -971,6 +982,17 @@ contract GalileoTokenTest is Test {
     function test_forcedTransfer_reverts_notAgent() public {
         vm.prank(nobody);
         vm.expectRevert();
+        token.forcedTransfer(owner1, owner2, 1);
+    }
+
+    function test_forcedTransfer_reverts_whenDecommissioned() public {
+        _mockDestroyed(owner1, 1);
+        vm.prank(agent);
+        token.decommission(owner1, "destroyed");
+        _mockIsVerified(owner2, true);
+        _mockTransferred(owner1, owner2, 1);
+        vm.prank(agent);
+        vm.expectRevert("Token decommissioned");
         token.forcedTransfer(owner1, owner2, 1);
     }
 

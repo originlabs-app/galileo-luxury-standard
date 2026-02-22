@@ -312,6 +312,7 @@ contract GalileoToken is IGalileoToken, AccessControlEnumerable {
      *      re-issuance scenarios. Standard flow mints at construction.
      */
     function mint(address _to, uint256 _amount) public override onlyRole(AGENT_ROLE) {
+        require(!_isDecommissioned, "Token decommissioned");
         require(_tokenIdentityRegistry.isVerified(_to), "Identity is not verified.");
         require(_tokenCompliance.canTransfer(address(0), _to, _amount), "Compliance not followed");
         _mint(_to, _amount);
@@ -341,6 +342,7 @@ contract GalileoToken is IGalileoToken, AccessControlEnumerable {
         address _to,
         uint256 _amount
     ) public override onlyRole(AGENT_ROLE) returns (bool) {
+        require(!_isDecommissioned, "Token decommissioned");
         require(balanceOf(_from) >= _amount, "sender balance too low");
         uint256 freeBalance = balanceOf(_from) - _frozenTokens[_from];
         if (_amount > freeBalance) {
