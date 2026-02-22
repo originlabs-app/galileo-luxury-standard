@@ -175,6 +175,37 @@ contract GalileoIdentityRegistryTest is Test {
         );
     }
 
+    /// @dev Mock TIR.isIssuerSuspended(issuer) → suspended
+    function _mockIssuerSuspended(address issuerAddr, bool suspended) internal {
+        bytes4 selector = bytes4(keccak256("isIssuerSuspended(address)"));
+        vm.mockCall(tir, abi.encodeWithSelector(selector, issuerAddr), abi.encode(suspended));
+    }
+
+    /// @dev Set up a valid consent claim on identityAddr for requestingBrand, issued by consentIssuer
+    function _setupConsentClaim(
+        address identityAddr,
+        IIdentity id,
+        address requestingBrand,
+        address consentIssuer
+    ) internal {
+        uint256 consentTopic = uint256(keccak256(abi.encode("galileo.consent.brand", requestingBrand)));
+        bytes32 consentClaimId = bytes32(uint256(1));
+        bytes32[] memory consentIds = new bytes32[](1);
+        consentIds[0] = consentClaimId;
+        _mockGetClaimIdsByTopic(identityAddr, consentTopic, consentIds);
+
+        bytes memory sig = abi.encodePacked("consent-sig");
+        bytes memory data = abi.encodePacked("consent-data");
+        _mockGetClaim(identityAddr, consentClaimId, consentTopic, consentIssuer, sig, data);
+
+        vm.mockCall(
+            tir,
+            abi.encodeWithSelector(ITrustedIssuersRegistry.isTrustedIssuer.selector, consentIssuer),
+            abi.encode(true)
+        );
+        _mockClaimValid(consentIssuer, id, consentTopic, sig, data, true);
+    }
+
     /// @dev Set up a single verified user (user1/id1 with TOPIC_KYC from issuer1)
     function _setupVerifiedUser() internal {
         _mockStoredIdentity(user1, id1);
@@ -185,6 +216,9 @@ contract GalileoIdentityRegistryTest is Test {
         IClaimIssuer[] memory issuers = new IClaimIssuer[](1);
         issuers[0] = IClaimIssuer(issuer1);
         _mockTIRIssuers(TOPIC_KYC, issuers);
+
+        // H-4: issuer1 is active (not suspended)
+        _mockIssuerSuspended(issuer1, false);
 
         bytes memory sig = abi.encodePacked("sig");
         bytes memory data = abi.encodePacked("data");
@@ -500,6 +534,7 @@ contract GalileoIdentityRegistryTest is Test {
         IClaimIssuer[] memory issuers = new IClaimIssuer[](1);
         issuers[0] = IClaimIssuer(issuer1);
         _mockTIRIssuers(TOPIC_KYC, issuers);
+        _mockIssuerSuspended(issuer1, false);
 
         bytes memory sig = abi.encodePacked("sig");
         bytes memory data = abi.encodePacked("data");
@@ -519,6 +554,7 @@ contract GalileoIdentityRegistryTest is Test {
         IClaimIssuer[] memory issuers = new IClaimIssuer[](1);
         issuers[0] = IClaimIssuer(issuer1);
         _mockTIRIssuers(TOPIC_KYC, issuers);
+        _mockIssuerSuspended(issuer1, false);
 
         bytes32 claimId = keccak256(abi.encode(issuer1, TOPIC_KYC));
         // getClaim returns wrong topic
@@ -540,6 +576,7 @@ contract GalileoIdentityRegistryTest is Test {
         IClaimIssuer[] memory kycIssuers = new IClaimIssuer[](1);
         kycIssuers[0] = IClaimIssuer(issuer1);
         _mockTIRIssuers(TOPIC_KYC, kycIssuers);
+        _mockIssuerSuspended(issuer1, false);
         bytes memory sig = abi.encodePacked("sig");
         bytes memory data = abi.encodePacked("data");
         bytes32 kycId = keccak256(abi.encode(issuer1, TOPIC_KYC));
@@ -566,11 +603,8 @@ contract GalileoIdentityRegistryTest is Test {
     function test_isVerifiedWithConsent_withConsentClaim() public {
         _setupVerifiedUser();
 
-        // Mock consent claim for brandA
-        uint256 consentTopic = uint256(keccak256(abi.encode("galileo.consent.brand", brandA)));
-        bytes32[] memory consentIds = new bytes32[](1);
-        consentIds[0] = bytes32(uint256(1));
-        _mockGetClaimIdsByTopic(address(id1), consentTopic, consentIds);
+        // M-3 fix: consent claim must come from a trusted issuer with a valid signature
+        _setupConsentClaim(address(id1), id1, brandA, issuer1);
 
         assertTrue(reg.isVerifiedWithConsent(user1, TOPIC_KYC, brandA));
     }
@@ -596,6 +630,7 @@ contract GalileoIdentityRegistryTest is Test {
         IClaimIssuer[] memory issuers = new IClaimIssuer[](1);
         issuers[0] = IClaimIssuer(issuer1);
         _mockTIRIssuers(TOPIC_KYC, issuers);
+        _mockIssuerSuspended(issuer1, false);
 
         bytes memory sig = abi.encodePacked("sig");
         bytes memory data = abi.encodePacked("data");
@@ -645,6 +680,7 @@ contract GalileoIdentityRegistryTest is Test {
         IClaimIssuer[] memory kycIssuers = new IClaimIssuer[](1);
         kycIssuers[0] = IClaimIssuer(issuer1);
         _mockTIRIssuers(TOPIC_KYC, kycIssuers);
+        _mockIssuerSuspended(issuer1, false);
         bytes memory sig = abi.encodePacked("sig");
         bytes memory data = abi.encodePacked("data");
         bytes32 kycId = keccak256(abi.encode(issuer1, TOPIC_KYC));
@@ -691,10 +727,8 @@ contract GalileoIdentityRegistryTest is Test {
     function test_batchVerifyWithConsent_trueWhenConsentAndValidClaim() public {
         _setupVerifiedUser();
 
-        uint256 consentTopic = uint256(keccak256(abi.encode("galileo.consent.brand", brandA)));
-        bytes32[] memory consentIds = new bytes32[](1);
-        consentIds[0] = bytes32(uint256(1));
-        _mockGetClaimIdsByTopic(address(id1), consentTopic, consentIds);
+        // M-3 fix: consent claim must come from a trusted issuer with a valid signature
+        _setupConsentClaim(address(id1), id1, brandA, issuer1);
 
         uint256[] memory topics = new uint256[](1);
         topics[0] = TOPIC_KYC;
@@ -817,5 +851,63 @@ contract GalileoIdentityRegistryTest is Test {
         vm.prank(stranger);
         vm.expectRevert();
         reg.setIdentityRegistryStorage(makeAddr("x"));
+    }
+
+    // ─────────────────────────────────────────────────
+    // H-4: Suspended issuers skipped in claim verification
+    // ─────────────────────────────────────────────────
+
+    function test_verifySingleTopic_skipsSuspendedIssuer() public {
+        _mockStoredIdentity(user1, id1);
+
+        IClaimIssuer[] memory issuers = new IClaimIssuer[](1);
+        issuers[0] = IClaimIssuer(issuer1);
+        _mockTIRIssuers(TOPIC_KYC, issuers);
+
+        // issuer1 is suspended — the fix should skip it entirely
+        _mockIssuerSuspended(issuer1, true);
+
+        // A valid underlying claim exists, but the issuer is suspended
+        bytes memory sig = abi.encodePacked("sig");
+        bytes memory data = abi.encodePacked("data");
+        bytes32 claimId = keccak256(abi.encode(issuer1, TOPIC_KYC));
+        _mockGetClaim(address(id1), claimId, TOPIC_KYC, issuer1, sig, data);
+        _mockClaimValid(issuer1, id1, TOPIC_KYC, sig, data, true);
+
+        uint256[] memory topics = new uint256[](1);
+        topics[0] = TOPIC_KYC;
+        bool[] memory results = reg.batchVerify(user1, topics);
+        assertFalse(results[0], "Suspended issuer must not validate claims");
+    }
+
+    // ─────────────────────────────────────────────────
+    // M-3: Consent bypass — self-issued consent rejected
+    // ─────────────────────────────────────────────────
+
+    function test_hasConsent_validatesIssuer() public {
+        _setupVerifiedUser();
+
+        address selfIssuingUser = makeAddr("selfIssuingUser"); // not in TIR
+        uint256 consentTopic = uint256(keccak256(abi.encode("galileo.consent.brand", brandA)));
+        bytes32 consentClaimId = bytes32(uint256(99));
+        bytes32[] memory consentIds = new bytes32[](1);
+        consentIds[0] = consentClaimId;
+        _mockGetClaimIdsByTopic(address(id1), consentTopic, consentIds);
+
+        bytes memory sig = abi.encodePacked("self-sig");
+        bytes memory data = abi.encodePacked("self-data");
+        _mockGetClaim(address(id1), consentClaimId, consentTopic, selfIssuingUser, sig, data);
+
+        // Self-issuer is NOT registered in TIR
+        vm.mockCall(
+            tir,
+            abi.encodeWithSelector(ITrustedIssuersRegistry.isTrustedIssuer.selector, selfIssuingUser),
+            abi.encode(false)
+        );
+
+        assertFalse(
+            reg.isVerifiedWithConsent(user1, TOPIC_KYC, brandA),
+            "Self-issued consent claim must be rejected"
+        );
     }
 }

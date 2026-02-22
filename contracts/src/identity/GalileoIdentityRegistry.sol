@@ -8,6 +8,7 @@ import {IClaimTopicsRegistry} from "@erc3643org/erc-3643/contracts/registry/inte
 import {ITrustedIssuersRegistry} from "@erc3643org/erc-3643/contracts/registry/interface/ITrustedIssuersRegistry.sol";
 import {IIdentityRegistryStorage} from "@erc3643org/erc-3643/contracts/registry/interface/IIdentityRegistryStorage.sol";
 import {IGalileoIdentityRegistry} from "../interfaces/identity/IIdentityRegistry.sol";
+import {IGalileoTrustedIssuersRegistry} from "../interfaces/identity/ITrustedIssuersRegistry.sol";
 
 /**
  * @title GalileoIdentityRegistry
@@ -460,6 +461,11 @@ contract GalileoIdentityRegistry is IGalileoIdentityRegistry, AccessControlEnume
         if (trustedIssuers.length == 0) return false;
 
         for (uint256 i = 0; i < trustedIssuers.length; i++) {
+            // H-4: Skip suspended issuers — a suspended issuer must not validate claims
+            if (IGalileoTrustedIssuersRegistry(address(_trustedIssuersRegistry)).isIssuerSuspended(address(trustedIssuers[i]))) {
+                continue;
+            }
+
             // ERC-735 canonical claim ID: keccak256(abi.encode(issuerAddress, topic))
             bytes32 claimId = keccak256(abi.encode(address(trustedIssuers[i]), _claimTopic));
 
@@ -496,16 +502,50 @@ contract GalileoIdentityRegistry is IGalileoIdentityRegistry, AccessControlEnume
      * @dev Check if the user has granted consent to _requestingBrand.
      *      Consent is represented as a claim on the user's identity with topic =
      *      keccak256(abi.encode("galileo.consent.brand", _requestingBrand)).
-     *      Any claim with that topic (regardless of issuer) is sufficient.
+     *      M-3 fix: the issuer of the consent claim must be in the trusted registry and
+     *      the claim signature must be valid — self-issued claims are rejected.
      */
     function _hasConsent(address _userAddress, address _requestingBrand) internal view returns (bool) {
         IIdentity userIdentity = identity(_userAddress);
         if (address(userIdentity) == address(0)) return false;
         uint256 consentTopic = uint256(keccak256(abi.encode("galileo.consent.brand", _requestingBrand)));
-        try userIdentity.getClaimIdsByTopic(consentTopic) returns (bytes32[] memory claimIds) {
-            return claimIds.length > 0;
+
+        bytes32[] memory claimIds;
+        try userIdentity.getClaimIdsByTopic(consentTopic) returns (bytes32[] memory ids) {
+            claimIds = ids;
         } catch {
             return false;
         }
+
+        for (uint256 i = 0; i < claimIds.length; i++) {
+            uint256 foundTopic;
+            address issuer;
+            bytes memory sig;
+            bytes memory data;
+
+            try userIdentity.getClaim(claimIds[i]) returns (
+                uint256 t, uint256, address i_, bytes memory s, bytes memory d, string memory
+            ) {
+                foundTopic = t;
+                issuer = i_;
+                sig = s;
+                data = d;
+            } catch {
+                continue;
+            }
+
+            if (foundTopic != consentTopic) continue;
+
+            // M-3: Confirm the issuer is registered in the trusted issuers registry
+            if (!_trustedIssuersRegistry.isTrustedIssuer(issuer)) continue;
+
+            // Validate the claim signature via the issuer contract
+            try IClaimIssuer(issuer).isClaimValid(userIdentity, consentTopic, sig, data) returns (bool valid) {
+                if (valid) return true;
+            } catch {
+                // issuer reverted — treat as invalid
+            }
+        }
+        return false;
     }
 }
