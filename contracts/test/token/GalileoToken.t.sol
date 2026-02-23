@@ -763,6 +763,44 @@ contract GalileoTokenTest is Test {
         token.transferFrom(owner1, owner2, 1);
     }
 
+    function test_transferFrom_revertsWhenSenderFrozen() public {
+        vm.prank(agent);
+        token.unpause();
+        vm.prank(agent);
+        token.setAddressFrozen(owner1, true);
+        vm.prank(owner1);
+        token.approve(owner2, 1);
+        vm.prank(owner2);
+        vm.expectRevert("wallet is frozen");
+        token.transferFrom(owner1, owner2, 1);
+    }
+
+    function test_transferFrom_revertsWhenReceiverFrozen() public {
+        vm.prank(agent);
+        token.unpause();
+        vm.prank(agent);
+        token.setAddressFrozen(owner2, true);
+        vm.prank(owner1);
+        token.approve(owner2, 1);
+        vm.prank(owner2);
+        vm.expectRevert("wallet is frozen");
+        token.transferFrom(owner1, owner2, 1);
+    }
+
+    function test_transferFrom_revertsWhenFrozenExceedsAvailable() public {
+        vm.prank(agent);
+        token.unpause();
+        vm.prank(agent);
+        token.freezePartialTokens(owner1, 1); // freeze all tokens
+        vm.prank(owner1);
+        token.approve(owner2, 1);
+        _mockIsVerified(owner2, true);
+        _mockCanTransfer(owner1, owner2, 1, true);
+        vm.prank(owner2);
+        vm.expectRevert("Insufficient Balance");
+        token.transferFrom(owner1, owner2, 1);
+    }
+
     // ============ SECTION: Freeze ============
 
     function test_setAddressFrozen_freezesAddress() public {
@@ -1182,6 +1220,21 @@ contract GalileoTokenTest is Test {
         // Identity registry doesn't support batchVerify → try/catch returns false → NotAuthorizedCertifier
         // Use vm.expectRevert() without specific data since the revert path goes through a no-code address call
         _mockBatchVerify(certifier, [false, false]);
+        vm.prank(certifier);
+        vm.expectRevert(abi.encodeWithSelector(IGalileoToken.NotAuthorizedCertifier.selector, certifier));
+        token.certifyCPO("ipfs://cert");
+    }
+
+    function test_certifyCPO_fallbackWhenBatchVerifyReverts() public {
+        // batchVerify actually reverts → catch block returns false → NotAuthorizedCertifier
+        uint256[] memory topics = new uint256[](2);
+        topics[0] = GalileoClaimTopics.AUTHENTICATOR;
+        topics[1] = GalileoClaimTopics.SERVICE_CENTER;
+        vm.mockCallRevert(
+            identityRegistry,
+            abi.encodeWithSelector(IGalileoIdentityRegistry.batchVerify.selector, certifier, topics),
+            "batchVerify: not supported"
+        );
         vm.prank(certifier);
         vm.expectRevert(abi.encodeWithSelector(IGalileoToken.NotAuthorizedCertifier.selector, certifier));
         token.certifyCPO("ipfs://cert");
