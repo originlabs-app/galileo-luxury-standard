@@ -74,6 +74,8 @@ contract GalileoTokenTest is Test {
         bytes32 indexed reasonCode,
         string reasonDescription
     );
+    event AgentAdded(address indexed _agent);
+    event AgentRemoved(address indexed _agent);
 
     // ============ State ============
 
@@ -1540,5 +1542,39 @@ contract GalileoTokenTest is Test {
         vm.prank(agent);
         vm.expectRevert();
         token.grantRole(REGISTRY_ADMIN_ROLE, newAdmin);
+    }
+
+    // ============ SECTION: ERC-3643 Agent Management wrappers (M-2) ============
+
+    function test_addAgent_grantsAgentRole() public {
+        address newAgent = makeAddr("newAgent");
+        assertFalse(token.isAgent(newAgent));
+        vm.prank(admin);
+        vm.expectEmit(true, false, false, false);
+        emit AgentAdded(newAgent);
+        token.addAgent(newAgent);
+        assertTrue(token.isAgent(newAgent));
+        assertTrue(token.hasRole(AGENT_ROLE, newAgent));
+    }
+
+    function test_removeAgent_revokesAgentRole() public {
+        vm.prank(admin);
+        vm.expectEmit(true, false, false, false);
+        emit AgentRemoved(agent);
+        token.removeAgent(agent);
+        assertFalse(token.isAgent(agent));
+        assertFalse(token.hasRole(AGENT_ROLE, agent));
+    }
+
+    function test_isAgent_returnsCorrectStatus() public view {
+        assertTrue(token.isAgent(agent));
+        assertFalse(token.isAgent(nobody));
+    }
+
+    function test_addAgent_revertsNonAdmin() public {
+        address newAgent = makeAddr("newAgent");
+        vm.prank(nobody);
+        vm.expectRevert();
+        token.addAgent(newAgent);
     }
 }

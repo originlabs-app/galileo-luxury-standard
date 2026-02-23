@@ -63,6 +63,11 @@ contract GalileoToken is IGalileoToken, AccessControlEnumerable {
     /// @notice Role required for operational token functions (agent-equivalent)
     bytes32 public constant AGENT_ROLE = keccak256("AGENT_ROLE");
 
+    // ============ ERC-3643 Agent Management Events ============
+
+    event AgentAdded(address indexed _agent);
+    event AgentRemoved(address indexed _agent);
+
     // ============ Valid Reason Codes ============
 
     bytes32 private constant REASON_SALE = keccak256("SALE");
@@ -259,6 +264,31 @@ contract GalileoToken is IGalileoToken, AccessControlEnumerable {
         _tokenCompliance = IModularCompliance(_compliance);
         _tokenCompliance.bindToken(address(this));
         emit ComplianceAdded(_compliance);
+    }
+
+    // ============ ERC-3643 Agent Management (DEFAULT_ADMIN_ROLE) ============
+
+    /**
+     * @notice Grant AGENT_ROLE to `_agent` (ERC-3643 AgentRole ABI wrapper)
+     */
+    function addAgent(address _agent) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        grantRole(AGENT_ROLE, _agent);
+        emit AgentAdded(_agent);
+    }
+
+    /**
+     * @notice Revoke AGENT_ROLE from `_agent` (ERC-3643 AgentRole ABI wrapper)
+     */
+    function removeAgent(address _agent) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        revokeRole(AGENT_ROLE, _agent);
+        emit AgentRemoved(_agent);
+    }
+
+    /**
+     * @notice Returns true if `_agent` holds AGENT_ROLE (ERC-3643 AgentRole ABI wrapper)
+     */
+    function isAgent(address _agent) public view returns (bool) {
+        return hasRole(AGENT_ROLE, _agent);
     }
 
     // ============ IToken — agent-gated operations (AGENT_ROLE) ============
