@@ -64,7 +64,7 @@ export function VetoCallout() {
                     </div>
                     <div>
                       <span className="font-medium text-[var(--platinum)]">Override Threshold:</span>
-                      <span className="text-[var(--silver)]"> Veto can only be overridden by 9/11 supermajority.</span>
+                      <span className="text-[var(--silver)]"> Requires unanimous TSC consent or 2/3 Governing Board vote.</span>
                     </div>
                   </div>
 
@@ -75,8 +75,8 @@ export function VetoCallout() {
                       </svg>
                     </div>
                     <div>
-                      <span className="font-medium text-[var(--platinum)]">Cooling-Off Period:</span>
-                      <span className="text-[var(--silver)]"> 30-day mandatory discussion period after any veto.</span>
+                      <span className="font-medium text-[var(--platinum)]">Resolution Period:</span>
+                      <span className="text-[var(--silver)]"> 90-day mandatory negotiation period after any veto.</span>
                     </div>
                   </div>
                 </div>

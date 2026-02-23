@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { ChevronDown, Menu, X } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import type { SpecNavSection } from '@/lib/specs-navigation';
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { ChevronDown, Menu, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import type { SpecNavSection } from "@/lib/specs-navigation";
 
 // ============================================================================
 // Types
@@ -19,19 +19,19 @@ interface SpecsSidebarProps {
 // ============================================================================
 
 interface StatusDotProps {
-  status: 'Draft' | 'Active' | 'Standard';
+  status: "Draft" | "Active" | "Standard";
 }
 
 const statusColors = {
-  Draft: 'bg-yellow-500',
-  Active: 'bg-green-500',
-  Standard: 'bg-blue-500',
+  Draft: "bg-yellow-500",
+  Active: "bg-green-500",
+  Standard: "bg-blue-500",
 };
 
 const statusLabels = {
-  Draft: 'Draft specification',
-  Active: 'Active specification',
-  Standard: 'Finalized standard',
+  Draft: "Draft specification",
+  Active: "Active specification",
+  Standard: "Finalized standard",
 };
 
 function StatusDot({ status }: StatusDotProps) {
@@ -80,31 +80,30 @@ export function SpecsSidebar({ navigation }: SpecsSidebarProps) {
 
   // Initialize all sections as expanded
   const [expanded, setExpanded] = useState<string[]>(
-    navigation.map((s) => s.title)
+    navigation.map((s) => s.title),
   );
 
   // Close mobile sidebar on route change
   useEffect(() => {
-    setMobileOpen(false);
+    const id = requestAnimationFrame(() => setMobileOpen(false));
+    return () => cancelAnimationFrame(id);
   }, [pathname]);
 
   // Prevent body scroll when mobile sidebar is open
   useEffect(() => {
     if (mobileOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     }
     return () => {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     };
   }, [mobileOpen]);
 
   const toggleSection = (title: string) => {
     setExpanded((prev) =>
-      prev.includes(title)
-        ? prev.filter((t) => t !== title)
-        : [...prev, title]
+      prev.includes(title) ? prev.filter((t) => t !== title) : [...prev, title],
     );
   };
 
@@ -136,7 +135,7 @@ export function SpecsSidebar({ navigation }: SpecsSidebarProps) {
             </span>
             <ChevronDown
               className={`w-4 h-4 transition-transform duration-200 ${
-                expanded.includes(section.title) ? '' : '-rotate-90'
+                expanded.includes(section.title) ? "" : "-rotate-90"
               }`}
             />
           </button>
@@ -153,8 +152,8 @@ export function SpecsSidebar({ navigation }: SpecsSidebarProps) {
                       href={item.href}
                       className={`flex items-center gap-2 py-1.5 text-sm transition-colors ${
                         isActive
-                          ? 'text-[var(--cyan-primary)] font-medium border-l-2 border-[var(--cyan-primary)] -ml-[calc(0.75rem+1px)] pl-[calc(0.75rem-1px)]'
-                          : 'text-[var(--platinum-dim)] hover:text-[var(--platinum)]'
+                          ? "text-[var(--cyan-primary)] font-medium border-l-2 border-[var(--cyan-primary)] -ml-[calc(0.75rem+1px)] pl-[calc(0.75rem-1px)]"
+                          : "text-[var(--platinum-dim)] hover:text-[var(--platinum)]"
                       }`}
                     >
                       <StatusDot status={item.status} />
@@ -196,7 +195,9 @@ export function SpecsSidebar({ navigation }: SpecsSidebarProps) {
           />
           <aside className="absolute left-0 top-0 bottom-0 w-72 bg-[var(--obsidian)] border-r border-[var(--platinum)]/10 overflow-y-auto">
             <div className="sticky top-0 z-10 flex items-center justify-between p-4 border-b border-[var(--platinum)]/10 bg-[var(--obsidian)]">
-              <span className="text-sm font-medium text-[var(--platinum)]">Specifications</span>
+              <span className="text-sm font-medium text-[var(--platinum)]">
+                Specifications
+              </span>
               <button
                 onClick={() => setMobileOpen(false)}
                 className="p-1 text-[var(--platinum-dim)] hover:text-[var(--platinum)] transition-colors"
@@ -205,9 +206,7 @@ export function SpecsSidebar({ navigation }: SpecsSidebarProps) {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <nav className="p-4 space-y-6">
-              {navContent}
-            </nav>
+            <nav className="p-4 space-y-6">{navContent}</nav>
           </aside>
         </div>
       )}

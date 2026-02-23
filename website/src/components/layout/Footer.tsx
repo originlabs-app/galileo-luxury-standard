@@ -160,8 +160,11 @@ export function Footer() {
         </div>
       </section>
 
+      {/* Gradient separator */}
+      <div className="h-px bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent" />
+
       {/* Main footer */}
-      <section className="py-16 border-t border-white/5">
+      <section className="py-16">
         <div className="container mx-auto px-6 md:px-8">
           <div className="grid md:grid-cols-4 gap-12">
             {/* Brand */}
@@ -245,7 +248,7 @@ export function Footer() {
               </ul>
             </div>
 
-            {/* Resources */}
+            {/* Company */}
             <div>
               <h4
                 className="text-[10px] tracking-[0.3em] uppercase mb-6"
@@ -256,9 +259,10 @@ export function Footer() {
                   backgroundClip: 'text',
                 }}
               >
-                Resources
+                Company
               </h4>
               <ul className="space-y-3">
+                <li><Link href="/maison" className="text-sm text-white/70 hover:text-cyan-400 transition-colors">About</Link></li>
                 <li>
                   <a
                     href="https://github.com/originlabs-app/galileo-luxury-standard"
@@ -266,7 +270,7 @@ export function Footer() {
                     rel="noopener noreferrer"
                     className="text-sm text-white/70 hover:text-cyan-400 transition-colors"
                   >
-                    GitHub Repository
+                    GitHub
                   </a>
                 </li>
                 <li>
@@ -295,13 +299,27 @@ export function Footer() {
         </div>
       </section>
 
+      {/* Bottom bar separator */}
+      <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
       {/* Bottom bar */}
-      <section className="py-6 border-t border-white/10">
+      <section className="py-6">
         <div className="container mx-auto px-6 md:px-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-[10px] text-white/40">
               © {new Date().getFullYear()} Galileo Protocol. Licensed under Apache 2.0.
             </p>
+
+            {/* Privacy & Terms */}
+            <div className="flex items-center gap-4">
+              <Link href="/privacy" className="text-[10px] text-white/40 hover:text-cyan-400 transition-colors">
+                Privacy
+              </Link>
+              <span className="text-white/20">·</span>
+              <Link href="/terms" className="text-[10px] text-white/40 hover:text-cyan-400 transition-colors">
+                Terms
+              </Link>
+            </div>
 
             {/* Signature */}
             <div className="flex items-center gap-2">

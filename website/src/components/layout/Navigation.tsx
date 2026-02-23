@@ -27,10 +27,10 @@ export function Navigation() {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           isScrolled
-            ? 'bg-[rgba(2,4,8,0.98)] backdrop-blur-xl'
-            : 'bg-[rgba(2,4,8,0.85)] backdrop-blur-lg'
+            ? 'bg-[rgba(2,4,8,0.9)] backdrop-blur-xl'
+            : 'bg-transparent'
         }`}
       >
         {/* Subtle bottom border that fades in on scroll */}
