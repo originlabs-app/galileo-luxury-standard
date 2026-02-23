@@ -53,6 +53,15 @@ contract Deploy is Script {
 
     // ─── Entry point ─────────────────────────────────────────────────────────
 
+    /**
+     * @notice Post-deployment checklist
+     * @dev Before going live, ensure ALL of the following are completed:
+     *   [ ] Set sanctions oracle:  sanctionsModule.setSanctionsOracle(<CHAINALYSIS_ORACLE_ADDRESS>)
+     *   [ ] Add trusted issuer:    tir.addTrustedIssuer(<issuer>, [KYC_BASIC, AUTHENTICATOR])
+     *   [ ] Register identities:   reg.registerIdentity(<wallet>, <identity>, <country>)
+     *   [ ] Grant AGENT_ROLE on token to operational wallets (beyond the deployer admin)
+     *   [ ] Unpause token:         token.unpause()
+     */
     function run() external {
         // In this script the deployer is the admin for all contracts.
         address admin = msg.sender;
@@ -79,6 +88,8 @@ contract Deploy is Script {
         reg        = new GalileoIdentityRegistry(
             admin, address(tir), address(ctr), address(idStorage)
         );
+        // Grant AGENT_ROLE to deployer for initial identity onboarding
+        reg.grantRole(reg.AGENT_ROLE(), admin);
         // Compliance owner is `admin`. Ownership is transferred to the token
         // address just before token deployment (see _deployToken).
         compliance = new GalileoCompliance(admin, address(reg));
@@ -121,8 +132,11 @@ contract Deploy is Script {
         // Allow all transfers — tighten for production use
         brandModule.setRequireRetailerForPrimarySale(false);
         brandModule.setAllowPeerToPeer(true);
-        // Non-strict sanctions: passes when oracle is unavailable
-        sanctionsModule.setStrictMode(false);
+        // TODO: CRITICAL — Set sanctions oracle address before mainnet deployment
+        // sanctionsModule.setSanctionsOracle(CHAINALYSIS_ORACLE_ADDRESS);
+
+        // Enable strict mode — oracle failures will block transfers (fail-closed)
+        sanctionsModule.setStrictMode(true);
 
         compliance.addModule(address(brandModule));
         compliance.addModule(address(cpoModule));
