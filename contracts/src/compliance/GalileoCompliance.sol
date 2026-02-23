@@ -146,13 +146,15 @@ contract GalileoCompliance is IGalileoCompliance, Ownable {
 
         IComplianceModule(_module).unbindCompliance(address(this));
 
-        // Capture old order before swap-and-pop
         address[] memory oldOrder = _modules;
 
         uint256 len = _modules.length;
         for (uint256 i = 0; i < len; i++) {
             if (_modules[i] == _module) {
-                _modules[i] = _modules[len - 1];
+                // Shift all subsequent elements left by 1 to preserve order
+                for (uint256 j = i; j < len - 1; j++) {
+                    _modules[j] = _modules[j + 1];
+                }
                 _modules.pop();
                 break;
             }
@@ -161,7 +163,6 @@ contract GalileoCompliance is IGalileoCompliance, Ownable {
 
         emit ModuleRemoved(_module);
         emit ModuleRemoved(_module, mType);
-        // Signal order change so callers can react (swap-and-pop shifts last element)
         if (len > 1) emit ModuleOrderChanged(oldOrder, _modules);
     }
 

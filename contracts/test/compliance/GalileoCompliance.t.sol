@@ -201,13 +201,28 @@ contract GalileoComplianceTest is Test {
     function test_removeModule_emitsModuleOrderChanged_whenNotLast() public {
         _addModule(moduleA);
         _addModule(moduleB);
-        // Removing moduleA (first) causes swap-and-pop: moduleB jumps to index 0
+        // Removing moduleA (first) shifts moduleB to index 0
         vm.prank(admin);
         compliance.removeModule(moduleA);
         // moduleB is still bound; order changed
         assertTrue(compliance.isModuleBound(moduleB));
         assertEq(compliance.moduleCount(), 1);
         assertEq(compliance.getModuleOrder()[0], moduleB);
+    }
+
+    function test_removeModule_preservesOrder() public {
+        _addModule(moduleA);
+        _addModule(moduleB);
+        _addModule(moduleC);
+        // Remove the middle module
+        vm.prank(admin);
+        compliance.removeModule(moduleB);
+        // Remaining order must be A, C — not A, C swapped
+        assertFalse(compliance.isModuleBound(moduleB));
+        assertEq(compliance.moduleCount(), 2);
+        address[] memory order = compliance.getModuleOrder();
+        assertEq(order[0], moduleA);
+        assertEq(order[1], moduleC);
     }
 
     function test_removeModule_revertsIfNotBound() public {
