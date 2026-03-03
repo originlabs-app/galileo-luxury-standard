@@ -1,8 +1,6 @@
 # Architecture
 
-Architectural decisions, patterns, and conventions discovered during the mission.
-
-**What belongs here:** Tech stack choices, directory patterns, coding conventions, design decisions.
+Architectural decisions, patterns, and conventions.
 
 ---
 
@@ -26,17 +24,37 @@ Architectural decisions, patterns, and conventions discovered during the mission
 ## Identifiers
 - Products use GS1-native DIDs: did:galileo:01:{gtin}:21:{serial}
 - Brands use DIDs: did:galileo:brand:{slug}
-- GS1 Digital Link: https://id.galileoprotocol.io/01/{gtin}/21/{serial}
+- GS1 Digital Link: https://id.galileoprotocol.io/01/{gtin}/21/{serial} (serial URL-encoded)
 - No UUIDs as primary product identifiers
 
 ## API Response Format
 - All API endpoints wrap responses in a standard envelope:
   - Success: `{ success: true, data: { ... } }`
   - Error: `{ success: false, error: { code: string, message: string } }`
-- Frontend consumers must unwrap the envelope to access actual data (e.g., `response.data.accessToken`, not `response.accessToken`)
+- Frontend consumers must unwrap the envelope to access actual data
+
+## Auth: httpOnly Cookies (Sprint 2)
+- Access token: `galileo_at` cookie (httpOnly, Secure, SameSite=Lax, Path=/, 15min)
+- Refresh token: `galileo_rt` cookie (httpOnly, Secure, SameSite=Lax, Path=/auth/refresh, 7d)
+- No tokens in response body or localStorage
+- CORS: credentials=true with explicit origin
+
+## Blockchain: Chain Disabled Mode (Sprint 2)
+- viem installed but no real chain calls
+- If DEPLOYER_PRIVATE_KEY absent → mock mode
+- Mock mint: synthetic txHash (0x + 64 hex), tokenAddress (0x + 40 hex), chainId=84532
+- Future: when key is provided, real Base Sepolia integration activates
+
+## Product Lifecycle
+- DRAFT → (mint) → ACTIVE → TRANSFERRED / RECALLED
+- Only DRAFT products can be edited (PATCH)
+- Only DRAFT products can be minted
+- Only ACTIVE+ products are publicly resolvable via GS1 Digital Link
+- MINTING is an intermediate status (reserved for future async flow)
 
 ## GDPR Compliance
-- Passwords: bcrypt 12 rounds
+- Passwords: bcrypt 12 rounds, max 128 chars
 - JWT: minimal payload (sub, role, brandId only)
 - Logs: no PII (user IDs only, never emails/names)
-- CORS: strict origin validation
+- CORS: strict origin validation with credentials
+- Refresh tokens: SHA-256 hashed before DB storage
