@@ -1,0 +1,38 @@
+{
+  "milestone": "product-crud",
+  "round": 1,
+  "status": "pass",
+  "assertionsSummary": {
+    "total": 10,
+    "passed": 10,
+    "failed": 0,
+    "blocked": 0
+  },
+  "passedAssertions": [
+    "VAL-PROD-001",
+    "VAL-PROD-002",
+    "VAL-PROD-003",
+    "VAL-PROD-004",
+    "VAL-PROD-005",
+    "VAL-PROD-006",
+    "VAL-PROD-007",
+    "VAL-PROD-008",
+    "VAL-PROD-009",
+    "VAL-PROD-010"
+  ],
+  "failedAssertions": [],
+  "blockedAssertions": [],
+  "appliedUpdates": [
+    {
+      "target": "user-testing.md",
+      "description": "Noted that the seeded admin@galileo.test account has BRAND_ADMIN role by default, not ADMIN. Must be manually promoted for admin-scoped tests.",
+      "source": "flow-report"
+    },
+    {
+      "target": "user-testing.md",
+      "description": "Noted that product creation requires 'serialNumber' key (not 'serial') and CREATED event is accessible via GET /products/:id embedded in events array (no separate events endpoint).",
+      "source": "flow-report"
+    }
+  ],
+  "previousRound": null
+}

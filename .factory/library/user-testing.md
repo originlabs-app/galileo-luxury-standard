@@ -59,7 +59,14 @@ curl -s http://localhost:4000/products -b "galileo_at=<token_value>"
 
 ## Test Accounts
 - Register new accounts via POST /auth/register or the /register page
-- Seeded admin may exist: admin@galileo.test / changeme123 (BRAND_ADMIN, brand: Galileo Luxe)
+- Seeded admin: admin@galileo.test / changeme123 (BRAND_ADMIN by default, brand: Galileo Luxe)
+  - **Note:** The seed script creates the admin with BRAND_ADMIN role, NOT ADMIN. For admin-scoped tests (e.g., seeing all brands' products), promote via psql: `UPDATE "User" SET role = 'ADMIN' WHERE email = 'admin@galileo.test';`
+
+## Product API Notes
+- Product creation payload uses `serialNumber` (not `serial`) as the field key
+- CREATED/UPDATED/MINTED events are embedded in GET /products/:id response as `events` array (no separate events endpoint)
+- Valid test GTINs: 00012345678905, 04000000000007
+- To test non-DRAFT product behavior without mint endpoint, update status directly: `psql ... -c "UPDATE \"Product\" SET status = 'ACTIVE' WHERE id = '<id>';"`
 
 ## Known Quirks
 - esbuild build scripts are ignored (pnpm approve-builds needed)
