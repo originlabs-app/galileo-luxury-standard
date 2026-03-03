@@ -22,6 +22,10 @@ Environment variables, external dependencies, and setup notes.
 - Workspace: apps/* and packages/* only
 - website/ and contracts/ are NOT in the workspace
 
+## ESLint Compatibility
+- ESLint is pinned to ^9 in workspace packages due to peer dependency conflicts with eslint-config-next
+- If adding new ESLint plugins, verify compatibility with ESLint 9 flat config format
+
 ## API Environment Variables
 - DATABASE_URL: PostgreSQL connection string
 - JWT_SECRET: Min 32 chars, used for access tokens

@@ -29,6 +29,12 @@ Architectural decisions, patterns, and conventions discovered during the mission
 - GS1 Digital Link: https://id.galileoprotocol.io/01/{gtin}/21/{serial}
 - No UUIDs as primary product identifiers
 
+## API Response Format
+- All API endpoints wrap responses in a standard envelope:
+  - Success: `{ success: true, data: { ... } }`
+  - Error: `{ success: false, error: { code: string, message: string } }`
+- Frontend consumers must unwrap the envelope to access actual data (e.g., `response.data.accessToken`, not `response.accessToken`)
+
 ## GDPR Compliance
 - Passwords: bcrypt 12 rounds
 - JWT: minimal payload (sub, role, brandId only)
