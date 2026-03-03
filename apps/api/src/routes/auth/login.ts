@@ -1,0 +1,140 @@
+import type { FastifyInstance } from "fastify";
+import { z } from "zod";
+import { emailSchema, passwordSchema } from "@galileo/shared";
+import { verifyPassword } from "../../utils/password.js";
+import { generateTokenPair } from "../../utils/tokens.js";
+
+const loginBody = z.object({
+  email: emailSchema,
+  password: passwordSchema,
+});
+
+const INVALID_CREDENTIALS_ERROR = {
+  success: false as const,
+  error: {
+    code: "UNAUTHORIZED",
+    message: "Invalid email or password",
+  },
+};
+
+const errorResponseSchema = {
+  type: "object" as const,
+  properties: {
+    success: { type: "boolean" as const },
+    error: {
+      type: "object" as const,
+      properties: {
+        code: { type: "string" as const },
+        message: { type: "string" as const },
+      },
+    },
+  },
+};
+
+export default async function loginRoute(fastify: FastifyInstance) {
+  fastify.post(
+    "/auth/login",
+    {
+      schema: {
+        description: "Login with email and password",
+        tags: ["Auth"],
+        body: {
+          type: "object",
+          properties: {
+            email: { type: "string", description: "User email" },
+            password: { type: "string", description: "User password" },
+          },
+        },
+        response: {
+          200: {
+            type: "object",
+            properties: {
+              success: { type: "boolean" },
+              data: {
+                type: "object",
+                properties: {
+                  user: {
+                    type: "object",
+                    properties: {
+                      id: { type: "string" },
+                      email: { type: "string" },
+                      role: { type: "string" },
+                      brandId: { type: "string", nullable: true },
+                      createdAt: { type: "string" },
+                      updatedAt: { type: "string" },
+                    },
+                  },
+                  accessToken: { type: "string" },
+                  refreshToken: { type: "string" },
+                },
+              },
+            },
+          },
+          400: errorResponseSchema,
+          401: errorResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const parsed = loginBody.safeParse(request.body);
+      if (!parsed.success) {
+        return reply.status(400).send({
+          success: false,
+          error: {
+            code: "VALIDATION_ERROR",
+            message: "Invalid input",
+            details: parsed.error.flatten().fieldErrors,
+          },
+        });
+      }
+
+      const { email, password } = parsed.data;
+
+      // Find user by email
+      const user = await fastify.prisma.user.findUnique({
+        where: { email },
+      });
+
+      // Same error for non-existent user and wrong password (prevent enumeration)
+      if (!user) {
+        return reply.status(401).send(INVALID_CREDENTIALS_ERROR);
+      }
+
+      const valid = await verifyPassword(password, user.passwordHash);
+      if (!valid) {
+        return reply.status(401).send(INVALID_CREDENTIALS_ERROR);
+      }
+
+      const tokens = generateTokenPair(fastify, {
+        sub: user.id,
+        role: user.role,
+        brandId: user.brandId,
+      });
+
+      // Store refresh token
+      await fastify.prisma.user.update({
+        where: { id: user.id },
+        data: { refreshToken: tokens.refreshToken },
+      });
+
+      // Log without PII
+      fastify.log.info({ userId: user.id }, "User logged in");
+
+      return reply.status(200).send({
+        success: true,
+        data: {
+          user: {
+            id: user.id,
+            email: user.email,
+            role: user.role,
+            brandId: user.brandId,
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt,
+          },
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken,
+        },
+      });
+    },
+  );
+}

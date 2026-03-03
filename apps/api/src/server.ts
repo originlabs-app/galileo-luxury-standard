@@ -6,6 +6,7 @@ import prismaPlugin from "./plugins/prisma.js";
 import authPlugin from "./plugins/auth.js";
 import corsPlugin from "./plugins/cors.js";
 import healthRoutes from "./routes/health.js";
+import authRoutes from "./routes/auth/index.js";
 
 export async function buildApp() {
   const fastify = Fastify({
@@ -18,7 +19,8 @@ export async function buildApp() {
       openapi: "3.0.0",
       info: {
         title: "Galileo Protocol API",
-        description: "API for luxury product authentication via Digital Product Passports",
+        description:
+          "API for luxury product authentication via Digital Product Passports",
         version: "0.0.0",
       },
       servers: [
@@ -50,6 +52,7 @@ export async function buildApp() {
 
   // Register routes
   await fastify.register(healthRoutes);
+  await fastify.register(authRoutes);
 
   return fastify;
 }

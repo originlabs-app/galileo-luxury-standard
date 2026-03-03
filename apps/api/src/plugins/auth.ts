@@ -18,7 +18,17 @@ declare module "@fastify/jwt" {
   }
 }
 
+declare module "fastify" {
+  interface FastifyInstance {
+    authenticate: (
+      request: FastifyRequest,
+      reply: FastifyReply,
+    ) => Promise<void>;
+  }
+}
+
 export default fp(async (fastify: FastifyInstance) => {
+  // Access token JWT (15min)
   await fastify.register(fastifyJwt, {
     secret: config.JWT_SECRET,
     sign: {
@@ -26,23 +36,29 @@ export default fp(async (fastify: FastifyInstance) => {
     },
   });
 
-  fastify.decorate("authenticate", async (request: FastifyRequest, reply: FastifyReply) => {
-    try {
-      await request.jwtVerify();
-    } catch {
-      reply.status(401).send({
-        success: false,
-        error: {
-          code: "UNAUTHORIZED",
-          message: "Invalid or expired token",
-        },
-      });
-    }
+  // Refresh token JWT (7d) — separate secret + namespace
+  await fastify.register(fastifyJwt, {
+    secret: config.JWT_REFRESH_SECRET,
+    namespace: "refresh",
+    sign: {
+      expiresIn: "7d",
+    },
   });
-});
 
-declare module "fastify" {
-  interface FastifyInstance {
-    authenticate: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
-  }
-}
+  fastify.decorate(
+    "authenticate",
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      try {
+        await request.jwtVerify();
+      } catch {
+        reply.status(401).send({
+          success: false,
+          error: {
+            code: "UNAUTHORIZED",
+            message: "Invalid or expired token",
+          },
+        });
+      }
+    },
+  );
+});

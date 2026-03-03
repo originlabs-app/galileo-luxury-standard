@@ -11,6 +11,9 @@
     "lint": "eslint src/",
     "typecheck": "tsc --noEmit"
   },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "dependencies": {
     "@fastify/cors": "latest",
     "@fastify/jwt": "latest",
