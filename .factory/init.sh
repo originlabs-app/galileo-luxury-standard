@@ -28,17 +28,23 @@ NODE_ENV=development
 EOF
 fi
 
+# Set up Dashboard .env if it doesn't exist
+if [ -d "apps/dashboard" ] && [ ! -f "apps/dashboard/.env" ]; then
+  cat > apps/dashboard/.env << EOF
+NEXT_PUBLIC_API_URL=http://localhost:4000
+EOF
+fi
+
 # Push Prisma schema to dev DB
 if [ -f "apps/api/prisma/schema.prisma" ] && [ -f "apps/api/.env" ]; then
-  cd apps/api && pnpm prisma db push --skip-generate 2>/dev/null || true
+  cd apps/api && pnpm prisma db push 2>/dev/null || true
   pnpm prisma generate 2>/dev/null || true
   cd /Users/pierrebeunardeau/GalileoLuxury
 fi
 
 # Push Prisma schema to test DB
 if [ -f "apps/api/prisma/schema.prisma" ]; then
-  DATABASE_URL="postgresql://pierrebeunardeau@localhost:5432/galileo_test" \
-    cd apps/api && pnpm prisma db push --skip-generate 2>/dev/null || true
+  cd apps/api && pnpm prisma db push --url "postgresql://pierrebeunardeau@localhost:5432/galileo_test" 2>/dev/null || true
   cd /Users/pierrebeunardeau/GalileoLuxury
 fi
 

@@ -4,5 +4,11 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "node",
+    globalSetup: "./test/global-setup.ts",
+    env: {
+      DATABASE_URL:
+        "postgresql://pierrebeunardeau@localhost:5432/galileo_test",
+      NODE_ENV: "test",
+    },
   },
 });

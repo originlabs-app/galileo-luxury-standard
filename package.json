@@ -14,8 +14,8 @@
     "db:studio": "pnpm --filter @galileo/api exec prisma studio"
   },
   "devDependencies": {
-    "turbo": "latest",
-    "typescript": "latest"
+    "turbo": "2.8.12",
+    "typescript": "5.9.3"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

@@ -9,200 +9,200 @@ importers:
   .:
     devDependencies:
       turbo:
-        specifier: latest
+        specifier: 2.8.12
         version: 2.8.12
       typescript:
-        specifier: latest
+        specifier: 5.9.3
         version: 5.9.3
 
   apps/api:
     dependencies:
       '@fastify/cookie':
-        specifier: ^11.0.2
+        specifier: 11.0.2
         version: 11.0.2
       '@fastify/cors':
-        specifier: latest
+        specifier: 11.2.0
         version: 11.2.0
       '@fastify/jwt':
-        specifier: latest
+        specifier: 10.0.0
         version: 10.0.0
       '@fastify/swagger':
-        specifier: latest
+        specifier: 9.7.0
         version: 9.7.0
       '@fastify/swagger-ui':
-        specifier: latest
+        specifier: 5.2.5
         version: 5.2.5
       '@galileo/shared':
         specifier: workspace:*
         version: link:../../packages/shared
       '@prisma/adapter-pg':
-        specifier: latest
+        specifier: 7.4.2
         version: 7.4.2
       '@prisma/client':
-        specifier: latest
+        specifier: 7.4.2
         version: 7.4.2(prisma@7.4.2(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.9.3))(typescript@5.9.3)
       bcrypt:
-        specifier: latest
+        specifier: 6.0.0
         version: 6.0.0
       dotenv:
-        specifier: latest
+        specifier: 17.3.1
         version: 17.3.1
       fastify:
-        specifier: latest
+        specifier: 5.7.4
         version: 5.7.4
       fastify-plugin:
-        specifier: latest
+        specifier: 5.1.0
         version: 5.1.0
       pg:
-        specifier: latest
+        specifier: 8.19.0
         version: 8.19.0
       prisma:
-        specifier: latest
+        specifier: 7.4.2
         version: 7.4.2(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.9.3)
       zod:
-        specifier: latest
+        specifier: 4.3.6
         version: 4.3.6
     devDependencies:
       '@eslint/js':
-        specifier: latest
+        specifier: 10.0.1
         version: 10.0.1(eslint@10.0.2(jiti@2.6.1))
       '@types/bcrypt':
-        specifier: latest
+        specifier: 6.0.0
         version: 6.0.0
       '@types/pg':
-        specifier: latest
+        specifier: 8.18.0
         version: 8.18.0
       eslint:
-        specifier: latest
+        specifier: 10.0.2
         version: 10.0.2(jiti@2.6.1)
       tsx:
-        specifier: latest
+        specifier: 4.21.0
         version: 4.21.0
       typescript:
-        specifier: latest
+        specifier: 5.9.3
         version: 5.9.3
       typescript-eslint:
-        specifier: latest
+        specifier: 8.56.1
         version: 8.56.1(eslint@10.0.2(jiti@2.6.1))(typescript@5.9.3)
       vitest:
-        specifier: latest
+        specifier: 4.0.18
         version: 4.0.18(@types/node@25.3.3)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.10(@types/node@25.3.3)(typescript@5.9.3))(tsx@4.21.0)(yaml@2.8.2)
 
   apps/dashboard:
     dependencies:
       class-variance-authority:
-        specifier: latest
+        specifier: 0.7.1
         version: 0.7.1
       clsx:
-        specifier: latest
+        specifier: 2.1.1
         version: 2.1.1
       lucide-react:
-        specifier: latest
+        specifier: 0.576.0
         version: 0.576.0(react@19.2.4)
       next:
-        specifier: latest
+        specifier: 16.1.6
         version: 16.1.6(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       radix-ui:
-        specifier: ^1.4.3
+        specifier: 1.4.3
         version: 1.4.3(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react:
-        specifier: latest
+        specifier: 19.2.4
         version: 19.2.4
       react-dom:
-        specifier: latest
+        specifier: 19.2.4
         version: 19.2.4(react@19.2.4)
       tailwind-merge:
-        specifier: latest
+        specifier: 3.5.0
         version: 3.5.0
     devDependencies:
       '@tailwindcss/postcss':
-        specifier: latest
+        specifier: 4.2.1
         version: 4.2.1
       '@types/node':
-        specifier: latest
+        specifier: 25.3.3
         version: 25.3.3
       '@types/react':
-        specifier: latest
+        specifier: 19.2.14
         version: 19.2.14
       '@types/react-dom':
-        specifier: latest
+        specifier: 19.2.3
         version: 19.2.3(@types/react@19.2.14)
       eslint:
-        specifier: ^9
+        specifier: 9.39.3
         version: 9.39.3(jiti@2.6.1)
       eslint-config-next:
-        specifier: latest
+        specifier: 16.1.6
         version: 16.1.6(eslint@9.39.3(jiti@2.6.1))(typescript@5.9.3)
       shadcn:
-        specifier: ^3.8.5
+        specifier: 3.8.5
         version: 3.8.5(@types/node@25.3.3)(typescript@5.9.3)
       tailwindcss:
-        specifier: latest
+        specifier: 4.2.1
         version: 4.2.1
       tw-animate-css:
-        specifier: ^1.4.0
+        specifier: 1.4.0
         version: 1.4.0
       typescript:
-        specifier: latest
+        specifier: 5.9.3
         version: 5.9.3
 
   apps/scanner:
     dependencies:
       next:
-        specifier: latest
+        specifier: 16.1.6
         version: 16.1.6(@babel/core@7.29.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       react:
-        specifier: latest
+        specifier: 19.2.4
         version: 19.2.4
       react-dom:
-        specifier: latest
+        specifier: 19.2.4
         version: 19.2.4(react@19.2.4)
     devDependencies:
       '@tailwindcss/postcss':
-        specifier: latest
+        specifier: 4.2.1
         version: 4.2.1
       '@types/node':
-        specifier: latest
+        specifier: 25.3.3
         version: 25.3.3
       '@types/react':
-        specifier: latest
+        specifier: 19.2.14
         version: 19.2.14
       '@types/react-dom':
-        specifier: latest
+        specifier: 19.2.3
         version: 19.2.3(@types/react@19.2.14)
       eslint:
-        specifier: ^9
+        specifier: 9.39.3
         version: 9.39.3(jiti@2.6.1)
       eslint-config-next:
-        specifier: latest
+        specifier: 16.1.6
         version: 16.1.6(eslint@9.39.3(jiti@2.6.1))(typescript@5.9.3)
       tailwindcss:
-        specifier: latest
+        specifier: 4.2.1
         version: 4.2.1
       typescript:
-        specifier: latest
+        specifier: 5.9.3
         version: 5.9.3
 
   packages/shared:
     dependencies:
       zod:
-        specifier: latest
+        specifier: 4.3.6
         version: 4.3.6
     devDependencies:
       '@eslint/js':
-        specifier: latest
+        specifier: 10.0.1
         version: 10.0.1(eslint@10.0.2(jiti@2.6.1))
       eslint:
-        specifier: latest
+        specifier: 10.0.2
         version: 10.0.2(jiti@2.6.1)
       typescript:
-        specifier: latest
+        specifier: 5.9.3
         version: 5.9.3
       typescript-eslint:
-        specifier: latest
+        specifier: 8.56.1
         version: 8.56.1(eslint@10.0.2(jiti@2.6.1))(typescript@5.9.3)
       vitest:
-        specifier: latest
+        specifier: 4.0.18
         version: 4.0.18(@types/node@25.3.3)(jiti@2.6.1)(lightningcss@1.31.1)(msw@2.12.10(@types/node@25.3.3)(typescript@5.9.3))(tsx@4.21.0)(yaml@2.8.2)
 
 packages:
@@ -7684,7 +7684,7 @@ snapshots:
       eslint: 9.39.3(jiti@2.6.1)
       eslint-import-resolver-node: 0.3.9
       eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0(eslint@9.39.3(jiti@2.6.1)))(eslint@9.39.3(jiti@2.6.1))
-      eslint-plugin-import: 2.32.0(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(eslint@9.39.3(jiti@2.6.1)))(eslint@9.39.3(jiti@2.6.1)))(eslint@9.39.3(jiti@2.6.1))
+      eslint-plugin-import: 2.32.0(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.3(jiti@2.6.1))
       eslint-plugin-jsx-a11y: 6.10.2(eslint@9.39.3(jiti@2.6.1))
       eslint-plugin-react: 7.37.5(eslint@9.39.3(jiti@2.6.1))
       eslint-plugin-react-hooks: 7.0.1(eslint@9.39.3(jiti@2.6.1))
@@ -7717,7 +7717,7 @@ snapshots:
       tinyglobby: 0.2.15
       unrs-resolver: 1.11.1
     optionalDependencies:
-      eslint-plugin-import: 2.32.0(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(eslint@9.39.3(jiti@2.6.1)))(eslint@9.39.3(jiti@2.6.1)))(eslint@9.39.3(jiti@2.6.1))
+      eslint-plugin-import: 2.32.0(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.3(jiti@2.6.1))
     transitivePeerDependencies:
       - supports-color
 
@@ -7731,7 +7731,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-plugin-import@2.32.0(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(eslint@9.39.3(jiti@2.6.1)))(eslint@9.39.3(jiti@2.6.1)))(eslint@9.39.3(jiti@2.6.1)):
+  eslint-plugin-import@2.32.0(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.3(jiti@2.6.1)):
     dependencies:
       '@rtsao/scc': 1.1.0
       array-includes: 3.1.9
