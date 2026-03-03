@@ -201,18 +201,114 @@ The Paymaster contract:
 
 ---
 
-## Phase 0 — Repo Cleanup (Week 1) ⚠️ Partially done
+## Architectural Constraints (validated)
+
+These decisions were locked before Sprint 1. They are **not negotiable** without explicit re-evaluation.
+
+| # | Constraint | Rationale |
+|---|-----------|-----------|
+| 1 | **ERC-3643 only** (no ERC-721) | Repo is built on ERC-3643/T-REX compliance modules. Introducing ERC-721 would create two incompatible token models. Product passports = permissioned tokens with compliance hooks. |
+| 2 | **Foundry only** (no Hardhat) | Already in place (`forge build`, `forge test`, 722 tests). One toolchain = one source of truth. |
+| 3 | **Fastify API only** (no Next.js Route Handlers for API) | B2B multi-tenant + webhooks + background jobs + chain sync = dedicated API server. Next.js handles frontend only. |
+| 4 | **Don't pin Next.js version** | Use whatever version is current. Repo already runs latest — pinning "15" creates drift. |
+| 5 | **GTIN/serial identifiers from day 1** | DID format is `did:galileo:01:{gtin}:21:{serial}`, not UUID. GS1 Digital Link resolver is core — identifiers must be GS1-native from Sprint 2. |
+| 6 | **T1/LEOX = post-pilot gate** | Sprint 5 only starts after MVP KPIs validated: create→mint→scan→verify stable on Base Sepolia with real brand data. |
+
+---
+
+## Sprint Plan (MVP)
+
+The roadmap is organized in **5 sprints** mapping to the detailed phases below.
+
+```
+Sprint 1 (Week 1-2)   Foundations        → Phase 0 + Phase 2 setup + Phase 3 shell
+Sprint 2 (Week 3-4)   Product & Passport → Phase 1 (testnet) + Phase 2 (core API) + Phase 5 (GS1)
+Sprint 3 (Week 5-6)   Scanner & Verify   → Phase 4 (scanner PWA) + Phase 2 (event API)
+Sprint 4 (Week 7-8)   Stabilisation      → Hardening, security, multi-tenant, monitoring
+Sprint 5 (Week 9-12)  T1/LEOX            → Phase 6 (POST-PILOT GATE — only after KPI validation)
+```
+
+### Sprint 1 — Foundations (Week 1-2)
+
+**Goal:** Technical stack up and running — auth, data model, CI green.
+
+- [ ] Monorepo setup (Turborepo): `apps/api` (Fastify), `apps/dashboard` (Next.js), `apps/scanner` (Next.js PWA), `packages/shared`
+- [ ] Auth: email/password + JWT + MFA (TOTP), RBAC (brand-admin, operator, viewer)
+- [ ] DB schema (Prisma): `Brand`, `Product`, `ProductPassport`, `Event`, `User`
+- [ ] Fastify API shell: auth endpoints, health check, OpenAPI auto-gen
+- [ ] CI pipeline (GitHub Actions): lint + test + build + deploy preview
+- [ ] Dashboard shell: login, sidebar, empty products page
+- [ ] Smart contract CI: `forge build && forge test` on every PR
+
+**Exit:** `pnpm dev` starts all apps. Auth flow works. CI green.
+
+### Sprint 2 — Product & Passport Creation (Week 3-4)
+
+**Goal:** A brand-admin can create a product and mint its ERC-3643 passport on Base Sepolia.
+
+- [ ] Product creation form (name, GTIN, serial, category, materials, photos)
+- [ ] DID generation: `did:galileo:01:{gtin}:21:{serial}` (GS1-native from day 1)
+- [ ] Photo/certificate upload → R2 + local CID computation (no IPFS pinning)
+- [ ] Contract deployment on Base Sepolia (existing `Deploy.s.sol`)
+- [ ] Mint flow: API → prepare tx → wallet signs → ERC-3643 token minted → txHash stored
+- [ ] GS1 Digital Link: QR code generation, resolver route `GET /01/:gtin/21/:serial`
+- [ ] Dashboard: product list, product detail, on-chain status, QR download
+- [ ] Gas benchmarks documented
+
+**Exit:** Brand creates product → mints ERC-3643 token → QR resolves to DPP. All on Base Sepolia.
+
+### Sprint 3 — Scanner & Verification (Week 5-6)
+
+**Goal:** Anyone can scan a QR code and verify product authenticity.
+
+- [ ] Scanner PWA (Next.js): camera → decode QR → call API
+- [ ] Public verification page: authenticity ✓/✗, provenance timeline, material composition
+- [ ] Lifecycle events API: `CREATED`, `TRANSFERRED`, `VERIFIED`, `OWNERSHIP_CHANGED`, `REPAIRED`, `CPO_CERTIFIED`
+- [ ] Event logging (append-only, off-chain + on-chain anchoring)
+- [ ] Transfer flow with compliance check (jurisdiction, sanctions, brand auth)
+- [ ] CPO certification flow
+- [ ] E2E test: create → mint → scan → verify → transfer → re-verify
+
+**Exit:** Full product lifecycle works end-to-end on Base Sepolia. Customer scans QR, sees verified DPP.
+
+### Sprint 4 — Stabilisation & Production (Week 7-8)
+
+**Goal:** Production-ready for the first brand pilot.
+
+- [ ] Monitoring: Sentry, Vercel Analytics, uptime checks
+- [ ] Security hardening: rate limiting, input validation, OWASP top 10
+- [ ] Multi-tenant isolation (RLS or schema-per-brand)
+- [ ] Audit trail: who did what, when (GDPR Art. 22 human review for compliance rejections)
+- [ ] GDPR endpoints: data export (Art. 15), erasure (Art. 17)
+- [ ] API documentation (OpenAPI/Swagger, auto-generated from Fastify schemas)
+- [ ] Production deploy: Vercel (frontend) + dedicated API host + Base mainnet
+- [ ] DPIA draft (required before mainnet per EDPB)
+
+**Exit:** MVP stable. First brand can onboard and use the full create→mint→scan→verify flow in production.
+
+### Sprint 5 — T1/LEOX & Multichain (Week 9-12) — POST-PILOT GATE
+
+**Entry criteria (ALL must be met):**
+- [ ] Sprint 4 exit criteria validated
+- [ ] At least 1 brand pilot active with real products
+- [ ] Create→mint→scan→verify flow stable (< 1% error rate)
+- [ ] No critical/high severity bugs open
+
+See Phase 6 below for detailed scope.
+
+---
+
+## Phase 0 — Repo Cleanup ✅ Done
 
 Finalize the open-source repository for v1.0.0 publication.
 
-> **Note:** Cross-references to renamed files (`hybrid-architecture.md` → `hybrid-architecture.md`, `crypto-agility.md` → `crypto-agility.md`) still present in `README.md`, `resolution-protocol.md`, `DID-METHOD.md`.
-
 | Task | Scope | Status |
 |------|-------|--------|
-| Fix 15 spec/repo audit findings | Broken cross-refs, ID collisions, NOTICE, schemas | **Done** (0f5aeb6) |
-| Website fixes | Missing pages, governance rewrite, SEO, legal | **Done** (5458fb9→0a7082e) |
-| Fix 4 smart contract issues (M-1 to M-4) | Emergency access, RBAC migration, underflow, mint guard | Pending |
-| Website deployed on galileoprotocol.io | Vercel, domain, analytics | Pending |
+| Fix 15 spec/repo audit findings | Broken cross-refs, ID collisions, NOTICE, schemas | ✅ Done (0f5aeb6) |
+| Website fixes | Missing pages, governance rewrite, SEO, legal | ✅ Done (63591d1) |
+| CI lint fixes | Footer useSyncExternalStore, unused KineticText | ✅ Done (3da012c) |
+| Fix 4 smart contract issues (M-1 to M-4) | Emergency access, RBAC migration, underflow, mint guard | Pending (Sprint 1) |
+| Website deployed on galileoprotocol.io | Vercel, domain, analytics | Pending (Sprint 1) |
 
 **Exit criteria:** All audit findings resolved, `forge test` passes, website live.
 
@@ -432,7 +528,7 @@ Web dashboard for brands to manage their products and tokens.
 
 ### Stack
 
-- **Framework:** Next.js 15+ (App Router)
+- **Framework:** Next.js (App Router, latest)
 - **UI:** Tailwind CSS + shadcn/ui
 - **Wallet:** wagmi + RainbowKit (for transaction signing)
 - **Hosting:** Vercel
@@ -525,7 +621,9 @@ Standards-compliant resolver that maps GS1 URIs to Galileo DIDs.
 
 ---
 
-## Phase 6 — T1 Token Integration (Weeks 6-10) 🔲 Planned
+## Phase 6 — T1 Token Integration (Weeks 9-12) 🔲 POST-PILOT GATE
+
+> **Gate:** This phase only starts after Sprint 4 exit criteria are met AND at least one brand pilot is active with real products on the create→mint→scan→verify flow. See Sprint 5 entry criteria above.
 
 ### 6.1 T1 Smart Contracts
 
@@ -612,20 +710,17 @@ Deploy T1 token contracts on Base:
 ## Timeline Summary
 
 ```
-Week 1        Phase 0 — Repo cleanup + v1.0.0 ⚠️ (partially done)
-Week 2-4      Phase 1 — Testnet full-stack launch (deploy, validate E2E, gas benchmarks)
-Week 3-5      Phase 2 — Backend API (auth, products, mint, GDPR, resolver)
-Week 4-7      Phase 3 — Brand dashboard (create, mint, manage)
-Week 5-7      Phase 5 — GS1 resolver (integrated in API)
-Week 6-8      Phase 4 — Scanner PWA (public verification)
-Week 6-10     Phase 6 — T1 token contracts + migration portal + Paymaster
+Week 1-2      Sprint 1 — Foundations (monorepo, auth, DB, CI, dashboard shell)
+Week 3-4      Sprint 2 — Product & Passport (ERC-3643 mint, GS1 resolver, QR)
+Week 5-6      Sprint 3 — Scanner & Verification (PWA, E2E lifecycle, events)
+Week 7-8      Sprint 4 — Stabilisation (security, multi-tenant, GDPR, prod deploy)
+  ── POST-PILOT GATE ──
+Week 9-12     Sprint 5 — T1/LEOX (paymaster, migration portal, multichain)
 ```
 
-Phases overlap intentionally. Phase 1 (testnet) must be validated before Phase 2+ can connect to real contracts. The backend API and resolver are built together. The dashboard and scanner consume the same API. T1 integration happens in parallel once the core product flow works.
-
-**Testnet milestone: Week 4** — Full lifecycle test passes on Base Sepolia.
-**Demo-ready target: Week 8** — Full product flow (create → mint → scan → verify).
-**T1-ready target: Week 10** — T1 deployed, migration portal live, Paymaster active, gas paid in T1/LEOX.
+**Testnet milestone: Week 4** — Full lifecycle test passes on Base Sepolia (create → mint → scan → verify).
+**Production-ready: Week 8** — First brand pilot can onboard.
+**T1-ready: Week 12** — Only after MVP KPIs validated. T1 deployed, migration portal live, Paymaster active.
 
 ---
 
@@ -634,12 +729,12 @@ Phases overlap intentionally. Phase 1 (testnet) must be validated before Phase 2
 | Component | Technology | Why |
 |-----------|-----------|-----|
 | Blockchain | Base L2 (Coinbase) | Low gas, EVM-compatible, enterprise credibility |
-| Smart contracts | Solidity 0.8.20+, Foundry | ERC-3643 T-REX framework, 722 tests (to be revalidated once Foundry CI is established) |
-| Backend API | Node.js 22, Fastify, TypeScript | Same ecosystem as frontend, viem for chain |
+| Smart contracts | Solidity 0.8.20+, **Foundry only** | ERC-3643 T-REX framework, 722 tests. No Hardhat — single toolchain. |
+| Backend API | Node.js 22, **Fastify**, TypeScript | Dedicated API server (not Next.js Route Handlers). B2B multi-tenant + webhooks + jobs require separation. |
 | Database | PostgreSQL | Proven, relational, GDPR-deletable |
 | Object storage | Cloudflare R2 | S3-compatible, no egress fees, global CDN, deletable |
 | Integrity | CID computed locally (NO IPFS pinning) | Tamper-evidence without GDPR risk |
-| Dashboard | Next.js, Tailwind, shadcn/ui, wagmi | Consistent with existing website stack |
+| Dashboard | Next.js (latest), Tailwind, shadcn/ui, wagmi | Consistent with existing website stack. No version pinning. |
 | Scanner | Next.js PWA | No app store, instant access via QR scan |
 | Auth | Email/JWT + linked wallet | Accessible for non-crypto brands |
 | Hosting | Vercel | Already configured for the website |
