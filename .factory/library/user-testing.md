@@ -204,3 +204,49 @@ Write a JSON file to `.factory/validation/dashboard-scanner/user-testing/flows/<
 - After logout, tokens are cleared and user is redirected to /login
 - The sidebar has disabled items (Transfers, Settings) that should be visually distinct
 - VAL-DASH-013 and VAL-SCAN-002 (build assertions) should be tested via terminal `pnpm build` command, not browser
+
+## Flow Validator Guidance: Security Hardening (Code Inspection + curl)
+
+Security-hardening assertions are primarily verified through **source code inspection** and targeted **curl tests** against the running API.
+
+**API Base URL:** `http://localhost:4000`
+**Repo root:** `/Users/pierrebeunardeau/GalileoLuxury`
+
+**Key source files to inspect:**
+- `apps/api/src/utils/token-hash.ts` — SHA-256 token hashing (VAL-SEC-001)
+- `apps/api/src/routes/auth/register.ts` — Registration with hashed token storage, slug collision handling (VAL-SEC-001, VAL-SEC-004)
+- `apps/api/src/routes/auth/login.ts` — Timing-safe login with dummy hash (VAL-SEC-001, VAL-SEC-003)
+- `apps/api/src/routes/auth/refresh.ts` — Transaction-based token rotation (VAL-SEC-001, VAL-SEC-006)
+- `apps/api/src/plugins/auth.ts` — Auth decorator with return after 401 (VAL-SEC-002)
+- `apps/api/src/server.ts` — Swagger env guard (VAL-SEC-005)
+- `packages/shared/src/validation/auth.ts` — Password max length 128 (VAL-SEC-007)
+- `apps/dashboard/src/hooks/use-auth.ts` — useEffect pattern (VAL-SEC-008)
+- `apps/dashboard/src/components/auth-guard.tsx` — Loading state, no content flash (VAL-SEC-009)
+- `apps/dashboard/src/lib/api.ts` — Refresh dedup (VAL-SEC-012)
+- `apps/dashboard/src/app/login/page.tsx` — aria-describedby (VAL-SEC-013)
+- `apps/dashboard/src/app/register/page.tsx` — aria-describedby (VAL-SEC-013)
+- `.github/workflows/ci.yml` — Prisma CI steps (VAL-SEC-010)
+- `turbo.json` — Test inputs (VAL-SEC-011)
+
+**Isolation rules:**
+- Each subagent reads source files (read-only)
+- API runtime tests use unique email addresses per subagent
+- Do NOT modify any source files
+- Do NOT stop/restart any services
+
+**How to report results:**
+Write a JSON file to `.factory/validation/security-hardening/user-testing/flows/<group-id>.json` with format:
+```json
+{
+  "groupId": "<group-id>",
+  "assertions": {
+    "<assertion-id>": {
+      "status": "pass" | "fail" | "blocked",
+      "evidence": "description of what was observed (include code excerpts, curl output)"
+    }
+  },
+  "frictions": [],
+  "blockers": [],
+  "toolsUsed": ["terminal", "curl"]
+}
+```

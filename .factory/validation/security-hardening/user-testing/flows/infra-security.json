@@ -1,0 +1,46 @@
+{
+  "groupId": "infra-security",
+  "testedAt": "2026-03-03T12:00:00Z",
+  "credentials": {
+    "account": "none",
+    "namespace": "none"
+  },
+  "toolsUsed": ["Read"],
+  "assertions": [
+    {
+      "id": "VAL-SEC-010",
+      "title": "CI runs prisma db push",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Read .github/workflows/ci.yml",
+          "expected": "apps job has 'prisma generate' and 'prisma db push' steps before 'test'",
+          "observed": "apps job contains steps 'Generate Prisma client' and 'Push Prisma schema to database' before 'Test'"
+        }
+      ],
+      "evidence": {
+        "fileContent": ".github/workflows/ci.yml contains steps:\n      - name: Generate Prisma client\n        run: pnpm --filter @galileo/api prisma generate\n\n      - name: Push Prisma schema to database\n        run: pnpm --filter @galileo/api prisma db push --skip-generate\n\n      - name: Test\n        run: pnpm test"
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-SEC-011",
+      "title": "turbo.json test inputs configured",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Read turbo.json",
+          "expected": "test task has inputs array with source/config patterns",
+          "observed": "test task has 'inputs' array containing [\"src/**\", \"test/**\", \"prisma/**\", \".env*\", \"vitest.config.*\", \"package.json\"]"
+        }
+      ],
+      "evidence": {
+        "fileContent": "turbo.json contains task test:\n    \"test\": {\n      \"dependsOn\": [\"^build\"],\n      \"inputs\": [\"src/**\", \"test/**\", \"prisma/**\", \".env*\", \"vitest.config.*\", \"package.json\"],\n      \"outputs\": []\n    }"
+      },
+      "issues": null
+    }
+  ],
+  "frictions": [],
+  "blockers": [],
+  "summary": "Tested 2 code inspection assertions: 2 passed (VAL-SEC-010 and VAL-SEC-011 are properly configured)."
+}
