@@ -1,58 +1,147 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from "react";
 
 const useCases = [
   {
-    id: 'watches',
-    category: 'Haute Horlogerie',
-    title: 'Timepieces',
-    description: 'Complete service history, certified authenticity, and provenance tracking for watches valued at €10K+.',
-    brands: ['Patek Philippe', 'Audemars Piguet', 'Vacheron Constantin'],
-    metrics: { value: '€50B+', label: 'Market protected' },
+    id: "watches",
+    category: "Haute Horlogerie",
+    title: "Timepieces",
+    description:
+      "Complete service history, certified authenticity, and provenance tracking for watches valued at €10K+.",
+    brands: [
+      "Swiss Manufactures",
+      "Independent Watchmakers",
+      "Certified Dealers",
+    ],
+    metrics: { value: "€50B+", label: "Market size" },
     visual: (
       <svg viewBox="0 0 120 120" className="w-full h-full">
-        <circle cx="60" cy="60" r="50" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.3" />
-        <circle cx="60" cy="60" r="45" stroke="currentColor" strokeWidth="0.5" fill="none" opacity="0.5" />
-        <circle cx="60" cy="60" r="40" stroke="currentColor" strokeWidth="2" fill="none" />
-        <line x1="60" y1="60" x2="60" y2="30" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-        <line x1="60" y1="60" x2="80" y2="60" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        <circle
+          cx="60"
+          cy="60"
+          r="50"
+          stroke="currentColor"
+          strokeWidth="1"
+          fill="none"
+          opacity="0.3"
+        />
+        <circle
+          cx="60"
+          cy="60"
+          r="45"
+          stroke="currentColor"
+          strokeWidth="0.5"
+          fill="none"
+          opacity="0.5"
+        />
+        <circle
+          cx="60"
+          cy="60"
+          r="40"
+          stroke="currentColor"
+          strokeWidth="2"
+          fill="none"
+        />
+        <line
+          x1="60"
+          y1="60"
+          x2="60"
+          y2="30"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+        <line
+          x1="60"
+          y1="60"
+          x2="80"
+          y2="60"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
         <circle cx="60" cy="60" r="4" fill="currentColor" />
         {[...Array(12)].map((_, i) => {
-          const angle = (i * 30 - 90) * Math.PI / 180;
+          const angle = ((i * 30 - 90) * Math.PI) / 180;
           const x1 = 60 + Math.cos(angle) * 36;
           const y1 = 60 + Math.sin(angle) * 36;
           const x2 = 60 + Math.cos(angle) * 40;
           const y2 = 60 + Math.sin(angle) * 40;
-          return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="currentColor" strokeWidth="1" />;
+          return (
+            <line
+              key={i}
+              x1={x1}
+              y1={y1}
+              x2={x2}
+              y2={y2}
+              stroke="currentColor"
+              strokeWidth="1"
+            />
+          );
         })}
       </svg>
     ),
   },
   {
-    id: 'fashion',
-    category: 'Maroquinerie',
-    title: 'Leather Goods',
-    description: 'Combat the €3.3T counterfeit market. Every bag, every belt, every wallet - authenticated forever.',
-    brands: ['Hermès', 'Louis Vuitton', 'Chanel'],
-    metrics: { value: '30%', label: 'Counterfeits eliminated' },
+    id: "fashion",
+    category: "Maroquinerie",
+    title: "Leather Goods",
+    description:
+      "Combat the €3.3T counterfeit market. Every bag, every belt, every wallet - authenticated forever.",
+    brands: ["Heritage Maisons", "Global Luxury Groups", "Artisan Ateliers"],
+    metrics: { value: "∞", label: "Traceability depth" },
     visual: (
       <svg viewBox="0 0 120 120" className="w-full h-full">
-        <rect x="25" y="35" width="70" height="50" rx="3" stroke="currentColor" strokeWidth="2" fill="none" />
-        <rect x="30" y="40" width="60" height="40" rx="2" stroke="currentColor" strokeWidth="0.5" fill="none" opacity="0.5" />
-        <path d="M45 35 L45 25 Q60 15 75 25 L75 35" stroke="currentColor" strokeWidth="2" fill="none" />
-        <rect x="50" y="55" width="20" height="10" rx="2" stroke="currentColor" strokeWidth="1" fill="none" />
+        <rect
+          x="25"
+          y="35"
+          width="70"
+          height="50"
+          rx="3"
+          stroke="currentColor"
+          strokeWidth="2"
+          fill="none"
+        />
+        <rect
+          x="30"
+          y="40"
+          width="60"
+          height="40"
+          rx="2"
+          stroke="currentColor"
+          strokeWidth="0.5"
+          fill="none"
+          opacity="0.5"
+        />
+        <path
+          d="M45 35 L45 25 Q60 15 75 25 L75 35"
+          stroke="currentColor"
+          strokeWidth="2"
+          fill="none"
+        />
+        <rect
+          x="50"
+          y="55"
+          width="20"
+          height="10"
+          rx="2"
+          stroke="currentColor"
+          strokeWidth="1"
+          fill="none"
+        />
         <circle cx="60" cy="60" r="2" fill="currentColor" />
       </svg>
     ),
   },
   {
-    id: 'jewelry',
-    category: 'Joaillerie',
-    title: 'Fine Jewelry',
-    description: 'Diamond certification, gem provenance, and ethical sourcing - all immutably recorded.',
-    brands: ['Cartier', 'Van Cleef & Arpels', 'Bulgari'],
-    metrics: { value: '4C+', label: 'Certification depth' },
+    id: "jewelry",
+    category: "Joaillerie",
+    title: "Fine Jewelry",
+    description:
+      "Diamond certification, gem provenance, and ethical sourcing - all immutably recorded.",
+    brands: ["High Jewelry Houses", "Estate Dealers", "Certified Gemologists"],
+    metrics: { value: "4C+", label: "Certification depth" },
     visual: (
       <svg viewBox="0 0 120 120" className="w-full h-full">
         <polygon
@@ -61,28 +150,98 @@ const useCases = [
           strokeWidth="2"
           fill="none"
         />
-        <line x1="35" y1="45" x2="85" y2="45" stroke="currentColor" strokeWidth="1" />
-        <line x1="45" y1="95" x2="60" y2="45" stroke="currentColor" strokeWidth="0.5" opacity="0.5" />
-        <line x1="75" y1="95" x2="60" y2="45" stroke="currentColor" strokeWidth="0.5" opacity="0.5" />
-        <line x1="60" y1="15" x2="60" y2="45" stroke="currentColor" strokeWidth="0.5" opacity="0.5" />
+        <line
+          x1="35"
+          y1="45"
+          x2="85"
+          y2="45"
+          stroke="currentColor"
+          strokeWidth="1"
+        />
+        <line
+          x1="45"
+          y1="95"
+          x2="60"
+          y2="45"
+          stroke="currentColor"
+          strokeWidth="0.5"
+          opacity="0.5"
+        />
+        <line
+          x1="75"
+          y1="95"
+          x2="60"
+          y2="45"
+          stroke="currentColor"
+          strokeWidth="0.5"
+          opacity="0.5"
+        />
+        <line
+          x1="60"
+          y1="15"
+          x2="60"
+          y2="45"
+          stroke="currentColor"
+          strokeWidth="0.5"
+          opacity="0.5"
+        />
         <circle cx="60" cy="55" r="3" fill="currentColor" opacity="0.5" />
       </svg>
     ),
   },
   {
-    id: 'art',
-    category: 'Art & Collectibles',
-    title: 'Fine Art',
-    description: 'Provenance chains for masterpieces. Exhibition history, restoration records, ownership lineage.',
-    brands: ['Christie\'s', 'Sotheby\'s', 'Phillips'],
-    metrics: { value: '∞', label: 'Provenance depth' },
+    id: "art",
+    category: "Art & Collectibles",
+    title: "Fine Art",
+    description:
+      "Provenance chains for masterpieces. Exhibition history, restoration records, ownership lineage.",
+    brands: ["Major Auction Houses", "Private Galleries", "Estate Collections"],
+    metrics: { value: "∞", label: "Provenance depth" },
     visual: (
       <svg viewBox="0 0 120 120" className="w-full h-full">
-        <rect x="20" y="20" width="80" height="80" stroke="currentColor" strokeWidth="2" fill="none" />
-        <rect x="25" y="25" width="70" height="70" stroke="currentColor" strokeWidth="0.5" fill="none" opacity="0.3" />
-        <rect x="35" y="35" width="50" height="50" stroke="currentColor" strokeWidth="1" fill="none" opacity="0.6" />
-        <circle cx="50" cy="55" r="8" stroke="currentColor" strokeWidth="1" fill="none" />
-        <path d="M65 45 Q75 55 65 65" stroke="currentColor" strokeWidth="1" fill="none" />
+        <rect
+          x="20"
+          y="20"
+          width="80"
+          height="80"
+          stroke="currentColor"
+          strokeWidth="2"
+          fill="none"
+        />
+        <rect
+          x="25"
+          y="25"
+          width="70"
+          height="70"
+          stroke="currentColor"
+          strokeWidth="0.5"
+          fill="none"
+          opacity="0.3"
+        />
+        <rect
+          x="35"
+          y="35"
+          width="50"
+          height="50"
+          stroke="currentColor"
+          strokeWidth="1"
+          fill="none"
+          opacity="0.6"
+        />
+        <circle
+          cx="50"
+          cy="55"
+          r="8"
+          stroke="currentColor"
+          strokeWidth="1"
+          fill="none"
+        />
+        <path
+          d="M65 45 Q75 55 65 65"
+          stroke="currentColor"
+          strokeWidth="1"
+          fill="none"
+        />
       </svg>
     ),
   },
@@ -100,7 +259,7 @@ export function UseCasesSection() {
           setIsVisible(true);
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.1 },
     );
 
     if (sectionRef.current) {
@@ -111,7 +270,10 @@ export function UseCasesSection() {
   }, []);
 
   return (
-    <section ref={sectionRef} className="relative py-32 md:py-48 bg-black overflow-hidden">
+    <section
+      ref={sectionRef}
+      className="relative py-32 md:py-48 bg-black overflow-hidden"
+    >
       {/* Subtle gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#000810] via-black to-black" />
 
@@ -119,7 +281,7 @@ export function UseCasesSection() {
       <div
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[600px] rounded-full opacity-[0.03]"
         style={{
-          background: 'radial-gradient(ellipse, #D4AF37 0%, transparent 60%)',
+          background: "radial-gradient(ellipse, #D4AF37 0%, transparent 60%)",
         }}
       />
 
@@ -130,7 +292,7 @@ export function UseCasesSection() {
           style={{
             opacity: isVisible ? 1 : 0,
             transform: `translateY(${isVisible ? 0 : 40}px)`,
-            transition: 'all 1s cubic-bezier(0.16, 1, 0.3, 1)',
+            transition: "all 1s cubic-bezier(0.16, 1, 0.3, 1)",
           }}
         >
           <div className="inline-flex items-center gap-4 mb-8">
@@ -143,7 +305,7 @@ export function UseCasesSection() {
 
           <h2
             className="text-4xl md:text-5xl lg:text-6xl font-extralight text-white"
-            style={{ fontFamily: 'var(--font-serif)' }}
+            style={{ fontFamily: "var(--font-serif)" }}
           >
             Where Luxury
             <span className="block mt-2 text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-amber-400 to-amber-200">
@@ -174,12 +336,14 @@ export function UseCasesSection() {
               <div
                 className="relative p-8 md:p-10 h-full border transition-all duration-500"
                 style={{
-                  background: activeCase === useCase.id
-                    ? 'linear-gradient(135deg, rgba(212, 175, 55, 0.08) 0%, transparent 60%)'
-                    : 'linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, transparent 60%)',
-                  borderColor: activeCase === useCase.id
-                    ? 'rgba(212, 175, 55, 0.3)'
-                    : 'rgba(255, 255, 255, 0.08)',
+                  background:
+                    activeCase === useCase.id
+                      ? "linear-gradient(135deg, rgba(212, 175, 55, 0.08) 0%, transparent 60%)"
+                      : "linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, transparent 60%)",
+                  borderColor:
+                    activeCase === useCase.id
+                      ? "rgba(212, 175, 55, 0.3)"
+                      : "rgba(255, 255, 255, 0.08)",
                 }}
               >
                 {/* Visual */}
@@ -187,7 +351,10 @@ export function UseCasesSection() {
                   <div
                     className="w-20 h-20 transition-all duration-500"
                     style={{
-                      color: activeCase === useCase.id ? '#D4AF37' : 'rgba(255, 255, 255, 0.5)',
+                      color:
+                        activeCase === useCase.id
+                          ? "#D4AF37"
+                          : "rgba(255, 255, 255, 0.5)",
                     }}
                   >
                     {useCase.visual}
@@ -198,8 +365,11 @@ export function UseCasesSection() {
                     <div
                       className="text-2xl font-light transition-colors duration-500"
                       style={{
-                        fontFamily: 'var(--font-mono, monospace)',
-                        color: activeCase === useCase.id ? '#D4AF37' : 'rgba(212, 175, 55, 0.5)',
+                        fontFamily: "var(--font-mono, monospace)",
+                        color:
+                          activeCase === useCase.id
+                            ? "#D4AF37"
+                            : "rgba(212, 175, 55, 0.5)",
                       }}
                     >
                       {useCase.metrics.value}
@@ -218,7 +388,7 @@ export function UseCasesSection() {
                 {/* Title */}
                 <h3
                   className="mt-2 text-2xl font-light text-white"
-                  style={{ fontFamily: 'var(--font-serif)' }}
+                  style={{ fontFamily: "var(--font-serif)" }}
                 >
                   {useCase.title}
                 </h3>
@@ -235,8 +405,14 @@ export function UseCasesSection() {
                       key={brand}
                       className="px-3 py-1 text-[10px] border transition-colors duration-300"
                       style={{
-                        borderColor: activeCase === useCase.id ? 'rgba(212, 175, 55, 0.3)' : 'rgba(255, 255, 255, 0.15)',
-                        color: activeCase === useCase.id ? 'rgba(212, 175, 55, 0.8)' : 'rgba(255, 255, 255, 0.5)',
+                        borderColor:
+                          activeCase === useCase.id
+                            ? "rgba(212, 175, 55, 0.3)"
+                            : "rgba(255, 255, 255, 0.15)",
+                        color:
+                          activeCase === useCase.id
+                            ? "rgba(212, 175, 55, 0.8)"
+                            : "rgba(255, 255, 255, 0.5)",
                       }}
                     >
                       {brand}
@@ -248,10 +424,11 @@ export function UseCasesSection() {
                 <div
                   className="absolute bottom-0 left-0 h-[1px] transition-all duration-500"
                   style={{
-                    width: activeCase === useCase.id ? '100%' : '30%',
-                    background: activeCase === useCase.id
-                      ? 'linear-gradient(90deg, #D4AF37, transparent)'
-                      : 'linear-gradient(90deg, rgba(212, 175, 55, 0.3), transparent)',
+                    width: activeCase === useCase.id ? "100%" : "30%",
+                    background:
+                      activeCase === useCase.id
+                        ? "linear-gradient(90deg, #D4AF37, transparent)"
+                        : "linear-gradient(90deg, rgba(212, 175, 55, 0.3), transparent)",
                   }}
                 />
               </div>
@@ -264,11 +441,12 @@ export function UseCasesSection() {
           className="mt-16 text-center"
           style={{
             opacity: isVisible ? 1 : 0,
-            transition: 'opacity 1s ease-out 0.8s',
+            transition: "opacity 1s ease-out 0.8s",
           }}
         >
           <p className="text-sm text-white/20 italic">
-            &ldquo;In luxury, authenticity is not a feature. It is the foundation.&rdquo;
+            &ldquo;In luxury, authenticity is not a feature. It is the
+            foundation.&rdquo;
           </p>
         </div>
       </div>

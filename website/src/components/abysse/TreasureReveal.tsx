@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from "react";
 
 // Seeded pseudo-random number generator for consistent SSR/client values
 function seededRandom(seed: number) {
@@ -9,7 +9,7 @@ function seededRandom(seed: number) {
 }
 
 // Pre-generate deterministic gold particle data
-const goldColors = ['#D4AF37', '#FFD700', '#FFF8DC', '#F5E6C8'];
+const goldColors = ["#D4AF37", "#FFD700", "#FFF8DC", "#F5E6C8"];
 const goldParticles = [...Array(40)].map((_, i) => ({
   x: 35 + seededRandom(i * 4 + 700) * 30,
   delay: seededRandom(i * 4 + 701) * 2,
@@ -30,7 +30,7 @@ export function TreasureReveal() {
           setTimeout(() => setRevealed(true), 1500);
         }
       },
-      { threshold: 0.4 }
+      { threshold: 0.4 },
     );
 
     if (sectionRef.current) {
@@ -41,7 +41,10 @@ export function TreasureReveal() {
   }, []);
 
   return (
-    <section ref={sectionRef} className="relative py-32 md:py-48 bg-black overflow-hidden">
+    <section
+      ref={sectionRef}
+      className="relative py-32 md:py-48 bg-black overflow-hidden"
+    >
       {/* Deep gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-black via-[#020204] to-black" />
 
@@ -49,7 +52,8 @@ export function TreasureReveal() {
       <div
         className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] transition-opacity duration-[3000ms]"
         style={{
-          background: 'radial-gradient(ellipse at center bottom, rgba(212, 175, 55, 0.2) 0%, transparent 50%)',
+          background:
+            "radial-gradient(ellipse at center bottom, rgba(212, 175, 55, 0.2) 0%, transparent 50%)",
           opacity: revealed ? 1 : 0,
         }}
       />
@@ -63,7 +67,7 @@ export function TreasureReveal() {
               className="absolute w-1 h-1 rounded-full"
               style={{
                 left: `${particle.x}%`,
-                bottom: '15%',
+                bottom: "15%",
                 backgroundColor: particle.color,
                 boxShadow: `0 0 10px ${particle.color}`,
                 animation: `riseGold ${particle.duration}s ease-out ${particle.delay}s infinite`,
@@ -79,7 +83,7 @@ export function TreasureReveal() {
           className="text-center mb-12"
           style={{
             opacity: isVisible ? 1 : 0,
-            transition: 'opacity 1s ease-out',
+            transition: "opacity 1s ease-out",
           }}
         >
           <div className="inline-flex items-center gap-4">
@@ -99,20 +103,24 @@ export function TreasureReveal() {
             style={{
               opacity: isVisible ? 1 : 0,
               transform: `scale(${isVisible ? 1 : 0.8})`,
-              transition: 'all 1s cubic-bezier(0.16, 1, 0.3, 1)',
+              transition: "all 1s cubic-bezier(0.16, 1, 0.3, 1)",
             }}
           >
             {/* Glow rings */}
             <div
               className="absolute inset-0 rounded-full transition-opacity duration-[2000ms]"
               style={{
-                background: 'radial-gradient(circle, rgba(212, 175, 55, 0.2) 0%, transparent 70%)',
+                background:
+                  "radial-gradient(circle, rgba(212, 175, 55, 0.2) 0%, transparent 70%)",
                 opacity: revealed ? 1 : 0,
               }}
             />
 
             {/* Outer ring */}
-            <svg viewBox="0 0 200 200" className="w-full h-full absolute inset-0">
+            <svg
+              viewBox="0 0 200 200"
+              className="w-full h-full absolute inset-0"
+            >
               <circle
                 cx="100"
                 cy="100"
@@ -148,12 +156,23 @@ export function TreasureReveal() {
               <div
                 className="relative transition-all duration-1000"
                 style={{
-                  transform: revealed ? 'scale(1) rotate(0deg)' : 'scale(0.8) rotate(-10deg)',
+                  transform: revealed
+                    ? "scale(1) rotate(0deg)"
+                    : "scale(0.8) rotate(-10deg)",
                 }}
               >
-                <svg viewBox="0 0 100 100" className="w-24 h-24 md:w-32 md:h-32">
+                <svg
+                  viewBox="0 0 100 100"
+                  className="w-24 h-24 md:w-32 md:h-32"
+                >
                   <defs>
-                    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <linearGradient
+                      id="goldGradient"
+                      x1="0%"
+                      y1="0%"
+                      x2="100%"
+                      y2="100%"
+                    >
                       <stop offset="0%" stopColor="#F5E6C8" />
                       <stop offset="50%" stopColor="#D4AF37" />
                       <stop offset="100%" stopColor="#B8860B" />
@@ -170,18 +189,50 @@ export function TreasureReveal() {
                   {/* Diamond shape */}
                   <polygon
                     points="50,10 90,40 50,90 10,40"
-                    fill={revealed ? 'url(#goldGradient)' : 'none'}
+                    fill={revealed ? "url(#goldGradient)" : "none"}
                     stroke="#D4AF37"
                     strokeWidth="1.5"
-                    filter={revealed ? 'url(#goldGlow)' : undefined}
+                    filter={revealed ? "url(#goldGlow)" : undefined}
                     className="transition-all duration-1000"
                   />
 
                   {/* Inner facets */}
-                  <line x1="10" y1="40" x2="90" y2="40" stroke="#D4AF37" strokeWidth="0.5" opacity="0.5" />
-                  <line x1="50" y1="10" x2="50" y2="40" stroke="#D4AF37" strokeWidth="0.5" opacity="0.5" />
-                  <line x1="50" y1="40" x2="10" y2="40" stroke="#D4AF37" strokeWidth="0.5" opacity="0.3" />
-                  <line x1="50" y1="40" x2="50" y2="90" stroke="#D4AF37" strokeWidth="0.5" opacity="0.3" />
+                  <line
+                    x1="10"
+                    y1="40"
+                    x2="90"
+                    y2="40"
+                    stroke="#D4AF37"
+                    strokeWidth="0.5"
+                    opacity="0.5"
+                  />
+                  <line
+                    x1="50"
+                    y1="10"
+                    x2="50"
+                    y2="40"
+                    stroke="#D4AF37"
+                    strokeWidth="0.5"
+                    opacity="0.5"
+                  />
+                  <line
+                    x1="50"
+                    y1="40"
+                    x2="10"
+                    y2="40"
+                    stroke="#D4AF37"
+                    strokeWidth="0.5"
+                    opacity="0.3"
+                  />
+                  <line
+                    x1="50"
+                    y1="40"
+                    x2="50"
+                    y2="90"
+                    stroke="#D4AF37"
+                    strokeWidth="0.5"
+                    opacity="0.3"
+                  />
                 </svg>
 
                 {/* Radial lines when revealed */}
@@ -193,7 +244,7 @@ export function TreasureReveal() {
                         className="absolute w-[1px] h-20 bg-gradient-to-t from-amber-400/30 to-transparent"
                         style={{
                           transform: `rotate(${i * 45}deg) translateY(-100%)`,
-                          transformOrigin: 'center bottom',
+                          transformOrigin: "center bottom",
                           animation: `pulse 2s ease-in-out ${i * 0.1}s infinite`,
                         }}
                       />
@@ -208,10 +259,10 @@ export function TreasureReveal() {
           <h2
             className="text-4xl md:text-6xl lg:text-7xl font-extralight text-white mb-6"
             style={{
-              fontFamily: 'var(--font-serif)',
+              fontFamily: "var(--font-serif)",
               opacity: isVisible ? 1 : 0,
               transform: `translateY(${isVisible ? 0 : 30}px)`,
-              transition: 'all 1s cubic-bezier(0.16, 1, 0.3, 1) 0.3s',
+              transition: "all 1s cubic-bezier(0.16, 1, 0.3, 1) 0.3s",
             }}
           >
             The Treasure Within:
@@ -220,16 +271,17 @@ export function TreasureReveal() {
           <h3
             className="text-3xl md:text-5xl lg:text-6xl font-extralight"
             style={{
-              fontFamily: 'var(--font-serif)',
-              background: revealed
-                ? 'linear-gradient(90deg, #B8860B, #D4AF37, #FFD700, #D4AF37, #B8860B)'
-                : 'linear-gradient(90deg, #333, #444, #333)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
+              fontFamily: "var(--font-serif)",
+              backgroundImage: revealed
+                ? "linear-gradient(90deg, #B8860B, #D4AF37, #FFD700, #D4AF37, #B8860B)"
+                : "linear-gradient(90deg, #333, #444, #333)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
               opacity: isVisible ? 1 : 0,
               transform: `translateY(${isVisible ? 0 : 30}px)`,
-              transition: 'all 1s cubic-bezier(0.16, 1, 0.3, 1) 0.5s, background 1s ease-out',
+              transition:
+                "all 1s cubic-bezier(0.16, 1, 0.3, 1) 0.5s, background-image 1s ease-out",
             }}
           >
             Absolute Truth
@@ -241,11 +293,12 @@ export function TreasureReveal() {
             style={{
               opacity: isVisible ? 1 : 0,
               transform: `translateY(${isVisible ? 0 : 20}px)`,
-              transition: 'all 1s cubic-bezier(0.16, 1, 0.3, 1) 0.7s',
+              transition: "all 1s cubic-bezier(0.16, 1, 0.3, 1) 0.7s",
             }}
           >
-            At the deepest point, where pressure reveals all weaknesses,
-            only authentic items survive. Here, truth is not discovered—it is inevitable.
+            At the deepest point, where pressure reveals all weaknesses, only
+            authentic items survive. Here, truth is not discovered—it is
+            inevitable.
           </p>
 
           {/* Stats */}
@@ -254,20 +307,20 @@ export function TreasureReveal() {
             style={{
               opacity: revealed ? 1 : 0,
               transform: `translateY(${revealed ? 0 : 20}px)`,
-              transition: 'all 1s cubic-bezier(0.16, 1, 0.3, 1)',
+              transition: "all 1s cubic-bezier(0.16, 1, 0.3, 1)",
             }}
           >
             {[
-              { value: '100%', label: 'Authenticity' },
-              { value: '∞', label: 'Permanence' },
-              { value: '0', label: 'Counterfeits' },
+              { value: "100%", label: "Authenticity" },
+              { value: "∞", label: "Permanence" },
+              { value: "0", label: "Counterfeits" },
             ].map((stat, index) => (
               <div key={index} className="text-center">
                 <div
                   className="text-2xl md:text-3xl font-light"
                   style={{
-                    fontFamily: 'var(--font-mono, monospace)',
-                    color: '#D4AF37',
+                    fontFamily: "var(--font-mono, monospace)",
+                    color: "#D4AF37",
                   }}
                 >
                   {stat.value}

@@ -1,10 +1,13 @@
+import { getTotalSpecCount } from "@/lib/specs-navigation";
+
 export const metadata = {
   title: "Introduction to Galileo Documentation",
   description:
     "Learn about the Galileo open standard for luxury product authenticity. Discover core principles, specifications, and how blockchain protects brand heritage.",
 };
 
-export default function DocsIntroduction() {
+export default async function DocsIntroduction() {
+  const totalSpecs = await getTotalSpecCount();
   return (
     <>
       <h1>Introduction to Galileo</h1>
@@ -53,7 +56,7 @@ export default function DocsIntroduction() {
       </ul>
 
       <h2>What&apos;s in the Standard?</h2>
-      <p>Galileo v1.0.0 includes 46 specifications covering:</p>
+      <p>Galileo v1.0.0 includes {totalSpecs} specifications covering:</p>
       <ul>
         <li>
           <strong>Identity</strong> — DID method, ONCHAINID integration,

@@ -1,7 +1,7 @@
 export const metadata = {
   title: "RFC Process",
   description:
-    "How to propose specification changes to the Galileo Protocol. Complete guide to the RFC lifecycle: draft, review, TSC vote, and acceptance or rejection.",
+    "How to propose specification changes to the Galileo Luxury Standard. Complete guide to the RFC lifecycle: draft, champion assignment, review, and TSC decision via lazy consensus.",
 };
 
 export default function RFCProcessPage() {
@@ -10,112 +10,187 @@ export default function RFCProcessPage() {
       <h1>RFC Process</h1>
 
       <p className="text-xl text-[var(--platinum)] leading-relaxed">
-        All changes to the Galileo specification go through the Request for
-        Comments (RFC) process. This ensures that every modification is
-        thoroughly reviewed, debated, and approved by the community and the
-        Technical Steering Committee.
+        All significant changes to the Galileo Luxury Standard go through the
+        Request for Comments (RFC) process. RFCs ensure that modifications are
+        thoroughly documented, reviewed by the community, and approved through a
+        transparent process.
       </p>
 
-      <h2>When Do You Need an RFC?</h2>
+      <h2>When is an RFC Required?</h2>
       <p>An RFC is required for:</p>
       <ul>
-        <li>Adding a new specification or specification section</li>
-        <li>
-          Modifying the behavior or structure of an existing specification
-        </li>
-        <li>Deprecating or removing a feature</li>
-        <li>Changes that affect interoperability between implementations</li>
+        <li>New features or capabilities (30-day review)</li>
+        <li>Non-breaking modifications to existing features (30-day review)</li>
+        <li>Breaking changes to existing features (60-day review)</li>
+        <li>Minor clarifications or editorial improvements (2-week review)</li>
       </ul>
       <p>
-        An RFC is <strong>not</strong> required for:
+        An RFC is <strong>not</strong> required for typos, grammar fixes, and
+        formatting changes &mdash; these can be submitted as direct pull
+        requests.
       </p>
-      <ul>
-        <li>Fixing typos or clarifying existing language</li>
-        <li>
-          Documentation improvements that don&apos;t change the specification
-        </li>
-        <li>Tooling and reference implementation changes</li>
-      </ul>
 
-      <h2>RFC Stages</h2>
-
-      <h3>Stage 1: Draft</h3>
+      <h2>Who Can Submit?</h2>
       <p>
-        The author submits an RFC as a pull request to the specifications
-        repository. The RFC must follow the template (see below) and clearly
-        describe the proposed change, its motivation, and its impact.
+        <strong>Anyone.</strong> The Galileo Luxury Standard operates under an
+        Open Contribution model. No membership is required to submit an RFC.
+        RFCs are evaluated on technical merit, not submitter status.
+        Organizations of any size, from artisan workshops to major maisons, are
+        welcome.
       </p>
-      <ul>
-        <li>
-          A maintainer triages the RFC and assigns it a number (e.g., RFC-0042).
-        </li>
-        <li>
-          The RFC enters the &quot;Draft&quot; stage and is open for informal
-          feedback.
-        </li>
-        <li>The author may revise the RFC based on early feedback.</li>
-      </ul>
 
-      <h3>Stage 2: Review</h3>
+      <h2>RFC Lifecycle</h2>
+
+      <h3>1. Draft</h3>
       <p>
-        When the author and a sponsoring maintainer agree the RFC is ready, it
-        enters formal review:
+        The author prepares the RFC using the RFC template. Key sections
+        include:
       </p>
       <ul>
         <li>
-          A <strong>14-day public review period</strong> begins. All community
-          members may comment.
+          <strong>Summary</strong> &mdash; One-paragraph overview
         </li>
         <li>
-          The review period is announced on the mailing list and project
-          discussion channels.
+          <strong>Motivation</strong> &mdash; Why this change is needed
         </li>
         <li>
-          The author must respond to all substantive feedback during the review
-          period.
+          <strong>Guide-level explanation</strong> &mdash; How adopters will use
+          this
         </li>
         <li>
-          The review period may be extended by 7 days if significant new issues
-          arise in the final 3 days.
-        </li>
-      </ul>
-
-      <h3>Stage 3: Vote</h3>
-      <p>After the review period closes, the TSC votes on the RFC:</p>
-      <ul>
-        <li>
-          <strong>Standard changes</strong> require a simple majority (6 of 11
-          TSC members).
+          <strong>Reference-level explanation</strong> &mdash; Technical
+          specification
         </li>
         <li>
-          <strong>Breaking changes</strong> require a supermajority (8 of 11 TSC
-          members).
+          <strong>Alternatives</strong> &mdash; Other approaches considered
         </li>
         <li>
-          TSC members with a conflict of interest must recuse themselves. The
-          threshold is adjusted proportionally.
+          <strong>Compliance impact</strong> &mdash; Regulatory implications
+          (ESPR, GDPR)
         </li>
         <li>
-          The vote is conducted asynchronously over 7 days. Members who do not
-          vote are counted as abstentions.
+          <strong>Backward compatibility</strong> &mdash; Impact on existing
+          implementations
         </li>
       </ul>
 
-      <h3>Stage 4: Accept or Reject</h3>
+      <h3>2. Submitted</h3>
+      <p>
+        The author opens a Pull Request against the{" "}
+        <code>governance/rfcs/</code> directory. The PR title should follow the
+        format: <code>RFC: [Short descriptive title]</code>.
+      </p>
+      <p>
+        <strong>Note:</strong> Draft RFCs use placeholder <code>XXXX</code> in
+        the filename. RFC numbers are assigned only when accepted, not at
+        submission.
+      </p>
+
+      <h3>3. Champion Assigned</h3>
+      <p>
+        A TSC member is assigned as the RFC&apos;s <strong>champion</strong>.
+        The champion:
+      </p>
+      <ul>
+        <li>Shepherds the RFC through the process</li>
+        <li>Ensures timely review and feedback</li>
+        <li>Facilitates discussion and resolution of concerns</li>
+        <li>Presents the RFC for TSC decision</li>
+      </ul>
+      <p>
+        This prevents RFC abandonment and ensures all proposals receive proper
+        attention.
+      </p>
+
+      <h3>4. Review Period</h3>
+      <p>The RFC enters a public comment period based on change type:</p>
       <ul>
         <li>
-          <strong>Accepted</strong> — The RFC is merged into the specification.
-          The change is included in the next appropriate release per the{" "}
-          <a href="/docs/versioning">versioning policy</a>.
+          <strong>Minor</strong> (non-breaking clarifications): 2 weeks
         </li>
         <li>
-          <strong>Rejected</strong> — The RFC is closed with a written
-          explanation. The author may revise and resubmit after addressing the
-          TSC&apos;s concerns.
+          <strong>Major</strong> (new features, enhancements): 30 days
         </li>
         <li>
-          <strong>Deferred</strong> — The TSC may defer an RFC if the timing is
-          not right. Deferred RFCs remain open and can be reactivated.
+          <strong>Breaking</strong> (backward-incompatible): 60 days
+        </li>
+      </ul>
+      <p>
+        During this period, community members comment on the PR, the author
+        responds and may revise the RFC, and the champion tracks open concerns.
+      </p>
+
+      <h3>5. Decision</h3>
+      <p>After the review period, the TSC decides:</p>
+      <ul>
+        <li>
+          <strong>Accepted</strong> &mdash; RFC approved for implementation in
+          target version
+        </li>
+        <li>
+          <strong>Rejected</strong> &mdash; RFC not accepted (rationale
+          documented)
+        </li>
+        <li>
+          <strong>Deferred</strong> &mdash; RFC postponed for future
+          consideration
+        </li>
+      </ul>
+
+      <h3>Decision Mechanisms</h3>
+      <ul>
+        <li>
+          <strong>Lazy consensus</strong> &mdash; If no objections by the review
+          deadline, the RFC proceeds to acceptance
+        </li>
+        <li>
+          <strong>Explicit vote</strong> &mdash; For contested RFCs, TSC members
+          vote explicitly
+        </li>
+        <li>
+          <strong>Breaking changes</strong> &mdash; Require veto-free TSC
+          approval. Any TSC member may exercise a veto on breaking changes (see{" "}
+          <a href="/docs/governance/charter">Governance Charter</a> Section 6)
+        </li>
+      </ul>
+
+      <h3>6. Implementation</h3>
+      <p>Accepted RFCs are:</p>
+      <ul>
+        <li>
+          Assigned an RFC number (sequential: 0001, 0002, 0003...) &mdash;
+          numbers are assigned when accepted, not at submission
+        </li>
+        <li>
+          Merged into the <code>rfcs/</code> directory
+        </li>
+        <li>Implemented in the target specification version</li>
+        <li>Status updated to &quot;Implemented&quot; upon release</li>
+      </ul>
+
+      <h2>RFC Statuses</h2>
+      <ul>
+        <li>
+          <strong>Draft</strong> &mdash; Work in progress, not yet submitted
+        </li>
+        <li>
+          <strong>Submitted</strong> &mdash; PR opened, under review
+        </li>
+        <li>
+          <strong>Accepted</strong> &mdash; Approved for implementation
+        </li>
+        <li>
+          <strong>Implemented</strong> &mdash; Released in a specification
+          version
+        </li>
+        <li>
+          <strong>Rejected</strong> &mdash; Not accepted (rationale preserved)
+        </li>
+        <li>
+          <strong>Withdrawn</strong> &mdash; Author withdrew the proposal
+        </li>
+        <li>
+          <strong>Deferred</strong> &mdash; Postponed for future consideration
         </li>
       </ul>
 
@@ -124,68 +199,87 @@ export default function RFCProcessPage() {
       <pre>
         <code>{`# RFC-XXXX: [Title]
 
+- RFC Number: XXXX (assigned upon acceptance)
+- Author: [Your Name (organization)]
+- Champion: [TSC member - assigned after submission]
+- Status: Draft
+- Created: [YYYY-MM-DD]
+- Review Deadline: [calculated from submission]
+- Spec Version Target: [e.g., 1.3.0]
+
 ## Summary
-One-paragraph explanation of the proposed change.
+One-paragraph overview of the proposal.
 
 ## Motivation
-Why is this change needed? What problem does it solve?
+Why is this change needed? What use cases does it enable?
 
-## Specification
-Detailed technical specification of the change.
+## Guide-level explanation
+How adopters will use this, with examples.
 
-## Backward Compatibility
-How does this change affect existing implementations?
-Is it a breaking change? If so, what is the migration path?
+## Reference-level explanation
+Technical specification details, schema changes.
 
-## Security Considerations
-What security implications does this change have?
+## Drawbacks
+Why should we NOT do this?
 
-## References
-Links to related specifications, standards, and discussions.`}</code>
+## Rationale and alternatives
+Why is this the best design among alternatives?
+
+## Prior art
+How do other standards handle this?
+
+## Compliance impact
+ESPR, GDPR, and other regulatory implications.
+
+## Backward compatibility
+Is this a breaking change? Migration path?
+
+## Unresolved questions
+Questions to resolve during RFC review.`}</code>
       </pre>
 
-      <h2>Timeline Summary</h2>
-      <ul>
+      <h2>How to Submit an RFC</h2>
+      <ol>
         <li>
-          <strong>Draft</strong> — No fixed duration. Author iterates until
-          ready.
+          <strong>Fork</strong> the repository
         </li>
         <li>
-          <strong>Review</strong> — 14 days minimum (extendable to 21 days).
+          <strong>Copy</strong> <code>0000-template.md</code> to{" "}
+          <code>XXXX-your-title.md</code>
         </li>
         <li>
-          <strong>Vote</strong> — 7 days.
+          <strong>Fill in</strong> all sections of the template
         </li>
         <li>
-          <strong>Total minimum</strong> — 21 days from entering review to
-          decision.
+          <strong>Open a Pull Request</strong> with title{" "}
+          <code>RFC: [Your Title]</code>
         </li>
-      </ul>
+        <li>
+          <strong>Engage</strong> with feedback during the review period
+        </li>
+      </ol>
 
-      <h2>Emergency Process</h2>
+      <h2>Language</h2>
       <p>
-        For critical security vulnerabilities or urgent regulatory compliance
-        issues, the TSC may invoke an expedited process:
+        All RFC text, discussions, and decisions are conducted in{" "}
+        <strong>English</strong>. The English version is authoritative.
+        Community translations are encouraged for accessibility but are
+        non-authoritative.
       </p>
-      <ul>
-        <li>3-day review period instead of 14 days</li>
-        <li>Requires unanimous TSC approval (all non-recused members)</li>
-        <li>Must be followed by a retroactive full review within 30 days</li>
-      </ul>
 
       <h2>Related Documents</h2>
       <ul>
         <li>
-          <a href="/docs/governance/charter">Governance Charter</a> — TSC
-          structure and voting rules
+          <a href="/docs/governance/charter">Governance Charter</a> &mdash; TSC
+          structure, veto mechanism, and voting rules
         </li>
         <li>
-          <a href="/docs/contributing">Contributing Guide</a> — How to get
+          <a href="/docs/contributing">Contributing Guide</a> &mdash; How to get
           started
         </li>
         <li>
-          <a href="/docs/versioning">Versioning Policy</a> — How accepted RFCs
-          are released
+          <a href="/docs/versioning">Versioning Policy</a> &mdash; How accepted
+          RFCs are released
         </li>
       </ul>
     </>

@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from "react";
 
 // Seeded pseudo-random number generator for consistent SSR/client values
 function seededRandom(seed: number) {
@@ -13,68 +13,165 @@ const round = (n: number) => Math.round(n * 10000) / 10000;
 
 const features = [
   {
-    id: 'certificate',
-    title: 'Digital Product Passport',
-    titleFr: 'Passeport Produit Numérique',
-    description: 'EU ESPR-compliant digital passports that travel with your products through their entire lifecycle. From creation to consumer to resale.',
-    color: '#00FFFF',
-    stats: { value: 'ESPR', label: 'Compliant' },
+    id: "certificate",
+    title: "Digital Product Passport",
+    titleFr: "Passeport Produit Numérique",
+    description:
+      "EU ESPR-compliant digital passports that travel with your products through their entire lifecycle. From creation to consumer to resale.",
+    color: "#00FFFF",
+    stats: { value: "ESPR", label: "Compliant" },
     icon: (
       <svg viewBox="0 0 64 64" fill="none" className="w-full h-full">
-        <rect x="12" y="8" width="40" height="48" rx="2" stroke="currentColor" strokeWidth="1.5" />
+        <rect
+          x="12"
+          y="8"
+          width="40"
+          height="48"
+          rx="2"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        />
         <circle cx="32" cy="24" r="8" stroke="currentColor" strokeWidth="1.5" />
-        <line x1="20" y1="40" x2="44" y2="40" stroke="currentColor" strokeWidth="1" opacity="0.5" />
-        <line x1="20" y1="46" x2="36" y2="46" stroke="currentColor" strokeWidth="1" opacity="0.5" />
-        <rect x="36" y="52" width="12" height="8" fill="currentColor" opacity="0.3" />
+        <line
+          x1="20"
+          y1="40"
+          x2="44"
+          y2="40"
+          stroke="currentColor"
+          strokeWidth="1"
+          opacity="0.5"
+        />
+        <line
+          x1="20"
+          y1="46"
+          x2="36"
+          y2="46"
+          stroke="currentColor"
+          strokeWidth="1"
+          opacity="0.5"
+        />
+        <rect
+          x="36"
+          y="52"
+          width="12"
+          height="8"
+          fill="currentColor"
+          opacity="0.3"
+        />
       </svg>
     ),
   },
   {
-    id: 'chain',
-    title: 'Immutable Provenance',
-    titleFr: 'Provenance Immuable',
-    description: 'Every ownership transfer, every authentication event, every service record. Permanently etched into the blockchain.',
-    color: '#00FF88',
-    stats: { value: '∞', label: 'Permanence' },
+    id: "chain",
+    title: "Immutable Provenance",
+    titleFr: "Provenance Immuable",
+    description:
+      "Every ownership transfer, every authentication event, every service record. Permanently etched into the blockchain.",
+    color: "#00FF88",
+    stats: { value: "∞", label: "Permanence" },
     icon: (
       <svg viewBox="0 0 64 64" fill="none" className="w-full h-full">
-        <path d="M16 32 L24 40 L32 32 L40 40 L48 32" stroke="currentColor" strokeWidth="1.5" fill="none" />
+        <path
+          d="M16 32 L24 40 L32 32 L40 40 L48 32"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          fill="none"
+        />
         <circle cx="16" cy="32" r="4" stroke="currentColor" strokeWidth="1.5" />
         <circle cx="32" cy="32" r="4" fill="currentColor" />
         <circle cx="48" cy="32" r="4" stroke="currentColor" strokeWidth="1.5" />
-        <line x1="8" y1="16" x2="56" y2="16" stroke="currentColor" strokeWidth="0.5" opacity="0.3" />
-        <line x1="8" y1="48" x2="56" y2="48" stroke="currentColor" strokeWidth="0.5" opacity="0.3" />
+        <line
+          x1="8"
+          y1="16"
+          x2="56"
+          y2="16"
+          stroke="currentColor"
+          strokeWidth="0.5"
+          opacity="0.3"
+        />
+        <line
+          x1="8"
+          y1="48"
+          x2="56"
+          y2="48"
+          stroke="currentColor"
+          strokeWidth="0.5"
+          opacity="0.3"
+        />
       </svg>
     ),
   },
   {
-    id: 'verify',
-    title: 'Instant Authentication',
-    titleFr: 'Authentification Instantanée',
-    description: 'One scan. Complete verification in under 300 milliseconds. NFC, QR, or serial number - multiple entry points, one source of truth.',
-    color: '#4488FF',
-    stats: { value: '<0.3s', label: 'Verification' },
+    id: "verify",
+    title: "Instant Authentication",
+    titleFr: "Authentification Instantanée",
+    description:
+      "One scan. Complete verification in under 300 milliseconds. NFC, QR, or serial number - multiple entry points, one source of truth.",
+    color: "#4488FF",
+    stats: { value: "Real-time", label: "Verification" },
     icon: (
       <svg viewBox="0 0 64 64" fill="none" className="w-full h-full">
-        <circle cx="32" cy="32" r="20" stroke="currentColor" strokeWidth="1.5" />
-        <path d="M24 32 L30 38 L42 26" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        <circle cx="32" cy="32" r="26" stroke="currentColor" strokeWidth="0.5" opacity="0.3" strokeDasharray="4 4" />
+        <circle
+          cx="32"
+          cy="32"
+          r="20"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        />
+        <path
+          d="M24 32 L30 38 L42 26"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <circle
+          cx="32"
+          cy="32"
+          r="26"
+          stroke="currentColor"
+          strokeWidth="0.5"
+          opacity="0.3"
+          strokeDasharray="4 4"
+        />
       </svg>
     ),
   },
   {
-    id: 'transfer',
-    title: 'Secure Ownership Transfer',
-    titleFr: 'Transfert Sécurisé',
-    description: 'Compliant secondary market transactions. Every resale verified, every transfer authenticated. Protect brand value across generations.',
-    color: '#FF00FF',
-    stats: { value: 'P2P', label: 'Transfers' },
+    id: "transfer",
+    title: "Secure Ownership Transfer",
+    titleFr: "Transfert Sécurisé",
+    description:
+      "Compliant secondary market transactions. Every resale verified, every transfer authenticated. Protect brand value across generations.",
+    color: "#FF00FF",
+    stats: { value: "P2P", label: "Transfers" },
     icon: (
       <svg viewBox="0 0 64 64" fill="none" className="w-full h-full">
-        <circle cx="20" cy="32" r="10" stroke="currentColor" strokeWidth="1.5" />
-        <circle cx="44" cy="32" r="10" stroke="currentColor" strokeWidth="1.5" />
-        <path d="M30 28 L34 32 L30 36" stroke="currentColor" strokeWidth="1.5" />
-        <path d="M34 28 L30 32 L34 36" stroke="currentColor" strokeWidth="1.5" opacity="0.5" />
+        <circle
+          cx="20"
+          cy="32"
+          r="10"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        />
+        <circle
+          cx="44"
+          cy="32"
+          r="10"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        />
+        <path
+          d="M30 28 L34 32 L30 36"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        />
+        <path
+          d="M34 28 L30 32 L34 36"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          opacity="0.5"
+        />
         <circle cx="20" cy="32" r="3" fill="currentColor" />
         <circle cx="44" cy="32" r="3" fill="currentColor" />
       </svg>
@@ -83,7 +180,7 @@ const features = [
 ];
 
 // Pre-generate deterministic particle data
-const featureColors = features.map(f => f.color);
+const featureColors = features.map((f) => f.color);
 const ambientParticles = [...Array(40)].map((_, i) => ({
   x: round(seededRandom(i * 6 + 500) * 100),
   y: round(seededRandom(i * 6 + 501) * 100),
@@ -105,7 +202,7 @@ export function BioluminescentFeatures() {
           setIsVisible(true);
         }
       },
-      { threshold: 0.15 }
+      { threshold: 0.15 },
     );
 
     if (sectionRef.current) {
@@ -116,7 +213,10 @@ export function BioluminescentFeatures() {
   }, []);
 
   return (
-    <section ref={sectionRef} className="relative py-32 md:py-48 bg-[#000810] overflow-hidden">
+    <section
+      ref={sectionRef}
+      className="relative py-32 md:py-48 bg-[#000810] overflow-hidden"
+    >
       {/* Ambient particles */}
       <div className="absolute inset-0 pointer-events-none">
         {ambientParticles.map((particle, i) => (
@@ -144,7 +244,7 @@ export function BioluminescentFeatures() {
           style={{
             opacity: isVisible ? 1 : 0,
             transform: `translateY(${isVisible ? 0 : 40}px)`,
-            transition: 'all 1s cubic-bezier(0.16, 1, 0.3, 1)',
+            transition: "all 1s cubic-bezier(0.16, 1, 0.3, 1)",
           }}
         >
           <div className="inline-flex items-center gap-4 mb-8">
@@ -157,14 +257,14 @@ export function BioluminescentFeatures() {
 
           <h2
             className="text-4xl md:text-5xl lg:text-6xl font-extralight text-white"
-            style={{ fontFamily: 'var(--font-serif)' }}
+            style={{ fontFamily: "var(--font-serif)" }}
           >
             Light in the Darkness
           </h2>
 
           <p className="mt-6 text-base text-white/40 max-w-2xl mx-auto leading-relaxed">
-            In the deepest waters, life creates its own light.
-            Our protocol illuminates truth where others see only darkness.
+            In the deepest waters, life creates its own light. Our protocol
+            illuminates truth where others see only darkness.
           </p>
         </div>
 
@@ -185,12 +285,14 @@ export function BioluminescentFeatures() {
               <div
                 className="relative p-8 md:p-10 h-full border transition-all duration-500"
                 style={{
-                  backgroundColor: activeFeature === feature.id
-                    ? `${feature.color}10`
-                    : 'rgba(255, 255, 255, 0.02)',
-                  borderColor: activeFeature === feature.id
-                    ? `${feature.color}40`
-                    : 'rgba(255, 255, 255, 0.08)',
+                  backgroundColor:
+                    activeFeature === feature.id
+                      ? `${feature.color}10`
+                      : "rgba(255, 255, 255, 0.02)",
+                  borderColor:
+                    activeFeature === feature.id
+                      ? `${feature.color}40`
+                      : "rgba(255, 255, 255, 0.08)",
                 }}
               >
                 {/* Glow effect */}
@@ -205,13 +307,19 @@ export function BioluminescentFeatures() {
                 <div
                   className="absolute top-0 left-0 w-6 h-6 border-l border-t transition-all duration-500"
                   style={{
-                    borderColor: activeFeature === feature.id ? feature.color : `${feature.color}30`,
+                    borderColor:
+                      activeFeature === feature.id
+                        ? feature.color
+                        : `${feature.color}30`,
                   }}
                 />
                 <div
                   className="absolute bottom-0 right-0 w-6 h-6 border-r border-b transition-all duration-500"
                   style={{
-                    borderColor: activeFeature === feature.id ? feature.color : `${feature.color}30`,
+                    borderColor:
+                      activeFeature === feature.id
+                        ? feature.color
+                        : `${feature.color}30`,
                   }}
                 />
 
@@ -223,7 +331,10 @@ export function BioluminescentFeatures() {
                     <div
                       className="w-14 h-14 transition-all duration-500"
                       style={{
-                        color: activeFeature === feature.id ? feature.color : `${feature.color}80`,
+                        color:
+                          activeFeature === feature.id
+                            ? feature.color
+                            : `${feature.color}80`,
                       }}
                     >
                       {feature.icon}
@@ -239,8 +350,11 @@ export function BioluminescentFeatures() {
                       <div
                         className="text-xl font-light transition-colors duration-500"
                         style={{
-                          fontFamily: 'var(--font-mono, monospace)',
-                          color: activeFeature === feature.id ? feature.color : `${feature.color}70`,
+                          fontFamily: "var(--font-mono, monospace)",
+                          color:
+                            activeFeature === feature.id
+                              ? feature.color
+                              : `${feature.color}70`,
                         }}
                       >
                         {feature.stats.value}
@@ -254,7 +368,7 @@ export function BioluminescentFeatures() {
                   {/* Titles */}
                   <h3
                     className="text-xl md:text-2xl font-light text-white mb-1"
-                    style={{ fontFamily: 'var(--font-serif)' }}
+                    style={{ fontFamily: "var(--font-serif)" }}
                   >
                     {feature.title}
                   </h3>
@@ -289,8 +403,8 @@ export function BioluminescentFeatures() {
                 <div
                   className="absolute bottom-0 left-0 h-[2px] transition-all duration-500"
                   style={{
-                    width: activeFeature === feature.id ? '100%' : '25%',
-                    background: `linear-gradient(90deg, ${activeFeature === feature.id ? feature.color : feature.color + '60'}, transparent)`,
+                    width: activeFeature === feature.id ? "100%" : "25%",
+                    background: `linear-gradient(90deg, ${activeFeature === feature.id ? feature.color : feature.color + "60"}, transparent)`,
                   }}
                 />
               </div>
@@ -304,7 +418,7 @@ export function BioluminescentFeatures() {
           style={{
             opacity: isVisible ? 1 : 0,
             transform: `translateY(${isVisible ? 0 : 20}px)`,
-            transition: 'all 1s cubic-bezier(0.16, 1, 0.3, 1) 0.8s',
+            transition: "all 1s cubic-bezier(0.16, 1, 0.3, 1) 0.8s",
           }}
         >
           <a
@@ -312,7 +426,9 @@ export function BioluminescentFeatures() {
             className="inline-flex items-center gap-3 text-sm text-white/40 hover:text-cyan-400 transition-colors group"
           >
             <span className="tracking-wide">Explore all capabilities</span>
-            <span className="group-hover:translate-x-1 transition-transform">→</span>
+            <span className="group-hover:translate-x-1 transition-transform">
+              →
+            </span>
           </a>
         </div>
       </div>

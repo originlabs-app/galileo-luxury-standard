@@ -5,6 +5,7 @@ import {
   Cormorant_Garamond,
   JetBrains_Mono,
 } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import { Navigation } from "@/components/layout/Navigation";
 import { OrganizationJsonLd } from "@/components/seo/OrganizationJsonLd";
 import "./globals.css";
@@ -100,6 +101,7 @@ export default function RootLayout({
         <OrganizationJsonLd />
         <Navigation />
         <main className="min-h-screen">{children}</main>
+        <Analytics />
       </body>
     </html>
   );

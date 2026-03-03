@@ -1,7 +1,7 @@
 export const metadata = {
   title: "License",
   description:
-    "Apache 2.0 license details for the Galileo Protocol. Understand what you can do, your obligations, the patent grant, and why this license fits luxury brands.",
+    "Apache 2.0 license details for the Galileo Luxury Standard. Understand what you can do, your obligations, the patent grant, and why this license fits luxury brands.",
 };
 
 export default function LicensePage() {
@@ -22,72 +22,74 @@ export default function LicensePage() {
       </p>
       <ul>
         <li>
-          <strong>Permissive</strong> — Anyone can use, modify, and distribute
-          the standard without restriction, including in proprietary products.
+          <strong>Permissive</strong> &mdash; Anyone can use, modify, and
+          distribute the standard without restriction, including in proprietary
+          products.
         </li>
         <li>
-          <strong>Patent grant</strong> — Contributors automatically grant a
-          royalty-free patent license, protecting implementors from patent
+          <strong>Patent grant</strong> &mdash; Contributors automatically grant
+          a royalty-free patent license, protecting implementors from patent
           claims.
         </li>
         <li>
-          <strong>No copyleft</strong> — Implementations are not required to be
-          open source, which is essential for luxury brands with proprietary
-          systems.
+          <strong>No copyleft</strong> &mdash; Implementations are not required
+          to be open source, which is essential for luxury brands with
+          proprietary systems.
         </li>
         <li>
-          <strong>Industry standard</strong> — Apache 2.0 is widely understood
-          and accepted by corporate legal teams.
+          <strong>Industry standard</strong> &mdash; Apache 2.0 is widely
+          understood and accepted by corporate legal teams.
         </li>
       </ul>
 
       <h2>What You Can Do</h2>
       <ul>
         <li>
-          <strong>Use freely</strong> — Implement the Galileo specification in
-          any product, commercial or non-commercial, without paying royalties.
+          <strong>Use freely</strong> &mdash; Implement the Galileo
+          specification in any product, commercial or non-commercial, without
+          paying royalties.
         </li>
         <li>
-          <strong>Modify</strong> — Create extensions, profiles, or derived
-          specifications tailored to your needs.
+          <strong>Modify</strong> &mdash; Create extensions, profiles, or
+          derived specifications tailored to your needs.
         </li>
         <li>
-          <strong>Distribute</strong> — Include the specification in your
+          <strong>Distribute</strong> &mdash; Include the specification in your
           documentation, SDKs, or products.
         </li>
         <li>
-          <strong>Sublicense</strong> — Grant your customers the same rights
-          under the Apache 2.0 terms.
+          <strong>Sublicense</strong> &mdash; Grant your customers the same
+          rights under the Apache 2.0 terms.
         </li>
       </ul>
 
       <h2>What You Must Do</h2>
       <ul>
         <li>
-          <strong>Include the license</strong> — Any distribution of the
+          <strong>Include the license</strong> &mdash; Any distribution of the
           specification or substantial portions of it must include a copy of the
           Apache 2.0 license.
         </li>
         <li>
-          <strong>State changes</strong> — If you modify the specification, you
-          must note that changes were made. You cannot present a modified
-          version as the official Galileo standard.
+          <strong>State changes</strong> &mdash; If you modify the
+          specification, you must note that changes were made. You cannot
+          present a modified version as the official Galileo standard.
         </li>
         <li>
-          <strong>Preserve notices</strong> — Retain all copyright, patent,
-          trademark, and attribution notices from the original files.
+          <strong>Preserve notices</strong> &mdash; Retain all copyright,
+          patent, trademark, and attribution notices from the original files.
         </li>
       </ul>
 
       <h2>What You Cannot Do</h2>
       <ul>
         <li>
-          <strong>Use trademarks</strong> — The Apache 2.0 license does not
-          grant permission to use the Galileo name, logo, or trademarks.
+          <strong>Use trademarks</strong> &mdash; The Apache 2.0 license does
+          not grant permission to use the Galileo name, logo, or trademarks.
           Trademark usage requires separate authorization.
         </li>
         <li>
-          <strong>Hold contributors liable</strong> — The specification is
+          <strong>Hold contributors liable</strong> &mdash; The specification is
           provided &quot;as is&quot; without warranties. Contributors are not
           liable for any issues arising from the use of the standard.
         </li>
@@ -123,7 +125,9 @@ export default function LicensePage() {
           Your competitors cannot gain special patent advantages through their
           contributions to the standard.
         </li>
-        <li>The license is stable and well-understood — no legal surprises.</li>
+        <li>
+          The license is stable and well-understood &mdash; no legal surprises.
+        </li>
       </ul>
 
       <h2>Full License Text</h2>
@@ -137,12 +141,12 @@ export default function LicensePage() {
       <h2>Related Documents</h2>
       <ul>
         <li>
-          <a href="/docs/governance/charter">Governance Charter</a> —
+          <a href="/docs/governance/charter">Governance Charter</a> &mdash;
           Intellectual property provisions
         </li>
         <li>
-          <a href="/docs/contributing">Contributing Guide</a> — CLA and
-          contribution terms
+          <a href="/docs/contributing">Contributing Guide</a> &mdash; DCO
+          sign-off and contribution terms
         </li>
       </ul>
     </>
