@@ -3,6 +3,7 @@
   "$id": "https://schemas.galileoprotocol.io/credentials/v1/galileo-vc.schema.json",
   "title": "Galileo Verifiable Credential",
   "description": "JSON Schema for validating Galileo Verifiable Credentials conforming to W3C VC Data Model 2.0",
+  "type": "object",
 
   "$defs": {
     "vcBase": {

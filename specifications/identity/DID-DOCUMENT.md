@@ -46,7 +46,7 @@ DID documents are stored **off-chain** per the Galileo hybrid architecture:
 - Content hash stored on-chain for integrity verification
 - Service endpoints enable retrieval via resolver
 
-See [HYBRID-ARCHITECTURE.md](../architecture/HYBRID-ARCHITECTURE.md) for data boundary specification.
+See [hybrid-architecture.md](../architecture/hybrid-architecture.md) for data boundary specification.
 
 ---
 
@@ -118,7 +118,7 @@ The `@context` array MUST contain:
 
 ### 3.1 Key Types Supported
 
-Per the Galileo crypto-agility specification ([CRYPTO-AGILITY.md](../crypto/CRYPTO-AGILITY.md)):
+Per the Galileo crypto-agility specification ([crypto-agility.md](../crypto/crypto-agility.md)):
 
 | Type | Suite | Usage | Status |
 |------|-------|-------|--------|
@@ -731,7 +731,7 @@ Published at: `https://galileoprotocol.io/ns/v1`
 
 ### 8.1 On-Chain Storage
 
-Per [HYBRID-ARCHITECTURE.md](../architecture/HYBRID-ARCHITECTURE.md), the on-chain registry stores:
+Per [hybrid-architecture.md](../architecture/hybrid-architecture.md), the on-chain registry stores:
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -910,8 +910,8 @@ JSON Schema for DID document validation:
 | Specification | Relationship |
 |---------------|--------------|
 | [DID-METHOD.md](./DID-METHOD.md) | Method syntax and resolution protocol |
-| [HYBRID-ARCHITECTURE.md](../architecture/HYBRID-ARCHITECTURE.md) | On-chain/off-chain data boundary |
-| [CRYPTO-AGILITY.md](../crypto/CRYPTO-AGILITY.md) | Cryptographic algorithm requirements |
+| [hybrid-architecture.md](../architecture/hybrid-architecture.md) | On-chain/off-chain data boundary |
+| [crypto-agility.md](../crypto/crypto-agility.md) | Cryptographic algorithm requirements |
 | [W3C DID Core v1.0](https://www.w3.org/TR/did-core/) | Base specification |
 
 ---

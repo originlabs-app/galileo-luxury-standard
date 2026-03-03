@@ -82,7 +82,7 @@ This specification defines the immutable audit trail infrastructure for the Gali
 ### 1.5 References
 
 - [RBAC Framework](./rbac-framework.md) - Role-based access control
-- [HYBRID-ARCHITECTURE](../architecture/HYBRID-ARCHITECTURE.md) - CRAB model for erasure
+- [hybrid-architecture](../architecture/hybrid-architecture.md) - CRAB model for erasure
 - [Trillian/Certificate Transparency](https://transparency.dev/) - Merkle tree patterns
 - [RFC 8785](https://datatracker.ietf.org/doc/html/rfc8785) - JSON Canonicalization Scheme (JCS)
 
@@ -1468,7 +1468,7 @@ async function replayFallbackEntries(): Promise<void> {
 | Specification | Relationship |
 |---------------|--------------|
 | [RBAC Framework](./rbac-framework.md) | Role change events |
-| [HYBRID-ARCHITECTURE](../architecture/HYBRID-ARCHITECTURE.md) | CRAB model events |
+| [hybrid-architecture](../architecture/hybrid-architecture.md) | CRAB model events |
 | [Claim Topics](../identity/claim-topics.md) | Identity events |
 | [RFC 8785 (JCS)](https://datatracker.ietf.org/doc/html/rfc8785) | Canonicalization |
 | [Trillian](https://transparency.dev/) | Merkle tree patterns |

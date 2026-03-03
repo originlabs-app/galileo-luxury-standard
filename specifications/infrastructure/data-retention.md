@@ -30,7 +30,7 @@ This specification defines data retention policies for the Galileo Luxury Standa
 
 - Data subjects can exercise their right to erasure (GDPR Article 17)
 - Regulatory retention obligations are honored (5AMLD Article 40, MiCA TFR)
-- The CRAB model (Create-Read-Append-Burn) from HYBRID-ARCHITECTURE.md enables compliant erasure
+- The CRAB model (Create-Read-Append-Burn) from hybrid-architecture.md enables compliant erasure
 - Clear legal basis exists for every data retention decision
 
 ### 1.2 Scope
@@ -46,9 +46,9 @@ This specification applies to all data processed within the Galileo Luxury Stand
 | Product data | Yes | DPP content, provenance records |
 | On-chain hashes | No | Not personal data after erasure |
 
-### 1.3 Relationship to HYBRID-ARCHITECTURE.md
+### 1.3 Relationship to hybrid-architecture.md
 
-This specification extends the CRAB model defined in HYBRID-ARCHITECTURE.md Section 4:
+This specification extends the CRAB model defined in hybrid-architecture.md Section 4:
 
 ```
 CRAB Model Extension for Retention:
@@ -788,7 +788,7 @@ When data subject requests correction:
 
 ```json
 {
-  "$schema": "https://spec.galileoprotocol.io/export/v1.0/schema.json",
+  "$schema": "https://schemas.galileoprotocol.io/export/v1.0/schema.json",
   "exportId": "uuid",
   "dataSubject": "anonymized-id",
   "generatedAt": "ISO-8601",
@@ -865,7 +865,7 @@ When data subject requests erasure but data was transferred internationally:
 | **Last Modified** | 2026-01-31 |
 | **Authors** | Galileo Luxury Standard TSC |
 | **Supersedes** | N/A |
-| **Related** | HYBRID-ARCHITECTURE.md (CRAB model) |
+| **Related** | hybrid-architecture.md (CRAB model) |
 | **Compliance** | GDPR, 5AMLD, MiCA TFR, SOX |
 
 ---

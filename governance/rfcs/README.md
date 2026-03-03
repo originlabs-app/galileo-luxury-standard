@@ -1,6 +1,6 @@
 # RFC Process
 
-This document describes the Request for Comments (RFC) process for proposing changes to the Galileo Luxury Standard specification.
+This document describes the Request for Comments (RFC) process for proposing changes to the Galileo Protocol specification.
 
 ## What is an RFC?
 
@@ -18,7 +18,7 @@ An RFC (Request for Comments) is a formal proposal for specification changes. RF
 
 ## Who Can Submit?
 
-**Anyone.** The Galileo Luxury Standard operates under an Open Contribution model.
+**Anyone.** The Galileo Protocol operates under an Open Contribution model.
 
 - No membership is required to submit an RFC
 - RFCs are evaluated on technical merit, not submitter status

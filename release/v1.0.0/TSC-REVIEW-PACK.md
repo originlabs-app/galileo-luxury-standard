@@ -60,8 +60,8 @@ The Galileo Luxury Standard v1.0.0 specification is complete and ready for TSC r
 
 ### Architecture (Phase 2) ✓
 
-- [x] HYBRID-ARCHITECTURE.md (on-chain/off-chain boundary)
-- [x] CRYPTO-AGILITY.md (PQC migration 2027-2029)
+- [x] hybrid-architecture.md (on-chain/off-chain boundary)
+- [x] crypto-agility.md (PQC migration 2027-2029)
 - [x] DID-METHOD.md (did:galileo specification)
 - [x] DID-DOCUMENT.md (document schema)
 - [x] GDPR data boundary validation
@@ -121,7 +121,7 @@ The Galileo Luxury Standard v1.0.0 specification is complete and ready for TSC r
 | Apache 2.0 (not GPL) | Patent grant, commercial adoption | LICENSE |
 | DCO over CLA | Lower friction, Linux kernel model | CONTRIBUTING.md |
 | ERC-3643 extension | Proven T-REX standard | TOKEN-01 |
-| No PII on-chain | GDPR Article 17 compliance | HYBRID-ARCHITECTURE.md |
+| No PII on-chain | GDPR Article 17 compliance | hybrid-architecture.md |
 | 10-year deprecation | Luxury product longevity | VERSIONING.md |
 | did:galileo method | GS1 integration, W3C compliant | DID-METHOD.md |
 | JWT-only regulators | Out-of-band verification | access-control.md |

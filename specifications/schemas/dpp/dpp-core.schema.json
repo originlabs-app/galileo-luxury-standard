@@ -182,7 +182,7 @@
         },
         "value": {
           "type": "string",
-          "description": "14-digit GTIN per GS1 Digital Link 1.4.0",
+          "description": "14-digit GTIN per GS1 Digital Link 1.6.0",
           "pattern": "^\\d{14}$"
         },
         "url": {

@@ -1,4 +1,4 @@
-# Galileo Luxury Standard
+# Galileo Protocol
 
 **Open standard for luxury product traceability on blockchain**
 
@@ -11,7 +11,7 @@
 
 ## Overview
 
-The Galileo Luxury Standard is an open, interoperable protocol for luxury product traceability. It provides specifications for Digital Product Passports, decentralized identity, compliant token transfers, and regulatory alignment (GDPR, MiCA, ESPR).
+The Galileo Protocol is an open, interoperable protocol for luxury product traceability. It provides specifications for Digital Product Passports, decentralized identity, compliant token transfers, and regulatory alignment (GDPR, MiCA, ESPR).
 
 ### Key Features
 
@@ -27,7 +27,7 @@ The Galileo Luxury Standard is an open, interoperable protocol for luxury produc
 
 | I want to... | Start here |
 |--------------|------------|
-| Understand the architecture | [HYBRID-ARCHITECTURE.md](specifications/architecture/HYBRID-ARCHITECTURE.md) |
+| Understand the architecture | [hybrid-architecture.md](specifications/architecture/hybrid-architecture.md) |
 | Implement product identity | [DID-METHOD.md](specifications/identity/DID-METHOD.md) |
 | Create Digital Product Passports | [dpp-core.schema.json](specifications/schemas/dpp/dpp-core.schema.json) |
 | Integrate with GS1 | [digital-link-uri.md](specifications/resolver/digital-link-uri.md) |
@@ -98,7 +98,7 @@ We welcome contributions! Please read:
 ## License
 
 ```
-Copyright 2026 Galileo Luxury Standard Contributors
+Copyright 2026 Galileo Protocol Contributors
 
 Licensed under the Apache License, Version 2.0
 ```
@@ -115,4 +115,4 @@ See [LICENSE](LICENSE) for the full text.
 
 ---
 
-*Galileo Luxury Standard — Protecting Heritage Through Interoperability*
+*Galileo Protocol — Protecting Heritage Through Interoperability*

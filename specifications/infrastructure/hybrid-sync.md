@@ -28,7 +28,7 @@
 
 ### 1.1 Purpose
 
-This specification formalizes the event sourcing protocol and synchronization mechanisms for the Galileo Luxury Standard's hybrid on-chain/off-chain architecture. It extends the foundational patterns defined in HYBRID-ARCHITECTURE.md Section 5 with detailed operational procedures.
+This specification formalizes the event sourcing protocol and synchronization mechanisms for the Galileo Luxury Standard's hybrid on-chain/off-chain architecture. It extends the foundational patterns defined in hybrid-architecture.md Section 5 with detailed operational procedures.
 
 **Core Principle:**
 
@@ -67,7 +67,7 @@ This specification formalizes the event sourcing protocol and synchronization me
 +-------------------------------------------------------------------+
 ```
 
-### 1.3 Relationship to HYBRID-ARCHITECTURE.md
+### 1.3 Relationship to hybrid-architecture.md
 
 This specification extends Section 5 (Event Sourcing Protocol) with:
 
@@ -1445,7 +1445,7 @@ interface SyncLogEntry {
 | **Created** | 2026-01-31 |
 | **Last Modified** | 2026-01-31 |
 | **Authors** | Galileo Luxury Standard TSC |
-| **Extends** | HYBRID-ARCHITECTURE.md Section 5 |
+| **Extends** | hybrid-architecture.md Section 5 |
 | **Related** | GSPEC-INFRA-003 (Data Retention) |
 
 ---

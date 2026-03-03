@@ -3,7 +3,7 @@
 **Version:** 1.0.0
 **Status:** Draft
 **Last Updated:** 2026-01-30
-**GS1 Digital Link Version:** 1.4.0
+**GS1 Digital Link Version:** 1.6.0
 **did:galileo Version:** 1.0.0
 
 ## Overview
@@ -11,7 +11,7 @@
 This document specifies the bidirectional integration between GS1 Digital Link URIs and did:galileo decentralized identifiers. The integration enables seamless interoperability between traditional supply chain systems using GS1 identifiers and the Galileo decentralized provenance network.
 
 **References:**
-- [GS1 Digital Link Standard 1.4.0](https://ref.gs1.org/standards/digital-link/)
+- [GS1 Digital Link Standard 1.6.0](https://ref.gs1.org/standards/digital-link/)
 - [did:galileo Method Specification](../../identity/DID-METHOD.md)
 - [W3C DID Core v1.0](https://www.w3.org/TR/did-core/)
 

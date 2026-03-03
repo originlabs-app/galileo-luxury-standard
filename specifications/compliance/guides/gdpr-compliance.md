@@ -26,7 +26,7 @@
 
 ### 1.1 Purpose
 
-This guide enables Galileo adopters to implement GDPR-compliant data processing within the hybrid on-chain/off-chain architecture. It translates the technical specifications in `HYBRID-ARCHITECTURE.md` into actionable implementation steps.
+This guide enables Galileo adopters to implement GDPR-compliant data processing within the hybrid on-chain/off-chain architecture. It translates the technical specifications in `hybrid-architecture.md` into actionable implementation steps.
 
 ### 1.2 Key Regulation
 
@@ -43,7 +43,7 @@ The **CRAB (Create-Read-Append-Burn)** model is the foundational pattern for GDP
 | **A**ppend | New events add new hashes (no mutation) | Accurate records |
 | **B**urn | Delete off-chain content + destroy encryption key | Right to erasure |
 
-**Reference:** `specifications/architecture/HYBRID-ARCHITECTURE.md` Section 4
+**Reference:** `specifications/architecture/hybrid-architecture.md` Section 4
 
 ### 1.4 Fundamental Principle
 
@@ -142,7 +142,7 @@ The following data types MAY be stored on-chain because they cannot identify a n
 | Claim Topic ID | `10001` | Reference only, not content |
 | Event Type Enum | `transferred`, `serviced` | Category only |
 
-**Reference:** `HYBRID-ARCHITECTURE.md` Section 2.1
+**Reference:** `hybrid-architecture.md` Section 2.1
 
 ### 4.2 Off-Chain Data (Erasable - ALL PII)
 
@@ -285,7 +285,7 @@ ERASURE REQUEST WORKFLOW
 
 ```typescript
 // erasure-handler.ts
-// Reference: HYBRID-ARCHITECTURE.md Section 4
+// Reference: hybrid-architecture.md Section 4
 
 interface ErasureRequest {
   requestId: string;
@@ -466,7 +466,7 @@ All product lifecycle events follow this standardized flow:
    - Link contentHash -> offChainId
 ```
 
-**Reference:** `HYBRID-ARCHITECTURE.md` Section 5
+**Reference:** `hybrid-architecture.md` Section 5
 
 ### 6.2 Pseudonymization with did:galileo
 
@@ -576,11 +576,11 @@ Data Protection Officer: dpo@[domain]
 
 | # | Requirement | Regulation | Verification Method | Evidence Required | Galileo Reference |
 |---|-------------|------------|---------------------|-------------------|-------------------|
-| 1 | No personal data stored directly on blockchain | EDPB 02/2025 | Code review, data flow audit | Architecture diagram, code samples | HYBRID-ARCHITECTURE.md S2 |
-| 2 | All PII resides in erasable off-chain storage | EDPB 02/2025 | Storage configuration review | Storage architecture document | HYBRID-ARCHITECTURE.md S2.2 |
-| 3 | Hash-to-content mapping enables orphaning | EDPB 02/2025 | Erasure test | Test results, orphaned hash logs | HYBRID-ARCHITECTURE.md S4 |
-| 4 | No encrypted PII on-chain | EDPB 02/2025, GDPR Recital 26 | Code review | Prohibited data audit | HYBRID-ARCHITECTURE.md S2.3 |
-| 5 | Content hashes use SHA-256 | Best practice | Configuration check | Hash algorithm documentation | HYBRID-ARCHITECTURE.md S7.2 |
+| 1 | No personal data stored directly on blockchain | EDPB 02/2025 | Code review, data flow audit | Architecture diagram, code samples | hybrid-architecture.md S2 |
+| 2 | All PII resides in erasable off-chain storage | EDPB 02/2025 | Storage configuration review | Storage architecture document | hybrid-architecture.md S2.2 |
+| 3 | Hash-to-content mapping enables orphaning | EDPB 02/2025 | Erasure test | Test results, orphaned hash logs | hybrid-architecture.md S4 |
+| 4 | No encrypted PII on-chain | EDPB 02/2025, GDPR Recital 26 | Code review | Prohibited data audit | hybrid-architecture.md S2.3 |
+| 5 | Content hashes use SHA-256 | Best practice | Configuration check | Hash algorithm documentation | hybrid-architecture.md S7.2 |
 
 **Checklist:**
 - [ ] 1. Data classification mapping complete
@@ -595,7 +595,7 @@ Data Protection Officer: dpo@[domain]
 |---|-------------|------------|---------------------|-------------------|-------------------|
 | 6 | Right to access implemented | GDPR Art. 15 | Functional test | Access request workflow documentation | data-retention.md S9 |
 | 7 | Right to rectification implemented | GDPR Art. 16 | Functional test | Rectification workflow with audit | data-retention.md S9.3 |
-| 8 | Right to erasure implemented (CRAB) | GDPR Art. 17 | Erasure test within 30 days | Erasure logs, orphaned hash records | HYBRID-ARCHITECTURE.md S4 |
+| 8 | Right to erasure implemented (CRAB) | GDPR Art. 17 | Erasure test within 30 days | Erasure logs, orphaned hash records | hybrid-architecture.md S4 |
 | 9 | Right to data portability implemented | GDPR Art. 20 | Export test | JSON export format documentation | data-retention.md S9.4 |
 | 10 | Erasure workflow has 30-day SLA | GDPR Art. 12(3) | Timer configuration | SLA monitoring dashboard | data-retention.md S6.3 |
 
@@ -627,10 +627,10 @@ Data Protection Officer: dpo@[domain]
 
 | # | Requirement | Regulation | Verification Method | Evidence Required | Galileo Reference |
 |---|-------------|------------|---------------------|-------------------|-------------------|
-| 16 | Off-chain storage supports deletion within GDPR timelines | EDPB 02/2025 | Deletion test | Deletion confirmation logs | HYBRID-ARCHITECTURE.md S7.1 |
+| 16 | Off-chain storage supports deletion within GDPR timelines | EDPB 02/2025 | Deletion test | Deletion confirmation logs | hybrid-architecture.md S7.1 |
 | 17 | Audit trail of deletions maintained | GDPR Art. 5(2) | Audit log review | Audit trail records | data-retention.md S8 |
-| 18 | Encryption keys can be selectively destroyed | CRAB model | Key destruction test | HSM destruction logs | HYBRID-ARCHITECTURE.md S4.3 |
-| 19 | Backup deletion possible | EDPB 02/2025 | Backup deletion test | Backup management logs | HYBRID-ARCHITECTURE.md S7.1 |
+| 18 | Encryption keys can be selectively destroyed | CRAB model | Key destruction test | HSM destruction logs | hybrid-architecture.md S4.3 |
+| 19 | Backup deletion possible | EDPB 02/2025 | Backup deletion test | Backup management logs | hybrid-architecture.md S7.1 |
 | 20 | EU data residency option available | GDPR Chapter V | Configuration review | Data residency documentation | - |
 
 **Checklist:**
@@ -653,7 +653,7 @@ Data Protection Officer: dpo@[domain]
 **How to avoid:**
 - EDPB Guidelines 02/2025: "Encrypted or hashed data remains personal data under GDPR"
 - Enforce off-chain storage for ALL PII, including encrypted versions
-- Use HYBRID-ARCHITECTURE.md Section 2.3 "Explicitly Prohibited On-Chain" as definitive list
+- Use hybrid-architecture.md Section 2.3 "Explicitly Prohibited On-Chain" as definitive list
 
 **Warning signs:** Any design storing encrypted user data on-chain
 
@@ -726,7 +726,7 @@ Data Protection Officer: dpo@[domain]
 
 | Specification | Path | Relevant Sections |
 |---------------|------|-------------------|
-| Hybrid Architecture | `specifications/architecture/HYBRID-ARCHITECTURE.md` | S2 (Classification), S4 (CRAB), S5 (Event Flow) |
+| Hybrid Architecture | `specifications/architecture/hybrid-architecture.md` | S2 (Classification), S4 (CRAB), S5 (Event Flow) |
 | Data Retention | `specifications/infrastructure/data-retention.md` | S4 (Conflict Resolution), S6 (Erasure Workflow) |
 | KYC Hooks | `specifications/compliance/kyc-hooks.md` | S9 (Travel Rule), S5 (Claim Data) |
 | AML Screening | `specifications/compliance/aml-screening.md` | S8 (Audit Trail), S8.3 (Retention) |

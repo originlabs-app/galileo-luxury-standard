@@ -2,8 +2,8 @@
 * text=auto
 
 # Mark generated files (excluded from GitHub language stats and diffs)
-pnpm-lock.yaml linguist-generated
-website/pnpm-lock.yaml linguist-generated
+package-lock.json linguist-generated
+website/package-lock.json linguist-generated
 *.tsbuildinfo linguist-generated
 
 # Mark documentation

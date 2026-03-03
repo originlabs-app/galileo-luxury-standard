@@ -34,7 +34,7 @@ import {IModularCompliance} from "@erc3643org/erc-3643/contracts/compliance/IMod
  *      - IServiceCenterModule: MRO authorization validation
  *
  * Reference: ERC-3643 T-REX v4.1.3 (extended)
- * Specification: GSPEC-COMPLIANCE-002
+ * Specification: GSPEC-COMPLIANCE-007
  * @custom:security-contact security@galileoprotocol.io
  */
 interface IGalileoCompliance is IModularCompliance {

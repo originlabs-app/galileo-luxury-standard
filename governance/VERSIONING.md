@@ -178,7 +178,7 @@ Each release includes:
 | JSON schemas | `/schemas/` | Machine-readable validation |
 | CHANGELOG.md | Repository root | Human-readable change history |
 | Release notes | GitHub Releases | Highlights and migration notes |
-| Migration guide | `/docs/migration/` | For major releases only |
+| Migration guide | `docs/migration/` (created with each major release) | For major releases only |
 
 ---
 

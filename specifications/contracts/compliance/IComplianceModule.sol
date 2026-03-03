@@ -29,7 +29,7 @@ pragma solidity ^0.8.20;
  *      - Avoid unbounded loops in moduleCheck()
  *
  * Reference: ERC-3643 Module Pattern
- * Specification: GSPEC-COMPLIANCE-001
+ * Specification: GSPEC-COMPLIANCE-006
  * @custom:security-contact security@galileoprotocol.io
  */
 interface IComplianceModule {

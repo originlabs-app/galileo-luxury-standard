@@ -58,7 +58,7 @@ CREDENTIAL ARCHITECTURE
 
 ### 1.4 Regulatory Alignment
 
-Per EDPB Guidelines 02/2025 and HYBRID-ARCHITECTURE.md:
+Per EDPB Guidelines 02/2025 and hybrid-architecture.md:
 
 - **On-chain:** Only content hash + URI reference (no PII)
 - **Off-chain:** Full VC with subject information (erasable)
@@ -771,7 +771,7 @@ When a data subject requests erasure:
 4. **On-chain orphaning**: Hash remains but points to nothing
 5. **Audit log**: Deletion logged (without PII)
 
-Per HYBRID-ARCHITECTURE.md CRAB model, the on-chain hash becomes meaningless without off-chain content.
+Per hybrid-architecture.md CRAB model, the on-chain hash becomes meaningless without off-chain content.
 
 ---
 
@@ -814,7 +814,7 @@ Galileo VCs use W3C Data Integrity Proofs with the following cryptosuites:
 
 ### 7.4 Future: Post-Quantum Proofs
 
-Per CRYPTO-AGILITY.md Phase 2 timeline:
+Per crypto-agility.md Phase 2 timeline:
 
 | Timeline | Proof Strategy |
 |----------|----------------|
@@ -876,7 +876,7 @@ See `specifications/schemas/identity/galileo-vc.schema.json` for the complete JS
 | [onchainid-specification.md](./onchainid-specification.md) | On-chain identity contracts |
 | [claim-topics.md](./claim-topics.md) | Claim topic definitions |
 | [DID-METHOD.md](./DID-METHOD.md) | DID resolution |
-| [HYBRID-ARCHITECTURE.md](../architecture/HYBRID-ARCHITECTURE.md) | On-chain/off-chain boundary |
+| [hybrid-architecture.md](../architecture/hybrid-architecture.md) | On-chain/off-chain boundary |
 | [W3C VC Data Model 2.0](https://www.w3.org/TR/vc-data-model-2.0/) | Base specification |
 | [W3C BitstringStatusList](https://www.w3.org/TR/vc-bitstring-status-list/) | Revocation mechanism |
 | [RFC 8785](https://datatracker.ietf.org/doc/html/rfc8785) | JSON Canonicalization Scheme |

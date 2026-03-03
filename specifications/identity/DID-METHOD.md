@@ -47,7 +47,7 @@ References:
 | **Dual Resolution** | Enable resolution via both blockchain registry and GS1 Digital Link |
 | **Multi-Entity** | Support brand, retailer, and participant identities alongside products |
 | **Non-Revocability** | Products exist forever, even if decommissioned (provenance never disappears) |
-| **Crypto-Agility** | Support algorithm migration per CRYPTO-AGILITY.md specification |
+| **Crypto-Agility** | Support algorithm migration per crypto-agility.md specification |
 | **GDPR Compliance** | DID contains no personal data; personal data only in off-chain documents |
 
 ### 1.4 Terminology
@@ -758,7 +758,7 @@ function verifyUpdateSignature(
 - All personal data stored OFF-CHAIN only
 - Off-chain content erasable per GDPR Article 17
 - On-chain hash becomes orphaned upon key destruction (CRAB model)
-- See HYBRID-ARCHITECTURE.md for data boundary specification
+- See hybrid-architecture.md for data boundary specification
 
 **Correlation Risks:**
 
@@ -790,7 +790,7 @@ update: previousHash=contentHash_1, newHash=contentHash_2
 
 **Canonicalization:**
 
-Per HYBRID-ARCHITECTURE.md:
+Per hybrid-architecture.md:
 - Sorted keys (alphabetical)
 - No whitespace
 - UTF-8 NFC normalization
@@ -807,8 +807,8 @@ See `galileo-sdk` package for reference resolver implementation.
 | Specification | Relationship |
 |---------------|--------------|
 | [DID-DOCUMENT.md](./DID-DOCUMENT.md) | DID document schema and lifecycle |
-| [HYBRID-ARCHITECTURE.md](../architecture/HYBRID-ARCHITECTURE.md) | On-chain/off-chain data boundary |
-| [CRYPTO-AGILITY.md](../crypto/CRYPTO-AGILITY.md) | Cryptographic algorithm requirements |
+| [hybrid-architecture.md](../architecture/hybrid-architecture.md) | On-chain/off-chain data boundary |
+| [crypto-agility.md](../crypto/crypto-agility.md) | Cryptographic algorithm requirements |
 | [W3C DID Core v1.0](https://www.w3.org/TR/did-core/) | Base specification |
 | [GS1 General Specifications](https://www.gs1.org/standards/barcodes-epcrfid-id-keys/gs1-general-specifications) | GS1 identifier format |
 

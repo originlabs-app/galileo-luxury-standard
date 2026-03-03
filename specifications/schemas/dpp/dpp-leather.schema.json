@@ -3,6 +3,7 @@
   "$id": "https://schemas.galileoprotocol.io/dpp/dpp-leather.schema.json",
   "title": "Galileo DPP Leather Schema",
   "description": "Digital Product Passport schema for leather goods. Extends dpp-core with leather type, tannery origin, hide grade, and leather-specific fields for bags, accessories, and small leather goods.",
+  "type": "object",
   "allOf": [
     {
       "$ref": "dpp-core.schema.json"

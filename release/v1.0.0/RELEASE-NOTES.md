@@ -77,7 +77,7 @@ The Galileo Luxury Standard is an open, interoperable protocol for luxury produc
 ## Getting Started
 
 1. **Read the Charter** — Understand governance and participation rules
-2. **Review Architecture** — Start with `HYBRID-ARCHITECTURE.md`
+2. **Review Architecture** — Start with `hybrid-architecture.md`
 3. **Explore Identity** — Study `DID-METHOD.md` and claim topics
 4. **Implement DPP** — Use schemas in `specifications/schemas/dpp/`
 5. **Integrate Resolver** — Follow `resolution-protocol.md`

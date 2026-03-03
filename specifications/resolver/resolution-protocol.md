@@ -46,7 +46,7 @@ References:
 - [GS1 Digital Link URI Specification](./digital-link-uri.md)
 - [Linkset Schema](./linkset-schema.json)
 - [did:galileo Method Specification](../identity/DID-METHOD.md)
-- [Hybrid Architecture](../architecture/HYBRID-ARCHITECTURE.md)
+- [Hybrid Architecture](../architecture/hybrid-architecture.md)
 
 ### 1.3 Scope
 
@@ -425,7 +425,7 @@ async function fetchDIDDocument(contentHash: string): Promise<DIDDocument | null
 }
 ```
 
-**Reference:** [HYBRID-ARCHITECTURE.md](../architecture/HYBRID-ARCHITECTURE.md)
+**Reference:** [hybrid-architecture.md](../architecture/hybrid-architecture.md)
 
 ### 3.7 Step 7: Select Links Based on Context
 
@@ -1113,7 +1113,7 @@ interface AuthServiceInterface {
 | [access-control.md](./access-control.md) | JWT authentication |
 | [DID-METHOD.md](../identity/DID-METHOD.md) | DID resolution |
 | [claim-topics.md](../identity/claim-topics.md) | ONCHAINID claims |
-| [HYBRID-ARCHITECTURE.md](../architecture/HYBRID-ARCHITECTURE.md) | Data boundary |
+| [hybrid-architecture.md](../architecture/hybrid-architecture.md) | Data boundary |
 | [GS1-Conformant Resolver 1.2.0](https://ref.gs1.org/standards/resolver/) | Base standard |
 
 ---

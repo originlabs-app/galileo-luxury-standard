@@ -23,8 +23,8 @@
 
 | Specification | Path | Standards |
 |---------------|------|-----------|
-| Hybrid Architecture | `specifications/architecture/HYBRID-ARCHITECTURE.md` | GDPR, EDPB 2025 |
-| Crypto-Agility | `specifications/crypto/CRYPTO-AGILITY.md` | NIST PQC, ML-DSA |
+| Hybrid Architecture | `specifications/architecture/hybrid-architecture.md` | GDPR, EDPB 2025 |
+| Crypto-Agility | `specifications/crypto/crypto-agility.md` | NIST PQC, ML-DSA |
 
 ### Identity Layer
 

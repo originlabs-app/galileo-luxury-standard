@@ -34,7 +34,7 @@ import {IComplianceModule} from "../IComplianceModule.sol";
  *      - validFrom/validUntil: Authorization validity period
  *
  * Reference: GalileoClaimTopics.AUTHORIZED_RETAILER
- * Specification: GSPEC-COMPLIANCE-003
+ * Specification: GSPEC-COMPLIANCE-008
  * @custom:security-contact security@galileoprotocol.io
  */
 interface IBrandAuthorizationModule is IComplianceModule {

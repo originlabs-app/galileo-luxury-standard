@@ -19,7 +19,7 @@ import "@erc3643org/erc-3643/contracts/identities/IClaimIssuer.sol";
  * and certification requirements.
  *
  * Reference: ERC-3643 (T-REX) Security Token Standard
- * Specification: GSPEC-IDENTITY-003
+ * Specification: GSPEC-IDENTITY-007
  */
 interface IGalileoTrustedIssuersRegistry is ITrustedIssuersRegistry {
     // ============ Enums ============

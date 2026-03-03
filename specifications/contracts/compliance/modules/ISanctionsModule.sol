@@ -44,7 +44,7 @@ import "../IComplianceModule.sol";
  *      ```
  *
  * Reference: Chainalysis Oracle Documentation
- * Specification: GSPEC-COMPLIANCE-003
+ * Specification: GSPEC-COMPLIANCE-009
  * @custom:security-contact security@galileoprotocol.io
  */
 interface ISanctionsModule is IComplianceModule {

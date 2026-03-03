@@ -21,9 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Membership tiers (Founding, Contributing, Associate)
 
 #### Architecture (Phase 2)
-- HYBRID-ARCHITECTURE.md defining on-chain/off-chain data boundary
+- hybrid-architecture.md defining on-chain/off-chain data boundary
 - CRAB model (Create-Read-Append-Burn) for GDPR erasure
-- CRYPTO-AGILITY.md with ML-DSA-65/87 post-quantum migration path
+- crypto-agility.md with ML-DSA-65/87 post-quantum migration path
 - Hybrid signature period 2027-2029
 - did:galileo DID method specification (W3C DID Core v1.0)
 - DID document schema for products and entities

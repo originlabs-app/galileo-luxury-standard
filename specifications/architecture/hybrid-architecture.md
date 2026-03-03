@@ -389,7 +389,7 @@ To ensure consistent hashing across implementations, use canonical JSON serializ
 
 ```json
 {
-  "$schema": "https://spec.galileoprotocol.io/event/v1.0/schema.json",
+  "$schema": "https://schemas.galileoprotocol.io/event/v1.0/schema.json",
   "version": "1.0",
   "algorithm": "sha256",
   "timestamp": "2026-01-30T13:05:19Z",

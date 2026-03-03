@@ -43,7 +43,7 @@ import {IComplianceModule} from "../IComplianceModule.sol";
  *      - validFrom/validUntil: Authorization validity period
  *
  * Reference: GalileoClaimTopics.SERVICE_CENTER
- * Specification: GSPEC-COMPLIANCE-005
+ * Specification: GSPEC-COMPLIANCE-011
  * @custom:security-contact security@galileoprotocol.io
  */
 interface IServiceCenterModule is IComplianceModule {

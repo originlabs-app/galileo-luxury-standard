@@ -93,7 +93,7 @@ bytes32 keyHash = keccak256(abi.encodePacked(walletAddress));
 | Timeline | Key Type | Status | Notes |
 |----------|----------|--------|-------|
 | 2026 (Now) | ECDSA (type=1) | Production | secp256k1 standard |
-| 2027-2029 | ML-DSA (type=3) | Hybrid | Per CRYPTO-AGILITY.md Phase 2 |
+| 2027-2029 | ML-DSA (type=3) | Hybrid | Per crypto-agility.md Phase 2 |
 | 2030+ | ML-DSA | Primary | Classical keys deprecated |
 
 **Important:** Key rotation NEVER invalidates historical claims. Claims signed by keys that have since been rotated remain valid because:
@@ -235,7 +235,7 @@ struct Claim {
 
 ### 3.2 Claim Data Encoding
 
-**Critical:** The `data` field contains encoded references, never raw PII. This ensures GDPR compliance per HYBRID-ARCHITECTURE.md.
+**Critical:** The `data` field contains encoded references, never raw PII. This ensures GDPR compliance per hybrid-architecture.md.
 
 ```solidity
 // Claim data encoding
@@ -843,8 +843,8 @@ Quick reference for common topics:
 | [claim-topics.md](./claim-topics.md) | Predefined claim topic definitions |
 | [verifiable-credentials.md](./verifiable-credentials.md) | W3C VC 2.0 off-chain claim format |
 | [DID-METHOD.md](./DID-METHOD.md) | DID resolution for identities |
-| [HYBRID-ARCHITECTURE.md](../architecture/HYBRID-ARCHITECTURE.md) | On-chain/off-chain data boundary |
-| [CRYPTO-AGILITY.md](../crypto/CRYPTO-AGILITY.md) | Post-quantum key migration |
+| [hybrid-architecture.md](../architecture/hybrid-architecture.md) | On-chain/off-chain data boundary |
+| [crypto-agility.md](../crypto/crypto-agility.md) | Post-quantum key migration |
 
 ---
 

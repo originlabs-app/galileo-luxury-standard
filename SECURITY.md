@@ -66,5 +66,5 @@ If you are implementing the Galileo Luxury Standard:
 
 - Keep dependencies up to date
 - Follow the [GDPR compliance guide](specifications/compliance/guides/gdpr-compliance.md) for data handling
-- Use the recommended cryptographic algorithms from the [hybrid architecture specification](specifications/architecture/HYBRID-ARCHITECTURE.md)
+- Use the recommended cryptographic algorithms from the [hybrid architecture specification](specifications/architecture/hybrid-architecture.md)
 - Enable GitHub Dependabot and secret scanning on your repositories

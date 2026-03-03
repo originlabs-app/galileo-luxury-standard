@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://spec.galileoprotocol.io/resolver/linkset/v1.0.0/schema.json",
+  "$id": "https://schemas.galileoprotocol.io/resolver/linkset/v1.0.0/schema.json",
   "title": "Galileo GS1 Linkset Response Schema",
   "description": "JSON Schema for GS1 linkset responses per IETF RFC 9264 with Galileo extensions. Defines the structure returned by the Galileo resolver for link type requests.",
   "type": "object",

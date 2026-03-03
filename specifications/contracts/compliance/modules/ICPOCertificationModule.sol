@@ -38,7 +38,7 @@ import {IComplianceModule} from "../IComplianceModule.sol";
  *      - Each certifier must hold AUTHENTICATOR claim from trusted issuer
  *
  * Reference: GalileoClaimTopics.AUTHENTICITY_VERIFIED
- * Specification: GSPEC-COMPLIANCE-004
+ * Specification: GSPEC-COMPLIANCE-010
  * @custom:security-contact security@galileoprotocol.io
  */
 interface ICPOCertificationModule is IComplianceModule {

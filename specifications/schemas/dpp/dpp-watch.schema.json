@@ -3,6 +3,7 @@
   "$id": "https://schemas.galileoprotocol.io/dpp/dpp-watch.schema.json",
   "title": "Galileo DPP Watch Schema",
   "description": "Digital Product Passport schema for timepieces. Extends dpp-core with movement details, case specifications, complications, and chronometry certifications for luxury watches.",
+  "type": "object",
   "allOf": [
     {
       "$ref": "dpp-core.schema.json"

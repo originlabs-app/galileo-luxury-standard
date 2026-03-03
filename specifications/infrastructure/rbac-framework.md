@@ -54,7 +54,7 @@ The Galileo RBAC framework builds upon:
 - [Access Control (Resolver)](../resolver/access-control.md) - JWT patterns for resolver layer
 - [Claim Topics](../identity/claim-topics.md) - ONCHAINID claim definitions
 - [IGalileoIdentityRegistry](../contracts/identity/IIdentityRegistry.sol) - Identity verification interface
-- [HYBRID-ARCHITECTURE](../architecture/HYBRID-ARCHITECTURE.md) - On-chain/off-chain separation
+- [hybrid-architecture](../architecture/hybrid-architecture.md) - On-chain/off-chain separation
 
 ---
 

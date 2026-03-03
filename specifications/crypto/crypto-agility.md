@@ -635,9 +635,9 @@ Plan for larger key and signature storage in off-chain systems:
 
 ## Appendix B: Related Specifications
 
-- [IDENTITY.md](../identity/IDENTITY.md) - Uses crypto-agile signatures for DID authentication
-- [TOKEN.md](../token/TOKEN.md) - Token attestations use hybrid signatures
-- [RESOLVER.md](../resolver/RESOLVER.md) - Resolver responses signed with crypto-agile scheme
+- [IDENTITY](../identity/onchainid-specification.md) - Uses crypto-agile signatures for DID authentication
+- [TOKEN](../token/ownership-transfer.md) - Token attestations use hybrid signatures
+- [RESOLVER](../resolver/resolution-protocol.md) - Resolver responses signed with crypto-agile scheme
 
 ---
 

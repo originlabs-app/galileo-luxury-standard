@@ -774,8 +774,8 @@ cast keccak "galileo.kyc.basic"
 | [ITrustedIssuersRegistry.sol](../contracts/identity/ITrustedIssuersRegistry.sol) | Issuer management interface |
 | [IClaimTopicsRegistry.sol](../contracts/identity/IClaimTopicsRegistry.sol) | Topic registry interface |
 | [DID-METHOD.md](./DID-METHOD.md) | DID resolution for issuers |
-| [GOV-02](../../governance/GOV-02-RFC-PROCESS.md) | RFC process for new topics |
-| [GOV-04](../../governance/GOV-04-VERSIONING.md) | Deprecation and sunset policy |
+| [GOV-02](../../governance/rfcs/README.md) | RFC process for new topics |
+| [GOV-04](../../governance/VERSIONING.md) | Deprecation and sunset policy |
 
 ---
 
