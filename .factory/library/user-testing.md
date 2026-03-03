@@ -66,3 +66,20 @@ curl -s http://localhost:4000/products -b "galileo_at=<token_value>"
 - website/ uses npm (not pnpm), contracts/ uses forge
 - API process.exit(1) on port conflict — stop dev server before tests
 - Playwright webServer config auto-starts API + Dashboard when running e2e tests
+- Dashboard dev server (`pnpm dev`) gets EMFILE errors on macOS. Use `pnpm next build && pnpm next start --port 3000` (production mode) for reliable testing.
+- Dashboard runs in production mode for user-testing validation (built with `next build`, served with `next start`).
+
+## Flow Validator Guidance: API (curl)
+
+**Testing tool:** curl
+**Isolation:** Each flow validator subagent gets its own test account email/password. Use only your assigned credentials.
+**Cookie handling:** Login via `curl -v -X POST http://localhost:4000/auth/login -H 'Content-Type: application/json' -d '...'`. Extract the `galileo_at` cookie value from Set-Cookie headers. Use `-b "galileo_at=<value>"` for authenticated requests. Use `-c <cookiefile>` and `-b <cookiefile>` for jar-based flows.
+**Boundaries:** Do not create additional users. Do not modify database directly. Only use the assigned test account.
+
+## Flow Validator Guidance: Dashboard (agent-browser)
+
+**Testing tool:** agent-browser skill (browser automation)
+**Isolation:** Each flow validator subagent gets its own test account and unique browser session ID.
+**Login flow:** Navigate to http://localhost:3000/login, fill email + password, click Sign In. Cookies are set automatically by the browser.
+**Boundaries:** Do not create additional users. Use only your assigned credentials and session. Do not modify any files.
+**Note:** Dashboard is served in production mode at http://localhost:3000 (built with `next build`). All pages are accessible.

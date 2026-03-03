@@ -1,0 +1,74 @@
+{
+  "groupId": "dashboard-browser",
+  "testedAt": "2026-03-03T19:44:00.000Z",
+  "credentials": {
+    "account": "testuser2@galileo.test",
+    "namespace": "security-debt"
+  },
+  "toolsUsed": [
+    "agent-browser"
+  ],
+  "assertions": [
+    {
+      "id": "VAL-SECDEBT-002",
+      "title": "httpOnly cookie auth flow",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Open /login",
+          "expected": "Login page loads",
+          "observed": "Login page loaded"
+        },
+        {
+          "action": "Fill credentials and sign in",
+          "expected": "Redirects to dashboard",
+          "observed": "Redirected to dashboard"
+        },
+        {
+          "action": "Check cookies and network",
+          "expected": "Cookies are set, fetch with credentials:'include' succeeds",
+          "observed": "galileo_at and galileo_rt cookies are set, fetch to /auth/me returns 200 with credentials:'include' and returns 401 without it. No local storage tokens found."
+        }
+      ],
+      "evidence": {
+        "screenshots": [
+          "dashboard-after-login.png"
+        ],
+        "consoleErrors": "none",
+        "network": "GET /auth/me -> 200 (with credentials:'include')"
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-SECDEBT-013",
+      "title": "Dashboard clears legacy localStorage tokens",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "Navigate to /login",
+          "expected": "Login page loads",
+          "observed": "Login page loaded"
+        },
+        {
+          "action": "Inject fake legacy tokens into localStorage (galileo_at, token, accessToken, refreshToken, galileo_rt)",
+          "expected": "Tokens injected",
+          "observed": "Tokens injected"
+        },
+        {
+          "action": "Reload page and check localStorage",
+          "expected": "Legacy tokens are cleared",
+          "observed": "localStorage is empty after reload"
+        }
+      ],
+      "evidence": {
+        "screenshots": [],
+        "consoleErrors": "none",
+        "network": "N/A"
+      },
+      "issues": null
+    }
+  ],
+  "frictions": [],
+  "blockers": [],
+  "summary": "Tested 2 assertions (VAL-SECDEBT-002, VAL-SECDEBT-013) related to httpOnly cookie migration on the Dashboard. Both passed. Legacy tokens are properly cleared and new auth uses secure cookies."
+}
