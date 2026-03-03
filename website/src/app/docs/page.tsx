@@ -1,7 +1,7 @@
 export const metadata = {
-  title: "Introduction | Galileo Documentation",
+  title: "Introduction to Galileo Documentation",
   description:
-    "Learn about the Galileo Luxury Standard for product authenticity and compliance.",
+    "Learn about the Galileo open standard for luxury product authenticity. Discover core principles, specifications, and how blockchain protects brand heritage.",
 };
 
 export default function DocsIntroduction() {

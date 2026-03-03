@@ -1,9 +1,9 @@
 import { Footer } from "@/components/layout/Footer";
 
 export const metadata = {
-  title: "La Maison | Galileo Protocol",
+  title: "La Maison",
   description:
-    "Galileo Network builds open standards to protect brand heritage and human craftsmanship. Meet the team behind Galileo Protocol.",
+    "Discover Galileo Network, the organization behind the Galileo Protocol open standard. Our mission: protect luxury brand heritage and human craftsmanship.",
 };
 
 export default function MaisonPage() {

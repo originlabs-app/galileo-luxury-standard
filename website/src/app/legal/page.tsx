@@ -1,9 +1,9 @@
 import { Footer } from "@/components/layout/Footer";
 
 export const metadata = {
-  title: "Legal Notice | Galileo Protocol",
+  title: "Legal Notice",
   description:
-    "Legal notices (mentions l\u00e9gales) for the Galileo Protocol website, published by Galileo Network EURL.",
+    "Legal notice (mentions legales) for galileoprotocol.io. Published by Galileo Network EURL, Bordeaux, France. Hosting, intellectual property, and contact information.",
 };
 
 export default function LegalPage() {

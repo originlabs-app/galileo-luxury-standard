@@ -1,6 +1,7 @@
 export const metadata = {
-  title: "License | Galileo Documentation",
-  description: "Apache 2.0 license details for the Galileo Luxury Standard.",
+  title: "License",
+  description:
+    "Apache 2.0 license details for the Galileo Protocol. Understand what you can do, your obligations, the patent grant, and why this license fits luxury brands.",
 };
 
 export default function LicensePage() {

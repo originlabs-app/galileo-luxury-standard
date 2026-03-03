@@ -1,7 +1,7 @@
 export const metadata = {
-  title: "Governance Charter | Galileo Documentation",
+  title: "Governance Charter",
   description:
-    "Full governance charter and bylaws for the Galileo Luxury Standard.",
+    "Full governance charter for the Galileo Protocol. Defines the TSC structure, anti-dominance rules, decision-making processes, and amendment procedures.",
 };
 
 export default function GovernanceCharterPage() {

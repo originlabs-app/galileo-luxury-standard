@@ -6,6 +6,7 @@ import {
   JetBrains_Mono,
 } from "next/font/google";
 import { Navigation } from "@/components/layout/Navigation";
+import { OrganizationJsonLd } from "@/components/seo/OrganizationJsonLd";
 import "./globals.css";
 
 // Swiss-Luxe Typography Stack
@@ -39,14 +40,33 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://galileoprotocol.io"),
   title: {
-    default: "Galileo Protocol",
+    default: "Galileo Protocol | The Open Standard for Luxury Authentication",
     template: "%s | Galileo Protocol",
   },
-  description: "Open standard for luxury product authentication and provenance",
+  description:
+    "Galileo Protocol is the open standard for luxury product authentication and provenance, leveraging blockchain technology to protect brands and consumers.",
+  keywords: [
+    "luxury authentication",
+    "blockchain",
+    "open standard",
+    "provenance",
+    "digital product passport",
+    "luxury brands",
+    "anti-counterfeiting",
+    "NFT",
+    "supply chain transparency",
+    "product verification",
+  ],
+  authors: [{ name: "Galileo Protocol" }],
+  creator: "Galileo Protocol",
+  robots: {
+    index: true,
+    follow: true,
+  },
   openGraph: {
-    title: "Galileo Protocol",
+    title: "Galileo Protocol | The Open Standard for Luxury Authentication",
     description:
-      "Open standard for luxury product authentication and provenance",
+      "Galileo Protocol is the open standard for luxury product authentication and provenance, leveraging blockchain technology to protect brands and consumers.",
     url: "https://galileoprotocol.io",
     siteName: "Galileo Protocol",
     locale: "en_US",
@@ -54,9 +74,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Galileo Protocol",
+    title: "Galileo Protocol | The Open Standard for Luxury Authentication",
     description:
-      "Open standard for luxury product authentication and provenance",
+      "Galileo Protocol is the open standard for luxury product authentication and provenance, leveraging blockchain technology to protect brands and consumers.",
   },
   icons: {
     icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
@@ -77,6 +97,7 @@ export default function RootLayout({
       className={`${outfit.variable} ${inter.variable} ${cormorant.variable} ${jetbrainsMono.variable}`}
     >
       <body>
+        <OrganizationJsonLd />
         <Navigation />
         <main className="min-h-screen">{children}</main>
       </body>

@@ -1,10 +1,10 @@
-import Link from 'next/link';
+import Link from "next/link";
 import {
   getSpecCategories,
   getSpecifications,
   capitalizeCategory,
-} from '@/lib/specifications';
-import { getTotalSpecCount } from '@/lib/specs-navigation';
+} from "@/lib/specifications";
+import { getTotalSpecCount } from "@/lib/specs-navigation";
 import {
   Building2,
   Shield,
@@ -14,13 +14,16 @@ import {
   Database,
   Coins,
   Lock,
-} from 'lucide-react';
+} from "lucide-react";
 
 // ============================================================================
 // Category Icons
 // ============================================================================
 
-const categoryIcons: Record<string, React.ComponentType<{ className?: string }>> = {
+const categoryIcons: Record<
+  string,
+  React.ComponentType<{ className?: string }>
+> = {
   architecture: Building2,
   compliance: Shield,
   crypto: Lock,
@@ -55,7 +58,7 @@ function CategoryCard({ name, count, previewSpecs }: CategoryCardProps) {
           <Icon className="w-5 h-5" />
         </div>
         <span className="text-xs text-[var(--platinum-dim)] bg-[var(--obsidian)] px-2 py-1 rounded">
-          {count} spec{count !== 1 ? 's' : ''}
+          {count} spec{count !== 1 ? "s" : ""}
         </span>
       </div>
 
@@ -89,6 +92,12 @@ function CategoryCard({ name, count, previewSpecs }: CategoryCardProps) {
 // Page Component
 // ============================================================================
 
+export const metadata = {
+  title: "Technical Specifications",
+  description:
+    "Browse all Galileo Protocol technical specifications across identity, token, data, infrastructure, and compliance domains. Includes schemas and implementation guides.",
+};
+
 export default async function SpecificationsPage() {
   const categories = await getSpecCategories();
   const totalSpecs = await getTotalSpecCount();
@@ -105,7 +114,7 @@ export default async function SpecificationsPage() {
           status: s.status,
         })),
       };
-    })
+    }),
   );
 
   return (
@@ -116,10 +125,10 @@ export default async function SpecificationsPage() {
           Technical Specifications
         </h1>
         <p className="text-lg text-[var(--platinum-dim)] leading-relaxed">
-          Browse {totalSpecs} technical specifications across {categories.length}{' '}
-          categories. Each specification includes detailed technical requirements,
-          schemas, and implementation guidance for the Galileo Luxury Standard
-          protocol.
+          Browse {totalSpecs} technical specifications across{" "}
+          {categories.length} categories. Each specification includes detailed
+          technical requirements, schemas, and implementation guidance for the
+          Galileo Luxury Standard protocol.
         </p>
       </div>
 
@@ -155,10 +164,10 @@ export default async function SpecificationsPage() {
       {/* Footer note */}
       <div className="mt-12 pt-8 border-t border-[var(--platinum)]/10">
         <p className="text-sm text-[var(--platinum-dim)]">
-          These specifications define the technical foundation of the Galileo Luxury
-          Standard. They are organized by domain and include JSON schemas, protocol
-          definitions, and integration guides. All specifications follow semantic
-          versioning.
+          These specifications define the technical foundation of the Galileo
+          Luxury Standard. They are organized by domain and include JSON
+          schemas, protocol definitions, and integration guides. All
+          specifications follow semantic versioning.
         </p>
       </div>
     </div>

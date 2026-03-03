@@ -1,7 +1,7 @@
 export const metadata = {
-  title: "RFC Process | Galileo Documentation",
+  title: "RFC Process",
   description:
-    "How to propose specification changes to the Galileo Luxury Standard.",
+    "How to propose specification changes to the Galileo Protocol. Complete guide to the RFC lifecycle: draft, review, TSC vote, and acceptance or rejection.",
 };
 
 export default function RFCProcessPage() {

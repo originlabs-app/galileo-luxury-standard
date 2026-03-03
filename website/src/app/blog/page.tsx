@@ -3,9 +3,9 @@ import Link from "next/link";
 import { Calendar, User } from "lucide-react";
 
 export const metadata = {
-  title: "Blog | Galileo Luxury Standard",
+  title: "Blog",
   description:
-    "News, announcements, and updates from the Galileo Luxury Standard project.",
+    "Latest news, announcements, and updates from the Galileo Protocol project. Stay informed about luxury authentication standards, releases, and ecosystem developments.",
 };
 
 export default function BlogPage() {

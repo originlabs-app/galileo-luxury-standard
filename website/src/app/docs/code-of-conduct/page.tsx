@@ -1,6 +1,7 @@
 export const metadata = {
-  title: "Code of Conduct | Galileo Documentation",
-  description: "Community standards and expectations for the Galileo project.",
+  title: "Code of Conduct",
+  description:
+    "Community standards and expected behavior for Galileo Protocol participants. Based on the Contributor Covenant, adapted for luxury industry collaboration.",
 };
 
 export default function CodeOfConductPage() {

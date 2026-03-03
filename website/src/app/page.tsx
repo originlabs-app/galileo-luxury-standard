@@ -5,12 +5,13 @@ import {
   BioluminescentFeatures,
   UseCasesSection,
   TreasureReveal,
-} from '@/components/abysse';
-import { Footer } from '@/components/layout/Footer';
+} from "@/components/abysse";
+import { Footer } from "@/components/layout/Footer";
 
 export const metadata = {
-  title: 'Galileo Protocol | The Open Standard for Luxury Authentication',
-  description: 'Dive into truth. The definitive protocol for luxury product authenticity. Where counterfeits dissolve under pressure.',
+  title: "The Open Standard for Luxury Authentication",
+  description:
+    "Galileo Protocol is the open standard for luxury product authentication. Blockchain-powered digital product passports to protect brands against counterfeiting.",
 };
 
 export default function Home() {

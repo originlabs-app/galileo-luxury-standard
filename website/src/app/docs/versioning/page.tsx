@@ -1,6 +1,7 @@
 export const metadata = {
-  title: "Versioning | Galileo Documentation",
-  description: "Semantic versioning policy for the Galileo Luxury Standard.",
+  title: "Versioning Policy",
+  description:
+    "Semantic versioning policy for the Galileo Protocol. Understand our 10-year backward compatibility guarantee, release cadence, and breaking change process.",
 };
 
 export default function VersioningPage() {

@@ -1,9 +1,9 @@
 import { Footer } from "@/components/layout/Footer";
 
 export const metadata = {
-  title: "Terms of Use | Galileo Protocol",
+  title: "Terms of Use",
   description:
-    "Terms of use for the Galileo Protocol website and documentation. Apache 2.0 licensed open-source project.",
+    "Terms of use for the Galileo Protocol website and documentation. Understand your rights and obligations for this Apache 2.0 licensed open-source standard.",
 };
 
 export default function TermsPage() {

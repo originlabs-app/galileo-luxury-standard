@@ -1,6 +1,7 @@
 export const metadata = {
-  title: "Contributing | Galileo Documentation",
-  description: "How to contribute to the Galileo Luxury Standard.",
+  title: "Contributing Guide",
+  description:
+    "How to contribute to the Galileo Protocol. Learn about the RFC process, code style conventions, CLA requirements, and the path from contributor to TSC member.",
 };
 
 export default function ContributingPage() {
