@@ -5,7 +5,6 @@ interface FetchOptions extends RequestInit {
   skipAuth?: boolean;
 }
 
-let isRefreshing = false;
 let refreshPromise: Promise<boolean> | null = null;
 
 async function refreshAccessToken(): Promise<boolean> {
@@ -56,11 +55,12 @@ export async function api<T = unknown>(
 
   if (response.status === 401 && !skipAuth) {
     // Attempt token refresh (deduplicate concurrent refresh attempts)
-    if (!isRefreshing) {
-      isRefreshing = true;
-      refreshPromise = refreshAccessToken().finally(() => {
-        isRefreshing = false;
+    if (!refreshPromise) {
+      refreshPromise = refreshAccessToken().then((result) => {
+        // Clear the promise only after the result has been captured,
+        // so all concurrent callers get the same resolved value.
         refreshPromise = null;
+        return result;
       });
     }
 

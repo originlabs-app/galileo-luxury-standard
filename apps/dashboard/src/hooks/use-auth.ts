@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useSyncExternalStore, useState } from "react";
+import { useCallback, useEffect, useSyncExternalStore, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import {
   clearTokens,
@@ -73,8 +73,10 @@ function notifyListeners() {
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasFetched, setHasFetched] = useState(false);
+  // Only loading if we have tokens to verify; otherwise we know we're unauthenticated
+  const [isLoading, setIsLoading] = useState(() =>
+    typeof window !== "undefined" ? checkAuth() : false
+  );
 
   const authState = useSyncExternalStore(
     subscribe,
@@ -82,32 +84,36 @@ export function useAuth() {
     getServerSnapshot
   );
 
-  // Use a ref-like pattern for initial fetch
-  if (!hasFetched && typeof window !== "undefined") {
-    if (checkAuth()) {
-      // Start async fetch without using setState in useEffect
-      api<ApiResponse<MeData>>("/auth/me")
-        .then((response) => {
+  // Fetch user data on mount via useEffect (not during render)
+  useEffect(() => {
+    if (!checkAuth()) {
+      return;
+    }
+
+    let cancelled = false;
+
+    api<ApiResponse<MeData>>("/auth/me")
+      .then((response) => {
+        if (!cancelled) {
           setUser(response.data.user);
           setIsLoading(false);
-          setHasFetched(true);
-        })
-        .catch((error) => {
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) {
           if (error instanceof ApiError && error.status === 401) {
             clearTokens();
             notifyListeners();
           }
           setUser(null);
           setIsLoading(false);
-          setHasFetched(true);
-        });
-      // Mark as fetching to avoid duplicate calls
-      setHasFetched(true);
-    } else {
-      setIsLoading(false);
-      setHasFetched(true);
-    }
-  }
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const login = useCallback(async (params: LoginParams) => {
     const response = await api<ApiResponse<AuthData>>("/auth/login", {

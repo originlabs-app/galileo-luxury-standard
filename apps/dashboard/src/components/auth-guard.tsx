@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { isAuthenticated } from "@/lib/auth";
+import { useAuth } from "@/hooks/use-auth";
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -10,14 +10,30 @@ interface AuthGuardProps {
 
 export function AuthGuard({ children }: AuthGuardProps) {
   const router = useRouter();
+  const { isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
-    if (!isAuthenticated()) {
+    if (!isLoading && !isAuthenticated) {
       router.replace("/login");
     }
-  }, [router]);
+  }, [isLoading, isAuthenticated, router]);
 
-  if (typeof window !== "undefined" && !isAuthenticated()) {
+  // Return null during SSR to prevent content flash
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  // Show loading indicator while auth state is being determined
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+
+  // Not authenticated after check — render nothing while redirect happens
+  if (!isAuthenticated) {
     return null;
   }
 

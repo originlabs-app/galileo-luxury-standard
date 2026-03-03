@@ -125,10 +125,11 @@ export default function RegisterPage() {
                   if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
                 }}
                 aria-invalid={!!errors.email}
+                aria-describedby={errors.email ? "email-error" : undefined}
                 autoComplete="email"
               />
               {errors.email && (
-                <p className="text-sm text-destructive">{errors.email}</p>
+                <p id="email-error" className="text-sm text-destructive">{errors.email}</p>
               )}
             </div>
 
@@ -145,10 +146,11 @@ export default function RegisterPage() {
                     setErrors((prev) => ({ ...prev, password: undefined }));
                 }}
                 aria-invalid={!!errors.password}
+                aria-describedby={errors.password ? "password-error" : undefined}
                 autoComplete="new-password"
               />
               {errors.password && (
-                <p className="text-sm text-destructive">{errors.password}</p>
+                <p id="password-error" className="text-sm text-destructive">{errors.password}</p>
               )}
             </div>
 
