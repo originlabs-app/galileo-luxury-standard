@@ -1,0 +1,15 @@
+{
+  "featureId": "fix-api-server-entrypoint",
+  "reviewedAt": "2026-03-03T21:16:00Z",
+  "commitId": "534ac82",
+  "transcriptSkeletonReviewed": true,
+  "diffReviewed": true,
+  "status": "pass",
+  "codeReview": {
+    "summary": "Clean refactor that isolates the start() function into a separate main.ts entrypoint file. server.ts now only exports buildApp() without calling start() at module level, preventing port conflicts during vitest runs. Package.json dev/start scripts correctly updated to use the new entrypoint. All 120 tests pass with exit code 0.",
+    "issues": []
+  },
+  "sharedStateObservations": [],
+  "addressesFailureFrom": null,
+  "summary": "Review complete. The fix correctly separates the server startup logic from the buildApp() export, resolving the vitest port conflict issue. No blocking issues, no convention deviations."
+}
