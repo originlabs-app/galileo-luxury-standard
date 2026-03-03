@@ -1,0 +1,20 @@
+{
+  "name": "galileo-protocol",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@10.30.0",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "test": "turbo test",
+    "db:push": "pnpm --filter @galileo/api exec prisma db push",
+    "db:seed": "pnpm --filter @galileo/api exec prisma db seed",
+    "db:studio": "pnpm --filter @galileo/api exec prisma studio"
+  },
+  "devDependencies": {
+    "turbo": "latest",
+    "typescript": "latest"
+  }
+}
