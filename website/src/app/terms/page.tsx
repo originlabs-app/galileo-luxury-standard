@@ -94,11 +94,11 @@ export default function TermsPage() {
 
             <h2>Limitation of Liability</h2>
             <p>
-              In no event shall Origin Labs, the Galileo Protocol contributors,
-              or the Technical Steering Committee be liable for any direct,
-              indirect, incidental, special, or consequential damages arising
-              from the use of this website, the protocol specifications, or any
-              related materials.
+              In no event shall Galileo Network, the Galileo Protocol
+              contributors, or the Technical Steering Committee be liable for
+              any direct, indirect, incidental, special, or consequential
+              damages arising from the use of this website, the protocol
+              specifications, or any related materials.
             </p>
 
             <h2>Contributions</h2>
@@ -119,7 +119,7 @@ export default function TermsPage() {
             <h2>Trademarks</h2>
             <p>
               &ldquo;Galileo Protocol&rdquo; and the Galileo logo are trademarks
-              of Origin Labs. Use of these marks must comply with the
+              of Galileo Network. Use of these marks must comply with the
               project&apos;s trademark guidelines. The Apache 2.0 license does
               not grant permission to use project trademarks.
             </p>

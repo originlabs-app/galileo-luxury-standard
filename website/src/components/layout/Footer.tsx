@@ -386,7 +386,7 @@ export function Footer() {
         <div className="container mx-auto px-6 md:px-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-[10px] text-white/40">
-              © {new Date().getFullYear()} Galileo Protocol. Licensed under
+              © {new Date().getFullYear()} Galileo Network EURL. Licensed under
               Apache 2.0.
             </p>
 
@@ -397,6 +397,13 @@ export function Footer() {
                 className="text-[10px] text-white/40 hover:text-cyan-400 transition-colors"
               >
                 Privacy
+              </Link>
+              <span className="text-white/20">·</span>
+              <Link
+                href="/legal"
+                className="text-[10px] text-white/40 hover:text-cyan-400 transition-colors"
+              >
+                Legal
               </Link>
               <span className="text-white/20">·</span>
               <Link

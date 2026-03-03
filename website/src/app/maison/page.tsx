@@ -3,7 +3,7 @@ import { Footer } from "@/components/layout/Footer";
 export const metadata = {
   title: "La Maison | Galileo Protocol",
   description:
-    "Origin Labs builds open standards to protect brand heritage and human craftsmanship. Meet the team behind Galileo Protocol.",
+    "Galileo Network builds open standards to protect brand heritage and human craftsmanship. Meet the team behind Galileo Protocol.",
 };
 
 export default function MaisonPage() {
@@ -28,7 +28,7 @@ export default function MaisonPage() {
               className="text-4xl md:text-6xl font-extralight text-white mb-8"
               style={{ fontFamily: "var(--font-serif)" }}
             >
-              Origin Labs
+              Galileo Network
             </h1>
             <p className="text-lg md:text-xl text-white/50 font-light max-w-2xl mx-auto leading-relaxed">
               Protecting brand heritage and human craftsmanship through open,
@@ -58,10 +58,10 @@ export default function MaisonPage() {
               single vendors.
             </p>
             <p>
-              Origin Labs was founded to change this. We believe that product
-              authenticity is a shared infrastructure problem &mdash; one that
-              requires an open, neutral standard rather than another walled
-              garden.
+              Galileo Network was founded to change this. We believe that
+              product authenticity is a shared infrastructure problem &mdash;
+              one that requires an open, neutral standard rather than another
+              walled garden.
             </p>
             <p
               className="text-white/80 text-lg font-light italic"

@@ -44,8 +44,10 @@ export default function PrivacyPage() {
             <p>
               Galileo Protocol is an open-source project licensed under Apache
               2.0. This website (galileoprotocol.io) serves as the documentation
-              and community hub for the protocol. We are committed to keeping
-              data collection minimal and transparent.
+              and community hub for the protocol. This website is published by
+              Galileo Network EURL, registered in Bordeaux, France (SIREN: 919
+              409 862). We are committed to keeping data collection minimal and
+              transparent.
             </p>
 
             <h2>Information We Collect</h2>
