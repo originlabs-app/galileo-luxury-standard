@@ -1,0 +1,74 @@
+{
+  "groupId": "resolver",
+  "testedAt": "2026-03-03T21:21:13.000Z",
+  "credentials": {
+    "account": "admin@galileo.test",
+    "namespace": "resolver-test"
+  },
+  "toolsUsed": ["curl"],
+  "assertions": [
+    {
+      "id": "VAL-RESOLVE-001",
+      "title": "GS1 Digital Link resolution",
+      "status": "pass",
+      "steps": [
+        { "action": "GET /01/00012345678905/21/RESOLVE-001 without auth", "expected": "200 OK with application/ld+json", "observed": "200 OK with application/ld+json" }
+      ],
+      "evidence": {
+        "network": "GET /01/00012345678905/21/RESOLVE-001 -> 200, Content-Type: application/ld+json; charset=utf-8, payload contains @context, @type, and data fields"
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-RESOLVE-002",
+      "title": "Resolver returns 404 for unknown product",
+      "status": "pass",
+      "steps": [
+        { "action": "GET /01/00000000000000/21/FAKE-001", "expected": "404 Not Found", "observed": "404 Not Found" }
+      ],
+      "evidence": {
+        "network": "GET /01/00000000000000/21/FAKE-001 -> 404"
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-RESOLVE-003",
+      "title": "Resolver hides DRAFT products",
+      "status": "pass",
+      "steps": [
+        { "action": "GET /01/05901234123457/21/DRAFT-001", "expected": "404 Not Found", "observed": "404 Not Found" }
+      ],
+      "evidence": {
+        "network": "GET /01/05901234123457/21/DRAFT-001 -> 404"
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-RESOLVE-004",
+      "title": "Resolver is public (no auth)",
+      "status": "pass",
+      "steps": [
+        { "action": "GET /01/00012345678905/21/RESOLVE-001 without any cookies", "expected": "200 OK", "observed": "200 OK" }
+      ],
+      "evidence": {
+        "network": "GET /01/00012345678905/21/RESOLVE-001 -> 200 without authentication"
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-RESOLVE-005",
+      "title": "Resolver handles URL-encoded serials",
+      "status": "pass",
+      "steps": [
+        { "action": "GET /01/00012345678905/21/SN%231%2F2%203", "expected": "200 OK and product correctly resolved", "observed": "200 OK and product correctly resolved" }
+      ],
+      "evidence": {
+        "network": "GET /01/00012345678905/21/SN%231%2F2%203 -> 200, payload contains correct product name"
+      },
+      "issues": null
+    }
+  ],
+  "frictions": [],
+  "blockers": [],
+  "summary": "Tested 5 assertions for the resolver-qr flow: all 5 passed successfully."
+}
