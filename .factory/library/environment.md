@@ -26,6 +26,12 @@ Environment variables, external dependencies, and setup notes.
 - E2E config: apps/dashboard/playwright.config.ts
 - E2E tests: apps/dashboard/e2e/
 
+## Vitest — API Test Isolation
+- `fileParallelism: false` is set in apps/api/vitest.config.ts
+- Required because API test files share the same galileo_test database
+- Running test files in parallel causes foreign key violations during beforeEach cleanup hooks
+- Do NOT remove this setting when adding new test files
+
 ## Prisma 7 Quirks
 - `prisma db push` no longer supports `--skip-generate` flag (removed in Prisma 7)
 - Use `--url` flag to override the datasource URL at push time (e.g., `prisma db push --url <connection_string>`)
