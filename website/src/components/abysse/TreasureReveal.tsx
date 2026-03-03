@@ -52,7 +52,7 @@ export function TreasureReveal() {
       <div
         className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] transition-opacity duration-[3000ms]"
         style={{
-          background:
+          backgroundImage:
             "radial-gradient(ellipse at center bottom, rgba(212, 175, 55, 0.2) 0%, transparent 50%)",
           opacity: revealed ? 1 : 0,
         }}
@@ -110,7 +110,7 @@ export function TreasureReveal() {
             <div
               className="absolute inset-0 rounded-full transition-opacity duration-[2000ms]"
               style={{
-                background:
+                backgroundImage:
                   "radial-gradient(circle, rgba(212, 175, 55, 0.2) 0%, transparent 70%)",
                 opacity: revealed ? 1 : 0,
               }}

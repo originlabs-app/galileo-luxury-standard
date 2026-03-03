@@ -1,17 +1,17 @@
-import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
-import Link from 'next/link';
-import { MDXRemote } from 'next-mdx-remote/rsc';
-import { ArrowLeft } from 'lucide-react';
+import { Metadata } from "next";
+import { notFound } from "next/navigation";
+import Link from "next/link";
+import { MDXRemote } from "next-mdx-remote/rsc";
+import { ArrowLeft } from "lucide-react";
 
 import {
   getSpecCategories,
   getSpecifications,
   getSpecification,
   capitalizeCategory,
-} from '@/lib/specifications';
-import { SpecMetadata } from '@/components/specifications/SpecMetadata';
-import { JSONSchemaViewer } from '@/components/specifications/JSONSchemaViewer';
+} from "@/lib/specifications";
+import { SpecMetadata } from "@/components/specifications/SpecMetadata";
+import { JSONSchemaViewer } from "@/components/specifications/JSONSchemaViewer";
 
 // ============================================================================
 // Static Generation
@@ -19,7 +19,7 @@ import { JSONSchemaViewer } from '@/components/specifications/JSONSchemaViewer';
 
 /**
  * Generate static params for all specifications across all categories.
- * This enables static generation at build time for all 46 specs.
+ * This enables static generation at build time for all 65 specs.
  *
  * Handles both root-level specs and nested specs in subdirectories:
  * - /specifications/identity/DID-METHOD → slug: ["DID-METHOD"]
@@ -67,7 +67,7 @@ export async function generateMetadata({
 
   if (!spec) {
     return {
-      title: 'Specification Not Found | Galileo',
+      title: "Specification Not Found | Galileo",
     };
   }
 
@@ -120,7 +120,7 @@ const mdxComponents = {
   ),
   code: (props: React.HTMLAttributes<HTMLElement>) => {
     const isBlock =
-      typeof props.children === 'string' && props.children.includes('\n');
+      typeof props.children === "string" && props.children.includes("\n");
     if (isBlock) {
       return <code {...props} className="text-sm font-mono" />;
     }
@@ -165,10 +165,7 @@ const mdxComponents = {
   // Tables
   table: (props: React.TableHTMLAttributes<HTMLTableElement>) => (
     <div className="overflow-x-auto my-6">
-      <table
-        {...props}
-        className="min-w-full border-collapse text-sm"
-      />
+      <table {...props} className="min-w-full border-collapse text-sm" />
     </div>
   ),
   th: (props: React.ThHTMLAttributes<HTMLTableCellElement>) => (
@@ -210,22 +207,25 @@ function escapeJsxInMarkdown(content: string): string {
         // This is a code block or inline code
         // For code blocks, we still need to escape JSX expressions
         // that would be evaluated by MDX
-        if (part.startsWith('```')) {
+        if (part.startsWith("```")) {
           // Fenced code block - escape curly braces inside
-          const lines = part.split('\n');
+          const lines = part.split("\n");
           const lang = lines[0]; // e.g., ```solidity
-          const code = lines.slice(1, -1).join('\n');
+          const code = lines.slice(1, -1).join("\n");
           const closing = lines[lines.length - 1];
           // Escape {identifier} patterns in code blocks
-          const escapedCode = code.replace(/\{([a-zA-Z_][a-zA-Z0-9_]*)\}/g, '{\'$1\'}');
+          const escapedCode = code.replace(
+            /\{([a-zA-Z_][a-zA-Z0-9_]*)\}/g,
+            "{'$1'}",
+          );
           return `${lang}\n${escapedCode}\n${closing}`;
         }
         return part;
       }
       // Escape {identifier} patterns outside code blocks
-      return part.replace(/\{([a-zA-Z_][a-zA-Z0-9_]*)\}/g, '\\{$1\\}');
+      return part.replace(/\{([a-zA-Z_][a-zA-Z0-9_]*)\}/g, "\\{$1\\}");
     })
-    .join('');
+    .join("");
 }
 
 // ============================================================================
@@ -254,7 +254,8 @@ export default async function SpecDetailPage({
 
   // For markdown files, escape JSX-like expressions
   // Galileo specs have metadata in bold headers, not YAML frontmatter
-  const markdownContent = type === 'markdown' ? escapeJsxInMarkdown(content) : '';
+  const markdownContent =
+    type === "markdown" ? escapeJsxInMarkdown(content) : "";
 
   return (
     <div className="max-w-4xl">
@@ -282,7 +283,7 @@ export default async function SpecDetailPage({
       />
 
       {/* Content */}
-      {type === 'markdown' ? (
+      {type === "markdown" ? (
         <div className="prose prose-invert max-w-none">
           <MDXRemote source={markdownContent} components={mdxComponents} />
         </div>

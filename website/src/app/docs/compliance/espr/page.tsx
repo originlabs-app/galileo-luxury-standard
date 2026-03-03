@@ -1,6 +1,6 @@
 export const metadata = {
-  title: 'ESPR Guide | Galileo Documentation',
-  description: 'Digital Product Passport readiness for ESPR 2027.',
+  title: "ESPR Guide | Galileo Documentation",
+  description: "Digital Product Passport readiness for ESPR 2027.",
 };
 
 export default function ESPRGuidePage() {
@@ -9,15 +9,13 @@ export default function ESPRGuidePage() {
       <h1>ESPR Readiness Guide</h1>
 
       <p>
-        The Ecodesign for Sustainable Products Regulation (ESPR) mandates Digital
-        Product Passports for certain product categories starting 2027. Galileo&apos;s
-        DPP schema is designed for full ESPR compliance.
+        The Ecodesign for Sustainable Products Regulation (ESPR) mandates
+        Digital Product Passports for certain product categories starting 2027.
+        Galileo&apos;s DPP schema is designed for full ESPR compliance.
       </p>
 
       <h2>ESPR Requirements</h2>
-      <p>
-        Digital Product Passports must include:
-      </p>
+      <p>Digital Product Passports must include:</p>
       <ul>
         <li>Product identification (GTIN, serial number)</li>
         <li>Manufacturer information</li>
@@ -28,7 +26,8 @@ export default function ESPRGuidePage() {
       </ul>
 
       <h2>Galileo DPP Schema</h2>
-      <pre><code>{`{
+      <pre>
+        <code>{`{
   "@context": "https://vocab.galileoprotocol.io/contexts/galileo.jsonld",
   "@type": "DigitalProductPassport",
 
@@ -39,9 +38,9 @@ export default function ESPRGuidePage() {
 
   // Manufacturer
   "manufacturer": {
-    "name": "Hermes International",
-    "did": "did:galileo:brand:hermes",
-    "address": "24 Rue du Faubourg Saint-Honore, Paris"
+    "name": "Atelier Prestige",
+    "did": "did:galileo:brand:atelier-prestige",
+    "address": "Paris, France"
   },
 
   // Materials
@@ -73,16 +72,21 @@ export default function ESPRGuidePage() {
     "status": "COMPLIANT",
     "declarationDate": "2024-01-15"
   }]
-}`}</code></pre>
+}`}</code>
+      </pre>
 
       <h2>Data Carrier Requirements</h2>
-      <p>
-        ESPR requires a data carrier linking physical product to DPP:
-      </p>
+      <p>ESPR requires a data carrier linking physical product to DPP:</p>
       <ul>
-        <li><strong>QR Code</strong> — GS1 Digital Link URL</li>
-        <li><strong>NFC Tag</strong> — Optional for luxury items</li>
-        <li><strong>RFID</strong> — For supply chain tracking</li>
+        <li>
+          <strong>QR Code</strong> — GS1 Digital Link URL
+        </li>
+        <li>
+          <strong>NFC Tag</strong> — Optional for luxury items
+        </li>
+        <li>
+          <strong>RFID</strong> — For supply chain tracking
+        </li>
       </ul>
 
       <h2>Implementation Checklist</h2>
@@ -96,10 +100,18 @@ export default function ESPRGuidePage() {
 
       <h2>Timeline</h2>
       <ul>
-        <li><strong>2024</strong> — ESPR adopted</li>
-        <li><strong>2025</strong> — Delegated acts define product categories</li>
-        <li><strong>2027</strong> — First DPP requirements in force</li>
-        <li><strong>2030</strong> — Full rollout across categories</li>
+        <li>
+          <strong>2024</strong> — ESPR adopted
+        </li>
+        <li>
+          <strong>2025</strong> — Delegated acts define product categories
+        </li>
+        <li>
+          <strong>2027</strong> — First DPP requirements in force
+        </li>
+        <li>
+          <strong>2030</strong> — Full rollout across categories
+        </li>
       </ul>
     </>
   );

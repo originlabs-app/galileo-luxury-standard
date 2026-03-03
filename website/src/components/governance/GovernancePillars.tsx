@@ -165,7 +165,7 @@ export function GovernancePillars() {
             </div>
           </BentoCard>
 
-          {/* Small Card - Membership Tiers */}
+          {/* Small Card - Open Participation */}
           <BentoCard
             size="small"
             variant="default"
@@ -195,33 +195,30 @@ export function GovernancePillars() {
 
               {/* Content */}
               <h3 className="font-serif text-xl text-[var(--platinum)] mb-2">
-                Membership Tiers
+                Open Participation
               </h3>
               <p className="text-[var(--silver)] text-sm leading-relaxed mb-4 flex-grow">
-                Progressive recognition based on contribution. From observers to
-                TSC voting members.
+                Progressive recognition based on contribution. No dues required.
               </p>
 
-              {/* Tiers */}
+              {/* Participation levels */}
               <div className="space-y-2 text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-[var(--silver)]">Observer</span>
+                  <span className="text-[var(--silver)]">Contributor</span>
                   <span className="text-[var(--pewter)]">
-                    Free, specs access
+                    Open, DCO sign-off
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[var(--silver)]">Member</span>
-                  <span className="text-[var(--pewter)]">
-                    Scaled dues, vote
+                  <span className="text-[var(--silver)]">
+                    Active Contributor
                   </span>
+                  <span className="text-[var(--pewter)]">TSC eligible</span>
                 </div>
                 <div className="flex items-center justify-between">
+                  <span className="text-[var(--cyan-primary)]">TSC Member</span>
                   <span className="text-[var(--cyan-primary)]">
-                    Founding Partner
-                  </span>
-                  <span className="text-[var(--cyan-primary)]">
-                    Closed, transitional
+                    Elected / appointed
                   </span>
                 </div>
               </div>

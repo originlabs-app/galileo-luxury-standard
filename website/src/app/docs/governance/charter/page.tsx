@@ -79,66 +79,48 @@ export default function GovernanceCharterPage() {
         services, and financial tokenization or speculative trading features.
       </p>
 
-      <h2>2. Membership Categories</h2>
+      <h2>2. Participation</h2>
       <p>
-        The Standard recognizes three membership tiers, each with distinct
-        rights and obligations.
+        Galileo Protocol follows an open contribution model. All contributions
+        require a Developer Certificate of Origin (DCO 1.1) sign-off.
       </p>
 
-      <h3>2.1 Founding Partners</h3>
+      <h3>2.1 Contributors</h3>
       <p>
-        Enrollment window is closed at Charter ratification. No new Founding
-        Partners may be admitted after this date.
+        Anyone may contribute to the Standard by submitting RFCs, code, or
+        documentation. No membership or fee is required.
       </p>
-      <ul>
-        <li>
-          Commitment of dedicated personnel (minimum 0.5 FTE) for TSC
-          participation
-        </li>
-        <li>Financial contribution as defined in the Membership Agreement</li>
-        <li>
-          All Member rights plus transitional representation on TSC (see Section
-          4)
-        </li>
-        <li>
-          <strong>Transitional provisions:</strong> Founding Partner TSC
-          privileges expire three (3) years from Charter ratification. After
-          expiration, Founding Partners retain Member status and rights.
-        </li>
-      </ul>
-
-      <h3>2.2 Members</h3>
-      <p>
-        Open to any organization upon acceptance of Membership Agreement and
-        payment of annual dues. Dues are scaled by revenue:
-      </p>
-      <ul>
-        <li>
-          <strong>SME Band</strong> (annual revenue &lt;EUR 10M): Base rate
-        </li>
-        <li>
-          <strong>Mid-Market Band</strong> (EUR 10M&ndash;100M): 3x base rate
-        </li>
-        <li>
-          <strong>Enterprise Band</strong> (&gt;EUR 100M): 10x base rate
-        </li>
-      </ul>
-      <p>Member rights include:</p>
-      <ul>
-        <li>Voting rights on Governing Board matters</li>
-        <li>Nomination rights for Governing Board representatives</li>
-        <li>Full access to Member-only meetings and materials</li>
-        <li>Use of Member designation and badges</li>
-        <li>Priority access to certification program</li>
-      </ul>
-
-      <h3>2.3 Observers</h3>
-      <p>Open to any individual or organization. No fee required.</p>
       <ul>
         <li>Full access to all published specifications</li>
         <li>Participation in RFC comment periods</li>
-        <li>Attendance at public meetings (observer status)</li>
+        <li>Submit pull requests and specification proposals</li>
         <li>Commercial use of specifications under Apache License 2.0</li>
+      </ul>
+
+      <h3>2.2 Active Contributors</h3>
+      <p>
+        Contributors with sustained, meaningful participation over 12+ months
+        gain recognition and eligibility for TSC nomination.
+      </p>
+      <ul>
+        <li>Eligible for TSC seat nomination (elected or peer-nominated)</li>
+        <li>Invitation to contributor-only working group sessions</li>
+        <li>Listed in project contributors registry</li>
+      </ul>
+
+      <h3>2.3 Founding Partners</h3>
+      <p>
+        Enrollment window closed at Charter ratification. Founding Partners hold
+        transitional TSC seats that sunset after three (3) years.
+      </p>
+      <ul>
+        <li>Transitional representation on TSC (see Section 4)</li>
+        <li>All Contributor rights</li>
+        <li>
+          <strong>Sunset:</strong> Founding Partner TSC privileges expire three
+          (3) years from Charter ratification. After expiration, Founding
+          Partners continue as Active Contributors.
+        </li>
         <li>Contribution of RFCs and specification improvements</li>
       </ul>
       <p>

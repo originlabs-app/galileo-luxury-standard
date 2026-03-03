@@ -8,13 +8,13 @@ const useCases = [
     category: "Haute Horlogerie",
     title: "Timepieces",
     description:
-      "Complete service history, certified authenticity, and provenance tracking for watches valued at €10K+.",
+      "Complete service history, certified authenticity, and provenance tracking for fine timepieces.",
     brands: [
       "Swiss Manufactures",
       "Independent Watchmakers",
       "Certified Dealers",
     ],
-    metrics: { value: "€50B+", label: "Market size" },
+    metrics: { value: "Global", label: "Market reach" },
     visual: (
       <svg viewBox="0 0 120 120" className="w-full h-full">
         <circle
@@ -88,7 +88,7 @@ const useCases = [
     category: "Maroquinerie",
     title: "Leather Goods",
     description:
-      "Combat the €3.3T counterfeit market. Every bag, every belt, every wallet - authenticated forever.",
+      "Combat the global counterfeit market. Every bag, every belt, every wallet — authenticated forever.",
     brands: ["Heritage Maisons", "Global Luxury Groups", "Artisan Ateliers"],
     metrics: { value: "∞", label: "Traceability depth" },
     visual: (

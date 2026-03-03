@@ -1,46 +1,134 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 
 // Seat configuration
 const seats = [
   // Top row - Chair
-  { id: 'chair', type: 'founding', label: 'Chair', angle: 90, row: 0, member: 'Founding Partner', org: 'Origin Labs' },
+  {
+    id: "chair",
+    type: "founding",
+    label: "Chair",
+    angle: 90,
+    row: 0,
+    member: "Founding Partner",
+    org: "Transitional",
+  },
 
   // Second row - Elected seats
-  { id: 'e1', type: 'elected', label: 'E1', angle: 60, row: 1, member: 'Elected Seat 1', org: 'Open' },
-  { id: 'e2', type: 'elected', label: 'E2', angle: 120, row: 1, member: 'Elected Seat 2', org: 'Open' },
+  {
+    id: "e1",
+    type: "elected",
+    label: "E1",
+    angle: 60,
+    row: 1,
+    member: "Elected Seat 1",
+    org: "Open",
+  },
+  {
+    id: "e2",
+    type: "elected",
+    label: "E2",
+    angle: 120,
+    row: 1,
+    member: "Elected Seat 2",
+    org: "Open",
+  },
 
   // Third row - Mixed
-  { id: 'e3', type: 'elected', label: 'E3', angle: 45, row: 2, member: 'Elected Seat 3', org: 'Open' },
-  { id: 'a1', type: 'appointed', label: 'A1', angle: 90, row: 2, member: 'Appointed Seat 1', org: 'Industry Expert' },
-  { id: 'e4', type: 'elected', label: 'E4', angle: 135, row: 2, member: 'Elected Seat 4', org: 'Open' },
+  {
+    id: "e3",
+    type: "elected",
+    label: "E3",
+    angle: 45,
+    row: 2,
+    member: "Elected Seat 3",
+    org: "Open",
+  },
+  {
+    id: "a1",
+    type: "appointed",
+    label: "A1",
+    angle: 90,
+    row: 2,
+    member: "Appointed Seat 1",
+    org: "Industry Expert",
+  },
+  {
+    id: "e4",
+    type: "elected",
+    label: "E4",
+    angle: 135,
+    row: 2,
+    member: "Elected Seat 4",
+    org: "Open",
+  },
 
   // Fourth row - Mixed
-  { id: 'e5', type: 'elected', label: 'E5', angle: 30, row: 3, member: 'Elected Seat 5', org: 'Open' },
-  { id: 'a2', type: 'appointed', label: 'A2', angle: 70, row: 3, member: 'Appointed Seat 2', org: 'Industry Expert' },
-  { id: 'f2', type: 'founding', label: 'F2', angle: 110, row: 3, member: 'Founding Partner 2', org: 'Tokeny' },
-  { id: 'a3', type: 'appointed', label: 'A3', angle: 150, row: 3, member: 'Appointed Seat 3', org: 'Industry Expert' },
+  {
+    id: "e5",
+    type: "elected",
+    label: "E5",
+    angle: 30,
+    row: 3,
+    member: "Elected Seat 5",
+    org: "Open",
+  },
+  {
+    id: "a2",
+    type: "appointed",
+    label: "A2",
+    angle: 70,
+    row: 3,
+    member: "Appointed Seat 2",
+    org: "Industry Expert",
+  },
+  {
+    id: "f2",
+    type: "founding",
+    label: "F2",
+    angle: 110,
+    row: 3,
+    member: "Founding Partner 2",
+    org: "Transitional",
+  },
+  {
+    id: "a3",
+    type: "appointed",
+    label: "A3",
+    angle: 150,
+    row: 3,
+    member: "Appointed Seat 3",
+    org: "Industry Expert",
+  },
 
   // Fifth row - Last elected
-  { id: 'e6', type: 'elected', label: 'E6', angle: 90, row: 4, member: 'Elected Seat 6', org: 'Open' },
+  {
+    id: "e6",
+    type: "elected",
+    label: "E6",
+    angle: 90,
+    row: 4,
+    member: "Elected Seat 6",
+    org: "Open",
+  },
 ];
 
 const seatColors = {
   elected: {
-    fill: 'var(--cyan-primary)',
-    stroke: 'var(--cyan-primary)',
-    label: 'Elected',
+    fill: "var(--cyan-primary)",
+    stroke: "var(--cyan-primary)",
+    label: "Elected",
   },
   appointed: {
-    fill: 'var(--precision-blue)',
-    stroke: 'var(--precision-blue)',
-    label: 'Appointed',
+    fill: "var(--precision-blue)",
+    stroke: "var(--precision-blue)",
+    label: "Appointed",
   },
   founding: {
-    fill: 'var(--emerald-primary)',
-    stroke: 'var(--emerald-primary)',
-    label: 'Founding',
+    fill: "var(--emerald-primary)",
+    stroke: "var(--emerald-primary)",
+    label: "Founding",
   },
 };
 
@@ -69,11 +157,12 @@ export function CouncilSeats() {
         {/* Section Header */}
         <div
           className="text-center mb-12 opacity-0 translate-y-[20px] animate-[fadeUp_0.5s_var(--ease-reveal)_forwards] motion-reduce:opacity-100 motion-reduce:translate-y-0 motion-reduce:animate-none"
-          style={{ animationDelay: '100ms' }}
+          style={{ animationDelay: "100ms" }}
         >
           <h2 className="text-[var(--platinum)] mb-4">Council Chamber</h2>
           <p className="text-[var(--silver)] max-w-2xl mx-auto">
-            A balanced composition ensuring no single organization dominates technical direction.
+            A balanced composition ensuring no single organization dominates
+            technical direction.
           </p>
         </div>
 
@@ -81,16 +170,22 @@ export function CouncilSeats() {
         <div className="max-w-2xl mx-auto">
           <div
             className="relative aspect-[4/3] flex items-center justify-center opacity-0 translate-y-[20px] animate-[fadeUp_0.5s_var(--ease-reveal)_forwards] motion-reduce:opacity-100 motion-reduce:translate-y-0 motion-reduce:animate-none"
-            style={{ animationDelay: '200ms' }}
+            style={{ animationDelay: "200ms" }}
           >
             <svg
               viewBox="0 0 400 280"
               className="w-full h-full"
-              style={{ maxHeight: '400px' }}
+              style={{ maxHeight: "400px" }}
             >
               {/* SVG Filters for glow effects */}
               <defs>
-                <filter id="cyanGlow" x="-100%" y="-100%" width="300%" height="300%">
+                <filter
+                  id="cyanGlow"
+                  x="-100%"
+                  y="-100%"
+                  width="300%"
+                  height="300%"
+                >
                   <feGaussianBlur stdDeviation="4" result="blur" />
                   <feFlood floodColor="#00FFFF" floodOpacity="0.6" />
                   <feComposite in2="blur" operator="in" />
@@ -99,7 +194,13 @@ export function CouncilSeats() {
                     <feMergeNode in="SourceGraphic" />
                   </feMerge>
                 </filter>
-                <filter id="blueGlow" x="-100%" y="-100%" width="300%" height="300%">
+                <filter
+                  id="blueGlow"
+                  x="-100%"
+                  y="-100%"
+                  width="300%"
+                  height="300%"
+                >
                   <feGaussianBlur stdDeviation="4" result="blur" />
                   <feFlood floodColor="#00A3FF" floodOpacity="0.6" />
                   <feComposite in2="blur" operator="in" />
@@ -108,7 +209,13 @@ export function CouncilSeats() {
                     <feMergeNode in="SourceGraphic" />
                   </feMerge>
                 </filter>
-                <filter id="emeraldGlow" x="-100%" y="-100%" width="300%" height="300%">
+                <filter
+                  id="emeraldGlow"
+                  x="-100%"
+                  y="-100%"
+                  width="300%"
+                  height="300%"
+                >
                   <feGaussianBlur stdDeviation="4" result="blur" />
                   <feFlood floodColor="#00FF88" floodOpacity="0.6" />
                   <feComposite in2="blur" operator="in" />
@@ -129,7 +236,7 @@ export function CouncilSeats() {
                     stroke="var(--cyan-primary)"
                     strokeWidth="2"
                     strokeOpacity="0.05"
-                    style={{ filter: 'blur(4px)' }}
+                    style={{ filter: "blur(4px)" }}
                   />
                   {/* Main arc */}
                   <path
@@ -148,8 +255,13 @@ export function CouncilSeats() {
                 const pos = getSeatPosition(seat.angle, seat.row);
                 const colors = seatColors[seat.type as keyof typeof seatColors];
                 const isHovered = hoveredSeat === seat.id;
-                const isVacant = seat.org === 'Open';
-                const glowFilter = seat.type === 'elected' ? 'url(#cyanGlow)' : seat.type === 'appointed' ? 'url(#blueGlow)' : 'url(#emeraldGlow)';
+                const isVacant = seat.org === "Open";
+                const glowFilter =
+                  seat.type === "elected"
+                    ? "url(#cyanGlow)"
+                    : seat.type === "appointed"
+                      ? "url(#blueGlow)"
+                      : "url(#emeraldGlow)";
 
                 return (
                   <g
@@ -157,7 +269,10 @@ export function CouncilSeats() {
                     onMouseEnter={() => setHoveredSeat(seat.id)}
                     onMouseLeave={() => setHoveredSeat(null)}
                     className="opacity-0 animate-[fadeUp_0.4s_var(--ease-reveal)_forwards] motion-reduce:opacity-100 motion-reduce:animate-none"
-                    style={{ animationDelay: `${300 + i * 50}ms`, cursor: 'pointer' }}
+                    style={{
+                      animationDelay: `${300 + i * 50}ms`,
+                      cursor: "pointer",
+                    }}
                   >
                     {/* Ambient glow - always visible for filled seats */}
                     {!isVacant && (
@@ -168,7 +283,7 @@ export function CouncilSeats() {
                         fill={colors.fill}
                         opacity={isHovered ? 0.3 : 0.1}
                         className="transition-opacity duration-300"
-                        style={{ filter: 'blur(8px)' }}
+                        style={{ filter: "blur(8px)" }}
                       />
                     )}
 
@@ -177,15 +292,15 @@ export function CouncilSeats() {
                       cx={pos.x}
                       cy={pos.y}
                       r={12}
-                      fill={isVacant ? 'transparent' : `${colors.fill}20`}
+                      fill={isVacant ? "transparent" : `${colors.fill}20`}
                       stroke={colors.stroke}
                       strokeWidth={isVacant ? 1 : 2}
-                      strokeDasharray={isVacant ? '3 3' : undefined}
+                      strokeDasharray={isVacant ? "3 3" : undefined}
                       opacity={isVacant ? 0.5 : 1}
                       filter={isHovered && !isVacant ? glowFilter : undefined}
                       className="transition-all duration-300"
                       style={{
-                        transform: isHovered ? `scale(1.15)` : 'scale(1)',
+                        transform: isHovered ? `scale(1.15)` : "scale(1)",
                         transformOrigin: `${pos.x}px ${pos.y}px`,
                       }}
                     />
@@ -217,7 +332,7 @@ export function CouncilSeats() {
                   rx={3}
                   fill="var(--cyan-primary)"
                   opacity={0.1}
-                  style={{ filter: 'blur(4px)' }}
+                  style={{ filter: "blur(4px)" }}
                 />
                 <rect
                   x={175}
@@ -265,11 +380,18 @@ export function CouncilSeats() {
               >
                 <div
                   className="w-4 h-4 rounded-full"
-                  style={{ background: colors.fill, opacity: 0.8, boxShadow: `0 0 8px ${colors.fill}40` }}
+                  style={{
+                    background: colors.fill,
+                    opacity: 0.8,
+                    boxShadow: `0 0 8px ${colors.fill}40`,
+                  }}
                 />
-                <span className="text-sm text-[var(--silver)]">{colors.label}</span>
+                <span className="text-sm text-[var(--silver)]">
+                  {colors.label}
+                </span>
                 <span className="text-sm text-[var(--pewter)]">
-                  ({type === 'elected' ? '6' : type === 'appointed' ? '3' : '2'})
+                  ({type === "elected" ? "6" : type === "appointed" ? "3" : "2"}
+                  )
                 </span>
               </div>
             ))}
@@ -278,15 +400,27 @@ export function CouncilSeats() {
           {/* Anti-Dominance Badge with glow */}
           <div
             className="mt-8 text-center opacity-0 translate-y-[20px] animate-[fadeUp_0.5s_var(--ease-reveal)_forwards] motion-reduce:opacity-100 motion-reduce:translate-y-0 motion-reduce:animate-none"
-            style={{ animationDelay: '700ms' }}
+            style={{ animationDelay: "700ms" }}
           >
             <div className="relative inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[var(--cyan-primary)]/20 bg-[var(--cyan-primary)]/5 group hover:border-[var(--cyan-primary)]/40 transition-colors">
               {/* Badge glow on hover */}
               <div className="absolute inset-0 bg-[var(--cyan-primary)] opacity-0 group-hover:opacity-10 blur-xl rounded-full transition-opacity duration-300" />
-              <svg className="relative w-4 h-4 text-[var(--cyan-primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              <svg
+                className="relative w-4 h-4 text-[var(--cyan-primary)]"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                />
               </svg>
-              <span className="relative text-sm font-medium text-[var(--cyan-primary)]">No organization may hold more than 2 seats</span>
+              <span className="relative text-sm font-medium text-[var(--cyan-primary)]">
+                No organization may hold more than 2 seats
+              </span>
             </div>
           </div>
         </div>
