@@ -1,0 +1,44 @@
+{
+  "groupId": "shared-package",
+  "assertions": {
+    "VAL-INFRA-006": {
+      "status": "pass",
+      "evidence": "Observed package.json has correct exports (types and commonjs/esm formats). Ran 'pnpm typecheck' in packages/shared which exited with 0, meaning the types are valid. Verified src/index.ts exports all required types, validation functions, and constants. Note: Not currently imported by other packages as they do not exist yet in this milestone.",
+      "command": "cd packages/shared && pnpm run typecheck",
+      "exitCode": 0
+    },
+    "VAL-INFRA-007": {
+      "status": "pass",
+      "evidence": "Verified GTIN-13 validation test cases in gtin.test.ts. Tested valid 13-digit GTINs, and rejection of invalid check digit, invalid lengths (12 or 14 digits), and non-numeric inputs. All tests pass successfully.",
+      "command": "cd packages/shared && npx vitest run --reporter=verbose",
+      "exitCode": 0
+    },
+    "VAL-INFRA-008": {
+      "status": "pass",
+      "evidence": "Verified GTIN-14 validation test cases in gtin.test.ts. Tested valid 14-digit GTINs, and rejection of invalid check digit, invalid lengths (13 or 15 digits), and non-numeric inputs. All tests pass successfully.",
+      "command": "cd packages/shared && npx vitest run --reporter=verbose",
+      "exitCode": 0
+    },
+    "VAL-INFRA-009": {
+      "status": "pass",
+      "evidence": "Verified DID generation test cases in did.test.ts. Tested that 'did:galileo:01:{gtin}:21:{serial}' format is correctly generated from valid GTIN-13 and GTIN-14 inputs along with serial numbers. All tests pass successfully.",
+      "command": "cd packages/shared && npx vitest run --reporter=verbose",
+      "exitCode": 0
+    },
+    "VAL-INFRA-010": {
+      "status": "pass",
+      "evidence": "Verified GS1 Digital Link URL generation test cases in did.test.ts. Tested that 'https://id.galileoprotocol.io/01/{gtin}/21/{serial}' format is correctly generated. All tests pass successfully.",
+      "command": "cd packages/shared && npx vitest run --reporter=verbose",
+      "exitCode": 0
+    },
+    "VAL-INFRA-011": {
+      "status": "pass",
+      "evidence": "Verified Zod auth schemas test cases in auth.test.ts. Tested that valid inputs parse successfully for both email and password schemas, while invalid inputs (bad email format, short password, empty strings) throw errors. All tests pass successfully.",
+      "command": "cd packages/shared && npx vitest run --reporter=verbose",
+      "exitCode": 0
+    }
+  },
+  "frictions": [],
+  "blockers": [],
+  "toolsUsed": ["terminal"]
+}
