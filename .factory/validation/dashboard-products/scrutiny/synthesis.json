@@ -1,0 +1,33 @@
+{
+  "milestone": "dashboard-products",
+  "round": 1,
+  "status": "pass",
+  "validatorsRun": {
+    "test": { "passed": true, "command": "pnpm turbo test", "exitCode": 0 },
+    "typecheck": { "passed": true, "command": "pnpm turbo typecheck", "exitCode": 0 },
+    "lint": { "passed": true, "command": "pnpm turbo lint", "exitCode": 0 }
+  },
+  "reviewsSummary": {
+    "total": 3,
+    "passed": 3,
+    "failed": 0,
+    "failedFeatures": []
+  },
+  "blockingIssues": [],
+  "appliedUpdates": [],
+  "suggestedGuidanceUpdates": [
+    {
+      "target": "AGENTS.md",
+      "suggestion": "Add to Dashboard testing guidance: 'When running Next.js dashboard for testing (browser-based or e2e), always use production build (`pnpm build && pnpm start`) instead of `pnpm dev` to avoid EMFILE errors on macOS. The Playwright config already follows this pattern.'",
+      "evidence": "All three dashboard-products features (dashboard-product-list, dashboard-product-detail, e2e-tests-cross-area) encountered or worked around EMFILE errors with the Next.js dev server. The Playwright config was written to use build+start. Already documented in .factory/library/user-testing.md but not in AGENTS.md testing guidance.",
+      "isSystemic": true
+    }
+  ],
+  "rejectedObservations": [
+    {
+      "observation": "EMFILE error observation from all 3 reviews suggesting updates to library or AGENTS.md",
+      "reason": "already-documented — EMFILE workaround is already documented in .factory/library/user-testing.md. Recommending AGENTS.md update instead as a suggested guidance change since it's normative."
+    }
+  ],
+  "previousRound": null
+}

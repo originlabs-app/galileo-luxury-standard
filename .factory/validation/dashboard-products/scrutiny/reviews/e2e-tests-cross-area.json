@@ -1,0 +1,32 @@
+{
+  "featureId": "e2e-tests-cross-area",
+  "reviewedAt": "2026-03-03T22:05:00.000Z",
+  "commitId": "317a4f1dcbc8a743c74f618dbcf265276063b516",
+  "transcriptSkeletonReviewed": true,
+  "diffReviewed": true,
+  "status": "pass",
+  "codeReview": {
+    "summary": "Playwright e2e test setup is properly configured. The playwright.config.ts uses testDir ./e2e, baseURL http://localhost:3000, single worker (workers: 1), and two webServer entries for the API (port 4000) and dashboard (port 3000 using build+start to avoid EMFILE issues). Auth setup registers a unique test user per run using timestamp-based email and saves storageState. The product-lifecycle.spec.ts covers the complete flow: navigate to product list → click New Product → fill form (valid GTIN 00012345678905, unique serial) → submit → verify DRAFT → click Mint → verify ACTIVE → verify QR image → verify MINTED event → verify Download QR button. The test uses proper Playwright best practices (role-based selectors, waitForURL with regex). Turbo.json has a separate test:e2e task. Root package.json has test:e2e script.",
+    "issues": [
+      {
+        "severity": "non_blocking",
+        "description": "The auth.setup.ts creates a new user per run but there's no cleanup for old test users. Over time, the test database could accumulate orphaned test users.",
+        "suggestion": "Not critical since galileo_test is reset periodically, but consider adding cleanup or TTL for test accounts."
+      },
+      {
+        "severity": "non_blocking",
+        "description": "storageState saves cookies and localStorage, but httpOnly cookies are NOT included in Playwright storageState. The setup relies on the browser session's cookie jar being preserved via context, which works correctly because the setup project passes cookies to dependent projects via the context.",
+        "suggestion": "This works as implemented since Playwright manages cookies at the browser context level. No change needed."
+      }
+    ]
+  },
+  "sharedStateObservations": [
+    {
+      "area": "knowledge",
+      "observation": "The Playwright config uses `pnpm build && PORT=3000 pnpm start` instead of `pnpm dev` for the dashboard webServer to avoid EMFILE issues on macOS. This is the recommended pattern for dashboard e2e testing.",
+      "evidence": "playwright.config.ts webServer[1].command shows build+start pattern. Workers encountered EMFILE with dev mode. Already documented in .factory/library/user-testing.md."
+    }
+  ],
+  "addressesFailureFrom": null,
+  "summary": "Complete and well-structured e2e test setup. Covers the full product lifecycle flow. Config properly avoids known EMFILE issues by using production build. Two minor non-blocking observations about test user cleanup and storageState cookie handling."
+}
