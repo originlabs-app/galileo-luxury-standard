@@ -16,5 +16,13 @@
   "devDependencies": {
     "turbo": "latest",
     "typescript": "latest"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/engines",
+      "bcrypt",
+      "esbuild",
+      "prisma"
+    ]
   }
 }

@@ -1,0 +1,40 @@
+{
+  "name": "@galileo/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "prisma generate && tsc",
+    "start": "node dist/server.js",
+    "test": "vitest run",
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fastify/cors": "latest",
+    "@fastify/jwt": "latest",
+    "@fastify/swagger": "latest",
+    "@fastify/swagger-ui": "latest",
+    "@galileo/shared": "workspace:*",
+    "@prisma/adapter-pg": "latest",
+    "@prisma/client": "latest",
+    "bcrypt": "latest",
+    "dotenv": "latest",
+    "pg": "latest",
+    "fastify": "latest",
+    "fastify-plugin": "latest",
+    "prisma": "latest",
+    "zod": "latest"
+  },
+  "devDependencies": {
+    "@eslint/js": "latest",
+    "@types/bcrypt": "latest",
+    "@types/pg": "latest",
+    "eslint": "latest",
+    "tsx": "latest",
+    "typescript": "latest",
+    "typescript-eslint": "latest",
+    "vitest": "latest"
+  }
+}
