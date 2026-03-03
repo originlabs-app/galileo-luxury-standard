@@ -1,0 +1,22 @@
+{
+  "featureId": "misc-api-fixes",
+  "milestone": "misc-fixes-1",
+  "reviewer": "scrutiny-validator-misc-fixes-1",
+  "timestamp": "2026-03-03T22:50:00Z",
+  "commitId": "6ddd54e",
+  "status": "pass",
+  "summary": "Small, well-scoped fix addressing three minor API issues. The custom content-type parser for empty JSON bodies is correctly scoped to the mint route plugin, the seed script now uses ADMIN role with upsert update clause, and POST /products already returned 201 (no change needed). All 85 API tests pass.",
+  "filesChanged": [
+    "apps/api/src/routes/products/mint.ts",
+    "apps/api/prisma/seed.ts",
+    "pnpm-lock.yaml"
+  ],
+  "codeReviewIssues": [],
+  "positives": [
+    "Custom content-type parser is scoped to the mint route plugin, not globally — avoids side effects on other routes",
+    "Empty body handling is defensive: trims whitespace and falls back to empty object",
+    "Seed upsert includes update clause so existing records get corrected too, not just new ones",
+    "Lockfile changes are purely cosmetic (eslint plugin peer dep resolution formatting)"
+  ],
+  "sharedStateObservations": []
+}
