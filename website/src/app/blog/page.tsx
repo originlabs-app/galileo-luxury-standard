@@ -1,10 +1,11 @@
-import { getAllPosts, formatDate } from '@/lib/blog';
-import Link from 'next/link';
-import { Calendar, User } from 'lucide-react';
+import { getAllPosts, formatDate } from "@/lib/blog";
+import Link from "next/link";
+import { Calendar, User } from "lucide-react";
 
 export const metadata = {
-  title: 'Blog | Galileo Luxury Standard',
-  description: 'News, announcements, and updates from the Galileo Luxury Standard project.',
+  title: "Blog | Galileo Luxury Standard",
+  description:
+    "News, announcements, and updates from the Galileo Luxury Standard project.",
 };
 
 export default function BlogPage() {
@@ -22,9 +23,12 @@ export default function BlogPage() {
             </span>
             <div className="w-12 h-[1px] bg-gradient-to-l from-transparent to-cyan-500/50" />
           </div>
-          <h1 className="bg-gradient-to-r from-[var(--cyan-primary)] to-[var(--emerald-primary)] bg-clip-text text-transparent mb-4">Blog</h1>
+          <h1 className="bg-gradient-to-r from-[var(--cyan-primary)] to-[var(--emerald-primary)] bg-clip-text text-transparent mb-4">
+            Blog
+          </h1>
           <p className="text-xl text-[var(--platinum-dim)] max-w-2xl mx-auto">
-            News, announcements, and updates from the Galileo Luxury Standard ecosystem.
+            News, announcements, and updates from the Galileo Luxury Standard
+            ecosystem.
           </p>
         </header>
 
@@ -43,17 +47,16 @@ export default function BlogPage() {
               const angle = 135 + index * 15;
 
               return (
-                <article
-                  key={post.slug}
-                  className="group relative"
-                >
+                <article key={post.slug} className="group relative">
                   <Link href={`/blog/${post.slug}`} className="block h-full">
                     <div
                       className="relative h-full overflow-hidden border border-white/[0.06] transition-all duration-500 hover:border-cyan-400/20"
                       style={{
-                        background: 'linear-gradient(145deg, var(--slate) 0%, var(--graphite) 50%, var(--obsidian) 100%)',
-                        borderRadius: '16px',
-                        boxShadow: '0 1px 2px rgba(0,0,0,0.3), 0 4px 8px rgba(0,0,0,0.2), 0 8px 16px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.03)',
+                        background:
+                          "linear-gradient(145deg, var(--slate) 0%, var(--graphite) 50%, var(--obsidian) 100%)",
+                        borderRadius: "16px",
+                        boxShadow:
+                          "0 1px 2px rgba(0,0,0,0.3), 0 4px 8px rgba(0,0,0,0.2), 0 8px 16px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.03)",
                       }}
                     >
                       {/* Image placeholder / Cover */}
@@ -71,15 +74,16 @@ export default function BlogPage() {
                             <div
                               className="absolute inset-0 opacity-30"
                               style={{
-                                backgroundImage: `radial-gradient(ellipse at ${30 + hueShift % 60}% ${20 + hueShift % 40}%, rgba(0,255,255,0.15) 0%, transparent 50%), radial-gradient(ellipse at ${70 - hueShift % 30}% ${60 + hueShift % 30}%, rgba(0,255,136,0.1) 0%, transparent 50%)`,
+                                backgroundImage: `radial-gradient(ellipse at ${30 + (hueShift % 60)}% ${20 + (hueShift % 40)}%, rgba(0,255,255,0.15) 0%, transparent 50%), radial-gradient(ellipse at ${70 - (hueShift % 30)}% ${60 + (hueShift % 30)}%, rgba(0,255,136,0.1) 0%, transparent 50%)`,
                               }}
                             />
                             {/* Subtle grid pattern */}
                             <div
                               className="absolute inset-0 opacity-[0.04]"
                               style={{
-                                backgroundImage: 'linear-gradient(rgba(0,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,255,0.5) 1px, transparent 1px)',
-                                backgroundSize: '40px 40px',
+                                backgroundImage:
+                                  "linear-gradient(rgba(0,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,255,0.5) 1px, transparent 1px)",
+                                backgroundSize: "40px 40px",
                               }}
                             />
                           </>
@@ -106,7 +110,8 @@ export default function BlogPage() {
                       <div
                         className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none rounded-[16px]"
                         style={{
-                          boxShadow: 'inset 0 0 60px rgba(0,255,255,0.04), 0 0 40px rgba(0,255,255,0.03)',
+                          boxShadow:
+                            "inset 0 0 60px rgba(0,255,255,0.04), 0 0 40px rgba(0,255,255,0.03)",
                         }}
                       />
 
@@ -114,8 +119,8 @@ export default function BlogPage() {
                       <div className="relative px-6 pb-6 pt-2 flex flex-col flex-1">
                         {/* Title */}
                         <h2
-                          className="text-lg font-light text-[var(--platinum)] mb-2 group-hover:text-[var(--cyan-primary)] transition-colors duration-500 leading-snug line-clamp-2"
-                          style={{ fontFamily: 'var(--font-serif)' }}
+                          className="!text-lg font-light text-[var(--platinum)] mb-2 group-hover:text-[var(--cyan-primary)] transition-colors duration-500 !leading-snug line-clamp-3"
+                          style={{ fontFamily: "var(--font-serif)" }}
                         >
                           {post.frontmatter.title}
                         </h2>
@@ -129,7 +134,8 @@ export default function BlogPage() {
                         <div
                           className="mb-4 h-[1px]"
                           style={{
-                            background: 'linear-gradient(90deg, rgba(0,255,255,0.15), rgba(0,255,136,0.08), transparent)',
+                            background:
+                              "linear-gradient(90deg, rgba(0,255,255,0.15), rgba(0,255,136,0.08), transparent)",
                           }}
                         />
 
@@ -147,7 +153,9 @@ export default function BlogPage() {
                           </div>
                           <span className="text-[11px] tracking-wide text-white/30 group-hover:text-cyan-400/80 transition-colors duration-500 flex items-center gap-1.5">
                             Read
-                            <span className="inline-block transition-transform duration-300 group-hover:translate-x-1">&rarr;</span>
+                            <span className="inline-block transition-transform duration-300 group-hover:translate-x-1">
+                              &rarr;
+                            </span>
                           </span>
                         </div>
                       </div>
@@ -156,7 +164,8 @@ export default function BlogPage() {
                       <div
                         className="absolute bottom-0 left-0 h-[1px] w-1/4 group-hover:w-full transition-all duration-700"
                         style={{
-                          background: 'linear-gradient(90deg, var(--cyan-primary), var(--emerald-primary), transparent)',
+                          background:
+                            "linear-gradient(90deg, var(--cyan-primary), var(--emerald-primary), transparent)",
                           opacity: 0.4,
                         }}
                       />
@@ -175,8 +184,8 @@ export default function BlogPage() {
               Stay Updated
             </h2>
             <p className="text-[var(--platinum-dim)] mb-6">
-              Follow the project on GitHub to receive updates about new releases,
-              features, and ecosystem developments.
+              Follow the project on GitHub to receive updates about new
+              releases, features, and ecosystem developments.
             </p>
             <a
               href="https://github.com/originlabs-app/galileo-luxury-standard"
