@@ -3,6 +3,7 @@ export {
   Role,
   type User,
   type UserPublic,
+  type UserInternal,
 } from "./types/user.js";
 export { type Brand } from "./types/brand.js";
 export {

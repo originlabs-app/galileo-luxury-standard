@@ -7,6 +7,8 @@
  * @module validation/did
  */
 
+import { validateGtin } from "./gtin.js";
+
 const DID_REGEX =
   /^did:galileo:01:(\d{13,14}):21:(.+)$/;
 
@@ -23,24 +25,30 @@ export function generateDid(gtin: string, serial: string): string {
 
 /**
  * Generates a GS1 Digital Link URL from a GTIN and serial number.
+ * The serial number component is URL-encoded to handle special characters.
  *
  * @param gtin - The GTIN (13 or 14 digits).
  * @param serial - The serial number.
- * @returns The URL string in format `https://id.galileoprotocol.io/01/{gtin}/21/{serial}`.
+ * @returns The URL string in format `https://id.galileoprotocol.io/01/{gtin}/21/{encodedSerial}`.
  */
 export function generateDigitalLinkUrl(gtin: string, serial: string): string {
-  return `https://id.galileoprotocol.io/01/${gtin}/21/${serial}`;
+  return `https://id.galileoprotocol.io/01/${gtin}/21/${encodeURIComponent(serial)}`;
 }
 
 /**
- * Validates a Galileo DID string format.
+ * Validates a Galileo DID string format and GTIN check digit.
  *
  * Expected format: did:galileo:01:{gtin}:21:{serial}
- * where {gtin} is 13 or 14 numeric digits and {serial} is non-empty.
+ * where {gtin} is 13 or 14 numeric digits with a valid GS1 check digit,
+ * and {serial} is non-empty.
  *
  * @param did - The DID string to validate.
- * @returns `true` if the DID matches the expected format, `false` otherwise.
+ * @returns `true` if the DID matches the expected format and GTIN is valid, `false` otherwise.
  */
 export function validateDid(did: string): boolean {
-  return DID_REGEX.test(did);
+  const match = DID_REGEX.exec(did);
+  if (!match || !match[1]) return false;
+
+  const gtin = match[1];
+  return validateGtin(gtin);
 }

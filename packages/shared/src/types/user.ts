@@ -6,19 +6,7 @@ export enum Role {
   VIEWER = "VIEWER",
 }
 
-/** User entity matching the Prisma User model */
-export interface User {
-  id: string;
-  email: string;
-  passwordHash: string;
-  role: Role;
-  brandId: string | null;
-  refreshToken: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-/** Safe user representation without sensitive fields */
+/** Safe user representation without sensitive fields (frontend-safe) */
 export interface UserPublic {
   id: string;
   email: string;
@@ -27,3 +15,15 @@ export interface UserPublic {
   createdAt: Date;
   updatedAt: Date;
 }
+
+/** Full user entity with sensitive fields (backend only) */
+export interface UserInternal extends UserPublic {
+  passwordHash: string;
+  refreshToken: string | null;
+}
+
+/**
+ * User type — alias for UserInternal for backward compatibility.
+ * New code should use UserInternal (backend) or UserPublic (frontend) explicitly.
+ */
+export type User = UserInternal;

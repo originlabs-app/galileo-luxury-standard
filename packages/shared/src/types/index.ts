@@ -1,4 +1,4 @@
-export { Role, type User, type UserPublic } from "./user.js";
+export { Role, type User, type UserPublic, type UserInternal } from "./user.js";
 export { type Brand } from "./brand.js";
 export {
   ProductStatus,
