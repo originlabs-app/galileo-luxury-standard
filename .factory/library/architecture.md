@@ -52,6 +52,10 @@ Architectural decisions, patterns, and conventions.
 - Only ACTIVE+ products are publicly resolvable via GS1 Digital Link
 - MINTING is an intermediate status (reserved for future async flow)
 
+## JWT Token Generation
+- JWT tokens include a `jti` (JWT ID) claim with `crypto.randomUUID()` to prevent duplicate tokens when generated in the same second with identical payloads
+- This is critical for refresh token rotation where concurrent requests could otherwise produce identical tokens
+
 ## GDPR Compliance
 - Passwords: bcrypt 12 rounds, max 128 chars
 - JWT: minimal payload (sub, role, brandId only)
