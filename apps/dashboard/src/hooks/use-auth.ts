@@ -30,9 +30,18 @@ interface RegisterParams {
   brandName?: string;
 }
 
-interface AuthResponse {
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+}
+
+interface AuthData {
   accessToken: string;
   refreshToken: string;
+  user: User;
+}
+
+interface MeData {
   user: User;
 }
 
@@ -77,9 +86,9 @@ export function useAuth() {
   if (!hasFetched && typeof window !== "undefined") {
     if (checkAuth()) {
       // Start async fetch without using setState in useEffect
-      api<User>("/auth/me")
-        .then((fetchedUser) => {
-          setUser(fetchedUser);
+      api<ApiResponse<MeData>>("/auth/me")
+        .then((response) => {
+          setUser(response.data.user);
           setIsLoading(false);
           setHasFetched(true);
         })
@@ -101,24 +110,24 @@ export function useAuth() {
   }
 
   const login = useCallback(async (params: LoginParams) => {
-    const data = await api<AuthResponse>("/auth/login", {
+    const response = await api<ApiResponse<AuthData>>("/auth/login", {
       method: "POST",
       body: JSON.stringify(params),
       skipAuth: true,
     });
-    setTokens(data.accessToken, data.refreshToken);
-    setUser(data.user);
+    setTokens(response.data.accessToken, response.data.refreshToken);
+    setUser(response.data.user);
     notifyListeners();
   }, []);
 
   const register = useCallback(async (params: RegisterParams) => {
-    const data = await api<AuthResponse>("/auth/register", {
+    const response = await api<ApiResponse<AuthData>>("/auth/register", {
       method: "POST",
       body: JSON.stringify(params),
       skipAuth: true,
     });
-    setTokens(data.accessToken, data.refreshToken);
-    setUser(data.user);
+    setTokens(response.data.accessToken, response.data.refreshToken);
+    setUser(response.data.user);
     notifyListeners();
   }, []);
 

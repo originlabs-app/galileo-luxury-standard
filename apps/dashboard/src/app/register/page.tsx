@@ -19,15 +19,17 @@ import {
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const router = useRouter();
-  const { login, isAuthenticated } = useAuth();
+  const { register, isAuthenticated } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>(
-    {}
-  );
+  const [brandName, setBrandName] = useState("");
+  const [errors, setErrors] = useState<{
+    email?: string;
+    password?: string;
+  }>({});
   const [serverError, setServerError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -49,6 +51,8 @@ export default function LoginPage() {
 
     if (!password) {
       newErrors.password = "Password is required";
+    } else if (password.length < 8) {
+      newErrors.password = "Password must be at least 8 characters";
     }
 
     setErrors(newErrors);
@@ -63,11 +67,21 @@ export default function LoginPage() {
 
     setIsSubmitting(true);
     try {
-      await login({ email: email.trim(), password });
+      await register({
+        email: email.trim(),
+        password,
+        brandName: brandName.trim() || undefined,
+      });
       router.push("/dashboard");
     } catch (error) {
       if (error instanceof ApiError) {
-        setServerError("Invalid email or password. Please try again.");
+        if (error.status === 409) {
+          setServerError("An account with this email already exists.");
+        } else if (error.status === 400) {
+          setServerError(error.message || "Please check your input and try again.");
+        } else {
+          setServerError("An unexpected error occurred. Please try again.");
+        }
       } else {
         setServerError("An unexpected error occurred. Please try again.");
       }
@@ -76,7 +90,7 @@ export default function LoginPage() {
     }
   }
 
-  // Don't render login form if already authenticated
+  // Don't render register form if already authenticated
   if (isAuthenticated) return null;
 
   return (
@@ -84,10 +98,10 @@ export default function LoginPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="font-serif text-3xl font-semibold">
-            Welcome Back
+            Create Account
           </CardTitle>
           <CardDescription>
-            Sign in to your Galileo Protocol account
+            Register for Galileo Protocol to authenticate your products
           </CardDescription>
         </CardHeader>
 
@@ -131,11 +145,26 @@ export default function LoginPage() {
                     setErrors((prev) => ({ ...prev, password: undefined }));
                 }}
                 aria-invalid={!!errors.password}
-                autoComplete="current-password"
+                autoComplete="new-password"
               />
               {errors.password && (
                 <p className="text-sm text-destructive">{errors.password}</p>
               )}
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="brandName">Brand Name</Label>
+              <Input
+                id="brandName"
+                type="text"
+                placeholder="Your luxury brand"
+                value={brandName}
+                onChange={(e) => setBrandName(e.target.value)}
+                autoComplete="organization"
+              />
+              <p className="text-xs text-muted-foreground">
+                Optional — create your brand during registration
+              </p>
             </div>
           </CardContent>
 
@@ -146,15 +175,15 @@ export default function LoginPage() {
               size="lg"
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Signing in…" : "Sign In"}
+              {isSubmitting ? "Creating account…" : "Create Account"}
             </Button>
             <p className="text-center text-sm text-muted-foreground">
-              Don&apos;t have an account?{" "}
+              Already have an account?{" "}
               <Link
-                href="/register"
+                href="/login"
                 className="text-primary underline-offset-4 hover:underline"
               >
-                Register
+                Login
               </Link>
             </p>
           </CardFooter>

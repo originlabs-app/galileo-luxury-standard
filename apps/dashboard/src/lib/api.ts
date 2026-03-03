@@ -21,8 +21,8 @@ async function refreshAccessToken(): Promise<boolean> {
 
     if (!response.ok) return false;
 
-    const data = await response.json();
-    setTokens(data.accessToken, data.refreshToken);
+    const json = await response.json();
+    setTokens(json.data.accessToken, json.data.refreshToken);
     return true;
   } catch {
     return false;
@@ -100,7 +100,9 @@ export async function api<T = unknown>(
 async function getErrorMessage(response: Response): Promise<string> {
   try {
     const data = await response.json();
-    return data.message ?? data.error ?? "An unexpected error occurred";
+    // API wraps errors as { success: false, error: { code, message } }
+    if (data.error?.message) return data.error.message;
+    return data.message ?? "An unexpected error occurred";
   } catch {
     return "An unexpected error occurred";
   }
