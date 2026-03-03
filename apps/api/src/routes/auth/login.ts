@@ -1,8 +1,14 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
+import bcrypt from "bcrypt";
 import { emailSchema, passwordSchema } from "@galileo/shared";
 import { verifyPassword } from "../../utils/password.js";
 import { generateTokenPair } from "../../utils/tokens.js";
+import { hashToken } from "../../utils/token-hash.js";
+
+// Pre-hashed dummy value for timing-safe login when user is not found
+const DUMMY_HASH =
+  "$2b$12$LJ3m4ys3Lg2VBe0A8MrXxu7N6OVxB5VH6kFGz3K8HnGFbkOKMgK.i";
 
 const loginBody = z.object({
   email: emailSchema,
@@ -95,8 +101,10 @@ export default async function loginRoute(fastify: FastifyInstance) {
         where: { email },
       });
 
-      // Same error for non-existent user and wrong password (prevent enumeration)
+      // Timing-safe: perform dummy bcrypt compare when user not found
+      // to prevent timing-based user enumeration
       if (!user) {
+        await bcrypt.compare(password, DUMMY_HASH);
         return reply.status(401).send(INVALID_CREDENTIALS_ERROR);
       }
 
@@ -111,10 +119,10 @@ export default async function loginRoute(fastify: FastifyInstance) {
         brandId: user.brandId,
       });
 
-      // Store refresh token
+      // Store hashed refresh token
       await fastify.prisma.user.update({
         where: { id: user.id },
-        data: { refreshToken: tokens.refreshToken },
+        data: { refreshToken: hashToken(tokens.refreshToken) },
       });
 
       // Log without PII

@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { verifyRefreshToken, generateTokenPair } from "../../utils/tokens.js";
+import { hashToken } from "../../utils/token-hash.js";
 
 const refreshBody = z.object({
   refreshToken: z.string().min(1),
@@ -68,7 +69,7 @@ export default async function refreshRoute(fastify: FastifyInstance) {
 
       const { refreshToken } = parsed.data;
 
-      // Verify the refresh token
+      // Verify the refresh token JWT signature
       const payload = verifyRefreshToken(fastify, refreshToken);
       if (!payload) {
         return reply.status(401).send({
@@ -80,12 +81,36 @@ export default async function refreshRoute(fastify: FastifyInstance) {
         });
       }
 
-      // Verify user still exists and token matches stored one
-      const user = await fastify.prisma.user.findUnique({
-        where: { id: payload.sub },
+      // Hash the incoming token for comparison
+      const hashedIncoming = hashToken(refreshToken);
+
+      // Atomic transaction: verify stored token and rotate in one step
+      const result = await fastify.prisma.$transaction(async (tx) => {
+        const user = await tx.user.findUnique({
+          where: { id: payload.sub },
+        });
+
+        if (!user || user.refreshToken !== hashedIncoming) {
+          return null;
+        }
+
+        // Generate new token pair
+        const tokens = generateTokenPair(fastify, {
+          sub: user.id,
+          role: user.role,
+          brandId: user.brandId,
+        });
+
+        // Update stored refresh token (hashed)
+        await tx.user.update({
+          where: { id: user.id },
+          data: { refreshToken: hashToken(tokens.refreshToken) },
+        });
+
+        return { user, tokens };
       });
 
-      if (!user || user.refreshToken !== refreshToken) {
+      if (!result) {
         return reply.status(401).send({
           success: false,
           error: {
@@ -95,27 +120,14 @@ export default async function refreshRoute(fastify: FastifyInstance) {
         });
       }
 
-      // Generate new token pair
-      const tokens = generateTokenPair(fastify, {
-        sub: user.id,
-        role: user.role,
-        brandId: user.brandId,
-      });
-
-      // Update stored refresh token
-      await fastify.prisma.user.update({
-        where: { id: user.id },
-        data: { refreshToken: tokens.refreshToken },
-      });
-
       // Log without PII
-      fastify.log.info({ userId: user.id }, "Token refreshed");
+      fastify.log.info({ userId: result.user.id }, "Token refreshed");
 
       return reply.status(200).send({
         success: true,
         data: {
-          accessToken: tokens.accessToken,
-          refreshToken: tokens.refreshToken,
+          accessToken: result.tokens.accessToken,
+          refreshToken: result.tokens.refreshToken,
         },
       });
     },

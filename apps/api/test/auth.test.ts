@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
+import { createHash } from "node:crypto";
 import { buildApp } from "../src/server.js";
 import type { FastifyInstance } from "fastify";
 
@@ -24,6 +25,8 @@ describe("Auth endpoints", () => {
             "register@test.com",
             "duplicate@test.com",
             "brand@test.com",
+            "brand-collision@test.com",
+            "brand-collision2@test.com",
             "login@test.com",
             "refresh@test.com",
             "me@test.com",
@@ -35,7 +38,7 @@ describe("Auth endpoints", () => {
     await app.prisma.brand.deleteMany({
       where: {
         slug: {
-          in: ["acme-luxury", "test-brand"],
+          in: ["acme-luxury", "test-brand", "collision-brand"],
         },
       },
     });
@@ -352,6 +355,140 @@ describe("Auth endpoints", () => {
       // Must NOT contain email or any PII
       expect(payload.email).toBeUndefined();
       expect(payload.name).toBeUndefined();
+    });
+  });
+
+  // ─── Security: Refresh Token Hashing ────────────────────────
+
+  describe("Refresh token hashing", () => {
+    it("stores hashed refresh token in database, not raw token", async () => {
+      const registerRes = await app.inject({
+        method: "POST",
+        url: "/auth/register",
+        payload: {
+          email: "register@test.com",
+          password: "password123",
+        },
+      });
+
+      const { refreshToken, user } = registerRes.json().data;
+
+      // Fetch the user from DB and check the stored token
+      const dbUser = await app.prisma.user.findUnique({
+        where: { id: user.id },
+      });
+
+      expect(dbUser).not.toBeNull();
+      // Stored token should NOT be the raw refresh token
+      expect(dbUser!.refreshToken).not.toBe(refreshToken);
+      // Stored token should be the SHA-256 hash of the refresh token
+      const expectedHash = createHash("sha256")
+        .update(refreshToken)
+        .digest("hex");
+      expect(dbUser!.refreshToken).toBe(expectedHash);
+    });
+
+    it("stores hashed refresh token after login", async () => {
+      // First register
+      await app.inject({
+        method: "POST",
+        url: "/auth/register",
+        payload: {
+          email: "login@test.com",
+          password: "password123",
+        },
+      });
+
+      // Then login
+      const loginRes = await app.inject({
+        method: "POST",
+        url: "/auth/login",
+        payload: {
+          email: "login@test.com",
+          password: "password123",
+        },
+      });
+
+      const { refreshToken, user } = loginRes.json().data;
+
+      const dbUser = await app.prisma.user.findUnique({
+        where: { id: user.id },
+      });
+
+      expect(dbUser!.refreshToken).not.toBe(refreshToken);
+      const expectedHash = createHash("sha256")
+        .update(refreshToken)
+        .digest("hex");
+      expect(dbUser!.refreshToken).toBe(expectedHash);
+    });
+
+    it("stores hashed refresh token after token refresh", async () => {
+      // Register to get initial tokens
+      const registerRes = await app.inject({
+        method: "POST",
+        url: "/auth/register",
+        payload: {
+          email: "refresh@test.com",
+          password: "password123",
+        },
+      });
+
+      const { refreshToken: initialToken } = registerRes.json().data;
+
+      // Refresh the token
+      const refreshRes = await app.inject({
+        method: "POST",
+        url: "/auth/refresh",
+        payload: { refreshToken: initialToken },
+      });
+
+      expect(refreshRes.statusCode).toBe(200);
+      const { refreshToken: newToken } = refreshRes.json().data;
+
+      // Check the DB stores the hash of the NEW token
+      const dbUser = await app.prisma.user.findUnique({
+        where: { email: "refresh@test.com" },
+      });
+
+      expect(dbUser!.refreshToken).not.toBe(newToken);
+      const expectedHash = createHash("sha256")
+        .update(newToken)
+        .digest("hex");
+      expect(dbUser!.refreshToken).toBe(expectedHash);
+    });
+  });
+
+  // ─── Security: Brand Slug Collision ─────────────────────────
+
+  describe("Brand slug collision", () => {
+    it("returns 409 when brand slug already exists", async () => {
+      // First registration with a brand
+      const res1 = await app.inject({
+        method: "POST",
+        url: "/auth/register",
+        payload: {
+          email: "brand-collision@test.com",
+          password: "password123",
+          brandName: "Collision Brand",
+        },
+      });
+      expect(res1.statusCode).toBe(201);
+
+      // Second registration with different email but same brand name → slug collision
+      const res2 = await app.inject({
+        method: "POST",
+        url: "/auth/register",
+        payload: {
+          email: "brand-collision2@test.com",
+          password: "password123",
+          brandName: "Collision Brand",
+        },
+      });
+
+      expect(res2.statusCode).toBe(409);
+      const body = res2.json();
+      expect(body.success).toBe(false);
+      expect(body.error.code).toBe("CONFLICT");
     });
   });
 });

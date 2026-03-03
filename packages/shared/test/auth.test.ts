@@ -39,4 +39,12 @@ describe("password validation schema", () => {
   it("rejects empty password", () => {
     expect(() => passwordSchema.parse("")).toThrow();
   });
+
+  it("accepts password with exactly 128 characters", () => {
+    expect(() => passwordSchema.parse("a".repeat(128))).not.toThrow();
+  });
+
+  it("rejects password exceeding 128 characters", () => {
+    expect(() => passwordSchema.parse("a".repeat(129))).toThrow();
+  });
 });

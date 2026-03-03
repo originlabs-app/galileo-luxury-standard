@@ -13,37 +13,39 @@ export async function buildApp() {
     logger: config.NODE_ENV !== "test",
   });
 
-  // Register Swagger (must be before routes)
-  await fastify.register(fastifySwagger, {
-    openapi: {
-      openapi: "3.0.0",
-      info: {
-        title: "Galileo Protocol API",
-        description:
-          "API for luxury product authentication via Digital Product Passports",
-        version: "0.0.0",
-      },
-      servers: [
-        {
-          url: `http://localhost:${config.PORT}`,
-          description: "Development server",
+  // Register Swagger only in non-production environments
+  if (config.NODE_ENV !== "production") {
+    await fastify.register(fastifySwagger, {
+      openapi: {
+        openapi: "3.0.0",
+        info: {
+          title: "Galileo Protocol API",
+          description:
+            "API for luxury product authentication via Digital Product Passports",
+          version: "0.0.0",
         },
-      ],
-      components: {
-        securitySchemes: {
-          bearerAuth: {
-            type: "http",
-            scheme: "bearer",
-            bearerFormat: "JWT",
+        servers: [
+          {
+            url: `http://localhost:${config.PORT}`,
+            description: "Development server",
+          },
+        ],
+        components: {
+          securitySchemes: {
+            bearerAuth: {
+              type: "http",
+              scheme: "bearer",
+              bearerFormat: "JWT",
+            },
           },
         },
       },
-    },
-  });
+    });
 
-  await fastify.register(fastifySwaggerUi, {
-    routePrefix: "/docs",
-  });
+    await fastify.register(fastifySwaggerUi, {
+      routePrefix: "/docs",
+    });
+  }
 
   // Register plugins
   await fastify.register(corsPlugin);

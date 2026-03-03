@@ -4,6 +4,7 @@ import { emailSchema, passwordSchema } from "@galileo/shared";
 import { hashPassword } from "../../utils/password.js";
 import { generateTokenPair } from "../../utils/tokens.js";
 import { toSlug } from "../../utils/slug.js";
+import { hashToken } from "../../utils/token-hash.js";
 
 const registerBody = z.object({
   email: emailSchema,
@@ -112,28 +113,48 @@ export default async function registerRoute(fastify: FastifyInstance) {
         const did = `did:galileo:brand:${slug}`;
 
         // Create brand and user in a transaction
-        const result = await fastify.prisma.$transaction(async (tx) => {
-          const brand = await tx.brand.create({
-            data: {
-              name: brandName,
-              slug,
-              did,
-            },
+        try {
+          const result = await fastify.prisma.$transaction(async (tx) => {
+            const brand = await tx.brand.create({
+              data: {
+                name: brandName,
+                slug,
+                did,
+              },
+            });
+
+            const newUser = await tx.user.create({
+              data: {
+                email,
+                passwordHash,
+                role: "BRAND_ADMIN",
+                brandId: brand.id,
+              },
+            });
+
+            return newUser;
           });
 
-          const newUser = await tx.user.create({
-            data: {
-              email,
-              passwordHash,
-              role: "BRAND_ADMIN",
-              brandId: brand.id,
-            },
-          });
-
-          return newUser;
-        });
-
-        user = result;
+          user = result;
+        } catch (error: unknown) {
+          // Handle unique constraint violation (slug or DID collision)
+          if (
+            error &&
+            typeof error === "object" &&
+            "code" in error &&
+            error.code === "P2002"
+          ) {
+            return reply.status(409).send({
+              success: false,
+              error: {
+                code: "CONFLICT",
+                message:
+                  "A brand with this name already exists. Please choose a different name.",
+              },
+            });
+          }
+          throw error;
+        }
       } else {
         user = await fastify.prisma.user.create({
           data: {
@@ -150,10 +171,10 @@ export default async function registerRoute(fastify: FastifyInstance) {
         brandId: user.brandId,
       });
 
-      // Store refresh token
+      // Store hashed refresh token
       await fastify.prisma.user.update({
         where: { id: user.id },
-        data: { refreshToken: tokens.refreshToken },
+        data: { refreshToken: hashToken(tokens.refreshToken) },
       });
 
       // Log without PII
