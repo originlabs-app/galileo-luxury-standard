@@ -52,6 +52,12 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
+      - name: Generate Prisma client
+        run: pnpm --filter @galileo/api prisma generate
+
+      - name: Push Prisma schema to database
+        run: pnpm --filter @galileo/api prisma db push --skip-generate
+
       - name: Test
         run: pnpm test
 

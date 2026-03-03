@@ -16,7 +16,9 @@
       "dependsOn": ["^build"]
     },
     "test": {
-      "dependsOn": ["^build"]
+      "dependsOn": ["^build"],
+      "inputs": ["src/**", "test/**", "prisma/**", ".env*", "vitest.config.*", "package.json"],
+      "outputs": []
     }
   }
 }
