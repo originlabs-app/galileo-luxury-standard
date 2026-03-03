@@ -1,0 +1,18 @@
+{
+  "flowId": "cross-api",
+  "assertions": {
+    "VAL-CROSS-002": {
+      "status": "pass",
+      "evidence": "Successfully created product (FT3-API Lifecycle), saw in list, verified CREATED event, updated name and verified UPDATED event, minted product and saw ACTIVE status. Resolved DPP without auth successfully, downloaded QR code (image/png) successfully."
+    },
+    "VAL-CROSS-005": {
+      "status": "pass",
+      "evidence": "Resolved DPP /01/00012345678905/21/FT3-SN-001 without auth and got JSON-LD response. Attempted to access product detail /products/:id without auth and received 401 Unauthorized."
+    }
+  },
+  "frictions": [],
+  "blockers": [],
+  "toolsUsed": [
+    "curl"
+  ]
+}

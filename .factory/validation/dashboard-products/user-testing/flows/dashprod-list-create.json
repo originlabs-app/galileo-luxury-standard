@@ -1,0 +1,52 @@
+{
+  "flowId": "dashprod-list-create",
+  "assertions": {
+    "VAL-DASHPROD-001": {
+      "status": "pass",
+      "evidence": "Product list table at /dashboard/products showed columns: Name, GTIN, Serial Number, Status (color-coded badge), Created date. Product FT1-Test Product was displayed correctly."
+    },
+    "VAL-DASHPROD-002": {
+      "status": "pass",
+      "evidence": "With no products, /dashboard/products showed an empty state message. Table was not rendered. Screenshot captured."
+    },
+    "VAL-DASHPROD-004": {
+      "status": "pass",
+      "evidence": "Clicking a product row navigated to /dashboard/products/[id] as expected."
+    },
+    "VAL-DASHPROD-005": {
+      "status": "pass",
+      "evidence": "Clicking 'New Product' button navigated to /dashboard/products/new."
+    },
+    "VAL-DASHPROD-006": {
+      "status": "pass",
+      "evidence": "Form at /dashboard/products/new showed Name, GTIN, Serial Number, Category (dropdown), Description fields. All initially empty."
+    },
+    "VAL-DASHPROD-007": {
+      "status": "pass",
+      "evidence": "Entering invalid GTIN (wrong check digit) showed inline validation error before form submission. No API request was made."
+    },
+    "VAL-DASHPROD-008": {
+      "status": "pass",
+      "evidence": "Submitting form with empty required fields showed inline validation errors for Name, GTIN, and Serial Number."
+    },
+    "VAL-DASHPROD-009": {
+      "status": "pass",
+      "evidence": "Submitting valid form data (GTIN: 00012345678905, serial: FT1-SN-001) called POST /products and redirected to /dashboard/products/[id]."
+    },
+    "VAL-DASHPROD-010": {
+      "status": "pass",
+      "evidence": "Clicking 'Cancel' returned to /dashboard/products without making an API request."
+    },
+    "VAL-DASHPROD-019": {
+      "status": "pass",
+      "evidence": "Sidebar 'Products' link navigated to /dashboard/products and was highlighted as active route on /dashboard/products pages."
+    },
+    "VAL-DASHPROD-020": {
+      "status": "pass",
+      "evidence": "Submitting duplicate GTIN+serial triggered 409 Conflict error. Form displayed inline error message without navigating away."
+    }
+  },
+  "frictions": [],
+  "blockers": [],
+  "toolsUsed": ["agent-browser"]
+}
