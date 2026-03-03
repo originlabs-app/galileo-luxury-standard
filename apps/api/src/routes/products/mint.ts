@@ -3,6 +3,25 @@ import crypto from "node:crypto";
 import { requireRole } from "../../middleware/rbac.js";
 
 export default async function mintProductRoute(fastify: FastifyInstance) {
+  // Allow empty body with Content-Type: application/json on this route.
+  // Fastify rejects empty JSON bodies by default (FST_ERR_CTP_EMPTY_JSON_BODY).
+  fastify.addContentTypeParser(
+    "application/json",
+    { parseAs: "string" },
+    (_req, body, done) => {
+      const str = typeof body === "string" ? body : String(body);
+      if (str.trim().length === 0) {
+        done(null, {});
+        return;
+      }
+      try {
+        done(null, JSON.parse(str));
+      } catch (err) {
+        done(err as Error, undefined);
+      }
+    },
+  );
+
   fastify.post<{ Params: { id: string } }>(
     "/products/:id/mint",
     {
