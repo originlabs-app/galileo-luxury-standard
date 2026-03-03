@@ -1,0 +1,32 @@
+{
+  "groupId": "cross-area",
+  "testedAt": "2026-03-03T15:31:30Z",
+  "credentials": {
+    "account": "flow4-cross@galileo.test",
+    "namespace": "flow4"
+  },
+  "toolsUsed": ["agent-browser", "curl", "terminal"],
+  "assertions": {
+    "VAL-CROSS-001": {
+      "status": "pass",
+      "evidence": "Registered a new user at /register, redirected to /dashboard. Clicked Logout, redirected to /login. Logged back in with the same credentials, redirected back to /dashboard. Verified through agent-browser taking screenshots (register.png, dashboard_after_register.png, login_after_logout.png, dashboard_after_login.png)."
+    },
+    "VAL-CROSS-002": {
+      "status": "pass",
+      "evidence": "Ran `cd /Users/pierrebeunardeau/GalileoLuxury && pnpm build` which successfully built the project and its packages. Using `grep` identified that `@galileo/shared` is imported in `apps/api/src/routes/auth/register.ts` and `apps/api/src/routes/auth/login.ts` for schemas, resolving fine at build time."
+    },
+    "VAL-CROSS-003": {
+      "status": "pass",
+      "evidence": "The browser flow correctly logged in and registered using the UI which communicates with the API. CORS is correctly configured as tested by a curl OPTIONS preflight request to `http://localhost:4000/auth/login` returning `access-control-allow-origin: http://localhost:3000`."
+    },
+    "VAL-CROSS-004": {
+      "status": "pass",
+      "evidence": "Observed `dev` script in root `package.json` (`\"dev\": \"turbo dev\"`). Tested service availability with curl and all services are responding on their respective ports: API (4000), Dashboard (3000), and Scanner (3001)."
+    }
+  },
+  "frictions": [
+    "During the logout flow, initial clicks to the logout button element reference '@e3' triggered 'locator.innerHTML: Unsupported token \"@e3\" while parsing css selector \"@e3\"' and network/resource errors 'Failed to read: Resource temporarily unavailable (os error 35)'. The issue resolved by reopening the dashboard page and retrieving a new snapshot element reference."
+  ],
+  "blockers": [],
+  "summary": "Successfully verified all 4 cross-area assertions. Verified full authentication round-trip via the UI, ensured API consumes shared types and resolves properly during build, confirmed cross-origin requests capability on the API, and verified the dev script concurrent service execution."
+}

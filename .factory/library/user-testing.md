@@ -149,3 +149,58 @@ To decode a JWT payload: `echo '<token>' | cut -d. -f2 | base64 -d 2>/dev/null`
 - VAL-API-012 (env validation fail-fast) requires starting the API WITHOUT env vars — do this in a subprocess
 - VAL-API-014 (no PII in logs) requires capturing API stdout during auth operations
 - VAL-API-018 (Prisma schema completeness) requires inspecting the schema file, not curl
+
+## Flow Validator Guidance: Dashboard Browser (agent-browser)
+
+Dashboard and scanner assertions are tested via `agent-browser` skill against the running Next.js apps.
+
+**URLs:**
+- Dashboard: http://localhost:3000
+- Scanner: http://localhost:3001
+- API: http://localhost:4000
+
+**Services are already running.** Do NOT start or stop any services.
+
+**Testing tool:** Use the `agent-browser` skill (invoke via Skill tool). Each subagent MUST use a unique browser session ID based on their assigned session prefix.
+
+**Isolation rules:**
+- Each flow validator gets its own unique browser session (different `--session` values)
+- Each flow validator uses its own unique email for registration (NEVER use another validator's email)
+- Do NOT clear browser storage/cookies for other sessions
+- Do NOT modify database records created by other validators
+- Do NOT call any service stop/start commands
+
+**Pre-existing accounts in database:**
+- `admin@galileo.test` / `changeme123` (BRAND_ADMIN, has brand "Galileo Luxe")
+- `flow2-brand@galileo.test` / `TestPass123!` (BRAND_ADMIN, has brand "Flow2 Brand")
+
+**How to report results:**
+Write a JSON file to `.factory/validation/dashboard-scanner/user-testing/flows/<group-id>.json` with format:
+```json
+{
+  "groupId": "<group-id>",
+  "assertions": {
+    "<assertion-id>": {
+      "status": "pass" | "fail" | "blocked",
+      "evidence": "description of what was observed (include screenshot descriptions, URL changes, visible elements)"
+    }
+  },
+  "frictions": ["any UX friction observed"],
+  "blockers": ["any blocking issues"],
+  "toolsUsed": ["agent-browser"]
+}
+```
+
+**Common testing patterns:**
+1. Navigate to URL, take snapshot, verify content
+2. Fill form fields, click submit, wait for navigation/response
+3. Check URL after redirect
+4. Take screenshots for visual evidence (theme colors, layout)
+
+**Important notes:**
+- Dashboard uses Next.js App Router — pages may take a moment to hydrate
+- Auth tokens are stored in localStorage
+- After login/register success, the app redirects to /dashboard
+- After logout, tokens are cleared and user is redirected to /login
+- The sidebar has disabled items (Transfers, Settings) that should be visually distinct
+- VAL-DASH-013 and VAL-SCAN-002 (build assertions) should be tested via terminal `pnpm build` command, not browser

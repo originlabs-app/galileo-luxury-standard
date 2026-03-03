@@ -1,0 +1,91 @@
+{
+  "groupId": "auth-theme",
+  "testedAt": "2026-03-03T12:00:00.000Z",
+  "credentials": {
+    "account": "flow2-brand@galileo.test",
+    "namespace": "flow1-newreg@galileo.test"
+  },
+  "toolsUsed": [
+    "agent-browser"
+  ],
+  "assertions": [
+    {
+      "id": "VAL-DASH-001",
+      "title": "Root redirect",
+      "status": "pass",
+      "evidence": "Observed navigation from `http://localhost:3000/` redirecting directly to `http://localhost:3000/login` when unauthenticated. (Snapshot auth-theme-001.png taken on login page)"
+    },
+    {
+      "id": "VAL-DASH-002",
+      "title": "Login page renders",
+      "status": "pass",
+      "evidence": "Login page shows 'Email', 'Password' and 'Sign In' button. Button uses styling matching ABYSSE dark theme (background: lab(90.6244 -50.8047 -15.0038), color: lab(0.577002 0.204235 -0.749788)). Snapshot auth-theme-001.png confirms visual theme."
+    },
+    {
+      "id": "VAL-DASH-003",
+      "title": "Successful login flow",
+      "status": "pass",
+      "evidence": "Entering valid credentials (flow2-brand@galileo.test / TestPass123!) and submitting redirected to `http://localhost:3000/dashboard`. Dashboard heading shows 'Welcome back, flow2-brand@galileo.test'. Screenshot auth-theme-004.png attached."
+    },
+    {
+      "id": "VAL-DASH-004",
+      "title": "Login error display",
+      "status": "pass",
+      "evidence": "Submitting 'wrong@email.com' and 'wrongpassword' shows 'Invalid email or password. Please try again.' text directly on page without redirecting. Screenshot auth-theme-003.png attached."
+    },
+    {
+      "id": "VAL-DASH-005",
+      "title": "Register page renders",
+      "status": "pass",
+      "evidence": "Register page displays Email, Password, Brand Name fields, and 'Create Account' button. Theme matches ABYSSE design. Screenshot auth-theme-005.png attached."
+    },
+    {
+      "id": "VAL-DASH-006",
+      "title": "Successful registration flow",
+      "status": "pass",
+      "evidence": "Successfully registered new account (flow1-newreg2@galileo.test, Flow1 Brand 2, TestPass123!) and redirected to `/dashboard`. Screenshot auth-theme-008.png attached. Note: The assigned 'Flow1 Brand' was already taken in DB."
+    },
+    {
+      "id": "VAL-DASH-011",
+      "title": "Auth guard redirect",
+      "status": "pass",
+      "evidence": "Cleared localStorage. Reloading dashboard redirects directly to `http://localhost:3000/login`."
+    },
+    {
+      "id": "VAL-DASH-012",
+      "title": "ABYSSE theme applied",
+      "status": "pass",
+      "evidence": "Dashboard body background is lab(0.577002 0.204235 -0.749788) (dark), cards are lab(2.81625 0.609964 -2.23281) with border-radius 14px. Headings use Cormorant Garamond, body uses Outfit. Colors confirm ABYSSE."
+    },
+    {
+      "id": "VAL-DASH-014",
+      "title": "Register form client validation",
+      "status": "pass",
+      "evidence": "Submitting empty register form displays 'Email is required' and 'Password is required' without navigating. Screenshot auth-theme-006.png attached."
+    },
+    {
+      "id": "VAL-DASH-015",
+      "title": "Login form client validation",
+      "status": "pass",
+      "evidence": "Submitting empty login form displays 'Email is required' and 'Password is required' without navigating. Screenshot auth-theme-002.png attached."
+    },
+    {
+      "id": "VAL-DASH-016",
+      "title": "Authenticated redirect",
+      "status": "pass",
+      "evidence": "Navigating to `/login` or `/register` when already authenticated instantly redirects back to `/dashboard`."
+    }
+  ],
+  "frictions": [
+    {
+      "description": "Attempting to register with 'flow1-newreg@galileo.test' and 'Flow1 Brand' threw a 500 error because 'Flow1 Brand' slug was already taken. I worked around this by registering 'flow1-newreg2@galileo.test' with 'Flow1 Brand 2'.",
+      "resolved": true,
+      "resolution": "Registered with alternative credentials to verify the flow logic.",
+      "affectedAssertions": [
+        "VAL-DASH-006"
+      ]
+    }
+  ],
+  "blockers": [],
+  "summary": "Tested 11 assertions: 11 passed. 1 friction encountered with pre-existing brand name during registration flow."
+}
