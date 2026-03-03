@@ -5,6 +5,7 @@ export default defineConfig({
     globals: true,
     environment: "node",
     globalSetup: "./test/global-setup.ts",
+    fileParallelism: false,
     env: {
       DATABASE_URL:
         "postgresql://pierrebeunardeau@localhost:5432/galileo_test",

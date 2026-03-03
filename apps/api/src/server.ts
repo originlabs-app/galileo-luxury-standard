@@ -6,6 +6,7 @@ import prismaPlugin from "./plugins/prisma.js";
 import authPlugin from "./plugins/auth.js";
 import corsPlugin from "./plugins/cors.js";
 import cookiePlugin from "./plugins/cookie.js";
+import chainPlugin from "./plugins/chain.js";
 import healthRoutes from "./routes/health.js";
 import authRoutes from "./routes/auth/index.js";
 import productRoutes from "./routes/products/index.js";
@@ -54,6 +55,7 @@ export async function buildApp() {
   await fastify.register(cookiePlugin);
   await fastify.register(authPlugin);
   await fastify.register(prismaPlugin);
+  await fastify.register(chainPlugin);
 
   // Register routes
   await fastify.register(healthRoutes);

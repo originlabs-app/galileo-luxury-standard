@@ -29,6 +29,7 @@
     "fastify-plugin": "5.1.0",
     "pg": "8.19.0",
     "prisma": "7.4.2",
+    "viem": "2.46.3",
     "zod": "4.3.6"
   },
   "devDependencies": {
