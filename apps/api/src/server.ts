@@ -10,6 +10,7 @@ import chainPlugin from "./plugins/chain.js";
 import healthRoutes from "./routes/health.js";
 import authRoutes from "./routes/auth/index.js";
 import productRoutes from "./routes/products/index.js";
+import resolverRoutes from "./routes/resolver/index.js";
 
 export async function buildApp() {
   const fastify = Fastify({
@@ -61,6 +62,7 @@ export async function buildApp() {
   await fastify.register(healthRoutes);
   await fastify.register(authRoutes);
   await fastify.register(productRoutes);
+  await fastify.register(resolverRoutes);
 
   return fastify;
 }
