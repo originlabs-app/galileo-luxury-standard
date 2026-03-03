@@ -1,6 +1,7 @@
 /** Product status matching the Prisma ProductStatus enum */
 export enum ProductStatus {
   DRAFT = "DRAFT",
+  MINTING = "MINTING",
   ACTIVE = "ACTIVE",
   TRANSFERRED = "TRANSFERRED",
   RECALLED = "RECALLED",
@@ -17,6 +18,7 @@ export interface Product {
   category: string;
   status: ProductStatus;
   brandId: string;
+  walletAddress: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -27,6 +29,10 @@ export interface ProductPassport {
   productId: string;
   digitalLink: string;
   metadata: Record<string, unknown>;
+  txHash: string | null;
+  tokenAddress: string | null;
+  chainId: number | null;
+  mintedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }

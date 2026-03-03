@@ -16,6 +16,7 @@ enum Role {
 
 enum ProductStatus {
   DRAFT
+  MINTING
   ACTIVE
   TRANSFERRED
   RECALLED
@@ -24,6 +25,7 @@ enum ProductStatus {
 enum EventType {
   CREATED
   UPDATED
+  MINTED
   TRANSFERRED
   VERIFIED
   RECALLED
@@ -68,10 +70,11 @@ model Product {
   name         String
   description  String?
   category     String
-  status       ProductStatus @default(DRAFT)
-  brandId      String
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  status        ProductStatus @default(DRAFT)
+  brandId       String
+  walletAddress String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
   brand    Brand            @relation(fields: [brandId], references: [id])
   passport ProductPassport?
@@ -84,12 +87,16 @@ model Product {
 }
 
 model ProductPassport {
-  id          String   @id @default(cuid())
-  productId   String   @unique
-  digitalLink String
-  metadata    Json     @default("{}")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String    @id @default(cuid())
+  productId    String    @unique
+  digitalLink  String
+  metadata     Json      @default("{}")
+  txHash       String?
+  tokenAddress String?
+  chainId      Int?
+  mintedAt     DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   product Product @relation(fields: [productId], references: [id])
 }

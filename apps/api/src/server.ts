@@ -8,6 +8,7 @@ import corsPlugin from "./plugins/cors.js";
 import cookiePlugin from "./plugins/cookie.js";
 import healthRoutes from "./routes/health.js";
 import authRoutes from "./routes/auth/index.js";
+import productRoutes from "./routes/products/index.js";
 
 export async function buildApp() {
   const fastify = Fastify({
@@ -57,6 +58,7 @@ export async function buildApp() {
   // Register routes
   await fastify.register(healthRoutes);
   await fastify.register(authRoutes);
+  await fastify.register(productRoutes);
 
   return fastify;
 }
