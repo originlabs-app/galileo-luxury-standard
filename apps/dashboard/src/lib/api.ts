@@ -1,5 +1,4 @@
 import { API_URL } from "./constants";
-import { getAccessToken, getRefreshToken, setTokens, clearTokens } from "./auth";
 
 interface FetchOptions extends RequestInit {
   skipAuth?: boolean;
@@ -8,20 +7,13 @@ interface FetchOptions extends RequestInit {
 let refreshPromise: Promise<boolean> | null = null;
 
 async function refreshAccessToken(): Promise<boolean> {
-  const refreshToken = getRefreshToken();
-  if (!refreshToken) return false;
-
   try {
     const response = await fetch(`${API_URL}/auth/refresh`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refreshToken }),
+      credentials: "include",
     });
 
     if (!response.ok) return false;
-
-    const json = await response.json();
-    setTokens(json.data.accessToken, json.data.refreshToken);
     return true;
   } catch {
     return false;
@@ -37,13 +29,6 @@ export async function api<T = unknown>(
 
   const headers = new Headers(fetchOptions.headers);
 
-  if (!skipAuth) {
-    const token = getAccessToken();
-    if (token) {
-      headers.set("Authorization", `Bearer ${token}`);
-    }
-  }
-
   if (!headers.has("Content-Type") && fetchOptions.body) {
     headers.set("Content-Type", "application/json");
   }
@@ -51,6 +36,7 @@ export async function api<T = unknown>(
   const response = await fetch(url, {
     ...fetchOptions,
     headers,
+    credentials: "include",
   });
 
   if (response.status === 401 && !skipAuth) {
@@ -67,15 +53,11 @@ export async function api<T = unknown>(
     const refreshed = await refreshPromise;
 
     if (refreshed) {
-      // Retry the original request with the new token
-      const newToken = getAccessToken();
-      if (newToken) {
-        headers.set("Authorization", `Bearer ${newToken}`);
-      }
-
+      // Retry the original request with the new cookie
       const retryResponse = await fetch(url, {
         ...fetchOptions,
         headers,
+        credentials: "include",
       });
 
       if (!retryResponse.ok) {
@@ -85,8 +67,7 @@ export async function api<T = unknown>(
       return retryResponse.json() as Promise<T>;
     }
 
-    // Refresh failed — clear tokens
-    clearTokens();
+    // Refresh failed
     throw new ApiError(401, "Session expired. Please log in again.");
   }
 

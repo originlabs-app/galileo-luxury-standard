@@ -5,6 +5,7 @@ import { hashPassword } from "../../utils/password.js";
 import { generateTokenPair } from "../../utils/tokens.js";
 import { toSlug } from "../../utils/slug.js";
 import { hashToken } from "../../utils/token-hash.js";
+import { setAuthCookies } from "../../utils/cookies.js";
 
 const registerBody = z.object({
   email: emailSchema,
@@ -63,8 +64,6 @@ export default async function registerRoute(fastify: FastifyInstance) {
                       updatedAt: { type: "string" },
                     },
                   },
-                  accessToken: { type: "string" },
-                  refreshToken: { type: "string" },
                 },
               },
             },
@@ -177,6 +176,9 @@ export default async function registerRoute(fastify: FastifyInstance) {
         data: { refreshToken: hashToken(tokens.refreshToken) },
       });
 
+      // Set httpOnly cookies
+      setAuthCookies(reply, tokens.accessToken, tokens.refreshToken);
+
       // Log without PII
       fastify.log.info({ userId: user.id }, "User registered");
 
@@ -191,8 +193,6 @@ export default async function registerRoute(fastify: FastifyInstance) {
             createdAt: user.createdAt,
             updatedAt: user.updatedAt,
           },
-          accessToken: tokens.accessToken,
-          refreshToken: tokens.refreshToken,
         },
       });
     },

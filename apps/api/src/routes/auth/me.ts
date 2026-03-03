@@ -22,7 +22,7 @@ export default async function meRoute(fastify: FastifyInstance) {
       schema: {
         description: "Get current authenticated user profile",
         tags: ["Auth"],
-        security: [{ bearerAuth: [] }],
+        security: [{ cookieAuth: [] }],
         response: {
           200: {
             type: "object",

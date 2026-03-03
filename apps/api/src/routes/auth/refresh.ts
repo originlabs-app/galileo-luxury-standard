@@ -1,11 +1,11 @@
 import type { FastifyInstance } from "fastify";
-import { z } from "zod";
 import { verifyRefreshToken, generateTokenPair } from "../../utils/tokens.js";
 import { hashToken } from "../../utils/token-hash.js";
-
-const refreshBody = z.object({
-  refreshToken: z.string().min(1),
-});
+import {
+  REFRESH_COOKIE_NAME,
+  setAuthCookies,
+  clearAuthCookies,
+} from "../../utils/cookies.js";
 
 const errorResponseSchema = {
   type: "object" as const,
@@ -26,15 +26,8 @@ export default async function refreshRoute(fastify: FastifyInstance) {
     "/auth/refresh",
     {
       schema: {
-        description: "Refresh access token using a valid refresh token",
+        description: "Refresh access token using the galileo_rt cookie",
         tags: ["Auth"],
-        body: {
-          type: "object",
-          required: ["refreshToken"],
-          properties: {
-            refreshToken: { type: "string" },
-          },
-        },
         response: {
           200: {
             type: "object",
@@ -43,35 +36,43 @@ export default async function refreshRoute(fastify: FastifyInstance) {
               data: {
                 type: "object",
                 properties: {
-                  accessToken: { type: "string" },
-                  refreshToken: { type: "string" },
+                  user: {
+                    type: "object",
+                    properties: {
+                      id: { type: "string" },
+                      email: { type: "string" },
+                      role: { type: "string" },
+                      brandId: { type: "string", nullable: true },
+                      createdAt: { type: "string" },
+                      updatedAt: { type: "string" },
+                    },
+                  },
                 },
               },
             },
           },
-          400: errorResponseSchema,
           401: errorResponseSchema,
         },
       },
     },
     async (request, reply) => {
-      const parsed = refreshBody.safeParse(request.body);
-      if (!parsed.success) {
-        return reply.status(400).send({
+      // Read refresh token from cookie
+      const refreshToken = request.cookies[REFRESH_COOKIE_NAME];
+
+      if (!refreshToken) {
+        return reply.status(401).send({
           success: false,
           error: {
-            code: "VALIDATION_ERROR",
-            message: "Invalid input",
-            details: parsed.error.flatten().fieldErrors,
+            code: "UNAUTHORIZED",
+            message: "No refresh token provided",
           },
         });
       }
 
-      const { refreshToken } = parsed.data;
-
       // Verify the refresh token JWT signature
       const payload = verifyRefreshToken(fastify, refreshToken);
       if (!payload) {
+        clearAuthCookies(reply);
         return reply.status(401).send({
           success: false,
           error: {
@@ -111,6 +112,7 @@ export default async function refreshRoute(fastify: FastifyInstance) {
       });
 
       if (!result) {
+        clearAuthCookies(reply);
         return reply.status(401).send({
           success: false,
           error: {
@@ -120,14 +122,27 @@ export default async function refreshRoute(fastify: FastifyInstance) {
         });
       }
 
+      // Set new cookies
+      setAuthCookies(
+        reply,
+        result.tokens.accessToken,
+        result.tokens.refreshToken,
+      );
+
       // Log without PII
       fastify.log.info({ userId: result.user.id }, "Token refreshed");
 
       return reply.status(200).send({
         success: true,
         data: {
-          accessToken: result.tokens.accessToken,
-          refreshToken: result.tokens.refreshToken,
+          user: {
+            id: result.user.id,
+            email: result.user.email,
+            role: result.user.role,
+            brandId: result.user.brandId,
+            createdAt: result.user.createdAt,
+            updatedAt: result.user.updatedAt,
+          },
         },
       });
     },

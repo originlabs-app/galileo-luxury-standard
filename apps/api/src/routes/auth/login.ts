@@ -5,6 +5,7 @@ import { emailSchema, passwordSchema } from "@galileo/shared";
 import { verifyPassword } from "../../utils/password.js";
 import { generateTokenPair } from "../../utils/tokens.js";
 import { hashToken } from "../../utils/token-hash.js";
+import { setAuthCookies } from "../../utils/cookies.js";
 
 // Pre-hashed dummy value for timing-safe login when user is not found
 const DUMMY_HASH =
@@ -70,8 +71,6 @@ export default async function loginRoute(fastify: FastifyInstance) {
                       updatedAt: { type: "string" },
                     },
                   },
-                  accessToken: { type: "string" },
-                  refreshToken: { type: "string" },
                 },
               },
             },
@@ -125,6 +124,9 @@ export default async function loginRoute(fastify: FastifyInstance) {
         data: { refreshToken: hashToken(tokens.refreshToken) },
       });
 
+      // Set httpOnly cookies
+      setAuthCookies(reply, tokens.accessToken, tokens.refreshToken);
+
       // Log without PII
       fastify.log.info({ userId: user.id }, "User logged in");
 
@@ -139,8 +141,6 @@ export default async function loginRoute(fastify: FastifyInstance) {
             createdAt: user.createdAt,
             updatedAt: user.updatedAt,
           },
-          accessToken: tokens.accessToken,
-          refreshToken: tokens.refreshToken,
         },
       });
     },

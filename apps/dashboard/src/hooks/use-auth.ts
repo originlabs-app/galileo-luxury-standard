@@ -1,12 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useSyncExternalStore, useState } from "react";
-import { api, ApiError } from "@/lib/api";
-import {
-  clearTokens,
-  isAuthenticated as checkAuth,
-  setTokens,
-} from "@/lib/auth";
+import { api } from "@/lib/api";
+import { clearLegacyTokens } from "@/lib/auth";
 
 interface User {
   id: string;
@@ -36,8 +32,6 @@ interface ApiResponse<T> {
 }
 
 interface AuthData {
-  accessToken: string;
-  refreshToken: string;
   user: User;
 }
 
@@ -45,9 +39,11 @@ interface MeData {
   user: User;
 }
 
+type AuthState = "loading" | "authenticated" | "unauthenticated";
+
 // Simple subscription for auth state
 let listeners: Array<() => void> = [];
-let authSnapshot = { authenticated: checkAuth() };
+let authSnapshot: { state: AuthState } = { state: "loading" };
 
 function subscribe(listener: () => void) {
   listeners = [...listeners, listener];
@@ -61,11 +57,11 @@ function getSnapshot() {
 }
 
 function getServerSnapshot() {
-  return { authenticated: false };
+  return { state: "loading" as AuthState };
 }
 
-function notifyListeners() {
-  authSnapshot = { authenticated: checkAuth() };
+function setAuthState(state: AuthState) {
+  authSnapshot = { state };
   for (const listener of listeners) {
     listener();
   }
@@ -73,22 +69,17 @@ function notifyListeners() {
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
-  // Only loading if we have tokens to verify; otherwise we know we're unauthenticated
-  const [isLoading, setIsLoading] = useState(() =>
-    typeof window !== "undefined" ? checkAuth() : false
-  );
+  const [isLoading, setIsLoading] = useState(true);
 
   const authState = useSyncExternalStore(
     subscribe,
     getSnapshot,
-    getServerSnapshot
+    getServerSnapshot,
   );
 
-  // Fetch user data on mount via useEffect (not during render)
+  // Clear legacy localStorage tokens and fetch user on mount
   useEffect(() => {
-    if (!checkAuth()) {
-      return;
-    }
+    clearLegacyTokens();
 
     let cancelled = false;
 
@@ -97,16 +88,14 @@ export function useAuth() {
         if (!cancelled) {
           setUser(response.data.user);
           setIsLoading(false);
+          setAuthState("authenticated");
         }
       })
-      .catch((error) => {
+      .catch(() => {
         if (!cancelled) {
-          if (error instanceof ApiError && error.status === 401) {
-            clearTokens();
-            notifyListeners();
-          }
           setUser(null);
           setIsLoading(false);
+          setAuthState("unauthenticated");
         }
       });
 
@@ -121,9 +110,8 @@ export function useAuth() {
       body: JSON.stringify(params),
       skipAuth: true,
     });
-    setTokens(response.data.accessToken, response.data.refreshToken);
     setUser(response.data.user);
-    notifyListeners();
+    setAuthState("authenticated");
   }, []);
 
   const register = useCallback(async (params: RegisterParams) => {
@@ -132,21 +120,24 @@ export function useAuth() {
       body: JSON.stringify(params),
       skipAuth: true,
     });
-    setTokens(response.data.accessToken, response.data.refreshToken);
     setUser(response.data.user);
-    notifyListeners();
+    setAuthState("authenticated");
   }, []);
 
-  const logout = useCallback(() => {
-    clearTokens();
+  const logout = useCallback(async () => {
+    try {
+      await api("/auth/logout", { method: "POST" });
+    } catch {
+      // Ignore errors — server might already be logged out
+    }
     setUser(null);
-    notifyListeners();
+    setAuthState("unauthenticated");
   }, []);
 
   return {
     user,
     isLoading,
-    isAuthenticated: authState.authenticated,
+    isAuthenticated: authState.state === "authenticated",
     login,
     register,
     logout,

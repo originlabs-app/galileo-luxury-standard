@@ -28,11 +28,15 @@ declare module "fastify" {
 }
 
 export default fp(async (fastify: FastifyInstance) => {
-  // Access token JWT (15min)
+  // Access token JWT (15min) — extracted from galileo_at cookie
   await fastify.register(fastifyJwt, {
     secret: config.JWT_SECRET,
     sign: {
       expiresIn: "15m",
+    },
+    cookie: {
+      cookieName: "galileo_at",
+      signed: false,
     },
   });
 

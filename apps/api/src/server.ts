@@ -5,6 +5,7 @@ import { config } from "./config.js";
 import prismaPlugin from "./plugins/prisma.js";
 import authPlugin from "./plugins/auth.js";
 import corsPlugin from "./plugins/cors.js";
+import cookiePlugin from "./plugins/cookie.js";
 import healthRoutes from "./routes/health.js";
 import authRoutes from "./routes/auth/index.js";
 
@@ -32,10 +33,10 @@ export async function buildApp() {
         ],
         components: {
           securitySchemes: {
-            bearerAuth: {
-              type: "http",
-              scheme: "bearer",
-              bearerFormat: "JWT",
+            cookieAuth: {
+              type: "apiKey",
+              in: "cookie",
+              name: "galileo_at",
             },
           },
         },
@@ -49,6 +50,7 @@ export async function buildApp() {
 
   // Register plugins
   await fastify.register(corsPlugin);
+  await fastify.register(cookiePlugin);
   await fastify.register(authPlugin);
   await fastify.register(prismaPlugin);
 

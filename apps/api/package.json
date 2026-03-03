@@ -15,6 +15,7 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@fastify/cookie": "^11.0.2",
     "@fastify/cors": "latest",
     "@fastify/jwt": "latest",
     "@fastify/swagger": "latest",
@@ -24,9 +25,9 @@
     "@prisma/client": "latest",
     "bcrypt": "latest",
     "dotenv": "latest",
-    "pg": "latest",
     "fastify": "latest",
     "fastify-plugin": "latest",
+    "pg": "latest",
     "prisma": "latest",
     "zod": "latest"
   },

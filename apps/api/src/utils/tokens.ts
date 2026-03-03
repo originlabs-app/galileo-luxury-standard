@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import type { FastifyInstance } from "fastify";
 
 export interface JwtPayload {
@@ -28,12 +29,13 @@ export function generateAccessToken(
 
 /**
  * Generate a refresh token (7d) using the refresh JWT namespace.
+ * Includes a unique jti to ensure token uniqueness across rotations.
  */
 export function generateRefreshToken(
   fastify: FastifyInstance,
   payload: JwtPayload,
 ): string {
-  return refreshJwt(fastify).sign(payload) as string;
+  return refreshJwt(fastify).sign({ ...payload, jti: randomUUID() }) as string;
 }
 
 /**
