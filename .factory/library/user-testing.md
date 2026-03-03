@@ -83,3 +83,69 @@ Write a JSON file to `.factory/validation/monorepo-infra/user-testing/flows/<gro
 - Only `packages/shared` exists as a workspace package. `apps/` directory has no packages yet.
 - `pnpm db:push`, `pnpm db:seed`, `pnpm db:studio` scripts reference `@galileo/api` which doesn't exist yet — these are expected to fail in this milestone.
 - The `contracts/` directory requires Foundry toolchain (`forge`) which may not be installed locally.
+
+## Flow Validator Guidance: API (curl)
+
+All API milestone assertions are tested via `curl` against `http://localhost:4000`. The API server must be running before tests.
+
+**API Base URL:** `http://localhost:4000`
+
+**Pre-seeded data:**
+- Brand: "Galileo Luxe" (slug: galileo-luxe, did: did:galileo:brand:galileo-luxe)
+- Admin user: email=admin@galileo.test, password=changeme123, role=BRAND_ADMIN
+
+**Isolation rules:**
+- Each flow validator uses its own unique email address for registration (e.g., `flow1-user@galileo.test`, `flow2-user@galileo.test`)
+- Do NOT use the pre-seeded admin account `admin@galileo.test` for registration (it already exists)
+- Each validator can read the pre-seeded data but must not modify other validators' data
+- All curl commands target `http://localhost:4000`
+
+**Env vars for API start (already configured in .env):**
+```
+DATABASE_URL="postgresql://pierrebeunardeau@localhost:5432/galileo_dev"
+JWT_SECRET="galileo-dev-jwt-secret-must-be-at-least-32-chars-long"
+JWT_REFRESH_SECRET="galileo-dev-jwt-refresh-secret-must-be-32-chars-long"
+PORT=4000
+CORS_ORIGIN="http://localhost:3000"
+NODE_ENV="development"
+```
+
+**How to report results:**
+Write a JSON file to `.factory/validation/api/user-testing/flows/<group-id>.json` with format:
+```json
+{
+  "groupId": "<group-id>",
+  "assertions": {
+    "<assertion-id>": {
+      "status": "pass" | "fail" | "blocked",
+      "evidence": "description of what was observed (include actual curl output excerpts)",
+      "command": "curl command run",
+      "exitCode": 0
+    }
+  },
+  "frictions": [],
+  "blockers": [],
+  "toolsUsed": ["curl"]
+}
+```
+
+**Assertion-to-command mapping:**
+- Registration: `curl -s -X POST http://localhost:4000/auth/register -H 'Content-Type: application/json' -d '{"email":"...","password":"...","brandName":"..."}'`
+- Login: `curl -s -X POST http://localhost:4000/auth/login -H 'Content-Type: application/json' -d '{"email":"...","password":"..."}'`
+- Refresh: `curl -s -X POST http://localhost:4000/auth/refresh -H 'Content-Type: application/json' -d '{"refreshToken":"..."}'`
+- Me: `curl -s http://localhost:4000/auth/me -H 'Authorization: Bearer <token>'`
+- Health: `curl -s http://localhost:4000/health`
+- Swagger: `curl -s http://localhost:4000/docs`
+- CORS: `curl -s -X OPTIONS http://localhost:4000/health -H 'Origin: http://localhost:3000' -H 'Access-Control-Request-Method: GET' -v`
+
+**JWT decoding (without jq):**
+To decode a JWT payload: `echo '<token>' | cut -d. -f2 | base64 -d 2>/dev/null`
+
+**Prisma schema location:** `apps/api/prisma/schema.prisma`
+
+**Important notes for api milestone:**
+- The API uses Prisma 7 with `prisma.config.ts` (not prisma.config in package.json)
+- Seed is run via `npx tsx prisma/seed.ts` from apps/api/ (not `pnpm prisma db seed`)
+- VAL-API-012 (env validation fail-fast) requires starting the API WITHOUT env vars — do this in a subprocess
+- VAL-API-014 (no PII in logs) requires capturing API stdout during auth operations
+- VAL-API-018 (Prisma schema completeness) requires inspecting the schema file, not curl

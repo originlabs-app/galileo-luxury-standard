@@ -38,5 +38,10 @@
       "source": "setup"
     }
   ],
-  "previousRound": null
+  "previousRound": null,
+  "orchestratorOverride": {
+    "justification": "VAL-INFRA-015 (root db scripts) was blocked because apps/api doesn't exist in monorepo-infra milestone. The assertion has been moved from ci-pipeline's fulfills to api-auth-endpoints's fulfills (api milestone) where it can be properly tested. 14/15 assertions passed, the 1 blocked assertion is now tracked in the api milestone.",
+    "deferredAssertions": ["VAL-INFRA-015"],
+    "deferredTo": "api milestone (api-auth-endpoints feature)"
+  }
 }

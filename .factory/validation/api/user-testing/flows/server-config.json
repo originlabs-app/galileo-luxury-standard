@@ -1,0 +1,93 @@
+{
+  "groupId": "server-config",
+  "testedAt": "2026-03-03T14:18:00.000Z",
+  "credentials": {
+    "account": "none",
+    "namespace": "flow4"
+  },
+  "toolsUsed": ["curl", "terminal"],
+  "assertions": [
+    {
+      "id": "VAL-API-010",
+      "title": "Health check",
+      "status": "pass",
+      "steps": [
+        { "action": "GET /health", "expected": "200 OK with ok status, version, and uptime", "observed": "200 OK with ok status, version 0.0.0, and uptime" }
+      ],
+      "evidence": {
+        "network": "GET http://localhost:4000/health -> 200",
+        "screenshots": [],
+        "consoleErrors": "none"
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-API-011",
+      "title": "Swagger docs",
+      "status": "pass",
+      "steps": [
+        { "action": "GET /docs", "expected": "200 OK with Swagger UI HTML", "observed": "200 OK with Swagger UI HTML" }
+      ],
+      "evidence": {
+        "network": "GET http://localhost:4000/docs -> 200",
+        "screenshots": [],
+        "consoleErrors": "none"
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-API-012",
+      "title": "Environment validation fail-fast",
+      "status": "pass",
+      "steps": [
+        { "action": "Start server without JWT_SECRET", "expected": "Server fails to start with Zod validation error", "observed": "Server fails to start with 'JWT_SECRET must be at least 32 characters' error and exits" }
+      ],
+      "evidence": {
+        "terminal": "JWT_SECRET='' npx tsx src/server.ts 2>&1 -> Invalid environment variables error and exit"
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-API-013",
+      "title": "CORS headers",
+      "status": "pass",
+      "steps": [
+        { "action": "OPTIONS /health with Origin http://localhost:3000", "expected": "204 No Content with Access-Control-Allow-Origin: http://localhost:3000", "observed": "204 No Content with Access-Control-Allow-Origin: http://localhost:3000" }
+      ],
+      "evidence": {
+        "network": "OPTIONS http://localhost:4000/health -> 204",
+        "screenshots": [],
+        "consoleErrors": "none"
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-API-018",
+      "title": "Prisma schema completeness",
+      "status": "pass",
+      "steps": [
+        { "action": "Inspect prisma/schema.prisma", "expected": "All 5 models, 3 enums, and @@unique([gtin, serialNumber]) constraint exist", "observed": "All required models and enums are present, including the composite constraint on Product." }
+      ],
+      "evidence": {
+        "terminal": "pnpm db:push succeeds"
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-INFRA-015",
+      "title": "Root database scripts",
+      "status": "pass",
+      "steps": [
+        { "action": "Run pnpm db:push from root", "expected": "Executes successfully", "observed": "Database is already in sync with Prisma schema, exited 0" },
+        { "action": "Run pnpm db:seed from api workspace", "expected": "Executes successfully", "observed": "Created Brand and Admin user, exited 0" }
+      ],
+      "evidence": {
+        "terminal": "pnpm db:push -> 0, pnpm db:seed -> 0"
+      },
+      "issues": null
+    }
+  ],
+  "frictions": [],
+  "blockers": [],
+  "summary": "Tested 6 assertions: 6 passed. Server configuration and endpoints are healthy."
+}

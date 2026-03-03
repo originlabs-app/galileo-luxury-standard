@@ -1,0 +1,37 @@
+{
+  "groupId": "auth-registration",
+  "testedAt": "2026-03-03T14:15:00.000Z",
+  "credentials": {
+    "account": "flow1-reg1@galileo.test",
+    "namespace": "flow1"
+  },
+  "toolsUsed": ["curl"],
+  "assertions": {
+    "VAL-API-001": {
+      "status": "pass",
+      "evidence": "{\"success\":true,\"data\":{\"user\":{\"id\":\"cmmaov1030000gn14kzr984uz\",\"email\":\"flow1-reg1@galileo.test\",\"role\":\"VIEWER\",\"brandId\":null,\"createdAt\":\"2026-03-03T14:14:01.683Z\",\"updatedAt\":\"2026-03-03T14:14:01.683Z\"},\"accessToken\":\"***\",\"refreshToken\":\"***\"}}\nHTTP_STATUS:201",
+      "command": "curl -s -X POST http://localhost:4000/auth/register -H 'Content-Type: application/json' -d '{\"email\":\"flow1-reg1@galileo.test\",\"password\":\"TestPass123!\"}' -w \"\\nHTTP_STATUS:%{http_code}\"",
+      "exitCode": 0
+    },
+    "VAL-API-002": {
+      "status": "pass",
+      "evidence": "{\"success\":false,\"error\":{\"code\":\"CONFLICT\",\"message\":\"An account with this email already exists\"}}\nHTTP_STATUS:409",
+      "command": "curl -s -X POST http://localhost:4000/auth/register -H 'Content-Type: application/json' -d '{\"email\":\"flow1-reg1@galileo.test\",\"password\":\"TestPass123!\"}' -w \"\\nHTTP_STATUS:%{http_code}\"",
+      "exitCode": 0
+    },
+    "VAL-API-003": {
+      "status": "pass",
+      "evidence": "{\"success\":false,\"error\":{\"code\":\"VALIDATION_ERROR\",\"message\":\"Invalid input\"}}\nHTTP_STATUS:400",
+      "command": "curl -s -X POST http://localhost:4000/auth/register -H 'Content-Type: application/json' -d '{\"email\":\"bademail\",\"password\":\"short\"}' -w \"\\nHTTP_STATUS:%{http_code}\"",
+      "exitCode": 0
+    },
+    "VAL-API-016": {
+      "status": "pass",
+      "evidence": "Register:\n{\"success\":true,\"data\":{\"user\":{\"id\":\"cmmaovdtm0002gn145fwtavhu\",\"email\":\"flow1-brand@galileo.test\",\"role\":\"BRAND_ADMIN\",\"brandId\":\"cmmaovdrp0001gn14h3p8l7ja\",\"createdAt\":\"2026-03-03T14:14:18.298Z\",\"updatedAt\":\"2026-03-03T14:14:18.298Z\"},\"accessToken\":\"***\",\"refreshToken\":\"***\"}}\nHTTP_STATUS:201\n\nMe:\n{\"success\":true,\"data\":{\"user\":{\"id\":\"cmmaovdtm0002gn145fwtavhu\",\"email\":\"flow1-brand@galileo.test\",\"role\":\"BRAND_ADMIN\",\"brandId\":\"cmmaovdrp0001gn14h3p8l7ja\",\"createdAt\":\"2026-03-03T14:14:18.298Z\",\"updatedAt\":\"2026-03-03T14:14:54.987Z\",\"brand\":{\"id\":\"cmmaovdrp0001gn14h3p8l7ja\",\"name\":\"Flow1 Brand\",\"slug\":\"flow1-brand\",\"did\":\"did:galileo:brand:flow1-brand\"}}}}\nHTTP_STATUS:200",
+      "command": "curl -s -X POST http://localhost:4000/auth/register -H 'Content-Type: application/json' -d '{\"email\":\"flow1-brand@galileo.test\",\"password\":\"TestPass123!\",\"brandName\":\"Flow1 Brand\"}' -w \"\\nHTTP_STATUS:%{http_code}\"\ncurl -s http://localhost:4000/auth/me -H \"Authorization: Bearer <token>\" -w \"\\nHTTP_STATUS:%{http_code}\"",
+      "exitCode": 0
+    }
+  },
+  "frictions": [],
+  "blockers": []
+}
