@@ -1,35 +1,6 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-
-/**
- * KineticText - Word-by-word reveal animation
- */
-function KineticText({
-  text,
-  className,
-  delayStart = 0,
-}: {
-  text: string;
-  className?: string;
-  delayStart?: number;
-}) {
-  const words = text.split(' ');
-  return (
-    <span className={className}>
-      {words.map((word, i) => (
-        <span
-          key={i}
-          className="inline-block opacity-0 translate-y-[20px] animate-[fadeUp_0.5s_var(--ease-reveal)_forwards] motion-reduce:opacity-100 motion-reduce:translate-y-0 motion-reduce:animate-none"
-          style={{ animationDelay: `${delayStart + i * 80}ms` }}
-        >
-          {word}
-          {i < words.length - 1 ? '\u00A0' : ''}
-        </span>
-      ))}
-    </span>
-  );
-}
+import Link from "next/link";
 
 export function TSCHero() {
   const subheadDelay = 480;
@@ -37,7 +8,7 @@ export function TSCHero() {
   return (
     <section
       className="relative min-h-[40vh] flex items-center overflow-hidden grain-texture"
-      style={{ boxShadow: 'inset 0 0 200px 50px rgba(2, 2, 4, 0.5)' }}
+      style={{ boxShadow: "inset 0 0 200px 50px rgba(2, 2, 4, 0.5)" }}
     >
       {/* Subtle grid pattern */}
       <div
@@ -45,7 +16,7 @@ export function TSCHero() {
         style={{
           backgroundImage: `linear-gradient(rgba(0,255,255,0.3) 1px, transparent 1px),
                            linear-gradient(90deg, rgba(0,255,255,0.3) 1px, transparent 1px)`,
-          backgroundSize: '80px 80px',
+          backgroundSize: "80px 80px",
         }}
       />
 
@@ -58,9 +29,12 @@ export function TSCHero() {
           {/* Breadcrumb */}
           <div
             className="inline-flex items-center gap-2 text-sm text-[var(--silver)] opacity-0 translate-y-[20px] animate-[fadeUp_0.5s_var(--ease-reveal)_forwards] motion-reduce:opacity-100 motion-reduce:translate-y-0 motion-reduce:animate-none"
-            style={{ animationDelay: '0ms' }}
+            style={{ animationDelay: "0ms" }}
           >
-            <Link href="/governance" className="hover:text-[var(--cyan-primary)] transition-colors">
+            <Link
+              href="/governance"
+              className="hover:text-[var(--cyan-primary)] transition-colors"
+            >
               Governance
             </Link>
             <span>/</span>
@@ -71,7 +45,7 @@ export function TSCHero() {
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-[1.05] tracking-tight">
             <span
               className="block opacity-0 translate-y-[20px] animate-[fadeUp_0.5s_var(--ease-reveal)_forwards] motion-reduce:opacity-100 motion-reduce:translate-y-0 motion-reduce:animate-none text-gradient-bioluminescent"
-              style={{ animationDelay: '80ms' }}
+              style={{ animationDelay: "80ms" }}
             >
               TECHNICAL STEERING COMMITTEE
             </span>
@@ -85,10 +59,22 @@ export function TSCHero() {
             {/* Subtle radial glow behind badge */}
             <div className="absolute inset-0 bg-[var(--cyan-primary)] opacity-10 blur-xl rounded-full group-hover:opacity-20 transition-opacity duration-300" />
             <div className="relative inline-flex items-center gap-2 px-4 py-2 rounded-full border border-[var(--cyan-primary)]/20 bg-[var(--cyan-primary)]/5 group-hover:border-[var(--cyan-primary)]/40 transition-colors">
-              <svg className="w-4 h-4 text-[var(--cyan-primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              <svg
+                className="w-4 h-4 text-[var(--cyan-primary)]"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                />
               </svg>
-              <span className="text-sm font-medium text-[var(--cyan-primary)]">11 Voting Members</span>
+              <span className="text-sm font-medium text-[var(--cyan-primary)]">
+                11 Voting Members
+              </span>
             </div>
           </div>
 
@@ -98,7 +84,11 @@ export function TSCHero() {
             style={{ animationDelay: `${subheadDelay + 80}ms` }}
           >
             The meritocratic council that holds final authority over
-            <span className="italic-accent text-[var(--platinum)]"> technical decisions</span>.
+            <span className="italic-accent text-[var(--platinum)]">
+              {" "}
+              technical decisions
+            </span>
+            .
           </p>
         </div>
       </div>

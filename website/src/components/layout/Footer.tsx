@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useSyncExternalStore } from "react";
 import Link from "next/link";
 
 // Seeded pseudo-random number generator for consistent SSR/client values
@@ -22,19 +22,18 @@ const footerBubbles = [...Array(25)].map((_, i) => ({
 
 export function Footer() {
   const [isVisible, setIsVisible] = useState(false);
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const prefersReducedMotion = useSyncExternalStore(
+    (callback) => {
+      const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+      mq.addEventListener("change", callback);
+      return () => mq.removeEventListener("change", callback);
+    },
+    () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    () => false,
+  );
   const sectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setPrefersReducedMotion(motionQuery.matches);
-
-    const handleMotionChange = (e: MediaQueryListEvent) => {
-      setPrefersReducedMotion(e.matches);
-    };
-    motionQuery.addEventListener("change", handleMotionChange);
-
-    // Intersection observer for visibility
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -48,10 +47,7 @@ export function Footer() {
       observer.observe(sectionRef.current);
     }
 
-    return () => {
-      observer.disconnect();
-      motionQuery.removeEventListener("change", handleMotionChange);
-    };
+    return () => observer.disconnect();
   }, []);
 
   return (
