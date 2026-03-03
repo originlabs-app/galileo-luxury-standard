@@ -9,6 +9,7 @@
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
     "test": "turbo test",
+    "test:e2e": "turbo test:e2e",
     "db:push": "pnpm --filter @galileo/api exec prisma db push",
     "db:seed": "pnpm --filter @galileo/api exec prisma db seed",
     "db:studio": "pnpm --filter @galileo/api exec prisma studio"
