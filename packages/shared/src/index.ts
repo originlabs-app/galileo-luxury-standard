@@ -1,0 +1,61 @@
+// Types
+export {
+  Role,
+  type User,
+  type UserPublic,
+} from "./types/user.js";
+export { type Brand } from "./types/brand.js";
+export {
+  ProductStatus,
+  type Product,
+  type ProductPassport,
+} from "./types/product.js";
+export { EventType, type ProductEvent } from "./types/event.js";
+export {
+  type ApiResponse,
+  type ApiErrorResponse,
+  type ApiError,
+  type PaginatedResponse,
+  type AuthTokens,
+  type HealthResponse,
+} from "./types/api.js";
+
+// Constants
+export {
+  ROLES,
+  type RoleKey,
+  type RoleValue,
+} from "./constants/roles.js";
+export { CATEGORIES, type Category } from "./constants/categories.js";
+export {
+  COMPLIANCE_DEFAULT_EXPIRY,
+  PERMANENT_EXPIRY,
+  KYC_BASIC,
+  KYC_ENHANCED,
+  KYB_VERIFIED,
+  KYC_EU_MIFID,
+  KYC_US_SEC,
+  KYC_APAC_SG,
+  AUTHORIZED_RETAILER,
+  SERVICE_CENTER,
+  AUTHENTICATOR,
+  AUCTION_HOUSE,
+  ORIGIN_CERTIFIED,
+  AUTHENTICITY_VERIFIED,
+  CLAIM_TOPICS,
+  type ClaimTopic,
+} from "./constants/claim-topics.js";
+
+// Validation
+export {
+  validateGtin13,
+  validateGtin14,
+  validateGtin,
+  computeGtinCheckDigit,
+} from "./validation/gtin.js";
+export {
+  generateDid,
+  generateDigitalLinkUrl,
+  validateDid,
+} from "./validation/did.js";
+export { emailSchema, passwordSchema } from "./validation/auth.js";
