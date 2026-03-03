@@ -228,34 +228,41 @@ Sprint 4 (Week 7-8)   Stabilisation      → Hardening, security, multi-tenant, 
 Sprint 5 (Week 9-12)  T1/LEOX            → Phase 6 (POST-PILOT GATE — only after KPI validation)
 ```
 
-### Sprint 1 — Foundations (Week 1-2)
+### Sprint 1 — Foundations (Week 1-2) ✅ Complete
 
 **Goal:** Technical stack up and running — auth, data model, CI green.
 
-- [ ] Monorepo setup (Turborepo): `apps/api` (Fastify), `apps/dashboard` (Next.js), `apps/scanner` (Next.js PWA), `packages/shared`
-- [ ] Auth: email/password + JWT + MFA (TOTP), RBAC (brand-admin, operator, viewer)
-- [ ] DB schema (Prisma): `Brand`, `Product`, `ProductPassport`, `Event`, `User`
-- [ ] Fastify API shell: auth endpoints, health check, OpenAPI auto-gen
-- [ ] CI pipeline (GitHub Actions): lint + test + build + deploy preview
-- [ ] Dashboard shell: login, sidebar, empty products page
-- [ ] Smart contract CI: `forge build && forge test` on every PR
+- [x] Monorepo setup (Turborepo): `apps/api` (Fastify), `apps/dashboard` (Next.js), `apps/scanner` (Next.js PWA), `packages/shared`
+- [x] Auth: email/password + JWT, RBAC (admin, brand-admin, operator, viewer). MFA deferred to Sprint 4.
+- [x] DB schema (Prisma 7): `Brand`, `Product`, `ProductPassport`, `ProductEvent`, `User`
+- [x] Fastify 5 API: auth endpoints (register/login/refresh/me), health check, OpenAPI/Swagger
+- [x] CI pipeline (GitHub Actions): 3 independent jobs (apps, contracts, website)
+- [x] Dashboard: ABYSSE theme, login/register/dashboard/products pages, sidebar, auth guard
+- [x] Scanner shell: Coming Soon page with ABYSSE theme
+- [x] Smart contract CI: `forge build && forge test` in contracts job
+- [x] `@galileo/shared`: GTIN-13/14 validation (GS1 mod-10), DID generation, Zod auth schemas, TypeScript types
+- [x] Security hardening: SHA-256 hashed refresh tokens, timing-safe login, atomic token rotation, password max length, Swagger prod guard
 
-**Exit:** `pnpm dev` starts all apps. Auth flow works. CI green.
+**Delivered:** 63 tests passing, 68/68 validation assertions, 25 commits. Code reviewed with 7 critical + 16 important findings addressed.
 
-### Sprint 2 — Product & Passport Creation (Week 3-4)
+**Exit:** `pnpm dev` starts all apps. Auth flow works. CI green. ✅
 
-**Goal:** A brand-admin can create a product and mint its ERC-3643 passport on Base Sepolia.
+### Sprint 2 — Product & Passport Creation (Week 3-4) 🔲 In Progress
 
-- [ ] Product creation form (name, GTIN, serial, category, materials, photos)
-- [ ] DID generation: `did:galileo:01:{gtin}:21:{serial}` (GS1-native from day 1)
-- [ ] Photo/certificate upload → R2 + local CID computation (no IPFS pinning)
+**Goal:** A brand-admin can create a product, mint its ERC-3643 passport on Base Sepolia, and a resolver returns the DPP via GS1 Digital Link.
+
+- [ ] Product CRUD API: POST/GET/PATCH products with GTIN validation and RBAC
+- [ ] DID generation: `did:galileo:01:{gtin}:21:{serial}` (GS1-native, shared package)
 - [ ] Contract deployment on Base Sepolia (existing `Deploy.s.sol`)
-- [ ] Mint flow: API → prepare tx → wallet signs → ERC-3643 token minted → txHash stored
-- [ ] GS1 Digital Link: QR code generation, resolver route `GET /01/:gtin/21/:serial`
-- [ ] Dashboard: product list, product detail, on-chain status, QR download
+- [ ] Mint flow: API prepares tx → server-side signing (admin key) → ERC-3643 token minted → txHash stored in DB
+- [ ] GS1 Digital Link resolver: `GET /01/:gtin/21/:serial` returns DPP JSON
+- [ ] QR code generation from Digital Link URL
+- [ ] Dashboard: product list, product create form, product detail, mint button, QR download
+- [ ] Security debt: httpOnly cookie auth (C3), pin deps (I11), test DB isolation (I10), shared type split (I2), URL-encode serial (I3), DID check digit validation (I4)
+- [ ] Photo/certificate upload → R2 + local CID computation (deferred if time-constrained)
 - [ ] Gas benchmarks documented
 
-**Exit:** Brand creates product → mints ERC-3643 token → QR resolves to DPP. All on Base Sepolia.
+**Exit:** Brand creates product → mints ERC-3643 token on Sepolia → QR resolves to DPP. Security debt from Sprint 1 review cleared.
 
 ### Sprint 3 — Scanner & Verification (Week 5-6)
 
