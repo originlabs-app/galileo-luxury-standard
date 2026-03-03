@@ -1,0 +1,125 @@
+{
+  "groupId": "mint-api",
+  "testedAt": "2026-03-03T20:54:33.000Z",
+  "credentials": {
+    "account": "mint-test1@galileo.test",
+    "namespace": "Test Luxury Brand"
+  },
+  "toolsUsed": [
+    "curl"
+  ],
+  "assertions": [
+    {
+      "id": "VAL-MINT-001",
+      "title": "Mock mint happy path",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "POST /products to create DRAFT product",
+          "expected": "DRAFT product returned",
+          "observed": "DRAFT product returned with ID cmmb359qf0003df14ehv1jbl8"
+        },
+        {
+          "action": "POST /products/cmmb359qf0003df14ehv1jbl8/mint",
+          "expected": "Returns 200, Product status becomes ACTIVE. Passport gets synthetic txHash, tokenAddress, chainId, mintedAt",
+          "observed": "Returns 200, Product status becomes ACTIVE, Passport gets txHash (0x873b8d724f098df9b3fa24e4ad2692eb91f4a40c902be1846f43d305f55cf5e4), tokenAddress, chainId (84532), mintedAt"
+        },
+        {
+          "action": "GET product to confirm ACTIVE status",
+          "expected": "Product is ACTIVE",
+          "observed": "Product is ACTIVE, events array contains MINTED and CREATED events"
+        }
+      ],
+      "evidence": {
+        "network": "POST /products/:id/mint -> 200\nGET /products/:id -> 200 with ACTIVE status"
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-MINT-002",
+      "title": "Mint already-minted product rejected",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "POST /products/:id/mint on an ACTIVE product",
+          "expected": "Returns 409 Conflict",
+          "observed": "Returns 409 Conflict with message 'Product is not in DRAFT status'"
+        }
+      ],
+      "evidence": {
+        "network": "POST /products/:id/mint -> 409"
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-MINT-003",
+      "title": "Mint auth enforcement",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "POST /products/:id/mint without auth",
+          "expected": "Returns 401 Unauthorized",
+          "observed": "Returns 401 Unauthorized"
+        },
+        {
+          "action": "POST /products/:id/mint with VIEWER role",
+          "expected": "Returns 403 Forbidden",
+          "observed": "Returns 403 Forbidden with message 'Insufficient permissions'"
+        },
+        {
+          "action": "POST /products/:id/mint with BRAND_ADMIN for wrong brand",
+          "expected": "Returns 403 or 404",
+          "observed": "Returns 403 Forbidden with message 'Access denied'"
+        }
+      ],
+      "evidence": {
+        "network": "POST /products/:id/mint without auth -> 401\nPOST /products/:id/mint with VIEWER role -> 403\nPOST /products/:id/mint with wrong brand -> 403"
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-MINT-004",
+      "title": "Mint non-existent product",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "POST /products/:id/mint with invalid product ID",
+          "expected": "Returns 404 Not Found",
+          "observed": "Returns 404 Not Found"
+        }
+      ],
+      "evidence": {
+        "network": "POST /products/:id/mint -> 404"
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-MINT-005",
+      "title": "Chain disabled mode graceful",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "API started normally and endpoints work in mock mode",
+          "expected": "API running, mock mode works",
+          "observed": "API is running on port 4000, and minting works gracefully in mock mode without chain configuration."
+        }
+      ],
+      "evidence": {
+        "network": "Mint requests succeeded in mock mode returning synthetic data"
+      },
+      "issues": null
+    }
+  ],
+  "frictions": [
+    {
+      "description": "POST /products/:id/mint fails with 400 'Body cannot be empty when content-type is set to application/json' if Content-Type is set but body is omitted.",
+      "resolved": true,
+      "resolution": "Removed Content-Type header or provided an empty body '{}' for the mint request.",
+      "affectedAssertions": [
+        "VAL-MINT-001"
+      ]
+    }
+  ],
+  "blockers": [],
+  "summary": "Tested 5 assertions: 5 passed. API properly enforces validation, status transitions, and authorization on the minting endpoint."
+}
