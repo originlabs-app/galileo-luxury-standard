@@ -199,6 +199,23 @@ describe("Auth endpoints", () => {
       expect(body.error.code).toBe("CONFLICT");
     });
 
+    it("returns 400 for brandName exceeding 255 characters", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/auth/register",
+        payload: {
+          email: "longbrand@test.com",
+          password: "password123",
+          brandName: "A".repeat(256),
+        },
+      });
+
+      expect(response.statusCode).toBe(400);
+      const body = response.json();
+      expect(body.success).toBe(false);
+      expect(body.error.code).toBe("VALIDATION_ERROR");
+    });
+
     it("returns 400 for invalid email", async () => {
       const response = await app.inject({
         method: "POST",

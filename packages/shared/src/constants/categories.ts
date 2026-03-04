@@ -1,24 +1,20 @@
 /**
  * Luxury product category constants.
  *
+ * Values use Title Case to match the API enum exactly.
+ *
  * @module constants/categories
  */
 
 export const CATEGORIES = [
-  "watches",
-  "jewelry",
-  "leather-goods",
-  "fashion",
-  "accessories",
-  "fragrances",
-  "cosmetics",
-  "silk-goods",
-  "ready-to-wear",
-  "eyewear",
-  "shoes",
-  "fine-art",
-  "wine-spirits",
-  "collectibles",
+  "Leather Goods",
+  "Jewelry",
+  "Watches",
+  "Fashion",
+  "Accessories",
+  "Fragrances",
+  "Eyewear",
+  "Other",
 ] as const;
 
 export type Category = (typeof CATEGORIES)[number];

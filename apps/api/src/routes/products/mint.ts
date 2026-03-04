@@ -43,11 +43,12 @@ export default async function mintProductRoute(fastify: FastifyInstance) {
       const chainId = 84532; // Base Sepolia
       const mintedAt = new Date();
 
-      // Atomically: lookup product with DRAFT status, update to ACTIVE, update passport, create event
-      // This prevents TOCTOU race conditions on concurrent mint requests
+      // Optimistic concurrency control: lookup product, verify DRAFT status, then
+      // use updateMany WHERE status=DRAFT to atomically flip to ACTIVE.
+      // If a concurrent request already changed the status, updateMany returns count=0
+      // and we return 409 — preventing TOCTOU race conditions without row-level locks.
       try {
         await fastify.prisma.$transaction(async (tx) => {
-          // Atomic lookup + status check: only find product if it's in DRAFT status
           const product = await tx.product.findUnique({
             where: { id },
             include: { passport: true },
@@ -119,6 +120,16 @@ export default async function mintProductRoute(fastify: FastifyInstance) {
           },
         },
       });
+
+      if (!fullProduct) {
+        return reply.status(500).send({
+          success: false,
+          error: {
+            code: "INTERNAL_ERROR",
+            message: "Product not found after mint — this should not happen",
+          },
+        });
+      }
 
       return reply.status(200).send({
         success: true,

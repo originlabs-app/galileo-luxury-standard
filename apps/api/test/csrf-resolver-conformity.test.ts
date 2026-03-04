@@ -158,6 +158,30 @@ describe("CSRF + Resolver Conformity + GTIN Padding", () => {
       expect(response.json().error.code).toBe("CSRF_REQUIRED");
     });
 
+    it("PUT request without X-Galileo-Client is blocked by CSRF middleware", async () => {
+      // Directly test the requireCsrfHeader middleware to verify PUT is covered
+      const { requireCsrfHeader } = await import("../src/middleware/csrf.js");
+
+      // Create a mock request and reply
+      let csrfBlocked = false;
+      const mockRequest = {
+        method: "PUT",
+        headers: {},
+      } as unknown as import("fastify").FastifyRequest;
+
+      const mockReply = {
+        status: (code: number) => {
+          if (code === 403) csrfBlocked = true;
+          return {
+            send: () => {},
+          };
+        },
+      } as unknown as import("fastify").FastifyReply;
+
+      await requireCsrfHeader(mockRequest, mockReply);
+      expect(csrfBlocked).toBe(true);
+    });
+
     it("GET /products does NOT require X-Galileo-Client header", async () => {
       const response = await app.inject({
         method: "GET",

@@ -10,7 +10,7 @@ import { setAuthCookies } from "../../utils/cookies.js";
 const registerBody = z.object({
   email: emailSchema,
   password: passwordSchema,
-  brandName: z.string().min(1).optional(),
+  brandName: z.string().min(1).max(255, "Brand name must be at most 255 characters").optional(),
 });
 
 const errorResponseSchema = {

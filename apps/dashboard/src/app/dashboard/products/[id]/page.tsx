@@ -116,12 +116,12 @@ const EVENT_LABEL: Record<string, string> = {
 };
 
 const CATEGORY_OPTIONS = [
-  { value: "leather-goods", label: "Leather Goods" },
-  { value: "jewelry", label: "Jewelry" },
-  { value: "watches", label: "Watches" },
-  { value: "fashion", label: "Fashion" },
-  { value: "accessories", label: "Accessories" },
-  { value: "other", label: "Other" },
+  { value: "Leather Goods", label: "Leather Goods" },
+  { value: "Jewelry", label: "Jewelry" },
+  { value: "Watches", label: "Watches" },
+  { value: "Fashion", label: "Fashion" },
+  { value: "Accessories", label: "Accessories" },
+  { value: "Other", label: "Other" },
 ] as const;
 
 /* ------------------------------------------------------------------ */
@@ -522,8 +522,8 @@ export default function ProductDetailPage() {
                 </div>
                 <div className="flex flex-col gap-1">
                   <dt className="text-muted-foreground">Category</dt>
-                  <dd className="text-foreground capitalize">
-                    {product.category.replace(/-/g, " ")}
+                  <dd className="text-foreground">
+                    {product.category}
                   </dd>
                 </div>
                 {product.description && (
