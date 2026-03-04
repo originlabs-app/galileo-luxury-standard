@@ -18,21 +18,21 @@ services:
     depends_on: []
 
   api:
-    start: cd /Users/pierrebeunardeau/GalileoLuxury/apps/api && PORT=4000 pnpm dev
+    start: cd apps/api && PORT=4000 pnpm dev
     stop: lsof -ti :4000 | xargs kill -9 2>/dev/null || true
     healthcheck: curl -sf http://localhost:4000/health
     port: 4000
     depends_on: [postgres]
 
   dashboard:
-    start: cd /Users/pierrebeunardeau/GalileoLuxury/apps/dashboard && PORT=3000 pnpm dev
+    start: cd apps/dashboard && PORT=3000 pnpm dev
     stop: lsof -ti :3000 | xargs kill -9 2>/dev/null || true
     healthcheck: curl -sf http://localhost:3000
     port: 3000
     depends_on: [api]
 
   scanner:
-    start: cd /Users/pierrebeunardeau/GalileoLuxury/apps/scanner && PORT=3001 pnpm dev
+    start: cd apps/scanner && PORT=3001 pnpm dev
     stop: lsof -ti :3001 | xargs kill -9 2>/dev/null || true
     healthcheck: curl -sf http://localhost:3001
     port: 3001

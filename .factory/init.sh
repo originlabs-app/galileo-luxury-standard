@@ -1,7 +1,8 @@
 #!/bin/bash
 set -e
 
-cd /Users/pierrebeunardeau/GalileoLuxury
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$SCRIPT_DIR/.."
 
 # Detect the current OS user for PostgreSQL connections
 PG_USER="${PGUSER:-$(whoami)}"
@@ -45,13 +46,13 @@ fi
 if [ -f "apps/api/prisma/schema.prisma" ] && [ -f "apps/api/.env" ]; then
   cd apps/api && pnpm prisma db push 2>/dev/null || true
   pnpm prisma generate 2>/dev/null || true
-  cd /Users/pierrebeunardeau/GalileoLuxury
+  cd "$SCRIPT_DIR/.."
 fi
 
 # Push Prisma schema to test DB
 if [ -f "apps/api/prisma/schema.prisma" ]; then
   cd apps/api && pnpm prisma db push --url "$DATABASE_URL_TEST" 2>/dev/null || true
-  cd /Users/pierrebeunardeau/GalileoLuxury
+  cd "$SCRIPT_DIR/.."
 fi
 
 # Kill any leftover dev servers on our ports
