@@ -1,0 +1,24 @@
+{
+  "flowId": "code-inspection",
+  "assertions": {
+    "VAL-C1-SHARED": {
+      "status": "fail",
+      "evidence": "categories.ts exports 8 values: \"Leather Goods\", \"Jewelry\", \"Watches\", \"Fashion\", \"Accessories\", \"Fragrances\", \"Eyewear\", \"Other\". All are Title Case (good). However they do NOT match the expected 10-value API enum (Watches, Jewelry, Handbags, Leather Goods, Clothing, Footwear, Accessories, Fragrances, Eyewear, Other). Missing: Handbags, Clothing, Footwear. Extra: Fashion. Furthermore, categories.ts has 8 values while the actual API Zod enum in create.ts/update.ts only accepts 6 (Leather Goods, Jewelry, Watches, Fashion, Accessories, Other) — shared includes Fragrances and Eyewear which the API would reject with 400. The shared constants are not aligned with the API enum."
+    },
+    "VAL-C4-DOC": {
+      "status": "pass",
+      "evidence": "Grepped mint.ts and README.md for 'SELECT FOR UPDATE' — 0 matches in both files. mint.ts comment accurately describes the optimistic concurrency pattern: 'Optimistic concurrency control: lookup product, verify DRAFT status, then use updateMany WHERE status=DRAFT to atomically flip to ACTIVE. If a concurrent request already changed the status, updateMany returns count=0 and we return 409 — preventing TOCTOU race conditions without row-level locks.'"
+    },
+    "VAL-ENV-SEED": {
+      "status": "pass",
+      "evidence": "apps/api/.env.example contains SEED_ADMIN_PASSWORD=\"change-me-in-production\" with descriptive comment: '# Password used by the seed script to create the default admin user'. Variable is documented with both a default value and explanation."
+    },
+    "VAL-I11-MINT": {
+      "status": "pass",
+      "evidence": "mint.ts has a null guard after the post-transaction findUnique. After `const fullProduct = await fastify.prisma.product.findUnique(...)`, code checks `if (!fullProduct)` and returns `reply.status(500).send({ success: false, error: { code: 'INTERNAL_ERROR', message: 'Product not found after mint — this should not happen' } })`. This correctly returns 500 with JSON error instead of 200 with null product."
+    }
+  },
+  "frictions": [],
+  "blockers": [],
+  "toolsUsed": ["Read", "Grep", "Glob"]
+}

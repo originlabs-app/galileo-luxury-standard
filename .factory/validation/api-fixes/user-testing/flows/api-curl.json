@@ -1,0 +1,37 @@
+{
+  "flowId": "api-curl",
+  "assertions": {
+    "VAL-C1-EDIT": {
+      "status": "pass",
+      "evidence": "Code inspection: CATEGORY_OPTIONS in apps/dashboard/src/app/dashboard/products/[id]/page.tsx uses Title Case values (\"Leather Goods\", \"Jewelry\", \"Watches\", \"Fashion\", \"Accessories\", \"Other\"). curl test: PATCH /products/cmmc1qc7e0002ga14lxm22vzp with {\"category\":\"Leather Goods\"} returned HTTP 200 with updated product showing category=\"Leather Goods\"."
+    },
+    "VAL-I3-BRAND": {
+      "status": "pass",
+      "evidence": "curl POST /auth/register with email=\"longbrand1@galileo.test\" and brandName of 256 'A' characters returned HTTP 400 with {\"success\":false,\"error\":{\"code\":\"VALIDATION_ERROR\",\"message\":\"Invalid input\"}}."
+    },
+    "VAL-C5-PUT": {
+      "status": "pass",
+      "evidence": "Code inspection: csrf.ts MUTATING_METHODS includes PUT in the Set([\"POST\",\"PATCH\",\"DELETE\",\"PUT\"]). CSRF hook is registered as onRequest in products plugin. Curl verification: PATCH /products/:id without X-Galileo-Client header returned 403 with CSRF_REQUIRED error, confirming the middleware works. PUT to /products/:id returned 404 (no PUT route defined in Fastify), so the 403 cannot be directly observed for PUT — but PUT is in MUTATING_METHODS and would be blocked by the same hook if a PUT route existed."
+    },
+    "VAL-I11-MINT": {
+      "status": "pass",
+      "evidence": "Created DRAFT product (id=cmmc1tfk60006ga14xcyoaudi), then POST /products/cmmc1tfk60006ga14xcyoaudi/mint returned HTTP 200 with product data: status changed from DRAFT to ACTIVE, passport populated with txHash, tokenAddress, chainId=84532, mintedAt timestamp, and MINTED event in events array."
+    }
+  },
+  "frictions": [
+    {
+      "description": "POST /products/:id/mint with Content-Type: application/json but no body returns 400 (FST_ERR_CTP_EMPTY_JSON_BODY). Must omit Content-Type header for bodyless POST requests.",
+      "resolved": true,
+      "resolution": "Removed Content-Type header from mint request since no body is needed.",
+      "affectedAssertions": ["VAL-I11-MINT"]
+    },
+    {
+      "description": "VAL-C5-PUT curl test: No PUT routes exist in the API, so PUT requests return 404 from Fastify router before reaching the CSRF onRequest hook. The CSRF middleware correctly includes PUT in MUTATING_METHODS but cannot be demonstrated via curl for PUT specifically. PATCH without CSRF header returns 403, confirming the mechanism works for methods that have routes.",
+      "resolved": true,
+      "resolution": "Verified via code inspection that PUT is in MUTATING_METHODS and verified CSRF mechanism works via PATCH without header → 403.",
+      "affectedAssertions": ["VAL-C5-PUT"]
+    }
+  ],
+  "blockers": [],
+  "toolsUsed": ["curl", "Read"]
+}
