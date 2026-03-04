@@ -214,7 +214,7 @@ describe("Product CRUD endpoints", () => {
           serialNumber: "SN-001",
           name: "Luxury Watch",
           description: "A beautiful timepiece",
-          category: "watches",
+          category: "Watches",
         },
       });
 
@@ -228,7 +228,7 @@ describe("Product CRUD endpoints", () => {
       expect(product.serialNumber).toBe("SN-001");
       expect(product.name).toBe("Luxury Watch");
       expect(product.description).toBe("A beautiful timepiece");
-      expect(product.category).toBe("watches");
+      expect(product.category).toBe("Watches");
       expect(product.status).toBe("DRAFT");
       expect(product.brandId).toBe(testBrandId);
       expect(product.did).toBe(`did:galileo:01:${VALID_GTIN_13}:21:SN-001`);
@@ -258,7 +258,7 @@ describe("Product CRUD endpoints", () => {
           gtin: VALID_GTIN_13,
           serialNumber: "SN-OP-001",
           name: "Operator Product",
-          category: "jewelry",
+          category: "Jewelry",
         },
       });
 
@@ -276,7 +276,7 @@ describe("Product CRUD endpoints", () => {
           gtin: "4006381333932", // wrong check digit (should be 1)
           serialNumber: "SN-002",
           name: "Bad GTIN Product",
-          category: "watches",
+          category: "Watches",
         },
       });
 
@@ -295,7 +295,7 @@ describe("Product CRUD endpoints", () => {
           gtin: "400638ABCDEFG",
           serialNumber: "SN-003",
           name: "Bad GTIN Product",
-          category: "watches",
+          category: "Watches",
         },
       });
 
@@ -313,7 +313,7 @@ describe("Product CRUD endpoints", () => {
           gtin: "12345",
           serialNumber: "SN-004",
           name: "Short GTIN Product",
-          category: "watches",
+          category: "Watches",
         },
       });
 
@@ -330,7 +330,7 @@ describe("Product CRUD endpoints", () => {
           gtin: VALID_GTIN_13,
           serialNumber: "SN-DUP",
           name: "First Product",
-          category: "watches",
+          category: "Watches",
         },
       });
       expect(first.statusCode).toBe(201);
@@ -344,7 +344,7 @@ describe("Product CRUD endpoints", () => {
           gtin: VALID_GTIN_13,
           serialNumber: "SN-DUP",
           name: "Duplicate Product",
-          category: "jewelry",
+          category: "Jewelry",
         },
       });
 
@@ -362,7 +362,7 @@ describe("Product CRUD endpoints", () => {
           gtin: VALID_GTIN_13,
           serialNumber: "SN-NOAUTH",
           name: "No Auth Product",
-          category: "watches",
+          category: "Watches",
         },
       });
 
@@ -378,7 +378,7 @@ describe("Product CRUD endpoints", () => {
           gtin: VALID_GTIN_13,
           serialNumber: "SN-VIEWER",
           name: "Viewer Product",
-          category: "watches",
+          category: "Watches",
         },
       });
 
@@ -414,7 +414,7 @@ describe("Product CRUD endpoints", () => {
             gtin: VALID_GTIN_13,
             serialNumber: `LIST-SN-${String(i).padStart(3, "0")}`,
             name: `Product ${i}`,
-            category: "watches",
+            category: "Watches",
           },
         });
       }
@@ -428,7 +428,7 @@ describe("Product CRUD endpoints", () => {
           gtin: VALID_GTIN_13_B,
           serialNumber: "OTHER-001",
           name: "Other Brand Product",
-          category: "jewelry",
+          category: "Jewelry",
         },
       });
     });
@@ -534,7 +534,7 @@ describe("Product CRUD endpoints", () => {
           serialNumber: "DETAIL-001",
           name: "Detail Product",
           description: "For detail testing",
-          category: "watches",
+          category: "Watches",
         },
       });
       productId = createRes.json().data.product.id;
@@ -617,7 +617,7 @@ describe("Product CRUD endpoints", () => {
           serialNumber: "PATCH-001",
           name: "Patchable Product",
           description: "Original description",
-          category: "watches",
+          category: "Watches",
         },
       });
       draftProductId = createRes.json().data.product.id;
@@ -631,7 +631,7 @@ describe("Product CRUD endpoints", () => {
         payload: {
           name: "Updated Name",
           description: "Updated description",
-          category: "jewelry",
+          category: "Jewelry",
         },
       });
 
@@ -642,7 +642,7 @@ describe("Product CRUD endpoints", () => {
       const product = body.data.product;
       expect(product.name).toBe("Updated Name");
       expect(product.description).toBe("Updated description");
-      expect(product.category).toBe("jewelry");
+      expect(product.category).toBe("Jewelry");
 
       // Verify UPDATED event was created
       const updatedEvent = product.events.find(

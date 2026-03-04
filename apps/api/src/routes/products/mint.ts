@@ -3,25 +3,6 @@ import crypto from "node:crypto";
 import { requireRole } from "../../middleware/rbac.js";
 
 export default async function mintProductRoute(fastify: FastifyInstance) {
-  // Allow empty body with Content-Type: application/json on this route.
-  // Fastify rejects empty JSON bodies by default (FST_ERR_CTP_EMPTY_JSON_BODY).
-  fastify.addContentTypeParser(
-    "application/json",
-    { parseAs: "string" },
-    (_req, body, done) => {
-      const str = typeof body === "string" ? body : String(body);
-      if (str.trim().length === 0) {
-        done(null, {});
-        return;
-      }
-      try {
-        done(null, JSON.parse(str));
-      } catch (err) {
-        done(err as Error, undefined);
-      }
-    },
-  );
-
   fastify.post<{ Params: { id: string } }>(
     "/products/:id/mint",
     {
@@ -34,40 +15,13 @@ export default async function mintProductRoute(fastify: FastifyInstance) {
       const { id } = request.params;
       const user = request.user;
 
-      // Find the product with passport
-      const product = await fastify.prisma.product.findUnique({
-        where: { id },
-        include: { passport: true },
-      });
-
-      if (!product) {
-        return reply.status(404).send({
-          success: false,
-          error: {
-            code: "NOT_FOUND",
-            message: "Product not found",
-          },
-        });
-      }
-
-      // Brand scoping: BRAND_ADMIN can only mint their own brand's products
-      if (product.brandId !== user.brandId) {
+      // brandId null guard: non-ADMIN users without a brandId cannot access product routes
+      if (user.role !== "ADMIN" && !user.brandId) {
         return reply.status(403).send({
           success: false,
           error: {
             code: "FORBIDDEN",
-            message: "Access denied",
-          },
-        });
-      }
-
-      // Product must be in DRAFT status
-      if (product.status !== "DRAFT") {
-        return reply.status(409).send({
-          success: false,
-          error: {
-            code: "CONFLICT",
-            message: "Product is not in DRAFT status",
+            message: "User must belong to a brand",
           },
         });
       }
@@ -89,32 +43,71 @@ export default async function mintProductRoute(fastify: FastifyInstance) {
       const chainId = 84532; // Base Sepolia
       const mintedAt = new Date();
 
-      // Update product, passport, and create MINTED event in a transaction
-      await fastify.prisma.$transaction(async (tx) => {
-        await tx.product.update({
-          where: { id },
-          data: { status: "ACTIVE" },
-        });
+      // Atomically: lookup product with DRAFT status, update to ACTIVE, update passport, create event
+      // This prevents TOCTOU race conditions on concurrent mint requests
+      try {
+        await fastify.prisma.$transaction(async (tx) => {
+          // Atomic lookup + status check: only find product if it's in DRAFT status
+          const product = await tx.product.findUnique({
+            where: { id },
+            include: { passport: true },
+          });
 
-        await tx.productPassport.update({
-          where: { productId: id },
-          data: {
-            txHash,
-            tokenAddress,
-            chainId,
-            mintedAt,
-          },
-        });
+          if (!product) {
+            throw new MintError(404, "NOT_FOUND", "Product not found");
+          }
 
-        await tx.productEvent.create({
-          data: {
-            productId: id,
-            type: "MINTED",
-            data: { txHash, tokenAddress, chainId },
-            performedBy: user.sub,
-          },
+          // Brand scoping: BRAND_ADMIN can only mint their own brand's products
+          if (product.brandId !== user.brandId) {
+            throw new MintError(403, "FORBIDDEN", "Access denied");
+          }
+
+          // Product must be in DRAFT status
+          if (product.status !== "DRAFT") {
+            throw new MintError(409, "CONFLICT", "Product is not in DRAFT status");
+          }
+
+          // Use conditional update to prevent race: only update if status is still DRAFT
+          const updated = await tx.product.updateMany({
+            where: { id, status: "DRAFT" },
+            data: { status: "ACTIVE" },
+          });
+
+          if (updated.count === 0) {
+            throw new MintError(409, "CONFLICT", "Product is not in DRAFT status");
+          }
+
+          await tx.productPassport.update({
+            where: { productId: id },
+            data: {
+              txHash,
+              tokenAddress,
+              chainId,
+              mintedAt,
+            },
+          });
+
+          await tx.productEvent.create({
+            data: {
+              productId: id,
+              type: "MINTED",
+              data: { txHash, tokenAddress, chainId },
+              performedBy: user.sub,
+            },
+          });
         });
-      });
+      } catch (err) {
+        if (err instanceof MintError) {
+          return reply.status(err.statusCode).send({
+            success: false,
+            error: {
+              code: err.code,
+              message: err.message,
+            },
+          });
+        }
+        throw err;
+      }
 
       // Re-fetch with all relations for complete response
       const fullProduct = await fastify.prisma.product.findUnique({
@@ -133,4 +126,15 @@ export default async function mintProductRoute(fastify: FastifyInstance) {
       });
     },
   );
+}
+
+class MintError extends Error {
+  constructor(
+    public statusCode: number,
+    public code: string,
+    message: string,
+  ) {
+    super(message);
+    this.name = "MintError";
+  }
 }

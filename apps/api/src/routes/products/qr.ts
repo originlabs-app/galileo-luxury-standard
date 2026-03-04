@@ -11,6 +11,17 @@ export default async function qrProductRoute(fastify: FastifyInstance) {
       const { id } = request.params;
       const user = request.user;
 
+      // brandId null guard: non-ADMIN users without a brandId cannot access product routes
+      if (user.role !== "ADMIN" && !user.brandId) {
+        return reply.status(403).send({
+          success: false,
+          error: {
+            code: "FORBIDDEN",
+            message: "User must belong to a brand",
+          },
+        });
+      }
+
       // Parse and validate size parameter
       const sizeParam = request.query.size;
       const size = sizeParam ? parseInt(sizeParam, 10) : 300;

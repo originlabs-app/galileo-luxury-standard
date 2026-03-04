@@ -28,9 +28,20 @@ export default async function listProductsRoute(fastify: FastifyInstance) {
       const { page, limit } = parsed.data;
       const user = request.user;
 
+      // brandId null guard: non-ADMIN users without a brandId cannot access product routes
+      if (user.role !== "ADMIN" && !user.brandId) {
+        return reply.status(403).send({
+          success: false,
+          error: {
+            code: "FORBIDDEN",
+            message: "User must belong to a brand",
+          },
+        });
+      }
+
       // Brand scoping: ADMIN sees all, others see only their brand
       const where =
-        user.role === "ADMIN" ? {} : { brandId: user.brandId! };
+        user.role === "ADMIN" ? {} : { brandId: user.brandId as string };
 
       const [products, total] = await Promise.all([
         fastify.prisma.product.findMany({

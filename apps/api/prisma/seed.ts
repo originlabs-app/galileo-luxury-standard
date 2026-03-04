@@ -3,16 +3,18 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client.js";
 import { hashPassword } from "../src/utils/password.js";
 
-// Production guard: require SEED_PASSWORD to prevent accidental seeding
-if (process.env.NODE_ENV === "production") {
-  if (!process.env.SEED_PASSWORD) {
-    console.error(
-      "❌ SEED_PASSWORD environment variable is required when NODE_ENV=production. " +
-        "Set SEED_PASSWORD to confirm you intend to seed a production database.",
-    );
-    process.exit(1);
-  }
+// Determine admin seed password from environment
+const SEED_ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD;
+
+if (process.env.NODE_ENV === "production" && !SEED_ADMIN_PASSWORD) {
+  console.error(
+    "❌ SEED_ADMIN_PASSWORD environment variable is required when NODE_ENV=production. " +
+      "Set SEED_ADMIN_PASSWORD to the desired admin password.",
+  );
+  process.exit(1);
 }
+
+const adminPassword = SEED_ADMIN_PASSWORD || "dev-seed-password-change-me";
 
 const DATABASE_URL =
   process.env.DATABASE_URL ?? "postgresql://localhost:5432/galileo_dev";
@@ -36,7 +38,7 @@ async function main() {
     console.log(`Brand created: ${brand.id}`);
 
     // Create test admin user
-    const passwordHash = await hashPassword("changeme123");
+    const passwordHash = await hashPassword(adminPassword);
 
     const admin = await prisma.user.upsert({
       where: { email: "admin@galileo.test" },

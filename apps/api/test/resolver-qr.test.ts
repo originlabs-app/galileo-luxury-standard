@@ -132,7 +132,7 @@ describe("Resolver & QR endpoints", () => {
         serialNumber: draftProductSerial,
         name: "Draft Resolver Product",
         description: "A draft product for resolver tests",
-        category: "watches",
+        category: "Watches",
       },
     });
     draftProductId = draftRes.json().data.product.id;
@@ -149,7 +149,7 @@ describe("Resolver & QR endpoints", () => {
         serialNumber: activeProductSerial,
         name: "Active Resolver Product",
         description: "An active product for resolver tests",
-        category: "jewelry",
+        category: "Jewelry",
       },
     });
     activeProductId = activeRes.json().data.product.id;
@@ -185,7 +185,7 @@ describe("Resolver & QR endpoints", () => {
       expect(body.name).toBe("Active Resolver Product");
       expect(body.description).toBe("An active product for resolver tests");
       expect(body.gtin).toBe(activeProductGtin);
-      expect(body.category).toBe("jewelry");
+      expect(body.category).toBe("Jewelry");
       expect(body.status).toBe("ACTIVE");
 
       // Passport fields
@@ -252,7 +252,7 @@ describe("Resolver & QR endpoints", () => {
           gtin: VALID_GTIN,
           serialNumber: specialSerial,
           name: "Special Serial Product",
-          category: "accessories",
+          category: "Accessories",
         },
       });
       const specialId = createRes.json().data.product.id;

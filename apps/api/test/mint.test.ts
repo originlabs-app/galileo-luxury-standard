@@ -200,7 +200,7 @@ describe("POST /products/:id/mint", () => {
         gtin: VALID_GTIN_13,
         serialNumber: serial,
         name: "Mintable Watch",
-        category: "watches",
+        category: "Watches",
       },
     });
     return res.json().data.product.id;

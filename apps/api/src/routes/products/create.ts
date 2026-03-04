@@ -7,12 +7,22 @@ import {
 } from "@galileo/shared";
 import { requireRole } from "../../middleware/rbac.js";
 
+const PRODUCT_CATEGORIES = [
+  "Leather Goods",
+  "Jewelry",
+  "Watches",
+  "Fashion",
+  "Accessories",
+  "Other",
+] as const;
+
 const createProductBody = z.object({
   gtin: z.string().min(1, "GTIN is required"),
-  serialNumber: z.string().min(1, "Serial number is required"),
-  name: z.string().min(1, "Name is required"),
-  description: z.string().optional(),
-  category: z.string().min(1, "Category is required"),
+  serialNumber: z.string().min(1, "Serial number is required").max(100, "Serial number must be at most 100 characters"),
+  name: z.string().min(1, "Name is required").max(255, "Name must be at most 255 characters"),
+  description: z.string().max(2000, "Description must be at most 2000 characters").optional(),
+  category: z.enum(PRODUCT_CATEGORIES, { message: "Category must be one of: Leather Goods, Jewelry, Watches, Fashion, Accessories, Other" }),
+  brandId: z.string().optional(),
 });
 
 export default async function createProductRoute(fastify: FastifyInstance) {
@@ -37,7 +47,7 @@ export default async function createProductRoute(fastify: FastifyInstance) {
         });
       }
 
-      const { gtin, serialNumber, name, description, category } = parsed.data;
+      const { gtin, serialNumber, name, description, category, brandId: bodyBrandId } = parsed.data;
 
       // Validate GTIN check digit
       if (!validateGtin(gtin)) {
@@ -52,8 +62,8 @@ export default async function createProductRoute(fastify: FastifyInstance) {
 
       const user = request.user;
 
-      // BRAND_ADMIN and OPERATOR must have a brandId
-      if (!user.brandId && user.role !== "ADMIN") {
+      // brandId null guard: non-ADMIN users without a brandId cannot access product routes
+      if (user.role !== "ADMIN" && !user.brandId) {
         return reply.status(403).send({
           success: false,
           error: {
@@ -63,7 +73,23 @@ export default async function createProductRoute(fastify: FastifyInstance) {
         });
       }
 
-      const brandId = user.brandId!;
+      // Determine brandId: ADMIN must supply brandId in body, non-ADMIN uses their own
+      let brandId: string;
+      if (user.role === "ADMIN") {
+        if (!bodyBrandId) {
+          return reply.status(400).send({
+            success: false,
+            error: {
+              code: "VALIDATION_ERROR",
+              message: "ADMIN must provide brandId in request body",
+            },
+          });
+        }
+        brandId = bodyBrandId;
+      } else {
+        // Non-ADMIN: ignore body.brandId, always use user's brandId
+        brandId = user.brandId as string;
+      }
 
       // Generate DID and Digital Link
       const did = generateDid(gtin, serialNumber);

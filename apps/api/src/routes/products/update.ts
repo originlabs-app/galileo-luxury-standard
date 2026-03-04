@@ -2,11 +2,20 @@ import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { requireRole } from "../../middleware/rbac.js";
 
+const PRODUCT_CATEGORIES = [
+  "Leather Goods",
+  "Jewelry",
+  "Watches",
+  "Fashion",
+  "Accessories",
+  "Other",
+] as const;
+
 const updateProductBody = z
   .object({
-    name: z.string().min(1).optional(),
-    description: z.string().optional(),
-    category: z.string().min(1).optional(),
+    name: z.string().min(1).max(255, "Name must be at most 255 characters").optional(),
+    description: z.string().max(2000, "Description must be at most 2000 characters").optional(),
+    category: z.enum(PRODUCT_CATEGORIES, { message: "Category must be one of: Leather Goods, Jewelry, Watches, Fashion, Accessories, Other" }).optional(),
   })
   .strict();
 
@@ -22,6 +31,17 @@ export default async function updateProductRoute(fastify: FastifyInstance) {
     async (request, reply) => {
       const { id } = request.params;
       const user = request.user;
+
+      // brandId null guard: non-ADMIN users without a brandId cannot access product routes
+      if (user.role !== "ADMIN" && !user.brandId) {
+        return reply.status(403).send({
+          success: false,
+          error: {
+            code: "FORBIDDEN",
+            message: "User must belong to a brand",
+          },
+        });
+      }
 
       // Validate body — reject any fields beyond name/description/category
       const parsed = updateProductBody.safeParse(request.body);

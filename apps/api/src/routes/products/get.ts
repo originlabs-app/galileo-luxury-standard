@@ -10,6 +10,17 @@ export default async function getProductRoute(fastify: FastifyInstance) {
       const { id } = request.params;
       const user = request.user;
 
+      // brandId null guard: non-ADMIN users without a brandId cannot access product routes
+      if (user.role !== "ADMIN" && !user.brandId) {
+        return reply.status(403).send({
+          success: false,
+          error: {
+            code: "FORBIDDEN",
+            message: "User must belong to a brand",
+          },
+        });
+      }
+
       const product = await fastify.prisma.product.findUnique({
         where: { id },
         include: {
