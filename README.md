@@ -22,10 +22,10 @@ The Galileo Protocol provides specifications for Digital Product Passports, dece
 - **Compliant Transfers** — ERC-3643 token standard with modular compliance
 - **Authentication & RBAC** — httpOnly cookie auth, UserPublic/UserInternal roles, CSRF header protection (`X-Galileo-Client`)
 - **Product Management** — CRUD operations with GTIN validation, DID generation (`did:galileo`), Dashboard product pages (list, create, detail)
-- **Blockchain Integration** — Mock minting with synthetic on-chain data via viem chain client, TOCTOU race protection (optimistic concurrency control)
+- **Blockchain Integration** — Mock minting with synthetic on-chain data via viem chain client, optimistic concurrency control (updateMany WHERE status=DRAFT)
 - **GS1 Conformity** — Digital Link 1.6.0 resolver with 14-digit GTIN padding, check digit validation, JSON-LD with custom `galileo`/`gs1` context namespaces
-- **Security Hardening** — Scoped content-type parser, brandId null guards, validation bounds, portable test DB (`DATABASE_URL_TEST`), SSR-safe refresh token handling, single auth state source of truth, E2E tests in CI
-- **Shared Validation** — Robust URL encoding, DID GTIN check digit fixes, `padGtin14()` normalization
+- **Security Hardening** — Scoped content-type parser, brandId null guards, validation bounds (name 255, serial 100, desc 2000, brandName 255), portable test DB (`DATABASE_URL_TEST`), SSR-safe refresh token handling, AuthProvider Context (single /auth/me fetch), CSRF on POST/PATCH/DELETE/PUT, E2E in CI with pnpm cache
+- **Shared Validation** — Robust URL encoding, DID GTIN check digit fixes, `padGtin14()` normalization, 8 luxury categories aligned across API/dashboard/shared
 
 ---
 
@@ -79,8 +79,8 @@ The Galileo Protocol provides specifications for Digital Product Passports, dece
 
 ## Testing
 
-Includes 184 unit tests and 2 Playwright e2e tests. Test database (`galileo_test`) is isolated via `DATABASE_URL_TEST`.
-- **Unit Tests:** `pnpm test` (63 shared + 121 API)
+Includes 186 unit tests and 2 Playwright e2e tests. Test database (`galileo_test`) is isolated via `DATABASE_URL_TEST`.
+- **Unit Tests:** `pnpm test` (63 shared + 123 API)
 - **E2E Tests:** `pnpm test:e2e` (auth setup + product lifecycle)
 
 ---
@@ -90,7 +90,7 @@ Includes 184 unit tests and 2 Playwright e2e tests. Test database (`galileo_test
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET/POST/PATCH | `/products` | Product CRUD with GTIN validation, RBAC, pagination |
-| POST | `/products/:id/mint` | Mock minting with TOCTOU protection (optimistic concurrency control) |
+| POST | `/products/:id/mint` | Mock minting with optimistic concurrency control |
 | GET | `/01/:gtin/21/:serial` | GS1 Digital Link resolver (JSON-LD, 13/14-digit GTIN) |
 | GET | `/products/:id/qr` | QR code generation (PNG) |
 
