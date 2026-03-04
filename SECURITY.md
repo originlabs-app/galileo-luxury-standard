@@ -7,6 +7,47 @@
 | 1.0.x   | Yes       |
 | < 1.0   | No        |
 
+## Security Measures
+
+### Authentication & Session Management
+- httpOnly cookies with SameSite=Lax (no localStorage tokens)
+- SHA-256 hashed refresh tokens in database
+- Timing-safe password comparison (bcrypt + dummy hash on unknown user)
+- Atomic token rotation (old token invalidated in same transaction)
+- Password max length: 128 characters (bcrypt DoS prevention)
+
+### CSRF Protection
+- Custom header `X-Galileo-Client` required on POST, PATCH, DELETE, PUT
+- GET requests exempt by design
+- Dashboard sends header automatically via centralized API helper
+
+### Input Validation
+- Zod schema validation on all endpoints
+- Bounds enforced: name ≤255, serial ≤100, description ≤2000, brandName ≤255
+- Category enum validation (8 values, strict match)
+- GTIN check digit validation (GS1 mod-10 algorithm)
+
+### Authorization
+- Role-based access control (ADMIN, BRAND_ADMIN, OPERATOR, VIEWER)
+- Brand scoping: all product routes filter by user's brandId
+- Null-brandId guard returns 403 on product routes
+- ADMIN role can access cross-brand resources with explicit brandId
+
+### Concurrency
+- Mint endpoint uses optimistic concurrency control (updateMany WHERE status=DRAFT)
+- Concurrent mint attempts: exactly one succeeds, others get 409 Conflict
+
+### Frontend Security
+- AuthProvider React Context (single /auth/me, no duplicate fetches)
+- SSR-safe AuthGuard (useSyncExternalStore, no hydration mismatch)
+- No sensitive data in client-side state or localStorage
+
+### CI/CD Security
+- pnpm install --frozen-lockfile (deterministic installs)
+- Exact semver pinning on all dependencies
+- E2E tests run in CI with production API build
+- Test database isolation (galileo_test)
+
 ## Reporting a Vulnerability
 
 **Do not open a public issue for security vulnerabilities.**

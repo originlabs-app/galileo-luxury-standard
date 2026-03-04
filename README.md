@@ -79,9 +79,21 @@ The Galileo Protocol provides specifications for Digital Product Passports, dece
 
 ## Testing
 
-Includes 186 unit tests and 2 Playwright e2e tests. Test database (`galileo_test`) is isolated via `DATABASE_URL_TEST`.
-- **Unit Tests:** `pnpm test` (63 shared + 123 API)
-- **E2E Tests:** `pnpm test:e2e` (auth setup + product lifecycle)
+**186 unit tests + 2 Playwright e2e tests.** Test database (`galileo_test`) is isolated via `DATABASE_URL_TEST`.
+
+| Suite | Tests | Scope |
+|-------|-------|-------|
+| @galileo/shared | 63 | GTIN validation, DID generation, auth schemas, user types |
+| @galileo/api | 123 | Auth (32), Products (27), Security (16), Mint (10), Resolver (17), CSRF (18), Health (3) |
+| Playwright e2e | 2 | Auth setup + product lifecycle (create→DRAFT→mint→ACTIVE→QR) |
+
+```bash
+pnpm test              # Unit tests (186)
+pnpm test:e2e          # Playwright e2e (2)
+pnpm turbo typecheck   # TypeScript validation
+pnpm turbo lint        # ESLint
+pnpm turbo build       # Full build
+```
 
 ---
 
@@ -92,7 +104,28 @@ Includes 186 unit tests and 2 Playwright e2e tests. Test database (`galileo_test
 | GET/POST/PATCH | `/products` | Product CRUD with GTIN validation, RBAC, pagination |
 | POST | `/products/:id/mint` | Mock minting with optimistic concurrency control |
 | GET | `/01/:gtin/21/:serial` | GS1 Digital Link resolver (JSON-LD, 13/14-digit GTIN) |
+| POST | `/auth/register` | Create account with brand |
+| POST | `/auth/login` | Login (sets httpOnly cookies) |
+| POST | `/auth/refresh` | Refresh access token |
+| GET | `/auth/me` | Current user info |
+| POST | `/auth/logout` | Logout (clears cookies) |
 | GET | `/products/:id/qr` | QR code generation (PNG) |
+
+---
+
+## Security
+
+Three independent security audits completed (Sprint 1 + Sprint 2 hardening rounds):
+
+- **Authentication:** httpOnly cookies (SameSite=Lax), SHA-256 hashed refresh tokens, timing-safe login, CSRF header (`X-Galileo-Client`) on all mutating requests (POST/PATCH/DELETE/PUT)
+- **Authorization:** RBAC with brandId scoping on all product routes, null-brandId guard (403)
+- **Input Validation:** Zod schemas with bounds (name ≤255, serial ≤100, description ≤2000, brandName ≤255), scoped JSON parser (no global content-type override)
+- **Frontend:** AuthProvider Context (single /auth/me fetch), SSR-safe AuthGuard (useSyncExternalStore), no localStorage tokens
+- **Concurrency:** Optimistic concurrency control on mint (updateMany WHERE status=DRAFT, atomic 409 on race)
+- **CI/CD:** pnpm cache + frozen-lockfile, Playwright E2E in CI, production API build for E2E, portable paths
+- **GS1 Conformity:** GTIN check digit validation, 14-digit padding normalization, JSON-LD with IndividualProduct type and custom galileo/gs1 context
+
+See [SECURITY.md](SECURITY.md) for vulnerability reporting.
 
 ---
 

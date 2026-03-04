@@ -222,7 +222,7 @@ The roadmap is organized in **5 sprints** mapping to the detailed phases below.
 
 ```
 Sprint 1 (Week 1-2)   Foundations        → Phase 0 + Phase 2 setup + Phase 3 shell
-Sprint 2 (Week 3-4)   Product & Passport → Phase 1 (testnet) + Phase 2 (core API) + Phase 5 (GS1)
+Sprint 2 (Week 3-4)   Product & Passport → ✅ Complete (mock mode, 186 tests + 2 e2e)
 Sprint 3 (Week 5-6)   Scanner & Verify   → Phase 4 (scanner PWA) + Phase 2 (event API)
 Sprint 4 (Week 7-8)   Stabilisation      → Hardening, security, multi-tenant, monitoring
 Sprint 5 (Week 9-12)  T1/LEOX            → Phase 6 (POST-PILOT GATE — only after KPI validation)
@@ -247,30 +247,35 @@ Sprint 5 (Week 9-12)  T1/LEOX            → Phase 6 (POST-PILOT GATE — only a
 
 **Exit:** `pnpm dev` starts all apps. Auth flow works. CI green. ✅
 
-### Sprint 2 — Product & Passport Creation (Week 3-4) 🔲 In Progress
+### Sprint 2 — Product & Passport Creation (Week 3-4) ✅ Complete
 
 **Goal:** A brand-admin can create a product, mint its ERC-3643 passport on Base Sepolia, and a resolver returns the DPP via GS1 Digital Link.
 
-- [ ] Product CRUD API: POST/GET/PATCH products with GTIN validation and RBAC
-- [ ] DID generation: `did:galileo:01:{gtin}:21:{serial}` (GS1-native, shared package)
-- [ ] Contract deployment on Base Sepolia (existing `Deploy.s.sol`)
-- [ ] Mint flow: API prepares tx → server-side signing (admin key) → ERC-3643 token minted → txHash stored in DB
-- [ ] GS1 Digital Link resolver: `GET /01/:gtin/21/:serial` returns DPP JSON
-- [ ] QR code generation from Digital Link URL
-- [ ] Dashboard: product list, product create form, product detail, mint button, QR download
-- [ ] Security debt: httpOnly cookie auth (C3), pin deps (I11), test DB isolation (I10), shared type split (I2), URL-encode serial (I3), DID check digit validation (I4)
-- [ ] Photo/certificate upload → R2 + local CID computation (deferred if time-constrained)
-- [ ] Gas benchmarks documented
+- [x] Product CRUD API: POST/GET/PATCH products with GTIN validation and RBAC
+- [x] DID generation: `did:galileo:01:{gtin}:21:{serial}` (GS1-native, shared package)
+- [ ] Contract deployment on Base Sepolia (existing `Deploy.s.sol`) — still pending, mock mode used
+- [x] Mint flow: API prepares mock mint → synthetic on-chain data → status ACTIVE → optimistic concurrency control
+- [x] GS1 Digital Link resolver: `GET /01/:gtin/21/:serial` returns JSON-LD DPP with custom galileo/gs1 context
+- [x] QR code generation from Digital Link URL (PNG endpoint)
+- [x] Dashboard: product list, product create form, product detail with edit, mint button, QR download
+- [x] Security debt: httpOnly cookie auth, pin deps, test DB isolation, shared type split, URL-encode serial, DID check digit validation
+- [ ] Photo/certificate upload → R2 + local CID computation (deferred to Sprint 3)
+- [ ] Gas benchmarks documented (deferred — mock mode, no real chain)
 
-**Exit:** Brand creates product → mints ERC-3643 token on Sepolia → QR resolves to DPP. Security debt from Sprint 1 review cleared.
+**Delivered:** 186 unit tests + 2 Playwright e2e tests passing. 8 luxury categories aligned across API/dashboard/shared. Auth via httpOnly cookies with CSRF header protection. AuthProvider Context for single /auth/me fetch. SSR-safe AuthGuard. Optimistic concurrency control on mint. GS1 Digital Link resolver with 14-digit GTIN padding, check digit validation, and conformant JSON-LD (@type=IndividualProduct, custom galileo/gs1 namespaces). CI with pnpm cache, frozen-lockfile, and E2E tests. Portable init.sh and services.yaml.
+
+**Exit:** Brand creates product → mints mock passport → QR resolves to DPP JSON-LD. Security debt from Sprint 1 + 2 audits fully cleared (3 rounds: Sprint 1 hardening, Sprint 2 hardening, Sprint 2 hardening round 2). Real Sepolia deployment deferred to Sprint 3. ✅
 
 ### Sprint 3 — Scanner & Verification (Week 5-6)
 
+**Prerequisite from Sprint 2:** Mock minting is complete. Sprint 3 should start with real Base Sepolia deployment (Phase 1.2) before building the scanner, OR continue with mock mode and defer real chain to Sprint 4.
+
 **Goal:** Anyone can scan a QR code and verify product authenticity.
 
-- [ ] Scanner PWA (Next.js): camera → decode QR → call API
+- [x] Lifecycle events API: CREATED, MINTED events already working (TRANSFERRED, VERIFIED, etc. still needed)
+- [ ] Scanner PWA (Next.js): camera → decode QR → call API (still Coming Soon shell)
 - [ ] Public verification page: authenticity ✓/✗, provenance timeline, material composition
-- [ ] Lifecycle events API: `CREATED`, `TRANSFERRED`, `VERIFIED`, `OWNERSHIP_CHANGED`, `REPAIRED`, `CPO_CERTIFIED`
+- [ ] Lifecycle events API (remaining): `TRANSFERRED`, `VERIFIED`, `OWNERSHIP_CHANGED`, `REPAIRED`, `CPO_CERTIFIED`
 - [ ] Event logging (append-only, off-chain + on-chain anchoring)
 - [ ] Transfer flow with compliance check (jurisdiction, sanctions, brand auth)
 - [ ] CPO certification flow
@@ -463,7 +468,7 @@ Only after testnet E2E passes:
 
 ---
 
-## Phase 2 — Backend API (Weeks 3-5) 🔲 Planned
+## Phase 2 — Backend API (Weeks 3-5) ⚠️ Partially done
 
 Node.js / TypeScript API that orchestrates on-chain and off-chain operations.
 
@@ -529,7 +534,7 @@ GET    /users/:id/data         — GDPR data export (Art. 15)
 
 ---
 
-## Phase 3 — Brand Dashboard (Weeks 4-7) 🔲 Planned
+## Phase 3 — Brand Dashboard (Weeks 4-7) ⚠️ Partially done
 
 Web dashboard for brands to manage their products and tokens.
 
@@ -606,7 +611,7 @@ Customer scans QR on product
 
 ---
 
-## Phase 5 — GS1 Digital Link Resolver (Weeks 5-7) 🔲 Planned
+## Phase 5 — GS1 Digital Link Resolver (Weeks 5-7) ✅ Done
 
 Standards-compliant resolver that maps GS1 URIs to Galileo DIDs.
 
