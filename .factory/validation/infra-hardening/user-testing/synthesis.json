@@ -1,0 +1,21 @@
+{
+  "milestone": "infra-hardening",
+  "round": 1,
+  "status": "fail",
+  "assertionsSummary": {
+    "total": 4,
+    "passed": 3,
+    "failed": 1,
+    "blocked": 0
+  },
+  "passedAssertions": ["VAL-INFRA-C5", "VAL-INFRA-C7", "VAL-CROSS-002"],
+  "failedAssertions": [
+    {
+      "id": "VAL-CROSS-001",
+      "reason": "E2E Playwright test product-lifecycle fails: dashboard product creation form sends category values in kebab-case (e.g. 'leather-goods') but API Zod schema expects title-case enum ('Leather Goods'). Unit tests all pass (184/184). 1/2 e2e tests fail."
+    }
+  ],
+  "blockedAssertions": [],
+  "appliedUpdates": [],
+  "previousRound": null
+}

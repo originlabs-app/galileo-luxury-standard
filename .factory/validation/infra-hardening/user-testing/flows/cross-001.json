@@ -1,0 +1,32 @@
+{
+  "flowId": "cross-001",
+  "testedAt": "2026-03-04T10:35:00.000Z",
+  "assertions": {
+    "VAL-CROSS-001": {
+      "status": "fail",
+      "evidence": "Unit tests: 184 passed (63 shared + 121 API), exit code 0 — all green. E2E Playwright tests: 1 passed (auth setup), 1 failed (product-lifecycle), exit code 1. The product-lifecycle e2e test fails consistently because the dashboard product creation form sends category values in kebab-case (e.g. 'leather-goods') while the API's Zod enum validation (added in F4 hardening) expects title-case values (e.g. 'Leather Goods'). The form submits, the API returns a validation error, the page shows 'Invalid input', and the test cannot proceed past the DRAFT badge check. This is a regression: the F4 hardening tightened category validation on the API side without updating the dashboard form's category option values to match.",
+      "details": {
+        "unitTestCount": 184,
+        "unitTestExitCode": 0,
+        "unitTestBreakdown": "63 shared (4 files) + 121 API (7 files)",
+        "e2eTestCount": 2,
+        "e2eTestPassed": 1,
+        "e2eTestFailed": 1,
+        "e2eTestExitCode": 1,
+        "e2eFailedTest": "product-lifecycle.spec.ts: create product → verify DRAFT → mint → verify ACTIVE → verify QR",
+        "e2eFailureReason": "Dashboard form sends category 'leather-goods' (kebab-case) but API PRODUCT_CATEGORIES enum expects 'Leather Goods' (title case). API returns 400, form shows 'Invalid input', page stays on /dashboard/products/new, DRAFT badge never appears.",
+        "rootCause": "Category value mismatch between dashboard (src/app/dashboard/products/new/page.tsx CATEGORY_OPTIONS values) and API (src/routes/products/create.ts PRODUCT_CATEGORIES enum). Dashboard uses kebab-case ('leather-goods'), API expects title-case ('Leather Goods')."
+      }
+    }
+  },
+  "frictions": [],
+  "blockers": [
+    {
+      "description": "E2E product lifecycle test fails due to category enum mismatch between dashboard form and API validation. The F4 hardening change added strict enum validation on the API but the dashboard form was not updated to send matching values.",
+      "affectedAssertions": ["VAL-CROSS-001"],
+      "quickFixAttempted": "Ran test twice (with --retries=1) to confirm it is a consistent failure, not flaky. Investigated root cause: dashboard CATEGORY_OPTIONS use kebab-case values ('leather-goods') while API PRODUCT_CATEGORIES use title-case ('Leather Goods')."
+    }
+  ],
+  "toolsUsed": ["pnpm", "playwright"],
+  "summary": "Tested 1 assertion (VAL-CROSS-001): FAIL. Unit tests pass (184/184, exit 0). E2E Playwright tests fail (1/2 passed, exit 1) due to a regression: the F4 security hardening added strict category enum validation to the API without updating the dashboard form to send matching category values."
+}
