@@ -25,12 +25,12 @@ import {
 } from "@/components/ui/card";
 
 const CATEGORY_OPTIONS = [
-  { value: "leather-goods", label: "Leather Goods" },
-  { value: "jewelry", label: "Jewelry" },
-  { value: "watches", label: "Watches" },
-  { value: "fashion", label: "Fashion" },
-  { value: "accessories", label: "Accessories" },
-  { value: "other", label: "Other" },
+  { value: "Leather Goods", label: "Leather Goods" },
+  { value: "Jewelry", label: "Jewelry" },
+  { value: "Watches", label: "Watches" },
+  { value: "Fashion", label: "Fashion" },
+  { value: "Accessories", label: "Accessories" },
+  { value: "Other", label: "Other" },
 ] as const;
 
 interface FormErrors {
