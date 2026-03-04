@@ -18,7 +18,8 @@
     "test": {
       "dependsOn": ["^build"],
       "inputs": ["src/**", "test/**", "prisma/**", ".env*", "vitest.config.*", "package.json"],
-      "outputs": []
+      "outputs": [],
+      "passThroughEnv": ["DATABASE_URL_TEST"]
     },
     "test:e2e": {
       "dependsOn": ["^build"],

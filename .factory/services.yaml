@@ -13,7 +13,7 @@ services:
   postgres:
     start: echo "PostgreSQL already running via Homebrew on port 5432"
     stop: echo "Do not stop system PostgreSQL"
-    healthcheck: psql -h localhost -p 5432 -U pierrebeunardeau -c "SELECT 1" postgres
+    healthcheck: psql -h localhost -p 5432 -c "SELECT 1" postgres
     port: 5432
     depends_on: []
 

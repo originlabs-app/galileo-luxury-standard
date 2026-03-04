@@ -1,5 +1,9 @@
 import { defineConfig } from "vitest/config";
 
+const TEST_DATABASE_URL =
+  process.env.DATABASE_URL_TEST ||
+  "postgresql://postgres@localhost:5432/galileo_test";
+
 export default defineConfig({
   test: {
     globals: true,
@@ -7,8 +11,7 @@ export default defineConfig({
     globalSetup: "./test/global-setup.ts",
     fileParallelism: false,
     env: {
-      DATABASE_URL:
-        "postgresql://pierrebeunardeau@localhost:5432/galileo_test",
+      DATABASE_URL: TEST_DATABASE_URL,
       NODE_ENV: "test",
     },
   },
