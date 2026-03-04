@@ -41,6 +41,7 @@ describe("POST /products/:id/mint", () => {
   let app: FastifyInstance;
 
   let brandAdminCookie: string;
+  let adminCookie: string;
   let operatorCookie: string;
   let viewerCookie: string;
   let otherBrandAdminCookie: string;
@@ -186,6 +187,31 @@ describe("POST /products/:id/mint", () => {
     });
     const otherBrandAdminCookies = parseCookies(otherBrandAdminLogin);
     otherBrandAdminCookie = `galileo_at=${otherBrandAdminCookies.galileo_at}`;
+
+    // Register ADMIN user (no brand — can do everything)
+    const adminRes = await app.inject({
+      method: "POST",
+      url: "/auth/register",
+      payload: {
+        email: "mint-admin@test.com",
+        password: "password123",
+      },
+    });
+    const adminUser = adminRes.json().data.user;
+    await app.prisma.user.update({
+      where: { id: adminUser.id },
+      data: { role: "ADMIN" },
+    });
+    const adminLogin = await app.inject({
+      method: "POST",
+      url: "/auth/login",
+      payload: {
+        email: "mint-admin@test.com",
+        password: "password123",
+      },
+    });
+    const adminCookies = parseCookies(adminLogin);
+    adminCookie = `galileo_at=${adminCookies.galileo_at}`;
   });
 
   /**
@@ -373,5 +399,23 @@ describe("POST /products/:id/mint", () => {
     expect(eventData.txHash).toBe(passport!.txHash);
     expect(eventData.tokenAddress).toBe(passport!.tokenAddress);
     expect(eventData.chainId).toBe(84532);
+  });
+
+  // ── 10. ADMIN can mint any brand's product ─────────────────
+
+  it("ADMIN can mint any brand's product (200)", async () => {
+    const productId = await createDraftProduct("MINT-ADMIN-001");
+
+    const response = await app.inject({
+      method: "POST",
+      url: `/products/${productId}/mint`,
+      headers: { cookie: adminCookie, "x-galileo-client": "1" },
+    });
+
+    expect(response.statusCode).toBe(200);
+    const body = response.json();
+    expect(body.success).toBe(true);
+    expect(body.data.product.status).toBe("ACTIVE");
+    expect(body.data.product.passport.txHash).toMatch(/^0x[0-9a-f]{64}$/);
   });
 });

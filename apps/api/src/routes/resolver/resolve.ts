@@ -31,8 +31,10 @@ export default async function resolveDigitalLinkRoute(
         });
       }
 
-      // DB stores the original GTIN length — look up using the raw param
-      const product = await fastify.prisma.product.findUnique({
+      // DB stores the original GTIN length — try raw param first, then
+      // try with leading zeros stripped (e.g., 14-digit "00012345678905" → 13-digit "0012345678905")
+      // so that both padded and unpadded GTINs resolve correctly.
+      let product = await fastify.prisma.product.findUnique({
         where: {
           gtin_serialNumber: { gtin: rawGtin, serialNumber: serial },
         },
@@ -41,6 +43,24 @@ export default async function resolveDigitalLinkRoute(
           brand: true,
         },
       });
+
+      if (!product) {
+        // Strip leading zeros added by 14-digit padding to recover the stored form
+        const strippedGtin = rawGtin.replace(/^0+/, "") || "0";
+        // Re-pad to common lengths: try 13-digit form (most common stored form)
+        const gtin13 = strippedGtin.padStart(13, "0");
+        if (gtin13 !== rawGtin) {
+          product = await fastify.prisma.product.findUnique({
+            where: {
+              gtin_serialNumber: { gtin: gtin13, serialNumber: serial },
+            },
+            include: {
+              passport: true,
+              brand: true,
+            },
+          });
+        }
+      }
 
       // Return 404 if not found or status not publicly resolvable
       if (!product || !STATUS_MAP[product.status]) {

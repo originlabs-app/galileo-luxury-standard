@@ -8,7 +8,7 @@ export default async function mintProductRoute(fastify: FastifyInstance) {
     {
       onRequest: [
         fastify.authenticate,
-        requireRole("BRAND_ADMIN"),
+        requireRole("BRAND_ADMIN", "ADMIN"),
       ],
     },
     async (request, reply) => {
@@ -57,8 +57,8 @@ export default async function mintProductRoute(fastify: FastifyInstance) {
             throw new MintError(404, "NOT_FOUND", "Product not found");
           }
 
-          // Brand scoping: BRAND_ADMIN can only mint their own brand's products
-          if (product.brandId !== user.brandId) {
+          // Brand scoping: BRAND_ADMIN can only mint their own brand's products; ADMIN can mint any
+          if (user.role !== "ADMIN" && product.brandId !== user.brandId) {
             throw new MintError(403, "FORBIDDEN", "Access denied");
           }
 

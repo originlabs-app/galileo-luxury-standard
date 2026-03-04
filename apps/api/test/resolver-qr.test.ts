@@ -276,6 +276,36 @@ describe("Resolver & QR endpoints", () => {
       const body = response.json();
       expect(body.name).toBe("Special Serial Product");
     });
+
+    it("resolves product when using 14-digit padded GTIN (DB stores 13-digit)", async () => {
+      // The DB stores the 13-digit GTIN. Querying with the 14-digit padded
+      // form (leading zero added) should still resolve successfully.
+      const gtin14 = "0" + activeProductGtin; // e.g., "04006381333931"
+      const response = await app.inject({
+        method: "GET",
+        url: `/01/${gtin14}/21/${activeProductSerial}`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.headers["content-type"]).toContain("application/ld+json");
+      const body = response.json();
+      expect(body.name).toBe("Active Resolver Product");
+      expect(body["gs1:gtin"]).toBe(gtin14); // always returns 14-digit padded
+      expect(body["galileo:status"]).toBe("verified");
+    });
+
+    it("resolves product with original 13-digit GTIN as well", async () => {
+      // Querying with the original 13-digit GTIN should also work
+      const response = await app.inject({
+        method: "GET",
+        url: `/01/${activeProductGtin}/21/${activeProductSerial}`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = response.json();
+      expect(body.name).toBe("Active Resolver Product");
+      expect(body["galileo:status"]).toBe("verified");
+    });
   });
 
   // ─── QR Code Generation ──────────────────────────────────────
