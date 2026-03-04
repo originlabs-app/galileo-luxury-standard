@@ -42,6 +42,7 @@ Environment variables, external dependencies, and setup notes.
 - Use `--url` flag to override the datasource URL at push time (e.g., `prisma db push --url <connection_string>`)
 - Configuration lives in `prisma.config.ts` (not package.json)
 - Generator output path: `../src/generated/prisma`
+- **ESM extensionless imports**: Prisma 7 generated code uses extensionless imports (e.g., `./internal/class` instead of `./internal/class.js`). Plain `node` cannot resolve these — use `tsx` to run compiled API output. The Playwright webServer uses `npx tsx dist/main.js` instead of `node dist/main.js`. Note: `apps/api/package.json` `start` script still says `node dist/main.js` — it needs `tsx` in any context where Prisma is loaded.
 
 ## ESLint Compatibility
 - ESLint is pinned to ^9 in workspace packages (flat config format)

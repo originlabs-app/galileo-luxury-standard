@@ -1,0 +1,61 @@
+{
+  "milestone": "infra-fixes",
+  "round": 1,
+  "status": "pass",
+  "validatorsRun": {
+    "test": { "passed": true, "command": "pnpm turbo test", "exitCode": 0 },
+    "typecheck": { "passed": true, "command": "pnpm turbo typecheck", "exitCode": 0 },
+    "lint": { "passed": true, "command": "pnpm turbo lint", "exitCode": 0 }
+  },
+  "reviewsSummary": {
+    "total": 2,
+    "passed": 2,
+    "failed": 0,
+    "failedFeatures": []
+  },
+  "blockingIssues": [],
+  "appliedUpdates": [
+    {
+      "target": "library",
+      "description": "Added Prisma 7 ESM extensionless imports quirk to environment.md — documents that tsx is required instead of node for running compiled API output due to Prisma 7 generated code using extensionless imports.",
+      "sourceFeature": "cross-area-e2e-validation"
+    }
+  ],
+  "suggestedGuidanceUpdates": [
+    {
+      "target": "AGENTS.md",
+      "suggestion": "Update the Dashboard coding conventions category list to match actual codebase values: 'Leather Goods', 'Jewelry', 'Watches', 'Fashion', 'Accessories', 'Fragrances', 'Eyewear', 'Other'. Currently lists 'Handbags', 'Clothing', 'Footwear' which don't exist in the code, and is missing 'Fashion'.",
+      "evidence": "Feature infra-ci-portability-fixes review found that grep for 'Handbags|Clothing|Footwear' returns 0 matches across all source files. packages/shared/src/constants/categories.ts and apps/api/src/routes/products/create.ts both use 'Fashion', not 'Clothing'. AGENTS.md category list was never updated to reflect the actual enum values.",
+      "isSystemic": false
+    },
+    {
+      "target": "AGENTS.md",
+      "suggestion": "Add to Known Pre-Existing Issues: 'apps/api/package.json start script uses node dist/main.js but Prisma 7 ESM requires tsx. Use npx tsx dist/main.js for production-like runs.' Or better: fix the start script in a follow-up feature.",
+      "evidence": "Both reviews flagged this. infra-ci-portability-fixes worker used node dist/main.js per package.json, which failed. cross-area-e2e-validation worker fixed the Playwright config but noted the package.json start script is still wrong.",
+      "isSystemic": true
+    },
+    {
+      "target": "skills",
+      "suggestion": "Infra-worker skill: Add explicit exemption from TDD for config/CI-only changes (ci.yml, init.sh, services.yaml, constant alignment). The red-green-refactor pattern doesn't apply to non-testable configuration edits.",
+      "evidence": "infra-ci-portability-fixes worker flagged in skillFeedback that the TDD mandate doesn't fit config changes. Reasonable deviation — config changes are verified by build/typecheck/lint validators, not unit tests.",
+      "isSystemic": false
+    },
+    {
+      "target": "skills",
+      "suggestion": "Frontend-worker skill step 8: Recommend production mode (pnpm build && pnpm start) instead of dev mode for agent-browser testing, per AGENTS.md known issue about Next.js dev EMFILE on macOS.",
+      "evidence": "cross-area-e2e-validation review found that the frontend-worker skill says 'Start the API server AND the dashboard dev server' but AGENTS.md warns against dev mode due to EMFILE issues. Worker's skillFeedback confirms this gap.",
+      "isSystemic": false
+    }
+  ],
+  "rejectedObservations": [
+    {
+      "observation": "services.yaml API service should note that production mode requires tsx",
+      "reason": "services.yaml API service uses pnpm dev (tsx watch) which works correctly. Production mode is only needed for Playwright webServer, which is already configured correctly. Adding production mode notes to services.yaml would be confusing since services.yaml is for dev workflow."
+    },
+    {
+      "observation": "DATABASE_URL_TEST default uses 'postgres' which doesn't exist on macOS",
+      "reason": "already-documented — .factory/library/environment.md already documents that local connections use the OS user and that DATABASE_URL_TEST is auto-detected by init.sh. The test global-setup fallback is a pre-existing issue outside this milestone's scope."
+    }
+  ],
+  "previousRound": null
+}
