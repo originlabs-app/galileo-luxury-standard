@@ -1,4 +1,5 @@
 import { test as setup, expect } from "@playwright/test";
+import * as fs from "node:fs";
 
 const RUN_ID = Date.now();
 const TEST_EMAIL = `e2e-${RUN_ID}@galileo.test`;
@@ -26,6 +27,9 @@ setup("register and authenticate test user", async ({ page }) => {
 
   // Verify we are authenticated by seeing dashboard content
   await expect(page.locator("body")).toBeVisible();
+
+  // Ensure the auth directory exists before writing storage state
+  fs.mkdirSync("playwright/.auth", { recursive: true });
 
   // Save signed-in state (includes httpOnly cookies) so tests can reuse it
   await page.context().storageState({

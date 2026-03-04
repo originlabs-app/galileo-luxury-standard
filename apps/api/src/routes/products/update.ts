@@ -8,6 +8,8 @@ const PRODUCT_CATEGORIES = [
   "Watches",
   "Fashion",
   "Accessories",
+  "Fragrances",
+  "Eyewear",
   "Other",
 ] as const;
 
@@ -15,7 +17,7 @@ const updateProductBody = z
   .object({
     name: z.string().min(1).max(255, "Name must be at most 255 characters").optional(),
     description: z.string().max(2000, "Description must be at most 2000 characters").optional(),
-    category: z.enum(PRODUCT_CATEGORIES, { message: "Category must be one of: Leather Goods, Jewelry, Watches, Fashion, Accessories, Other" }).optional(),
+    category: z.enum(PRODUCT_CATEGORIES, { message: "Category must be one of: Leather Goods, Jewelry, Watches, Fashion, Accessories, Fragrances, Eyewear, Other" }).optional(),
   })
   .strict();
 

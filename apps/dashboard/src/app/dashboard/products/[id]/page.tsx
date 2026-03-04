@@ -121,6 +121,8 @@ const CATEGORY_OPTIONS = [
   { value: "Watches", label: "Watches" },
   { value: "Fashion", label: "Fashion" },
   { value: "Accessories", label: "Accessories" },
+  { value: "Fragrances", label: "Fragrances" },
+  { value: "Eyewear", label: "Eyewear" },
   { value: "Other", label: "Other" },
 ] as const;
 

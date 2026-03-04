@@ -37,16 +37,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Lint
         run: pnpm lint
@@ -58,7 +59,7 @@ jobs:
         run: pnpm --filter @galileo/api prisma generate
 
       - name: Push Prisma schema to database
-        run: pnpm --filter @galileo/api prisma db push --skip-generate
+        run: pnpm --filter @galileo/api prisma db push
 
       - name: Test
         run: pnpm test

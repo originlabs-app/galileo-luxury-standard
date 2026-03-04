@@ -41,7 +41,7 @@ export async function api<T = unknown>(
 
   // CSRF protection: send X-Galileo-Client header on state-mutating requests
   const method = (fetchOptions.method ?? "GET").toUpperCase();
-  if (method === "POST" || method === "PATCH" || method === "DELETE") {
+  if (method === "POST" || method === "PATCH" || method === "DELETE" || method === "PUT") {
     headers.set("X-Galileo-Client", "1");
   }
 
