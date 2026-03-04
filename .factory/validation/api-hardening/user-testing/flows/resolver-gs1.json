@@ -1,0 +1,126 @@
+{
+  "groupId": "resolver-gs1",
+  "testedAt": "2026-03-04T08:36:50.000Z",
+  "credentials": {
+    "account": "brandadmin1@galileo.test",
+    "namespace": "brandadmin1"
+  },
+  "toolsUsed": ["curl"],
+  "assertions": [
+    {
+      "id": "VAL-SEC-C3",
+      "title": "Resolver status mapped to public values",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "POST /products to create product with GTIN 0012345678905, serialNumber SER-RESOLV-001, category Jewelry",
+          "expected": "Product created in DRAFT status",
+          "observed": "Product created with id cmmbs91me00058y14cd6v20r4, status DRAFT"
+        },
+        {
+          "action": "POST /products/cmmbs91me00058y14cd6v20r4/mint with X-Galileo-Client header",
+          "expected": "Product status changes to ACTIVE",
+          "observed": "Product minted, status ACTIVE, txHash and passport populated"
+        },
+        {
+          "action": "GET /01/0012345678905/21/SER-RESOLV-001 (public resolver, no auth)",
+          "expected": "JSON-LD with galileo:status='verified' (not 'ACTIVE') and @type='IndividualProduct'",
+          "observed": "Response has \"galileo:status\": \"verified\" and \"@type\": \"IndividualProduct\" — raw ACTIVE status is never exposed"
+        }
+      ],
+      "evidence": {
+        "screenshots": [],
+        "consoleErrors": "N/A (curl test)",
+        "network": "POST /auth/login -> 200, POST /products -> 200, POST /products/:id/mint -> 200, GET /01/:gtin/21/:serial -> 200 with application/ld+json"
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-GS1-GAP1",
+      "title": "GTIN 14-digit padding in resolver URI",
+      "status": "fail",
+      "steps": [
+        {
+          "action": "POST /products with 13-digit GTIN '0012345678905'",
+          "expected": "Product created; digitalLink and DID use 14-digit padded GTIN",
+          "observed": "Product created. did: 'did:galileo:01:00012345678905:21:SER-RESOLV-001', digitalLink: 'https://id.galileoprotocol.io/01/00012345678905/21/SER-RESOLV-001' — both correctly use 14-digit padded GTIN"
+        },
+        {
+          "action": "GET /01/0012345678905/21/SER-RESOLV-001 (13-digit GTIN in URL)",
+          "expected": "200 with JSON-LD containing 14-digit padded GTIN in @id, gs1:gtin, digitalLink",
+          "observed": "200 OK. @id='did:galileo:01:00012345678905:21:SER-RESOLV-001', gs1:gtin='00012345678905', galileo:digitalLink uses 14-digit padded GTIN. All correct."
+        },
+        {
+          "action": "GET /01/00012345678905/21/SER-RESOLV-001 (14-digit padded GTIN in URL)",
+          "expected": "200 with same JSON-LD (resolver accepts both 13 and 14-digit)",
+          "observed": "404 NOT_FOUND — resolver does NOT accept 14-digit padded GTIN. DB stores original 13-digit GTIN and resolver uses raw URL param for lookup without trying padded/unpadded alternatives."
+        }
+      ],
+      "evidence": {
+        "screenshots": [],
+        "consoleErrors": "N/A (curl test)",
+        "network": "GET /01/0012345678905/21/SER-RESOLV-001 -> 200, GET /01/00012345678905/21/SER-RESOLV-001 -> 404"
+      },
+      "issues": "Resolver route in resolve.ts uses `gtin: rawGtin` for DB lookup (line: findUnique where gtin_serialNumber: { gtin: rawGtin }). Since DB stores original GTIN length (13 digits), looking up with 14-digit padded GTIN fails. The contract requires 'Resolver accepts both padded and unpadded'. Fix: resolver should try lookup with both rawGtin and padGtin14(rawGtin) (or strip leading zeros to match DB), or store GTIN as 14 digits in DB."
+    },
+    {
+      "id": "VAL-GS1-GAP2",
+      "title": "Resolver validates GTIN check digit",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "GET /01/00012345678901/21/SER-RESOLV-001 (14-digit GTIN with invalid check digit, last digit changed from 5 to 1)",
+          "expected": "400 with validation error (not 404)",
+          "observed": "400 with {\"success\":false,\"error\":{\"code\":\"VALIDATION_ERROR\",\"message\":\"Invalid GTIN check digit\"}}"
+        },
+        {
+          "action": "GET /01/0012345678901/21/SER-RESOLV-001 (13-digit GTIN with invalid check digit)",
+          "expected": "400 with validation error",
+          "observed": "400 with {\"success\":false,\"error\":{\"code\":\"VALIDATION_ERROR\",\"message\":\"Invalid GTIN check digit\"}}"
+        },
+        {
+          "action": "GET /01/0012345678905/21/SER-RESOLV-001 (13-digit GTIN with valid check digit)",
+          "expected": "200 with JSON-LD (normal response)",
+          "observed": "200 with full JSON-LD response — check digit validation passed, product resolved successfully"
+        }
+      ],
+      "evidence": {
+        "screenshots": [],
+        "consoleErrors": "N/A (curl test)",
+        "network": "GET /01/00012345678901/21/:serial -> 400, GET /01/0012345678901/21/:serial -> 400, GET /01/0012345678905/21/:serial -> 200"
+      },
+      "issues": null
+    },
+    {
+      "id": "VAL-DID-DID2",
+      "title": "JSON-LD custom context for Galileo terms",
+      "status": "pass",
+      "steps": [
+        {
+          "action": "GET /01/0012345678905/21/SER-RESOLV-001 and inspect @context",
+          "expected": "@context includes schema.org (@vocab), gs1 namespace (ref.gs1.org/voc/), and galileo namespace (galileoprotocol.io/ns/)",
+          "observed": "@context: {\"@vocab\":\"https://schema.org/\",\"gs1\":\"https://ref.gs1.org/voc/\",\"galileo\":\"https://galileoprotocol.io/ns/\"} — all three namespaces present"
+        },
+        {
+          "action": "Inspect Galileo-specific terms in response",
+          "expected": "Galileo terms (did, digitalLink, txHash, tokenAddress, chainId, mintedAt, status, serialNumber) prefixed with 'galileo:'",
+          "observed": "All Galileo terms correctly prefixed: galileo:status, galileo:serialNumber, galileo:digitalLink, galileo:did, galileo:passport, galileo:txHash, galileo:tokenAddress, galileo:chainId, galileo:mintedAt"
+        },
+        {
+          "action": "Inspect standard terms in response",
+          "expected": "Standard terms use schema.org (unprefixed) and gs1 vocabulary",
+          "observed": "name, description, category are unprefixed (schema.org via @vocab). gs1:gtin uses gs1 prefix. @type='IndividualProduct' uses schema.org."
+        }
+      ],
+      "evidence": {
+        "screenshots": [],
+        "consoleErrors": "N/A (curl test)",
+        "network": "GET /01/0012345678905/21/SER-RESOLV-001 -> 200, Content-Type: application/ld+json"
+      },
+      "issues": null
+    }
+  ],
+  "frictions": [],
+  "blockers": [],
+  "summary": "Tested 4 assertions: 3 passed (VAL-SEC-C3, VAL-GS1-GAP2, VAL-DID-DID2), 1 failed (VAL-GS1-GAP1: resolver does not accept 14-digit padded GTIN for lookup — DB stores original 13-digit GTIN and resolver uses raw URL param without normalization, so GET /01/00012345678905/... returns 404 while GET /01/0012345678905/... returns 200). The 14-digit padding works correctly in the response output (digitalLink, @id, gs1:gtin all use padded form), but the lookup path is broken for padded input."
+}

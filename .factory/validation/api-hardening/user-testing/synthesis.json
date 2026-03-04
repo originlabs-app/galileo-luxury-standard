@@ -1,0 +1,37 @@
+{
+  "milestone": "api-hardening",
+  "round": 1,
+  "status": "fail",
+  "assertionsSummary": {
+    "total": 12,
+    "passed": 10,
+    "failed": 1,
+    "blocked": 1
+  },
+  "passedAssertions": [
+    "VAL-SEC-C2",
+    "VAL-SEC-C3",
+    "VAL-SEC-C4",
+    "VAL-SEC-F2",
+    "VAL-SEC-F4",
+    "VAL-SEC-F5",
+    "VAL-SEC-I1",
+    "VAL-GS1-GAP2",
+    "VAL-DID-DID2",
+    "VAL-AUTH-1"
+  ],
+  "failedAssertions": [
+    {
+      "id": "VAL-GS1-GAP1",
+      "reason": "Resolver does not accept 14-digit padded GTIN in URL for DB lookup. DB stores original 13-digit GTIN; resolver uses raw URL param without normalization. GET /01/00012345678905/... returns 404 while GET /01/0012345678905/... returns 200. The response output correctly pads to 14 digits (digitalLink, @id, gs1:gtin), but the lookup path is broken for padded input."
+    }
+  ],
+  "blockedAssertions": [
+    {
+      "id": "VAL-SEC-C1",
+      "blockedBy": "Mint route uses requireRole('BRAND_ADMIN') which does not include ADMIN role. No BRAND_ADMIN test account was available with suitable permissions. The transaction-based race condition fix exists in code (Prisma $transaction with conditional updateMany) but cannot be exercised through the API with available credentials. Fix: add 'ADMIN' to mint route's requireRole call."
+    }
+  ],
+  "appliedUpdates": [],
+  "previousRound": null
+}
