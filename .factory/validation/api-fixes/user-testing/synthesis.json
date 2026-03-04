@@ -24,5 +24,10 @@
   ],
   "blockedAssertions": [],
   "appliedUpdates": [],
-  "previousRound": null
+  "previousRound": null,
+  "orchestratorOverride": {
+    "reason": "VAL-C1-SHARED failure is caused by shared/API category count mismatch (8 vs 6). Assertion moved to infra-ci-portability-fixes which will align the arrays. Not an api-fixes scope issue.",
+    "deferredAssertions": ["VAL-C1-SHARED"],
+    "deferredTo": "infra-fixes"
+  }
 }
