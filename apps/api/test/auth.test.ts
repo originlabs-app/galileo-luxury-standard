@@ -504,6 +504,7 @@ describe("Auth endpoints", () => {
         url: "/auth/logout",
         headers: {
           cookie: `galileo_at=${cookies.galileo_at}`,
+          "x-galileo-client": "1"
         },
       });
 
@@ -553,6 +554,7 @@ describe("Auth endpoints", () => {
         url: "/auth/logout",
         headers: {
           cookie: `galileo_at=${cookies.galileo_at}`,
+          "x-galileo-client": "1"
         },
       });
 
@@ -567,6 +569,7 @@ describe("Auth endpoints", () => {
       const response = await app.inject({
         method: "POST",
         url: "/auth/logout",
+        headers: { "x-galileo-client": "1" },
       });
 
       expect(response.statusCode).toBe(401);
@@ -591,6 +594,7 @@ describe("Auth endpoints", () => {
         url: "/auth/logout",
         headers: {
           cookie: `galileo_at=${cookies.galileo_at}`,
+          "x-galileo-client": "1"
         },
       });
 

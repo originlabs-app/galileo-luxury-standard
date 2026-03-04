@@ -1,4 +1,14 @@
 import type { FastifyInstance } from "fastify";
+import { validateGtin, padGtin14 } from "@galileo/shared";
+
+/**
+ * Maps internal product status to public-safe resolver values.
+ * Only ACTIVE and RECALLED are exposed; other statuses are hidden behind 404.
+ */
+const STATUS_MAP: Record<string, string> = {
+  ACTIVE: "verified",
+  RECALLED: "recalled",
+};
 
 export default async function resolveDigitalLinkRoute(
   fastify: FastifyInstance,
@@ -6,14 +16,25 @@ export default async function resolveDigitalLinkRoute(
   fastify.get<{ Params: { gtin: string; serial: string } }>(
     "/01/:gtin/21/:serial",
     async (request, reply) => {
-      const { gtin } = request.params;
+      const { gtin: rawGtin } = request.params;
       // URL-decode serial (Fastify already decodes params, but ensure it)
       const serial = decodeURIComponent(request.params.serial);
 
-      // Look up product by gtin + serialNumber
+      // Validate GTIN check digit before DB lookup
+      if (!validateGtin(rawGtin)) {
+        return reply.status(400).send({
+          success: false,
+          error: {
+            code: "VALIDATION_ERROR",
+            message: "Invalid GTIN check digit",
+          },
+        });
+      }
+
+      // DB stores the original GTIN length — look up using the raw param
       const product = await fastify.prisma.product.findUnique({
         where: {
-          gtin_serialNumber: { gtin, serialNumber: serial },
+          gtin_serialNumber: { gtin: rawGtin, serialNumber: serial },
         },
         include: {
           passport: true,
@@ -21,8 +42,8 @@ export default async function resolveDigitalLinkRoute(
         },
       });
 
-      // Return 404 if not found or DRAFT (do not leak DRAFT product data)
-      if (!product || product.status === "DRAFT") {
+      // Return 404 if not found or status not publicly resolvable
+      if (!product || !STATUS_MAP[product.status]) {
         return reply.status(404).send({
           success: false,
           error: {
@@ -32,28 +53,40 @@ export default async function resolveDigitalLinkRoute(
         });
       }
 
-      // Build JSON-LD payload
+      // Pad GTIN to 14 digits for all URIs (GS1 canonical form)
+      const gtin14 = padGtin14(rawGtin);
+      const mappedStatus = STATUS_MAP[product.status];
+
+      // Build JSON-LD payload with custom @context namespaces
       const jsonLd = {
-        "@context": ["https://schema.org", "https://gs1.org/voc"],
-        "@type": "Product",
+        "@context": {
+          "@vocab": "https://schema.org/",
+          gs1: "https://ref.gs1.org/voc/",
+          galileo: "https://galileoprotocol.io/ns/",
+        },
+        "@type": "IndividualProduct",
+        "@id": `did:galileo:01:${gtin14}:21:${serial}`,
         name: product.name,
         description: product.description,
-        gtin: product.gtin,
+        "gs1:gtin": gtin14,
         category: product.category,
-        status: product.status,
-        passport: product.passport
+        "galileo:status": mappedStatus,
+        "galileo:serialNumber": product.serialNumber,
+        "galileo:digitalLink": `https://id.galileoprotocol.io/01/${gtin14}/21/${encodeURIComponent(serial)}`,
+        "galileo:did": `did:galileo:01:${gtin14}:21:${serial}`,
+        "galileo:passport": product.passport
           ? {
-              digitalLink: product.passport.digitalLink,
-              txHash: product.passport.txHash,
-              tokenAddress: product.passport.tokenAddress,
-              chainId: product.passport.chainId,
-              mintedAt: product.passport.mintedAt,
+              "galileo:digitalLink": product.passport.digitalLink,
+              "galileo:txHash": product.passport.txHash,
+              "galileo:tokenAddress": product.passport.tokenAddress,
+              "galileo:chainId": product.passport.chainId,
+              "galileo:mintedAt": product.passport.mintedAt,
             }
           : null,
-        brand: product.brand
+        "galileo:brand": product.brand
           ? {
               name: product.brand.name,
-              did: product.brand.did,
+              "galileo:did": product.brand.did,
             }
           : null,
       };

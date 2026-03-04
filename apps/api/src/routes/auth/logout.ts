@@ -1,11 +1,12 @@
 import type { FastifyInstance } from "fastify";
 import { clearAuthCookies } from "../../utils/cookies.js";
+import { requireCsrfHeader } from "../../middleware/csrf.js";
 
 export default async function logoutRoute(fastify: FastifyInstance) {
   fastify.post(
     "/auth/logout",
     {
-      onRequest: [fastify.authenticate],
+      onRequest: [requireCsrfHeader, fastify.authenticate],
       schema: {
         description: "Logout and clear auth cookies",
         tags: ["Auth"],

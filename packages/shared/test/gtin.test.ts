@@ -4,6 +4,7 @@ import {
   validateGtin14,
   validateGtin,
   computeGtinCheckDigit,
+  padGtin14,
 } from "../src/validation/gtin.js";
 
 describe("GTIN-13 validation", () => {
@@ -91,5 +92,23 @@ describe("validateGtin (unified)", () => {
 
   it("rejects invalid-length GTIN through unified function", () => {
     expect(validateGtin("12345")).toBe(false);
+  });
+});
+
+describe("padGtin14", () => {
+  it("pads 13-digit GTIN to 14 digits with leading zero", () => {
+    expect(padGtin14("4006381333931")).toBe("04006381333931");
+  });
+
+  it("pads 13-digit GTIN starting with zero", () => {
+    expect(padGtin14("0012345678905")).toBe("00012345678905");
+  });
+
+  it("leaves 14-digit GTIN unchanged", () => {
+    expect(padGtin14("10614141007346")).toBe("10614141007346");
+  });
+
+  it("pads shorter strings to 14 digits", () => {
+    expect(padGtin14("12345")).toBe("00000000012345");
   });
 });

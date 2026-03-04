@@ -53,6 +53,7 @@ export {
   validateGtin14,
   validateGtin,
   computeGtinCheckDigit,
+  padGtin14,
 } from "./validation/gtin.js";
 export {
   generateDid,

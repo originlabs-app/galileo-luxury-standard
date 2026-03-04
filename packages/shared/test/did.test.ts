@@ -6,19 +6,19 @@ import {
 } from "../src/validation/did.js";
 
 describe("DID generation", () => {
-  it("generates correct DID format", () => {
+  it("generates correct DID format with 14-digit padded GTIN", () => {
     expect(generateDid("4006381333931", "ABC123")).toBe(
-      "did:galileo:01:4006381333931:21:ABC123"
+      "did:galileo:01:04006381333931:21:ABC123"
     );
   });
 
-  it("generates DID with numeric serial", () => {
+  it("generates DID with numeric serial and pads 13-digit GTIN", () => {
     expect(generateDid("0614141007349", "001")).toBe(
-      "did:galileo:01:0614141007349:21:001"
+      "did:galileo:01:00614141007349:21:001"
     );
   });
 
-  it("generates DID with GTIN-14", () => {
+  it("generates DID with GTIN-14 (no extra padding needed)", () => {
     expect(generateDid("10614141007346", "SN-2024")).toBe(
       "did:galileo:01:10614141007346:21:SN-2024"
     );
@@ -26,13 +26,13 @@ describe("DID generation", () => {
 });
 
 describe("GS1 Digital Link URL generation", () => {
-  it("generates correct URL format", () => {
+  it("generates correct URL format with 14-digit padded GTIN", () => {
     expect(generateDigitalLinkUrl("4006381333931", "ABC123")).toBe(
-      "https://id.galileoprotocol.io/01/4006381333931/21/ABC123"
+      "https://id.galileoprotocol.io/01/04006381333931/21/ABC123"
     );
   });
 
-  it("generates URL with GTIN-14", () => {
+  it("generates URL with GTIN-14 (no extra padding needed)", () => {
     expect(generateDigitalLinkUrl("10614141007346", "SN-2024")).toBe(
       "https://id.galileoprotocol.io/01/10614141007346/21/SN-2024"
     );
@@ -40,37 +40,37 @@ describe("GS1 Digital Link URL generation", () => {
 
   it("URL-encodes serial with hash (#)", () => {
     expect(generateDigitalLinkUrl("0012345678905", "SN#1")).toBe(
-      "https://id.galileoprotocol.io/01/0012345678905/21/SN%231"
+      "https://id.galileoprotocol.io/01/00012345678905/21/SN%231"
     );
   });
 
   it("URL-encodes serial with question mark (?)", () => {
     expect(generateDigitalLinkUrl("0012345678905", "SN?1")).toBe(
-      "https://id.galileoprotocol.io/01/0012345678905/21/SN%3F1"
+      "https://id.galileoprotocol.io/01/00012345678905/21/SN%3F1"
     );
   });
 
   it("URL-encodes serial with slash (/)", () => {
     expect(generateDigitalLinkUrl("0012345678905", "SN/1")).toBe(
-      "https://id.galileoprotocol.io/01/0012345678905/21/SN%2F1"
+      "https://id.galileoprotocol.io/01/00012345678905/21/SN%2F1"
     );
   });
 
   it("URL-encodes serial with space", () => {
     expect(generateDigitalLinkUrl("0012345678905", "SN 1")).toBe(
-      "https://id.galileoprotocol.io/01/0012345678905/21/SN%201"
+      "https://id.galileoprotocol.io/01/00012345678905/21/SN%201"
     );
   });
 
   it("URL-encodes serial with multiple special chars", () => {
     expect(generateDigitalLinkUrl("0012345678905", "SN#1/2")).toBe(
-      "https://id.galileoprotocol.io/01/0012345678905/21/SN%231%2F2"
+      "https://id.galileoprotocol.io/01/00012345678905/21/SN%231%2F2"
     );
   });
 
   it("does not double-encode already safe characters", () => {
     expect(generateDigitalLinkUrl("0012345678905", "SN-001")).toBe(
-      "https://id.galileoprotocol.io/01/0012345678905/21/SN-001"
+      "https://id.galileoprotocol.io/01/00012345678905/21/SN-001"
     );
   });
 });

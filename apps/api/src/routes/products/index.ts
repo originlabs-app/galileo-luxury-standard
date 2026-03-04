@@ -5,8 +5,12 @@ import getProductRoute from "./get.js";
 import updateProductRoute from "./update.js";
 import mintProductRoute from "./mint.js";
 import qrProductRoute from "./qr.js";
+import { requireCsrfHeader } from "../../middleware/csrf.js";
 
 export default async function productRoutes(fastify: FastifyInstance) {
+  // CSRF protection: require X-Galileo-Client header on POST/PATCH/DELETE
+  fastify.addHook("onRequest", requireCsrfHeader);
+
   await fastify.register(createProductRoute);
   await fastify.register(listProductsRoute);
   await fastify.register(getProductRoute);

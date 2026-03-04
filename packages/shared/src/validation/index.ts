@@ -3,6 +3,7 @@ export {
   validateGtin14,
   validateGtin,
   computeGtinCheckDigit,
+  padGtin14,
 } from "./gtin.js";
 
 export {

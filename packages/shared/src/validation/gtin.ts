@@ -72,3 +72,15 @@ export function validateGtin(gtin: string): boolean {
   if (gtin.length === 14) return validateGtin14(gtin);
   return false;
 }
+
+/**
+ * Pads a GTIN to 14 digits with leading zeros (GS1 GTIN-14 canonical form).
+ *
+ * Accepts GTIN-13 or GTIN-14 inputs. Shorter inputs are left-padded with zeros.
+ *
+ * @param gtin - The GTIN string (13 or 14 digits).
+ * @returns The 14-digit padded GTIN string.
+ */
+export function padGtin14(gtin: string): string {
+  return gtin.padStart(14, "0");
+}

@@ -195,7 +195,7 @@ describe("POST /products/:id/mint", () => {
     const res = await app.inject({
       method: "POST",
       url: "/products",
-      headers: { cookie: brandAdminCookie },
+      headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
       payload: {
         gtin: VALID_GTIN_13,
         serialNumber: serial,
@@ -214,7 +214,7 @@ describe("POST /products/:id/mint", () => {
     const response = await app.inject({
       method: "POST",
       url: `/products/${productId}/mint`,
-      headers: { cookie: brandAdminCookie },
+      headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
     });
 
     expect(response.statusCode).toBe(200);
@@ -249,7 +249,7 @@ describe("POST /products/:id/mint", () => {
     const first = await app.inject({
       method: "POST",
       url: `/products/${productId}/mint`,
-      headers: { cookie: brandAdminCookie },
+      headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
     });
     expect(first.statusCode).toBe(200);
 
@@ -257,7 +257,7 @@ describe("POST /products/:id/mint", () => {
     const second = await app.inject({
       method: "POST",
       url: `/products/${productId}/mint`,
-      headers: { cookie: brandAdminCookie },
+      headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
     });
 
     expect(second.statusCode).toBe(409);
@@ -274,7 +274,7 @@ describe("POST /products/:id/mint", () => {
     const response = await app.inject({
       method: "POST",
       url: `/products/${productId}/mint`,
-      headers: { cookie: operatorCookie },
+      headers: { cookie: operatorCookie, "x-galileo-client": "1" },
     });
 
     expect(response.statusCode).toBe(403);
@@ -288,7 +288,7 @@ describe("POST /products/:id/mint", () => {
     const response = await app.inject({
       method: "POST",
       url: `/products/${productId}/mint`,
-      headers: { cookie: viewerCookie },
+      headers: { cookie: viewerCookie, "x-galileo-client": "1" },
     });
 
     expect(response.statusCode).toBe(403);
@@ -302,6 +302,7 @@ describe("POST /products/:id/mint", () => {
     const response = await app.inject({
       method: "POST",
       url: `/products/${productId}/mint`,
+        headers: { "x-galileo-client": "1" },
     });
 
     expect(response.statusCode).toBe(401);
@@ -313,7 +314,7 @@ describe("POST /products/:id/mint", () => {
     const response = await app.inject({
       method: "POST",
       url: "/products/nonexistent-id-99999/mint",
-      headers: { cookie: brandAdminCookie },
+      headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
     });
 
     expect(response.statusCode).toBe(404);
@@ -327,7 +328,7 @@ describe("POST /products/:id/mint", () => {
     const response = await app.inject({
       method: "POST",
       url: `/products/${productId}/mint`,
-      headers: { cookie: otherBrandAdminCookie },
+      headers: { cookie: otherBrandAdminCookie, "x-galileo-client": "1" },
     });
 
     expect(response.statusCode).toBe(403);
@@ -350,7 +351,7 @@ describe("POST /products/:id/mint", () => {
     await app.inject({
       method: "POST",
       url: `/products/${productId}/mint`,
-      headers: { cookie: brandAdminCookie },
+      headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
     });
 
     // Verify passport directly from DB

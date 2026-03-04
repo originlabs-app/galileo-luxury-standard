@@ -170,7 +170,7 @@ describe("Security Hardening", () => {
       const createRes = await app.inject({
         method: "POST",
         url: "/products",
-        headers: { cookie: brandAdminCookie },
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
         payload: {
           gtin: VALID_GTIN_13,
           serialNumber: "RACE-001",
@@ -185,12 +185,12 @@ describe("Security Hardening", () => {
         app.inject({
           method: "POST",
           url: `/products/${productId}/mint`,
-          headers: { cookie: brandAdminCookie },
+          headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
         }),
         app.inject({
           method: "POST",
           url: `/products/${productId}/mint`,
-          headers: { cookie: brandAdminCookie },
+          headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
         }),
       ]);
 
@@ -217,7 +217,7 @@ describe("Security Hardening", () => {
       const response = await app.inject({
         method: "POST",
         url: "/products",
-        headers: { cookie: nullBrandUserCookie },
+        headers: { cookie: nullBrandUserCookie, "x-galileo-client": "1" },
         payload: {
           gtin: VALID_GTIN_13,
           serialNumber: "NULL-001",
@@ -234,7 +234,7 @@ describe("Security Hardening", () => {
       const createRes = await app.inject({
         method: "POST",
         url: "/products",
-        headers: { cookie: brandAdminCookie },
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
         payload: {
           gtin: VALID_GTIN_13,
           serialNumber: "NULL-DETAIL",
@@ -256,7 +256,7 @@ describe("Security Hardening", () => {
       const createRes = await app.inject({
         method: "POST",
         url: "/products",
-        headers: { cookie: brandAdminCookie },
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
         payload: {
           gtin: VALID_GTIN_13,
           serialNumber: "NULL-PATCH",
@@ -269,7 +269,7 @@ describe("Security Hardening", () => {
       const response = await app.inject({
         method: "PATCH",
         url: `/products/${productId}`,
-        headers: { cookie: nullBrandUserCookie },
+        headers: { cookie: nullBrandUserCookie, "x-galileo-client": "1" },
         payload: { name: "Updated" },
       });
       expect(response.statusCode).toBe(403);
@@ -279,7 +279,7 @@ describe("Security Hardening", () => {
       const createRes = await app.inject({
         method: "POST",
         url: "/products",
-        headers: { cookie: brandAdminCookie },
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
         payload: {
           gtin: VALID_GTIN_13,
           serialNumber: "NULL-MINT",
@@ -292,7 +292,7 @@ describe("Security Hardening", () => {
       const response = await app.inject({
         method: "POST",
         url: `/products/${productId}/mint`,
-        headers: { cookie: nullBrandUserCookie },
+        headers: { cookie: nullBrandUserCookie, "x-galileo-client": "1" },
       });
       expect(response.statusCode).toBe(403);
     });
@@ -301,7 +301,7 @@ describe("Security Hardening", () => {
       const createRes = await app.inject({
         method: "POST",
         url: "/products",
-        headers: { cookie: brandAdminCookie },
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
         payload: {
           gtin: VALID_GTIN_13,
           serialNumber: "NULL-QR",
@@ -327,7 +327,7 @@ describe("Security Hardening", () => {
       const response = await app.inject({
         method: "POST",
         url: "/products",
-        headers: { cookie: brandAdminCookie },
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
         payload: {
           gtin: VALID_GTIN_13,
           serialNumber: "BOUNDS-001",
@@ -343,7 +343,7 @@ describe("Security Hardening", () => {
       const response = await app.inject({
         method: "POST",
         url: "/products",
-        headers: { cookie: brandAdminCookie },
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
         payload: {
           gtin: VALID_GTIN_13,
           serialNumber: "S".repeat(101),
@@ -359,7 +359,7 @@ describe("Security Hardening", () => {
       const response = await app.inject({
         method: "POST",
         url: "/products",
-        headers: { cookie: brandAdminCookie },
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
         payload: {
           gtin: VALID_GTIN_13,
           serialNumber: "BOUNDS-002",
@@ -375,7 +375,7 @@ describe("Security Hardening", () => {
       const response = await app.inject({
         method: "POST",
         url: "/products",
-        headers: { cookie: brandAdminCookie },
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
         payload: {
           gtin: VALID_GTIN_13,
           serialNumber: "BOUNDS-003",
@@ -393,7 +393,7 @@ describe("Security Hardening", () => {
       const createRes = await app.inject({
         method: "POST",
         url: "/products",
-        headers: { cookie: brandAdminCookie },
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
         payload: {
           gtin: VALID_GTIN_13,
           serialNumber: "BOUNDS-004",
@@ -406,7 +406,7 @@ describe("Security Hardening", () => {
       const response = await app.inject({
         method: "PATCH",
         url: `/products/${productId}`,
-        headers: { cookie: brandAdminCookie },
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
         payload: {
           name: "A".repeat(256),
         },
@@ -418,7 +418,7 @@ describe("Security Hardening", () => {
       const createRes = await app.inject({
         method: "POST",
         url: "/products",
-        headers: { cookie: brandAdminCookie },
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
         payload: {
           gtin: VALID_GTIN_13,
           serialNumber: "BOUNDS-005",
@@ -431,7 +431,7 @@ describe("Security Hardening", () => {
       const response = await app.inject({
         method: "PATCH",
         url: `/products/${productId}`,
-        headers: { cookie: brandAdminCookie },
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
         payload: {
           category: "invalid-category",
         },
@@ -447,7 +447,7 @@ describe("Security Hardening", () => {
       const response = await app.inject({
         method: "POST",
         url: "/products",
-        headers: { cookie: adminCookie },
+        headers: { cookie: adminCookie, "x-galileo-client": "1" },
         payload: {
           gtin: VALID_GTIN_13,
           serialNumber: "ADMIN-001",
@@ -467,7 +467,7 @@ describe("Security Hardening", () => {
       const response = await app.inject({
         method: "POST",
         url: "/products",
-        headers: { cookie: adminCookie },
+        headers: { cookie: adminCookie, "x-galileo-client": "1" },
         payload: {
           gtin: VALID_GTIN_13,
           serialNumber: "ADMIN-002",
@@ -486,7 +486,7 @@ describe("Security Hardening", () => {
       const response = await app.inject({
         method: "POST",
         url: "/products",
-        headers: { cookie: brandAdminCookie },
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
         payload: {
           gtin: VALID_GTIN_13,
           serialNumber: "NONADMIN-001",

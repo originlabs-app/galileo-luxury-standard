@@ -11,6 +11,7 @@ async function refreshAccessToken(): Promise<boolean> {
     const response = await fetch(`${API_URL}/auth/refresh`, {
       method: "POST",
       credentials: "include",
+      headers: { "X-Galileo-Client": "1" },
     });
 
     if (!response.ok) return false;
@@ -31,6 +32,12 @@ export async function api<T = unknown>(
 
   if (!headers.has("Content-Type") && fetchOptions.body) {
     headers.set("Content-Type", "application/json");
+  }
+
+  // CSRF protection: send X-Galileo-Client header on state-mutating requests
+  const method = (fetchOptions.method ?? "GET").toUpperCase();
+  if (method === "POST" || method === "PATCH" || method === "DELETE") {
+    headers.set("X-Galileo-Client", "1");
   }
 
   const response = await fetch(url, {

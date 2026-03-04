@@ -126,7 +126,7 @@ describe("Resolver & QR endpoints", () => {
     const draftRes = await app.inject({
       method: "POST",
       url: "/products",
-      headers: { cookie: brandAdminCookie },
+      headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
       payload: {
         gtin: draftProductGtin,
         serialNumber: draftProductSerial,
@@ -143,7 +143,7 @@ describe("Resolver & QR endpoints", () => {
     const activeRes = await app.inject({
       method: "POST",
       url: "/products",
-      headers: { cookie: brandAdminCookie },
+      headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
       payload: {
         gtin: activeProductGtin,
         serialNumber: activeProductSerial,
@@ -158,7 +158,7 @@ describe("Resolver & QR endpoints", () => {
     await app.inject({
       method: "POST",
       url: `/products/${activeProductId}/mint`,
-      headers: { cookie: brandAdminCookie },
+      headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
     });
   });
 
@@ -177,29 +177,30 @@ describe("Resolver & QR endpoints", () => {
       );
 
       const body = response.json();
-      expect(body["@context"]).toEqual([
-        "https://schema.org",
-        "https://gs1.org/voc",
-      ]);
-      expect(body["@type"]).toBe("Product");
+      expect(body["@context"]).toEqual({
+        "@vocab": "https://schema.org/",
+        gs1: "https://ref.gs1.org/voc/",
+        galileo: "https://galileoprotocol.io/ns/",
+      });
+      expect(body["@type"]).toBe("IndividualProduct");
       expect(body.name).toBe("Active Resolver Product");
       expect(body.description).toBe("An active product for resolver tests");
-      expect(body.gtin).toBe(activeProductGtin);
+      expect(body["gs1:gtin"]).toBe("0" + activeProductGtin); // 14-digit padded
       expect(body.category).toBe("Jewelry");
-      expect(body.status).toBe("ACTIVE");
+      expect(body["galileo:status"]).toBe("verified");
 
-      // Passport fields
-      expect(body.passport).toBeDefined();
-      expect(body.passport.digitalLink).toContain("id.galileoprotocol.io");
-      expect(body.passport.txHash).toMatch(/^0x[a-f0-9]{64}$/);
-      expect(body.passport.tokenAddress).toMatch(/^0x[a-f0-9]{40}$/);
-      expect(body.passport.chainId).toBe(84532);
-      expect(body.passport.mintedAt).toBeDefined();
+      // Passport fields (with galileo: namespace)
+      expect(body["galileo:passport"]).toBeDefined();
+      expect(body["galileo:passport"]["galileo:digitalLink"]).toContain("id.galileoprotocol.io");
+      expect(body["galileo:passport"]["galileo:txHash"]).toMatch(/^0x[a-f0-9]{64}$/);
+      expect(body["galileo:passport"]["galileo:tokenAddress"]).toMatch(/^0x[a-f0-9]{40}$/);
+      expect(body["galileo:passport"]["galileo:chainId"]).toBe(84532);
+      expect(body["galileo:passport"]["galileo:mintedAt"]).toBeDefined();
 
-      // Brand fields
-      expect(body.brand).toBeDefined();
-      expect(body.brand.name).toBe("Resolver Test Brand");
-      expect(body.brand.did).toBe("did:galileo:brand:resolver-test-brand");
+      // Brand fields (with galileo: namespace)
+      expect(body["galileo:brand"]).toBeDefined();
+      expect(body["galileo:brand"].name).toBe("Resolver Test Brand");
+      expect(body["galileo:brand"]["galileo:did"]).toBe("did:galileo:brand:resolver-test-brand");
     });
 
     it("returns 404 for non-existent product", async () => {
@@ -247,7 +248,7 @@ describe("Resolver & QR endpoints", () => {
       const createRes = await app.inject({
         method: "POST",
         url: "/products",
-        headers: { cookie: brandAdminCookie },
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
         payload: {
           gtin: VALID_GTIN,
           serialNumber: specialSerial,
@@ -261,7 +262,7 @@ describe("Resolver & QR endpoints", () => {
       await app.inject({
         method: "POST",
         url: `/products/${specialId}/mint`,
-        headers: { cookie: brandAdminCookie },
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
       });
 
       // Resolve with URL-encoded serial

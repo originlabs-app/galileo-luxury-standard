@@ -208,7 +208,7 @@ describe("Product CRUD endpoints", () => {
       const response = await app.inject({
         method: "POST",
         url: "/products",
-        headers: { cookie: brandAdminCookie },
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
         payload: {
           gtin: VALID_GTIN_13,
           serialNumber: "SN-001",
@@ -231,13 +231,13 @@ describe("Product CRUD endpoints", () => {
       expect(product.category).toBe("Watches");
       expect(product.status).toBe("DRAFT");
       expect(product.brandId).toBe(testBrandId);
-      expect(product.did).toBe(`did:galileo:01:${VALID_GTIN_13}:21:SN-001`);
+      expect(product.did).toBe(`did:galileo:01:0${VALID_GTIN_13}:21:SN-001`);
 
       // Check passport
       const passport = body.data.passport;
       expect(passport).toBeDefined();
       expect(passport.digitalLink).toBe(
-        `https://id.galileoprotocol.io/01/${VALID_GTIN_13}/21/SN-001`,
+        `https://id.galileoprotocol.io/01/0${VALID_GTIN_13}/21/SN-001`,
       );
       expect(passport.productId).toBe(product.id);
 
@@ -253,7 +253,7 @@ describe("Product CRUD endpoints", () => {
       const response = await app.inject({
         method: "POST",
         url: "/products",
-        headers: { cookie: operatorCookie },
+        headers: { cookie: operatorCookie, "x-galileo-client": "1" },
         payload: {
           gtin: VALID_GTIN_13,
           serialNumber: "SN-OP-001",
@@ -271,7 +271,7 @@ describe("Product CRUD endpoints", () => {
       const response = await app.inject({
         method: "POST",
         url: "/products",
-        headers: { cookie: brandAdminCookie },
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
         payload: {
           gtin: "4006381333932", // wrong check digit (should be 1)
           serialNumber: "SN-002",
@@ -290,7 +290,7 @@ describe("Product CRUD endpoints", () => {
       const response = await app.inject({
         method: "POST",
         url: "/products",
-        headers: { cookie: brandAdminCookie },
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
         payload: {
           gtin: "400638ABCDEFG",
           serialNumber: "SN-003",
@@ -308,7 +308,7 @@ describe("Product CRUD endpoints", () => {
       const response = await app.inject({
         method: "POST",
         url: "/products",
-        headers: { cookie: brandAdminCookie },
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
         payload: {
           gtin: "12345",
           serialNumber: "SN-004",
@@ -325,7 +325,7 @@ describe("Product CRUD endpoints", () => {
       const first = await app.inject({
         method: "POST",
         url: "/products",
-        headers: { cookie: brandAdminCookie },
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
         payload: {
           gtin: VALID_GTIN_13,
           serialNumber: "SN-DUP",
@@ -339,7 +339,7 @@ describe("Product CRUD endpoints", () => {
       const second = await app.inject({
         method: "POST",
         url: "/products",
-        headers: { cookie: brandAdminCookie },
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
         payload: {
           gtin: VALID_GTIN_13,
           serialNumber: "SN-DUP",
@@ -358,6 +358,7 @@ describe("Product CRUD endpoints", () => {
       const response = await app.inject({
         method: "POST",
         url: "/products",
+        headers: { "x-galileo-client": "1" },
         payload: {
           gtin: VALID_GTIN_13,
           serialNumber: "SN-NOAUTH",
@@ -373,7 +374,7 @@ describe("Product CRUD endpoints", () => {
       const response = await app.inject({
         method: "POST",
         url: "/products",
-        headers: { cookie: viewerCookie },
+        headers: { cookie: viewerCookie, "x-galileo-client": "1" },
         payload: {
           gtin: VALID_GTIN_13,
           serialNumber: "SN-VIEWER",
@@ -389,7 +390,7 @@ describe("Product CRUD endpoints", () => {
       const response = await app.inject({
         method: "POST",
         url: "/products",
-        headers: { cookie: brandAdminCookie },
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
         payload: {
           gtin: VALID_GTIN_13,
           // missing serialNumber, name, category
@@ -409,7 +410,7 @@ describe("Product CRUD endpoints", () => {
         await app.inject({
           method: "POST",
           url: "/products",
-          headers: { cookie: brandAdminCookie },
+          headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
           payload: {
             gtin: VALID_GTIN_13,
             serialNumber: `LIST-SN-${String(i).padStart(3, "0")}`,
@@ -423,7 +424,7 @@ describe("Product CRUD endpoints", () => {
       await app.inject({
         method: "POST",
         url: "/products",
-        headers: { cookie: otherBrandAdminCookie },
+        headers: { cookie: otherBrandAdminCookie, "x-galileo-client": "1" },
         payload: {
           gtin: VALID_GTIN_13_B,
           serialNumber: "OTHER-001",
@@ -528,7 +529,7 @@ describe("Product CRUD endpoints", () => {
       const createRes = await app.inject({
         method: "POST",
         url: "/products",
-        headers: { cookie: brandAdminCookie },
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
         payload: {
           gtin: VALID_GTIN_13,
           serialNumber: "DETAIL-001",
@@ -611,7 +612,7 @@ describe("Product CRUD endpoints", () => {
       const createRes = await app.inject({
         method: "POST",
         url: "/products",
-        headers: { cookie: brandAdminCookie },
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
         payload: {
           gtin: VALID_GTIN_13,
           serialNumber: "PATCH-001",
@@ -627,7 +628,7 @@ describe("Product CRUD endpoints", () => {
       const response = await app.inject({
         method: "PATCH",
         url: `/products/${draftProductId}`,
-        headers: { cookie: brandAdminCookie },
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
         payload: {
           name: "Updated Name",
           description: "Updated description",
@@ -661,7 +662,7 @@ describe("Product CRUD endpoints", () => {
       const response = await app.inject({
         method: "PATCH",
         url: `/products/${draftProductId}`,
-        headers: { cookie: brandAdminCookie },
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
         payload: {
           name: "Should Not Update",
         },
@@ -676,7 +677,7 @@ describe("Product CRUD endpoints", () => {
       const response = await app.inject({
         method: "PATCH",
         url: `/products/${draftProductId}`,
-        headers: { cookie: brandAdminCookie },
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
         payload: {
           gtin: "9999999999999",
           serialNumber: "CHANGED",
@@ -692,7 +693,7 @@ describe("Product CRUD endpoints", () => {
       const response = await app.inject({
         method: "PATCH",
         url: `/products/${draftProductId}`,
-        headers: { cookie: otherBrandAdminCookie },
+        headers: { cookie: otherBrandAdminCookie, "x-galileo-client": "1" },
         payload: {
           name: "Intruder Update",
         },
@@ -705,7 +706,7 @@ describe("Product CRUD endpoints", () => {
       const response = await app.inject({
         method: "PATCH",
         url: "/products/nonexistent-id-12345",
-        headers: { cookie: brandAdminCookie },
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
         payload: {
           name: "Ghost Update",
         },
@@ -718,7 +719,7 @@ describe("Product CRUD endpoints", () => {
       const response = await app.inject({
         method: "PATCH",
         url: `/products/${draftProductId}`,
-        headers: { cookie: viewerCookie },
+        headers: { cookie: viewerCookie, "x-galileo-client": "1" },
         payload: {
           name: "Viewer Update",
         },
@@ -731,6 +732,7 @@ describe("Product CRUD endpoints", () => {
       const response = await app.inject({
         method: "PATCH",
         url: `/products/${draftProductId}`,
+        headers: { "x-galileo-client": "1" },
         payload: {
           name: "No Auth Update",
         },
