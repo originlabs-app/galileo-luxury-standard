@@ -6,11 +6,12 @@ Environment variables, external dependencies, and setup notes.
 
 ## PostgreSQL
 - Running via Homebrew (PostgreSQL 14) on localhost:5432
-- System user: pierrebeunardeau (no password needed for local connections)
+- Local connections use the OS user (detected dynamically via `whoami` or `$PGUSER`)
 - Dev database: galileo_dev
 - Test database: galileo_test
-- Dev connection: postgresql://pierrebeunardeau@localhost:5432/galileo_dev
-- Test connection: postgresql://pierrebeunardeau@localhost:5432/galileo_test
+- Test connection: controlled by `DATABASE_URL_TEST` env var (fallback: `postgresql://postgres@localhost:5432/galileo_test`)
+- Dev connection: controlled by `DATABASE_URL` env var in `apps/api/.env`
+- `.factory/init.sh` auto-detects the OS user and exports `DATABASE_URL_TEST`
 
 ## Node.js
 - Version 22 (specified in .nvmrc)
@@ -25,6 +26,10 @@ Environment variables, external dependencies, and setup notes.
 - Version 1.58.2 (installed globally)
 - E2E config: apps/dashboard/playwright.config.ts
 - E2E tests: apps/dashboard/e2e/
+
+## Turbo passThroughEnv
+- turbo.json `test` task has `passThroughEnv: ["DATABASE_URL_TEST"]`
+- If you add a new env var needed by tests, you MUST add it to turbo.json `passThroughEnv` for the `test` task — otherwise turbo caching will mask it and tests silently use fallback values
 
 ## Vitest — API Test Isolation
 - `fileParallelism: false` is set in apps/api/vitest.config.ts
