@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useSyncExternalStore, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { clearLegacyTokens } from "@/lib/auth";
 
@@ -39,43 +39,14 @@ interface MeData {
   user: User;
 }
 
-type AuthState = "loading" | "authenticated" | "unauthenticated";
-
-// Simple subscription for auth state
-let listeners: Array<() => void> = [];
-let authSnapshot: { state: AuthState } = { state: "loading" };
-
-function subscribe(listener: () => void) {
-  listeners = [...listeners, listener];
-  return () => {
-    listeners = listeners.filter((l) => l !== listener);
-  };
-}
-
-function getSnapshot() {
-  return authSnapshot;
-}
-
-function getServerSnapshot() {
-  return { state: "loading" as AuthState };
-}
-
-function setAuthState(state: AuthState) {
-  authSnapshot = { state };
-  for (const listener of listeners) {
-    listener();
-  }
-}
+// Single auth state type — no separate isLoading or dual source of truth (C9 fix).
+type AuthState =
+  | { state: "loading"; user: null }
+  | { state: "authenticated"; user: User }
+  | { state: "unauthenticated"; user: null };
 
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const authState = useSyncExternalStore(
-    subscribe,
-    getSnapshot,
-    getServerSnapshot,
-  );
+  const [auth, setAuth] = useState<AuthState>({ state: "loading", user: null });
 
   // Clear legacy localStorage tokens and fetch user on mount
   useEffect(() => {
@@ -86,16 +57,12 @@ export function useAuth() {
     api<ApiResponse<MeData>>("/auth/me")
       .then((response) => {
         if (!cancelled) {
-          setUser(response.data.user);
-          setIsLoading(false);
-          setAuthState("authenticated");
+          setAuth({ state: "authenticated", user: response.data.user });
         }
       })
       .catch(() => {
         if (!cancelled) {
-          setUser(null);
-          setIsLoading(false);
-          setAuthState("unauthenticated");
+          setAuth({ state: "unauthenticated", user: null });
         }
       });
 
@@ -110,8 +77,7 @@ export function useAuth() {
       body: JSON.stringify(params),
       skipAuth: true,
     });
-    setUser(response.data.user);
-    setAuthState("authenticated");
+    setAuth({ state: "authenticated", user: response.data.user });
   }, []);
 
   const register = useCallback(async (params: RegisterParams) => {
@@ -120,8 +86,7 @@ export function useAuth() {
       body: JSON.stringify(params),
       skipAuth: true,
     });
-    setUser(response.data.user);
-    setAuthState("authenticated");
+    setAuth({ state: "authenticated", user: response.data.user });
   }, []);
 
   const logout = useCallback(async () => {
@@ -130,14 +95,13 @@ export function useAuth() {
     } catch {
       // Ignore errors — server might already be logged out
     }
-    setUser(null);
-    setAuthState("unauthenticated");
+    setAuth({ state: "unauthenticated", user: null });
   }, []);
 
   return {
-    user,
-    isLoading,
-    isAuthenticated: authState.state === "authenticated",
+    user: auth.user,
+    isLoading: auth.state === "loading",
+    isAuthenticated: auth.state === "authenticated",
     login,
     register,
     logout,

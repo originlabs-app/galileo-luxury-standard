@@ -7,7 +7,7 @@ export default fp(async (fastify: FastifyInstance) => {
   await fastify.register(fastifyCors, {
     origin: config.CORS_ORIGIN,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type"],
+    allowedHeaders: ["Content-Type", "X-Galileo-Client"],
     credentials: true,
   });
 });
