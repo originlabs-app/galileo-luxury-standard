@@ -1,0 +1,46 @@
+{
+  "milestone": "misc-hardening-fixes",
+  "round": 1,
+  "status": "pass",
+  "validatorsRun": {
+    "test": {
+      "passed": true,
+      "command": "DATABASE_URL_TEST=\"postgresql://pierrebeunardeau@localhost:5432/galileo_test\" pnpm turbo test",
+      "exitCode": 0,
+      "details": "184 tests passed across 4 packages (shared: 63, api: 121)"
+    },
+    "typecheck": {
+      "passed": true,
+      "command": "pnpm turbo typecheck",
+      "exitCode": 0
+    },
+    "lint": {
+      "passed": true,
+      "command": "pnpm turbo lint",
+      "exitCode": 0
+    }
+  },
+  "reviewsSummary": {
+    "total": 1,
+    "passed": 1,
+    "failed": 0,
+    "failedFeatures": []
+  },
+  "blockingIssues": [],
+  "appliedUpdates": [],
+  "suggestedGuidanceUpdates": [
+    {
+      "target": "skills",
+      "suggestion": "Make browser testing conditional in the frontend-worker skill for changes that don't affect visible UI behavior (e.g., enum value fixes that only change form option values). For form value-only changes that pass build+typecheck, browser testing adds minimal value.",
+      "evidence": "Feature fix-dashboard-category-enum involved changing category option values from kebab-case to title-case. Browser testing was prescribed but added no additional signal beyond build+typecheck passing.",
+      "isSystemic": false
+    }
+  ],
+  "rejectedObservations": [
+    {
+      "observation": "PRODUCT_CATEGORIES list duplicated in create.ts and update.ts — a shared constant would be safer.",
+      "reason": "Pre-existing pattern not introduced by this milestone. Out of scope for misc-hardening-fixes. Could be a future improvement but not a shared state update."
+    }
+  ],
+  "previousRound": null
+}
