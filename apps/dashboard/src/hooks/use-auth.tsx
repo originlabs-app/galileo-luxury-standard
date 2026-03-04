@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 import { api } from "@/lib/api";
 import { clearLegacyTokens } from "@/lib/auth";
 
@@ -45,7 +52,18 @@ type AuthState =
   | { state: "authenticated"; user: User }
   | { state: "unauthenticated"; user: null };
 
-export function useAuth() {
+interface AuthContextValue {
+  user: User | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  login: (params: LoginParams) => Promise<void>;
+  register: (params: RegisterParams) => Promise<void>;
+  logout: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextValue | null>(null);
+
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [auth, setAuth] = useState<AuthState>({ state: "loading", user: null });
 
   // Clear legacy localStorage tokens and fetch user on mount
@@ -98,7 +116,7 @@ export function useAuth() {
     setAuth({ state: "unauthenticated", user: null });
   }, []);
 
-  return {
+  const value: AuthContextValue = {
     user: auth.user,
     isLoading: auth.state === "loading",
     isAuthenticated: auth.state === "authenticated",
@@ -106,4 +124,14 @@ export function useAuth() {
     register,
     logout,
   };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth(): AuthContextValue {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
 }

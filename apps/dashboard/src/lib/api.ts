@@ -6,8 +6,9 @@ interface FetchOptions extends RequestInit {
   skipAuth?: boolean;
 }
 
-// Guard: refreshPromise must only exist in the browser to prevent leaking
-// across concurrent SSR requests (C8 security fix).
+// Guard: refreshPromise must only exist in the browser. The typeof window
+// check below prevents SSR leaks across concurrent server-side requests
+// (C8 security fix).
 let refreshPromise: Promise<boolean> | null = null;
 
 async function refreshAccessToken(): Promise<boolean> {
@@ -51,8 +52,9 @@ export async function api<T = unknown>(
   });
 
   if (response.status === 401 && !skipAuth) {
-    // Only attempt refresh in the browser — never share refreshPromise
-    // across concurrent SSR requests (C8 security fix).
+    // Only attempt refresh in the browser — the typeof window guard
+    // prevents sharing refreshPromise across concurrent SSR requests
+    // (C8 security fix).
     if (typeof window === "undefined") {
       throw new ApiError(401, "Session expired. Please log in again.");
     }
