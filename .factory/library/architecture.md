@@ -56,6 +56,12 @@ Architectural decisions, patterns, and conventions.
 - JWT tokens include a `jti` (JWT ID) claim with `crypto.randomUUID()` to prevent duplicate tokens when generated in the same second with identical payloads
 - This is critical for refresh token rotation where concurrent requests could otherwise produce identical tokens
 
+## Category Enum: Shared vs API Mismatch
+- `packages/shared/src/constants/categories.ts` exports 8 categories: Watches, Jewelry, Handbags, Leather Goods, Clothing, Footwear, Accessories, Fragrances, Eyewear, Other
+- API route files (`apps/api/src/routes/products/create.ts` and `update.ts`) define their own `PRODUCT_CATEGORIES` arrays with only 6 values (no Fragrances or Eyewear)
+- The dashboard edit page uses the shared constants, so selecting Fragrances or Eyewear would cause a 400 from the API
+- If adding new categories, update BOTH the shared package AND the API route validation arrays
+
 ## GDPR Compliance
 - Passwords: bcrypt 12 rounds, max 128 chars
 - JWT: minimal payload (sub, role, brandId only)
