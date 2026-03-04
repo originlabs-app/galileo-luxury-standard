@@ -1,0 +1,28 @@
+{
+  "flowId": "cross-edit",
+  "assertions": {
+    "VAL-CROSS-EDIT": {
+      "status": "pass",
+      "evidence": "Created product 'Test Round-Trip Product' with category 'Watches' via /dashboard/products/new. Navigated to detail page at /dashboard/products/cmmc5n7u40002bw14e7l9a0s5. Verified category displayed as 'Watches'. Clicked Edit, changed category dropdown from 'Watches' to 'Jewelry', clicked 'Save Changes'. Product detail page now shows category 'Jewelry' and a 'Product Updated' event in the timeline. No console errors. Screenshots: 01-dashboard-after-login.png, 02-create-product-form.png, 03-product-detail.png, 04-edit-form.png, 05-product-updated-jewelry.png",
+      "steps": [
+        "Navigated to http://localhost:3000/login",
+        "Filled email 'utval-infra1-1772635678@galileo.test' and password, clicked Sign In",
+        "Redirected to /dashboard — login successful",
+        "Navigated to /dashboard/products/new",
+        "Filled product form: Name='Test Round-Trip Product', GTIN='00012345678905', Serial='RT-001', Category='Watches'",
+        "Clicked 'Create Product' — redirected to product detail page /dashboard/products/cmmc5n7u40002bw14e7l9a0s5",
+        "Verified product detail shows Category: Watches, Status: DRAFT, all fields correct",
+        "Clicked 'Edit' button — inline edit form appeared with Name, Category, Description fields",
+        "Opened Category dropdown — 'Watches' shown as selected",
+        "Selected 'Jewelry' from dropdown",
+        "Clicked 'Save Changes'",
+        "Verified product detail now shows Category: Jewelry (updated from Watches)",
+        "Verified 'Product Updated' event in timeline confirming the change was persisted",
+        "Checked console errors — none found"
+      ]
+    }
+  },
+  "frictions": [],
+  "blockers": [],
+  "toolsUsed": ["agent-browser"]
+}

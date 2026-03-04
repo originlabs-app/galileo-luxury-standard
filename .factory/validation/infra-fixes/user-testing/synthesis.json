@@ -1,0 +1,26 @@
+{
+  "milestone": "infra-fixes",
+  "round": 1,
+  "status": "pass",
+  "assertionsSummary": {
+    "total": 9,
+    "passed": 9,
+    "failed": 0,
+    "blocked": 0
+  },
+  "passedAssertions": [
+    "VAL-C2-PRISMA",
+    "VAL-C3-CACHE",
+    "VAL-I8-PROD",
+    "VAL-I9-DIR",
+    "VAL-I2-INIT",
+    "VAL-SVC-PATHS",
+    "VAL-C1-SHARED",
+    "VAL-CROSS-E2E",
+    "VAL-CROSS-EDIT"
+  ],
+  "failedAssertions": [],
+  "blockedAssertions": [],
+  "appliedUpdates": [],
+  "previousRound": null
+}
