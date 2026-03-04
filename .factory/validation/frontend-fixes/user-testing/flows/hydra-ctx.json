@@ -1,0 +1,18 @@
+{
+  "flowId": "hydra-ctx",
+  "assertions": {
+    "VAL-I6-HYDRA": {
+      "status": "pass",
+      "evidence": "Logged in as utval-frontend1@galileo.test, navigated to /dashboard, reloaded page. `agent-browser errors` returned empty (no JS errors). `agent-browser console` returned empty. No hydration error #418, no 'Hydration failed', no 'Text content does not match' messages. Screenshots: dashboard-after-login.png, dashboard-fresh-load.png.",
+      "details": "AuthGuard renders consistently on SSR and client — no null→div mismatch. Dashboard pages load cleanly without React hydration errors."
+    },
+    "VAL-I10-CTX": {
+      "status": "pass",
+      "evidence": "After fresh page reload of /dashboard, `agent-browser network requests` shows exactly 1 GET http://localhost:4000/auth/me (fetch) request. Multiple components on the dashboard share a single /auth/me fetch via AuthProvider Context, not one per hook instance.",
+      "details": "Network request log from fresh dashboard load confirmed only 1 /auth/me fetch. Full request list captured showing all document, script, stylesheet, font, and fetch requests — only a single /auth/me call among them."
+    }
+  },
+  "frictions": [],
+  "blockers": [],
+  "toolsUsed": ["agent-browser"]
+}
