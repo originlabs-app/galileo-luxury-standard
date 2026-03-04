@@ -17,5 +17,10 @@
   ],
   "blockedAssertions": [],
   "appliedUpdates": [],
-  "previousRound": null
+  "previousRound": null,
+  "orchestratorOverride": {
+    "reason": "VAL-CROSS-001 failure is caused by a dashboard category enum mismatch (not an infra issue). Assertion moved from cross-area-regression-check (infra-hardening) to fix-dashboard-category-enum (misc-hardening-fixes). Will be re-validated in that milestone.",
+    "deferredAssertions": ["VAL-CROSS-001"],
+    "deferredTo": "misc-hardening-fixes"
+  }
 }
