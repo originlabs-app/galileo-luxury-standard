@@ -27,7 +27,7 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: "cd ../api && pnpm build && PORT=4000 node dist/main.js",
+      command: "cd ../api && pnpm build && PORT=4000 npx tsx dist/main.js",
       url: "http://localhost:4000/health",
       reuseExistingServer: !process.env.CI,
       timeout: 60_000,
