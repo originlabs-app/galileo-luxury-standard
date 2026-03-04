@@ -1,0 +1,33 @@
+{
+  "featureId": "frontend-auth-refactor",
+  "reviewedAt": "2026-03-04T13:45:00.000Z",
+  "commitId": "9f7fa2c",
+  "transcriptSkeletonReviewed": true,
+  "diffReviewed": true,
+  "status": "pass",
+  "codeReview": {
+    "summary": "All three issues (I6, I10, I1) are correctly implemented. AuthGuard uses useSyncExternalStore for SSR-safe mounted detection — getServerSnapshot returns false (used during SSR and hydration) while getSnapshot returns true (used post-hydration), ensuring both SSR and first client render produce identical null output with no hydration mismatch. useAuth is properly refactored into an AuthProvider Context pattern: AuthProvider wraps the root layout, fetches /auth/me once on mount with a cancellation guard, and shares auth state via React Context to all consumers. The useAuth() hook return shape is unchanged ({ user, isLoading, isAuthenticated, login, logout, register }). The api.ts refreshPromise comment now correctly credits the typeof window guard for SSR safety. File rename from .ts to .tsx is appropriate for JSX usage. All 6 call sites continue to work with the same import path. Build, typecheck, lint, and 186 tests pass per handoff verification. Interactive browser checks confirm no hydration errors and shared /auth/me fetch behavior.",
+    "issues": [
+      {
+        "file": "apps/dashboard/src/components/auth-guard.tsx",
+        "line": 33,
+        "severity": "non_blocking",
+        "description": "The old AuthGuard showed a loading spinner during isLoading; the new version returns null (no visual feedback). This is a deliberate and correct tradeoff to eliminate the hydration mismatch (SSR can't produce the spinner div), but it means users see a blank screen during the brief auth check. Acceptable since the /auth/me call is fast and the alternative (hydration error) is worse."
+      }
+    ]
+  },
+  "sharedStateObservations": [
+    {
+      "area": "skills",
+      "observation": "The frontend-worker SKILL.md step 4 references 'use-auth hook' and describes the /auth/me fetch pattern, but doesn't mention that useAuth is now backed by a React Context (AuthProvider) or that the file was renamed to .tsx. Future workers modifying auth flow should know about the Context pattern to avoid accidentally creating a parallel auth state.",
+      "evidence": "SKILL.md step 4: 'The use-auth hook checks auth status via GET /auth/me' — still technically correct but incomplete. Post-refactor the hook delegates to AuthProvider Context in use-auth.tsx."
+    },
+    {
+      "area": "skills",
+      "observation": "Worker's handoff skillFeedback suggests documenting useSyncExternalStore as a recommended pattern for SSR-safe hydration guards. This is a non-obvious React pattern that avoids both the hydration mismatch and the react-hooks/set-state-in-effect lint violation that a naive useState+useEffect mounted pattern would trigger.",
+      "evidence": "handoff.skillFeedback.suggestedChanges: 'The frontend-worker skill mentions using useSyncExternalStore for mounted detection as part of the AuthGuard fix — this could be added as a recommended pattern in the skill for SSR-safe hydration guards.'"
+    }
+  ],
+  "addressesFailureFrom": null,
+  "summary": "PASS — All three frontend fixes are correctly implemented. (1) AuthGuard hydration mismatch eliminated via useSyncExternalStore: SSR and hydration both return null, then real content renders post-hydration. (2) useAuth refactored to AuthProvider Context wrapping root layout; single /auth/me fetch shared across all consumers; return shape preserved. (3) api.ts comment correctly credits typeof window guard for SSR safety. No regressions found. Code quality is good: proper typing, useCallback for stable references, discriminated union for auth state, cancellation guard on the /auth/me effect. One non-blocking observation: loading spinner was removed (returns null instead) as a hydration fix tradeoff."
+}
