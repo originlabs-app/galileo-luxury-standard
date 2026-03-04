@@ -1,0 +1,39 @@
+{
+  "milestone": "frontend-hardening",
+  "round": 1,
+  "status": "pass",
+  "validatorsRun": {
+    "test": { "passed": true, "command": "pnpm turbo test", "exitCode": 0 },
+    "typecheck": { "passed": true, "command": "pnpm turbo typecheck", "exitCode": 0 },
+    "lint": { "passed": true, "command": "pnpm turbo lint", "exitCode": 0 }
+  },
+  "reviewsSummary": {
+    "total": 1,
+    "passed": 1,
+    "failed": 0,
+    "failedFeatures": []
+  },
+  "blockingIssues": [],
+  "appliedUpdates": [],
+  "suggestedGuidanceUpdates": [
+    {
+      "target": "AGENTS.md",
+      "suggestion": "Clarify CSRF header coverage for PUT method. CORS config allows PUT but AGENTS.md CSRF convention only lists POST/PATCH/DELETE. Either extend CSRF requirement to PUT or explicitly document that PUT is exempt.",
+      "evidence": "Feature frontend-security-hardening review: apps/api/src/plugins/cors.ts allows PUT method, AGENTS.md CSRF section lists only POST/PATCH/DELETE, dashboard api.ts CSRF check only covers POST/PATCH/DELETE. Currently no PUT endpoints exist, but the gap should be documented.",
+      "isSystemic": false
+    },
+    {
+      "target": "skills",
+      "suggestion": "Add SSR safety patterns to frontend-worker skill documentation. Document that utility modules with module-level mutable state (e.g., refreshPromise, in-flight dedup) need 'use client' directive and/or typeof window guards to prevent cross-request leakage in Next.js App Router.",
+      "evidence": "Feature frontend-security-hardening: worker correctly applied two-layer SSR guard (use client + typeof window) to api.ts, but this pattern was not documented in the frontend-worker skill. Worker had to know this independently from the feature description.",
+      "isSystemic": false
+    }
+  ],
+  "rejectedObservations": [
+    {
+      "observation": "CORS allowedHeaders gap (X-Galileo-Client missing) should have been caught by api-csrf-resolver-conformity feature in api-hardening milestone.",
+      "reason": "Historical observation — the gap has already been fixed in this feature (cors.ts updated). No action needed; this is a retrospective note, not actionable guidance."
+    }
+  ],
+  "previousRound": null
+}
