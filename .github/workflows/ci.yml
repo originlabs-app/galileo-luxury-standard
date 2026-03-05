@@ -65,7 +65,7 @@ jobs:
         run: pnpm test
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+        run: pnpm --filter @galileo/dashboard exec playwright install --with-deps chromium
 
       - name: Build dashboard
         run: pnpm --filter @galileo/dashboard build
