@@ -50,7 +50,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma client
-        run: pnpm --filter @galileo/api prisma generate
+        run: pnpm --filter @galileo/api exec prisma generate
 
       - name: Lint
         run: pnpm lint
@@ -59,7 +59,7 @@ jobs:
         run: pnpm typecheck
 
       - name: Push Prisma schema to database
-        run: pnpm --filter @galileo/api prisma db push
+        run: pnpm --filter @galileo/api exec prisma db push
 
       - name: Test
         run: pnpm test
