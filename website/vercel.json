@@ -1,5 +1,6 @@
 {
   "installCommand": "npm ci",
+  "buildCommand": "next build",
   "headers": [
     {
       "source": "/_next/static/(.*)",
