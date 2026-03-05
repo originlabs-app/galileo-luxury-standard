@@ -36,8 +36,9 @@ npm-debug.log*
 yarn-debug.log*
 pnpm-debug.log*
 
-# Internal planning (not for public)
-.planning/
+# Internal dev artifacts (not for public)
+.factory/
+planning/
 
 # Debug artifacts
 *-full.png
