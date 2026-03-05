@@ -10,7 +10,11 @@ import { setAuthCookies } from "../../utils/cookies.js";
 const registerBody = z.object({
   email: emailSchema,
   password: passwordSchema,
-  brandName: z.string().min(1).max(255, "Brand name must be at most 255 characters").optional(),
+  brandName: z
+    .string()
+    .min(1)
+    .max(255, "Brand name must be at most 255 characters")
+    .optional(),
 });
 
 const errorResponseSchema = {
@@ -113,26 +117,28 @@ export default async function registerRoute(fastify: FastifyInstance) {
 
         // Create brand and user in a transaction
         try {
-          const result = await fastify.prisma.$transaction(async (tx) => {
-            const brand = await tx.brand.create({
-              data: {
-                name: brandName,
-                slug,
-                did,
-              },
-            });
+          const result = await fastify.prisma.$transaction(
+            async (tx: import("../../plugins/prisma.js").TxClient) => {
+              const brand = await tx.brand.create({
+                data: {
+                  name: brandName,
+                  slug,
+                  did,
+                },
+              });
 
-            const newUser = await tx.user.create({
-              data: {
-                email,
-                passwordHash,
-                role: "BRAND_ADMIN",
-                brandId: brand.id,
-              },
-            });
+              const newUser = await tx.user.create({
+                data: {
+                  email,
+                  passwordHash,
+                  role: "BRAND_ADMIN",
+                  brandId: brand.id,
+                },
+              });
 
-            return newUser;
-          });
+              return newUser;
+            },
+          );
 
           user = result;
         } catch (error: unknown) {

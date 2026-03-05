@@ -1,6 +1,9 @@
 import fp from "fastify-plugin";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "../generated/prisma/client.js";
+import { PrismaClient, Prisma } from "../generated/prisma/client.js";
+
+/** Transaction client type for use in $transaction callbacks */
+export type TxClient = Prisma.TransactionClient;
 import type { FastifyInstance } from "fastify";
 import { config } from "../config.js";
 

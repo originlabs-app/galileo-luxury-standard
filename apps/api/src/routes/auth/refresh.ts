@@ -86,30 +86,32 @@ export default async function refreshRoute(fastify: FastifyInstance) {
       const hashedIncoming = hashToken(refreshToken);
 
       // Atomic transaction: verify stored token and rotate in one step
-      const result = await fastify.prisma.$transaction(async (tx) => {
-        const user = await tx.user.findUnique({
-          where: { id: payload.sub },
-        });
+      const result = await fastify.prisma.$transaction(
+        async (tx: import("../../plugins/prisma.js").TxClient) => {
+          const user = await tx.user.findUnique({
+            where: { id: payload.sub },
+          });
 
-        if (!user || user.refreshToken !== hashedIncoming) {
-          return null;
-        }
+          if (!user || user.refreshToken !== hashedIncoming) {
+            return null;
+          }
 
-        // Generate new token pair
-        const tokens = generateTokenPair(fastify, {
-          sub: user.id,
-          role: user.role,
-          brandId: user.brandId,
-        });
+          // Generate new token pair
+          const tokens = generateTokenPair(fastify, {
+            sub: user.id,
+            role: user.role,
+            brandId: user.brandId,
+          });
 
-        // Update stored refresh token (hashed)
-        await tx.user.update({
-          where: { id: user.id },
-          data: { refreshToken: hashToken(tokens.refreshToken) },
-        });
+          // Update stored refresh token (hashed)
+          await tx.user.update({
+            where: { id: user.id },
+            data: { refreshToken: hashToken(tokens.refreshToken) },
+          });
 
-        return { user, tokens };
-      });
+          return { user, tokens };
+        },
+      );
 
       if (!result) {
         clearAuthCookies(reply);

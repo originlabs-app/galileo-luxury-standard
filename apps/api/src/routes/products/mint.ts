@@ -6,10 +6,7 @@ export default async function mintProductRoute(fastify: FastifyInstance) {
   fastify.post<{ Params: { id: string } }>(
     "/products/:id/mint",
     {
-      onRequest: [
-        fastify.authenticate,
-        requireRole("BRAND_ADMIN", "ADMIN"),
-      ],
+      onRequest: [fastify.authenticate, requireRole("BRAND_ADMIN", "ADMIN")],
     },
     async (request, reply) => {
       const { id } = request.params;
@@ -48,55 +45,65 @@ export default async function mintProductRoute(fastify: FastifyInstance) {
       // If a concurrent request already changed the status, updateMany returns count=0
       // and we return 409 — preventing TOCTOU race conditions without row-level locks.
       try {
-        await fastify.prisma.$transaction(async (tx) => {
-          const product = await tx.product.findUnique({
-            where: { id },
-            include: { passport: true },
-          });
+        await fastify.prisma.$transaction(
+          async (tx: import("../../plugins/prisma.js").TxClient) => {
+            const product = await tx.product.findUnique({
+              where: { id },
+              include: { passport: true },
+            });
 
-          if (!product) {
-            throw new MintError(404, "NOT_FOUND", "Product not found");
-          }
+            if (!product) {
+              throw new MintError(404, "NOT_FOUND", "Product not found");
+            }
 
-          // Brand scoping: BRAND_ADMIN can only mint their own brand's products; ADMIN can mint any
-          if (user.role !== "ADMIN" && product.brandId !== user.brandId) {
-            throw new MintError(403, "FORBIDDEN", "Access denied");
-          }
+            // Brand scoping: BRAND_ADMIN can only mint their own brand's products; ADMIN can mint any
+            if (user.role !== "ADMIN" && product.brandId !== user.brandId) {
+              throw new MintError(403, "FORBIDDEN", "Access denied");
+            }
 
-          // Product must be in DRAFT status
-          if (product.status !== "DRAFT") {
-            throw new MintError(409, "CONFLICT", "Product is not in DRAFT status");
-          }
+            // Product must be in DRAFT status
+            if (product.status !== "DRAFT") {
+              throw new MintError(
+                409,
+                "CONFLICT",
+                "Product is not in DRAFT status",
+              );
+            }
 
-          // Use conditional update to prevent race: only update if status is still DRAFT
-          const updated = await tx.product.updateMany({
-            where: { id, status: "DRAFT" },
-            data: { status: "ACTIVE" },
-          });
+            // Use conditional update to prevent race: only update if status is still DRAFT
+            const updated = await tx.product.updateMany({
+              where: { id, status: "DRAFT" },
+              data: { status: "ACTIVE" },
+            });
 
-          if (updated.count === 0) {
-            throw new MintError(409, "CONFLICT", "Product is not in DRAFT status");
-          }
+            if (updated.count === 0) {
+              throw new MintError(
+                409,
+                "CONFLICT",
+                "Product is not in DRAFT status",
+              );
+            }
 
-          await tx.productPassport.update({
-            where: { productId: id },
-            data: {
-              txHash,
-              tokenAddress,
-              chainId,
-              mintedAt,
-            },
-          });
+            await tx.productPassport.update({
+              where: { productId: id },
+              data: {
+                txHash,
+                tokenAddress,
+                chainId,
+                mintedAt,
+              },
+            });
 
-          await tx.productEvent.create({
-            data: {
-              productId: id,
-              type: "MINTED",
-              data: { txHash, tokenAddress, chainId },
-              performedBy: user.sub,
-            },
-          });
-        });
+            await tx.productEvent.create({
+              data: {
+                productId: id,
+                type: "MINTED",
+                data: { txHash, tokenAddress, chainId },
+                performedBy: user.sub,
+              },
+            });
+          },
+        );
       } catch (err) {
         if (err instanceof MintError) {
           return reply.status(err.statusCode).send({

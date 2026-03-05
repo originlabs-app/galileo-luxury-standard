@@ -20,10 +20,22 @@ const PRODUCT_CATEGORIES = [
 
 const createProductBody = z.object({
   gtin: z.string().min(1, "GTIN is required"),
-  serialNumber: z.string().min(1, "Serial number is required").max(100, "Serial number must be at most 100 characters"),
-  name: z.string().min(1, "Name is required").max(255, "Name must be at most 255 characters"),
-  description: z.string().max(2000, "Description must be at most 2000 characters").optional(),
-  category: z.enum(PRODUCT_CATEGORIES, { message: "Category must be one of: Leather Goods, Jewelry, Watches, Fashion, Accessories, Fragrances, Eyewear, Other" }),
+  serialNumber: z
+    .string()
+    .min(1, "Serial number is required")
+    .max(100, "Serial number must be at most 100 characters"),
+  name: z
+    .string()
+    .min(1, "Name is required")
+    .max(255, "Name must be at most 255 characters"),
+  description: z
+    .string()
+    .max(2000, "Description must be at most 2000 characters")
+    .optional(),
+  category: z.enum(PRODUCT_CATEGORIES, {
+    message:
+      "Category must be one of: Leather Goods, Jewelry, Watches, Fashion, Accessories, Fragrances, Eyewear, Other",
+  }),
   brandId: z.string().optional(),
 });
 
@@ -49,7 +61,14 @@ export default async function createProductRoute(fastify: FastifyInstance) {
         });
       }
 
-      const { gtin, serialNumber, name, description, category, brandId: bodyBrandId } = parsed.data;
+      const {
+        gtin,
+        serialNumber,
+        name,
+        description,
+        category,
+        brandId: bodyBrandId,
+      } = parsed.data;
 
       // Validate GTIN check digit
       if (!validateGtin(gtin)) {
@@ -99,37 +118,39 @@ export default async function createProductRoute(fastify: FastifyInstance) {
 
       try {
         // Create product, passport, and event in a transaction
-        const result = await fastify.prisma.$transaction(async (tx) => {
-          const product = await tx.product.create({
-            data: {
-              gtin,
-              serialNumber,
-              did,
-              name,
-              description: description ?? null,
-              category,
-              brandId,
-            },
-          });
+        const result = await fastify.prisma.$transaction(
+          async (tx: import("../../plugins/prisma.js").TxClient) => {
+            const product = await tx.product.create({
+              data: {
+                gtin,
+                serialNumber,
+                did,
+                name,
+                description: description ?? null,
+                category,
+                brandId,
+              },
+            });
 
-          const passport = await tx.productPassport.create({
-            data: {
-              productId: product.id,
-              digitalLink,
-            },
-          });
+            const passport = await tx.productPassport.create({
+              data: {
+                productId: product.id,
+                digitalLink,
+              },
+            });
 
-          await tx.productEvent.create({
-            data: {
-              productId: product.id,
-              type: "CREATED",
-              data: { name, gtin, serialNumber, category },
-              performedBy: user.sub,
-            },
-          });
+            await tx.productEvent.create({
+              data: {
+                productId: product.id,
+                type: "CREATED",
+                data: { name, gtin, serialNumber, category },
+                performedBy: user.sub,
+              },
+            });
 
-          return { product, passport };
-        });
+            return { product, passport };
+          },
+        );
 
         return reply.status(201).send({
           success: true,

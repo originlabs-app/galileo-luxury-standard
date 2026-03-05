@@ -15,9 +15,21 @@ const PRODUCT_CATEGORIES = [
 
 const updateProductBody = z
   .object({
-    name: z.string().min(1).max(255, "Name must be at most 255 characters").optional(),
-    description: z.string().max(2000, "Description must be at most 2000 characters").optional(),
-    category: z.enum(PRODUCT_CATEGORIES, { message: "Category must be one of: Leather Goods, Jewelry, Watches, Fashion, Accessories, Fragrances, Eyewear, Other" }).optional(),
+    name: z
+      .string()
+      .min(1)
+      .max(255, "Name must be at most 255 characters")
+      .optional(),
+    description: z
+      .string()
+      .max(2000, "Description must be at most 2000 characters")
+      .optional(),
+    category: z
+      .enum(PRODUCT_CATEGORIES, {
+        message:
+          "Category must be one of: Leather Goods, Jewelry, Watches, Fashion, Accessories, Fragrances, Eyewear, Other",
+      })
+      .optional(),
   })
   .strict();
 
@@ -52,7 +64,8 @@ export default async function updateProductRoute(fastify: FastifyInstance) {
           success: false,
           error: {
             code: "VALIDATION_ERROR",
-            message: "Invalid input. Only name, description, and category can be updated.",
+            message:
+              "Invalid input. Only name, description, and category can be updated.",
             details: parsed.error.flatten().fieldErrors,
           },
         });
@@ -109,32 +122,34 @@ export default async function updateProductRoute(fastify: FastifyInstance) {
       }
 
       // Update product and create UPDATED event in a transaction
-      const updated = await fastify.prisma.$transaction(async (tx) => {
-        await tx.product.update({
-          where: { id },
-          data: updateData,
-        });
-
-        await tx.productEvent.create({
-          data: {
-            productId: id,
-            type: "UPDATED",
+      const updated = await fastify.prisma.$transaction(
+        async (tx: import("../../plugins/prisma.js").TxClient) => {
+          await tx.product.update({
+            where: { id },
             data: updateData,
-            performedBy: user.sub,
-          },
-        });
+          });
 
-        // Re-fetch to include the new event
-        return tx.product.findUnique({
-          where: { id },
-          include: {
-            passport: true,
-            events: {
-              orderBy: { createdAt: "desc" },
+          await tx.productEvent.create({
+            data: {
+              productId: id,
+              type: "UPDATED",
+              data: updateData,
+              performedBy: user.sub,
             },
-          },
-        });
-      });
+          });
+
+          // Re-fetch to include the new event
+          return tx.product.findUnique({
+            where: { id },
+            include: {
+              passport: true,
+              events: {
+                orderBy: { createdAt: "desc" },
+              },
+            },
+          });
+        },
+      );
 
       return reply.status(200).send({
         success: true,
