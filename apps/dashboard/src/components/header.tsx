@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { WalletConnection } from "@/components/wallet-connection";
 
 const pageTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
@@ -23,10 +24,11 @@ export function Header() {
   const title = resolveTitle(pathname);
 
   return (
-    <header className="flex h-16 shrink-0 items-center border-b border-border bg-background px-6">
+    <header className="flex h-16 shrink-0 items-center justify-between gap-4 border-b border-border bg-background px-6">
       <h2 className="font-serif text-xl font-semibold text-foreground">
         {title}
       </h2>
+      <WalletConnection />
     </header>
   );
 }

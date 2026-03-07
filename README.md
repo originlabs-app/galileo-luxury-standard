@@ -75,6 +75,12 @@ The Galileo Protocol provides specifications for Digital Product Passports, dece
    pnpm dev
    ```
 
+### Dashboard wallet MVP
+
+- The dashboard now includes a Base Sepolia wallet connection entry in the authenticated header.
+- The MVP currently supports injected browser wallets (for example MetaMask or Rabby) via wagmi.
+- No additional dashboard env vars are required for this first connection layer.
+
 ---
 
 ## Testing
