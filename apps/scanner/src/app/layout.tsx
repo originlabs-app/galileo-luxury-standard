@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Outfit } from "next/font/google";
 import "./globals.css";
 
@@ -17,7 +17,20 @@ const outfit = Outfit({
 
 export const metadata: Metadata = {
   title: "Galileo Scanner",
-  description: "Galileo Protocol — Luxury product authentication scanner",
+  description: "Mobile-first Galileo product verification scanner.",
+  applicationName: "Galileo Scanner",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Galileo Scanner",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#020204",
 };
 
 export default function RootLayout({
