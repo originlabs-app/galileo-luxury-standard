@@ -1,4 +1,4 @@
-import { validateGtin } from "@galileo/shared";
+import { validateGtin, generateDigitalLinkUrl } from "@galileo/shared";
 
 type ResolverResult = {
   "@id": string;
@@ -30,8 +30,6 @@ type ResolveState = {
   requestedUrl?: string;
 };
 
-const DEFAULT_LINK =
-  "https://id.galileoprotocol.io/01/00012345678905/21/SERIAL-001";
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_RESOLVER_BASE_URL?.replace(/\/$/, "") ??
   "http://localhost:4000";
@@ -51,7 +49,7 @@ function normalizeResolverInput(
     const encodedSerial = encodeURIComponent(serial);
     return {
       resolverPath: `/01/${gtin}/21/${encodedSerial}`,
-      canonicalUrl: `https://id.galileoprotocol.io/01/${gtin.padStart(14, "0")}/21/${encodedSerial}`,
+      canonicalUrl: generateDigitalLinkUrl(gtin!, serial!),
     };
   }
 
@@ -69,7 +67,7 @@ function normalizeResolverInput(
 
     return {
       resolverPath: `/01/${gtin}/21/${encodedSerial}`,
-      canonicalUrl: `https://id.galileoprotocol.io/01/${gtin.padStart(14, "0")}/21/${encodedSerial}`,
+      canonicalUrl: generateDigitalLinkUrl(gtin!, serial),
     };
   } catch {
     return null;
@@ -96,7 +94,12 @@ async function resolveLink(input: string): Promise<ResolveState> {
   });
 
   const text = await response.text();
-  const payload = text ? (JSON.parse(text) as unknown) : undefined;
+  let payload: unknown;
+  try {
+    payload = text ? JSON.parse(text) : undefined;
+  } catch {
+    payload = undefined;
+  }
 
   if (!response.ok) {
     const message =
@@ -191,7 +194,7 @@ export default async function Home({
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = (await searchParams) ?? {};
-  const rawQuery = typeof params.link === "string" ? params.link : DEFAULT_LINK;
+  const rawQuery = typeof params.link === "string" ? params.link : "";
   const result = rawQuery ? await resolveLink(rawQuery) : undefined;
 
   return (
@@ -263,12 +266,16 @@ export default async function Home({
             >
               Verify link
             </button>
-            <a
-              href={rawQuery}
-              className="inline-flex items-center justify-center rounded-2xl border border-border px-4 py-3 text-sm font-medium text-foreground transition hover:bg-background"
-            >
-              Open
-            </a>
+            {result?.requestedUrl ? (
+              <a
+                href={result.requestedUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center rounded-2xl border border-border px-4 py-3 text-sm font-medium text-foreground transition hover:bg-background"
+              >
+                Open
+              </a>
+            ) : null}
           </div>
         </form>
       </section>
