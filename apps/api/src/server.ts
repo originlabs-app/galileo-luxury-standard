@@ -7,6 +7,7 @@ import authPlugin from "./plugins/auth.js";
 import corsPlugin from "./plugins/cors.js";
 import cookiePlugin from "./plugins/cookie.js";
 import chainPlugin from "./plugins/chain.js";
+import rateLimitPlugin from "./plugins/rate-limit.js";
 import healthRoutes from "./routes/health.js";
 import authRoutes from "./routes/auth/index.js";
 import productRoutes from "./routes/products/index.js";
@@ -54,6 +55,7 @@ export async function buildApp() {
   // Register plugins
   await fastify.register(corsPlugin);
   await fastify.register(cookiePlugin);
+  await fastify.register(rateLimitPlugin);
   await fastify.register(authPlugin);
   await fastify.register(prismaPlugin);
   await fastify.register(chainPlugin);
