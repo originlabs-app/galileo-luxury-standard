@@ -442,8 +442,18 @@ For important GalileoLuxury PRs, merge should happen only after:
 
 #### 4.6 API & Documentation (P1)
 
-- [ ] API documentation auto-generated from Fastify schemas (OpenAPI/Swagger)
+- [x] API documentation auto-generated from Fastify schemas (OpenAPI/Swagger) — schema metadata on all routes
 - [ ] Publish Swagger at `/docs` in production (currently guarded)
+
+#### 4.8 Test Stability (P1)
+
+> Known flaky tests — `beforeEach` DB cleanup hooks timeout (10s) under concurrent test execution. Root cause: shared PostgreSQL database between parallel test files causes lock contention during `deleteMany` cascades.
+
+- [ ] Fix `mint.test.ts` — all 10 tests timeout when run in full suite (pass in isolation)
+- [ ] Fix `products.test.ts` — intermittent timeouts on `beforeEach` cleanup hooks
+- [ ] Fix `recall.test.ts` — "returns 409 for already RECALLED" intermittent timeout
+- [ ] Consider: per-file test database isolation (schema-per-suite or `--no-file-parallelism`)
+- [ ] Consider: increase `hookTimeout` in vitest config as short-term mitigation
 
 #### 4.7 Production Deployment (P0)
 
