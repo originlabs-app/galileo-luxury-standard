@@ -2,7 +2,21 @@
 
 ## Vision
 
-Build a working end-to-end demo: a luxury brand creates a product, mints its on-chain passport, and a customer scans a QR code to see the Digital Product Passport. Integrate T1 as the ecosystem utility token across Galileo (luxury) and Kepler (aviation).
+Build the **open standard for luxury product traceability on blockchain** — adopted by all brands, from independent maisons to global groups.
+
+**Short-term (Sprints 1-4):** A luxury brand creates a product, mints its on-chain passport, and a customer scans a QR code to see the Digital Product Passport.
+
+**Medium-term (Sprints 5-6):** Integrate T1 as the ecosystem utility token. Prepare for open source adoption: SDK, Docker, sandbox, documentation.
+
+**Long-term:** Become the neutral, interoperable alternative to proprietary solutions (Aura, Arianee). Position as the **only open standard combining GS1 Digital Link + W3C DID + ERC-3643 + ESPR 2024/1781 compliance** in a single stack.
+
+### Why brands will adopt
+
+1. **Regulatory pressure** — ESPR 2027 mandates DPPs for textiles/footwear, then leather, then watches
+2. **Anti-counterfeiting** — Luxury loses ~$50B/year to counterfeiting (OECD 2024)
+3. **Interoperability** — CPO products changing brands (service, resale) need a common standard
+4. **Neutrality** — Unlike Aura (LVMH-led), Galileo has anti-dominance governance (max 2 TSC seats per org)
+5. **Cost** — Open source = no SaaS license, only infrastructure cost
 
 ---
 
@@ -218,14 +232,16 @@ These decisions were locked before Sprint 1. They are **not negotiable** without
 
 ## Sprint Plan (MVP)
 
-The roadmap is organized in **5 sprints** mapping to the detailed phases below.
+The roadmap is organized in **6 sprints** mapping to the detailed phases below.
 
 ```
-Sprint 1 (Week 1-2)   Foundations        → Phase 0 + Phase 2 setup + Phase 3 shell
-Sprint 2 (Week 3-4)   Product & Passport → ✅ Complete (mock mode, 186 tests + 2 e2e)
-Sprint 3 (Week 5-6)   Scanner & Verify   → Phase 4 (scanner PWA) + Phase 2 (event API)
-Sprint 4 (Week 7-8)   Stabilisation      → Hardening, security, multi-tenant, monitoring
-Sprint 5 (Week 9-12)  T1/LEOX            → Phase 6 (POST-PILOT GATE — only after KPI validation)
+Sprint 1 (Week 1-2)    Foundations         → Phase 0 + Phase 2 setup + Phase 3 shell          ✅
+Sprint 2 (Week 3-4)    Product & Passport  → Mock mint, GS1 resolver, QR, 186 tests + 2 e2e   ✅
+Sprint 3 (Week 5-6)    Real Chain & Scan   → Base Sepolia deploy, scanner PWA, lifecycle events
+Sprint 4 (Week 7-8)    Stabilisation       → Security, multi-tenant, GDPR, prod deploy
+  ── POST-PILOT GATE ──
+Sprint 5 (Week 9-12)   T1/LEOX            → Phase 6 (only after KPI validation)
+Sprint 6 (Week 13-16)  Open Source         → DX, docs, SDK, Docker, community (parallel w/ S5)
 ```
 
 ### Sprint 1 — Foundations (Week 1-2) ✅ Complete
@@ -266,35 +282,172 @@ Sprint 5 (Week 9-12)  T1/LEOX            → Phase 6 (POST-PILOT GATE — only a
 
 **Exit:** Brand creates product → mints mock passport → QR resolves to DPP JSON-LD. Security debt from Sprint 1 + 2 audits fully cleared (3 rounds: Sprint 1 hardening, Sprint 2 hardening, Sprint 2 hardening round 2). Real Sepolia deployment deferred to Sprint 3. ✅
 
-### Sprint 3 — Scanner & Verification (Week 5-6)
+## Immediate Execution Focus (next 1-2 weeks)
 
-**Prerequisite from Sprint 2:** Mock minting is complete. Sprint 3 should start with real Base Sepolia deployment (Phase 1.2) before building the scanner, OR continue with mock mode and defer real chain to Sprint 4.
+The priority is **not** to advance every roadmap lane in parallel.
+The immediate objective is to close the shortest path to a credible pilot:
 
-**Goal:** Anyone can scan a QR code and verify product authenticity.
+**create product → real mint on Base Sepolia → scan QR → verify DPP**
 
-- [x] Lifecycle events API: CREATED, MINTED events already working (TRANSFERRED, VERIFIED, etc. still needed)
-- [ ] Scanner PWA (Next.js): camera → decode QR → call API (still Coming Soon shell)
-- [ ] Public verification page: authenticity ✓/✗, provenance timeline, material composition
-- [ ] Lifecycle events API (remaining): `TRANSFERRED`, `VERIFIED`, `OWNERSHIP_CHANGED`, `REPAIRED`, `CPO_CERTIFIED`
+Everything else stays secondary until this path is stable and demonstrable.
+
+### Immediate priorities
+
+1. **Real chain deployment on Base Sepolia**
+   - deploy and verify contracts
+   - record deployment addresses
+   - configure authenticated RPC
+2. **Replace mock mint with real mint**
+   - wire API to deployed contracts
+   - persist real tx and token data
+   - verify identity registry flow
+3. **Deliver scanner PWA minimum**
+   - scan QR
+   - resolve product
+   - render verification result cleanly
+4. **Prove the pilot with E2E**
+   - create → mint → scan → verify
+5. **Validate every important PR before merge**
+   - local checks
+   - GitHub checks
+   - E2E when available
+   - explicit verdict: mergeable / not-mergeable / uncertain
+
+### Merge discipline from now on
+
+For important GalileoLuxury PRs, merge should happen only after:
+- local review worktree validation
+- GitHub checks review
+- explicit statement of what was tested
+- explicit note when E2E was not run
+
+### Sprint 3 — Scanner, Real Chain & Verification (Week 5-6)
+
+**Prerequisite from Sprint 2:** Mock minting is complete. Sprint 3 starts with real Base Sepolia deployment before building the scanner.
+
+**Goal:** Anyone can scan a QR code and verify product authenticity — on real chain.
+
+#### 3.1 Real Chain Deployment (P0)
+
+- [ ] Deploy contracts on Base Sepolia via `Deploy.s.sol` (all 12 contracts)
+- [ ] Post-deploy: configure sanctions oracle, add trusted issuer in TIR, register identities, grant AGENT_ROLE, unpause token
+- [ ] Verify all contracts on Basescan Sepolia
+- [ ] Record addresses in `contracts/deployments/base-sepolia.json`
+- [ ] Configure authenticated RPC URL (Alchemy/QuickNode) in `apps/api/src/plugins/chain.ts` — replace public `http()` fallback
+- [ ] Document gas benchmarks for each operation
+
+#### 3.2 Real Mint Integration (P0)
+
+- [ ] Replace mock mint with real ERC-3643 mint via viem + deployed contracts
+- [ ] Implement Identity Registry verification before mint (`isVerified()`)
+- [ ] Use `GalileoToken.mint()` with proper AGENT_ROLE
+- [ ] Update ProductPassport with real on-chain data (txHash, tokenAddress, chainId)
+- [ ] Add RPC_URL to config.ts env schema with fallback transport
+
+#### 3.3 Wallet Integration (P0)
+
+- [ ] Integrate wagmi + RainbowKit in dashboard for transaction signing
+- [ ] Implement `POST /auth/link-wallet` API endpoint
+- [ ] Smart Wallet Coinbase support (passkey, gasless) with ERC-1271 verification
+- [ ] Mint flow: review product data → wallet popup → sign tx → confirmation
+
+#### 3.4 Scanner PWA (P0)
+
+- [ ] Scanner PWA (Next.js): camera → decode QR → call API (currently Coming Soon shell in `apps/scanner/`)
+- [ ] QR scanning: `getUserMedia` + ZXing fallback (BarcodeDetector still experimental)
+- [ ] Public verification page: authenticity check, provenance timeline, material composition
+- [ ] Service worker for offline cache of previously scanned products
+- [ ] Deep link: scanning QR goes directly to product page
+- [ ] Luxury-grade UI consistent with ABYSSE design language
+
+#### 3.5 Lifecycle Events & Transfers (P1)
+
+- [x] Lifecycle events API: CREATED, MINTED events already working
+- [ ] Remaining events: `TRANSFERRED`, `VERIFIED`, `OWNERSHIP_CHANGED`, `REPAIRED`, `CPO_CERTIFIED`
 - [ ] Event logging (append-only, off-chain + on-chain anchoring)
-- [ ] Transfer flow with compliance check (jurisdiction, sanctions, brand auth)
+- [ ] Transfer flow with compliance check (5 modules: jurisdiction, sanctions, brand auth, CPO, service center)
 - [ ] CPO certification flow
-- [ ] E2E test: create → mint → scan → verify → transfer → re-verify
+- [ ] Webhook system for real-time notifications (mint, transfer, CPO) — enables CRM/ERP integration
 
-**Exit:** Full product lifecycle works end-to-end on Base Sepolia. Customer scans QR, sees verified DPP.
+#### 3.6 JSON-LD Compliance Fixes (P1)
+
+> From W3C/GS1 compliance audit (see `planning/research-w3c-compliance.md`)
+
+- [x] **C1:** Add Galileo JSON-LD context to resolver `@context` array (`https://vocab.galileoprotocol.io/contexts/galileo.jsonld`)
+- [x] **C2:** Change `@type` from `"Product"` to `"IndividualProduct"` (align with dpp-core.schema.json) — already done
+- [x] **C3:** Add `@type: "Brand"` to brand object, use `@id` instead of custom `did` property
+- [x] **I1:** Fix GS1 context URL from `https://gs1.org/voc` to canonical `https://ref.gs1.org/voc/`
+- [x] **I2:** Add `@id` (product DID) to root JSON-LD object (currently anonymous blank node) — already done
+- [x] **I3:** Add `serialNumber` field to resolver response (required for `IndividualProduct`)
+- [x] **I4:** Tighten DID serial regex in `packages/shared/src/validation/did.ts` from `.+` to `[A-Za-z0-9\-\.]{1,20}` per DID-METHOD.md ABNF
+- [x] **M5:** Add explicit mappings for `status`, `passport.*` properties in `galileo.jsonld` (prevent `@vocab` fallback to Schema.org)
+- [x] Update test assertions to expect `IndividualProduct` (currently expect `Product`)
+
+#### 3.7 File Upload (P1)
+
+- [ ] Photo/certificate upload → Cloudflare R2 + local CID computation (CIDv1)
+- [ ] Dashboard: photo upload UI in product create/edit form
+
+#### 3.8 E2E Tests (P0)
+
+- [ ] E2E test: create → mint (real chain) → scan → verify → transfer → re-verify
+
+**Exit:** Full product lifecycle works end-to-end on Base Sepolia. Customer scans QR, sees verified DPP. JSON-LD response is W3C/GS1 conformant.
 
 ### Sprint 4 — Stabilisation & Production (Week 7-8)
 
 **Goal:** Production-ready for the first brand pilot.
 
-- [ ] Monitoring: Sentry, Vercel Analytics, uptime checks
-- [ ] Security hardening: rate limiting, input validation, OWASP top 10
-- [ ] Multi-tenant isolation (RLS or schema-per-brand)
-- [ ] Audit trail: who did what, when (GDPR Art. 22 human review for compliance rejections)
-- [ ] GDPR endpoints: data export (Art. 15), erasure (Art. 17)
-- [ ] API documentation (OpenAPI/Swagger, auto-generated from Fastify schemas)
-- [ ] Production deploy: Vercel (frontend) + dedicated API host + Base mainnet
-- [ ] DPIA draft (required before mainnet per EDPB)
+#### 4.1 Security Hardening (P0)
+
+- [ ] Rate limiting on all endpoints (brute force prevention)
+- [ ] Input validation audit against OWASP top 10
+- [ ] Content Security Policy (CSP) headers on API responses
+- [ ] Consider `__Host-` cookie prefix for production (`__Host-galileo_at`)
+- [ ] Cookie signing via `@fastify/cookie` secret (defense in depth on top of JWT signature)
+- [ ] Log warning when `secure: false` in development mode
+
+#### 4.2 Multi-Tenant Isolation (P0)
+
+- [ ] PostgreSQL Row-Level Security (RLS) or schema-per-brand
+- [ ] Currently brandId scoping via RBAC — needs database-level enforcement
+- [ ] Batch operations: CSV import of products, batch mint via factory (critical for brand onboarding)
+
+#### 4.3 GDPR Compliance (P0)
+
+- [ ] `DELETE /users/:id/data` — GDPR erasure (Art. 17): delete from PostgreSQL + R2, CID becomes orphan
+- [ ] `GET /users/:id/data` — GDPR data export (Art. 15)
+- [ ] Audit trail: who did what, when (append-only log)
+- [ ] Human review endpoint for compliance rejections (GDPR Art. 22)
+- [ ] DPIA draft (required before mainnet per EDPB Guidelines 02/2025)
+
+#### 4.4 Monitoring & Observability (P1)
+
+- [ ] Sentry integration (error tracking)
+- [ ] Vercel Analytics (frontend)
+- [ ] Health check endpoints with dependency status (DB, chain RPC)
+- [ ] Uptime monitoring
+- [ ] Structured logging (no PII)
+
+#### 4.5 Authentication (P1)
+
+- [ ] MFA: TOTP + passkey (enterprise-grade security)
+- [ ] SIWE (EIP-4361) for wallet login with ERC-1271 smart wallet verification
+
+#### 4.6 API & Documentation (P1)
+
+- [ ] API documentation auto-generated from Fastify schemas (OpenAPI/Swagger)
+- [ ] Publish Swagger at `/docs` in production (currently guarded)
+
+#### 4.7 Production Deployment (P0)
+
+- [ ] Deploy frontend: Vercel (dashboard + scanner + website)
+- [ ] Deploy API: dedicated host (Railway, Render, or VPS)
+- [ ] Deploy contracts: Base mainnet (chainId 8453) — only after testnet E2E passes
+- [ ] Use dedicated RPC provider (Alchemy/QuickNode — NOT public `mainnet.base.org`)
+- [ ] Transfer contract ownership to multisig (Safe)
+- [ ] Create `contracts/deployments/base-mainnet.json`
+- [ ] Host Galileo JSON-LD context at `https://vocab.galileoprotocol.io/contexts/galileo.jsonld`
 
 **Exit:** MVP stable. First brand can onboard and use the full create→mint→scan→verify flow in production.
 
@@ -307,6 +460,78 @@ Sprint 5 (Week 9-12)  T1/LEOX            → Phase 6 (POST-PILOT GATE — only a
 - [ ] No critical/high severity bugs open
 
 See Phase 6 below for detailed scope.
+
+### Sprint 6 — Open Source Adoption (Week 13-16) — PARALLEL WITH SPRINT 5
+
+**Entry criteria:** Sprint 4 exit validated, at least 1 brand pilot active.
+
+**Goal:** Make Galileo Protocol adoptable by any brand without Origin Labs support.
+
+#### 6.1 Developer Experience (P0)
+
+- [ ] Docker Compose for local dev (PostgreSQL + API + Dashboard + Scanner — single `docker compose up`)
+- [ ] SDK TypeScript (`@galileo/sdk`): typed API client, DPP helpers, GTIN validation — publishable on npm
+- [ ] CLI tool: `npx @galileo/cli create-product --gtin ... --name ...` for integrators
+- [ ] Sandbox hosted at `sandbox.galileoprotocol.io` with demo data and scannable QR codes
+- [ ] Auto-generated REST/OpenAPI clients for Python, Go, Java (multi-stack brand support)
+
+#### 6.2 Documentation (P0)
+
+- [ ] Architecture Decision Records (ADRs): document the "why" (ERC-3643 vs ERC-721, Fastify vs Next.js API, etc.)
+- [ ] Integration Guide: step-by-step "How to connect your ERP to Galileo"
+- [ ] Smart Contract Deployment Guide: Base Sepolia → mainnet runbook
+- [ ] Schema Extension Guide: how to create a custom DPP schema (e.g., Swiss watchmaking)
+- [ ] API Reference: auto-generated + curl/SDK examples
+- [ ] Compliance Mapping: ESPR article → Galileo field mapping table
+- [ ] Video tutorials: "Create your first DPP in 10 minutes"
+
+#### 6.3 Packaging & Distribution (P1)
+
+- [ ] Publish npm packages: `@galileo/shared`, `@galileo/sdk`, `@galileo/contracts`
+- [ ] Docker images on GitHub Container Registry: `galileo/api`, `galileo/dashboard`, `galileo/scanner`
+- [ ] Helm chart for Kubernetes deployment (enterprise brands)
+- [ ] Terraform/Pulumi modules for infrastructure-as-code
+- [ ] CI workflow: auto-publish images and npm packages on each release
+
+#### 6.4 Community & Governance Activation (P1)
+
+- [ ] Recruit 3-5 TSC members (targets: ex-LVMH tech, GS1 expert, W3C contributor, ERC-3643 association member)
+- [ ] Create Discord server (devs) + mailing list (decision-makers)
+- [ ] Submit first public RFC (e.g., "Multi-language DPP schema") to demonstrate process
+- [ ] Monthly public TSC office hours (recorded, like Hyperledger/CNCF)
+- [ ] Bug bounty program (even symbolic at first)
+- [ ] "Good first issue" labeling for contributor onboarding
+- [ ] White-label scanner: allow brands to customize logo, colors, domain
+
+#### 6.5 Design Partners (P0)
+
+- [ ] Identify and approach 2-3 design partners (mid-market brands, not LVMH/Kering initially)
+- [ ] Targets: independent French brands, independent Swiss watchmakers, CPO specialists (Vestiaire Collective, The RealReal)
+- [ ] Offer technical support in exchange for public feedback/case studies
+- [ ] Measure: time-to-DPP, cost/product, QR scan rate
+- [ ] Publish case studies after pilots
+
+#### 6.6 Go-to-Market Phases
+
+```
+Month 1-3   Seed      → 2-3 design partners, free support, gather feedback
+Month 4-6   Validate  → Case studies, ESPR conference talks (GS1 Global Forum, EthCC)
+Month 7-12  Scale     → Certification program, approach larger groups, paid membership
+Month 12+   Found.    → Create foundation (Linux Foundation project), transfer IP, hire ED
+```
+
+#### 6.7 Business Model: Open Core + Managed SaaS
+
+```
+Open Source (free)              Managed SaaS (Origin Labs revenue)
+├── Specifications              ├── Hosted instances per brand
+├── Smart contracts             ├── SLA + support
+├── API + Dashboard + Scanner   ├── Monitoring + backups
+├── SDK + CLI                   ├── Custom compliance modules
+└── Documentation               └── Analytics dashboard
+```
+
+**Exit:** Any developer can `docker compose up`, create a DPP, mint on-chain, and scan a QR in < 15 minutes. 2+ design partners active. npm packages published. Documentation complete.
 
 ---
 
@@ -326,7 +551,7 @@ Finalize the open-source repository for v1.0.0 publication.
 
 ---
 
-## Phase 1 — Testnet Full-Stack Launch (Weeks 2-4) 🔲 Planned
+## Phase 1 — Testnet Full-Stack Launch (Weeks 2-4) ⚠️ Partially done (mock mode — real deploy in Sprint 3)
 
 Deploy and validate the **entire stack** on Base Sepolia before touching mainnet.
 
@@ -534,7 +759,7 @@ GET    /users/:id/data         — GDPR data export (Art. 15)
 
 ---
 
-## Phase 3 — Brand Dashboard (Weeks 4-7) ⚠️ Partially done
+## Phase 3 — Brand Dashboard (Weeks 4-7) ⚠️ Partially done (core CRUD + auth done, wallet/transfer/settings pending)
 
 Web dashboard for brands to manage their products and tokens.
 
@@ -722,17 +947,19 @@ Deploy T1 token contracts on Base:
 ## Timeline Summary
 
 ```
-Week 1-2      Sprint 1 — Foundations (monorepo, auth, DB, CI, dashboard shell)
-Week 3-4      Sprint 2 — Product & Passport (ERC-3643 mint, GS1 resolver, QR)
-Week 5-6      Sprint 3 — Scanner & Verification (PWA, E2E lifecycle, events)
+Week 1-2      Sprint 1 — Foundations (monorepo, auth, DB, CI, dashboard shell)         ✅
+Week 3-4      Sprint 2 — Product & Passport (mock mint, GS1 resolver, QR)              ✅
+Week 5-6      Sprint 3 — Real Chain & Scanner (Base Sepolia deploy, PWA, lifecycle)
 Week 7-8      Sprint 4 — Stabilisation (security, multi-tenant, GDPR, prod deploy)
   ── POST-PILOT GATE ──
 Week 9-12     Sprint 5 — T1/LEOX (paymaster, migration portal, multichain)
+Week 13-16    Sprint 6 — Open Source Adoption (DX, SDK, Docker, docs, community)
 ```
 
-**Testnet milestone: Week 4** — Full lifecycle test passes on Base Sepolia (create → mint → scan → verify).
-**Production-ready: Week 8** — First brand pilot can onboard.
+**Testnet milestone: Week 6** — Full lifecycle on Base Sepolia (create → mint on real chain → scan → verify).
+**Production-ready: Week 8** — First brand pilot can onboard on Base mainnet.
 **T1-ready: Week 12** — Only after MVP KPIs validated. T1 deployed, migration portal live, Paymaster active.
+**Open source ready: Week 16** — Any developer can `docker compose up` and create a DPP in < 15 minutes.
 
 ---
 
@@ -788,11 +1015,22 @@ Week 9-12     Sprint 5 — T1/LEOX (paymaster, migration portal, multichain)
 
 ## Open Questions
 
-- [ ] Multi-brand from day 1 or single-brand MVP?
-- [ ] Native app timeline? (after PWA validation)
-- [ ] DPIA: when to complete? (required before mainnet per EDPB)
+### Resolved
+
+- [x] Multi-brand from day 1 or single-brand MVP? → **Multi-tenant from Sprint 4** (RLS or schema-per-brand). Sprint 1-3 use brandId RBAC scoping.
+- [x] CSRF protection model? → **Custom header `X-Galileo-Client`** on POST/PATCH/DELETE/PUT (implemented Sprint 2).
+- [x] Dedicated RPC provider? → **Yes, Sprint 3** (Alchemy or QuickNode). Public `http()` fallback only for local dev.
+
+### Open
+
+- [ ] Native app timeline? (after PWA validation — Sprint 6+ based on scan metrics)
+- [ ] DPIA: when to complete? (required before mainnet per EDPB Guidelines 02/2025 — target Sprint 4)
 - [ ] KYC provider for T1 migration portal? (Sumsub, Onfido, Synaps?)
 - [ ] T1/LEOX swap ratio? (market-based, fixed, or hybrid?)
 - [ ] MiCA validation timeline with counsel for SASU-issued utility token?
-- [ ] Dedicated RPC provider? (Alchemy, QuickNode, Infura for Base)
 - [ ] GS1 testsuite integration: CI or manual? ([testsuite](https://gs1.github.io/GS1DL-resolver-testsuite/))
+- [ ] Docker Compose timeline: Sprint 4 (dev convenience) or Sprint 6 (open source)?
+- [ ] Sandbox hosting: self-hosted or managed? Budget for `sandbox.galileoprotocol.io`?
+- [ ] Design partner targets: which 2-3 brands for first pilots? (independent maisons preferred)
+- [ ] Foundation timeline: Linux Foundation or independent? (Sprint 6+ decision)
+- [ ] T1 ecosystem scope: Galileo (luxury) + Kepler (aviation) + future verticals — governance model for multi-vertical token?
