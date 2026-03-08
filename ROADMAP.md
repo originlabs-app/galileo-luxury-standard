@@ -346,23 +346,25 @@ For important GalileoLuxury PRs, merge should happen only after:
 
 #### 3.3 Wallet Integration (P0)
 
-- [ ] Integrate wagmi + RainbowKit in dashboard for transaction signing
+- [x] Integrate wagmi + RainbowKit in dashboard for wallet connection (PR #15)
 - [ ] Implement `POST /auth/link-wallet` API endpoint
 - [ ] Smart Wallet Coinbase support (passkey, gasless) with ERC-1271 verification
 - [ ] Mint flow: review product data → wallet popup → sign tx → confirmation
 
 #### 3.4 Scanner PWA (P0)
 
-- [ ] Scanner PWA (Next.js): camera → decode QR → call API (currently Coming Soon shell in `apps/scanner/`)
-- [ ] QR scanning: `getUserMedia` + ZXing fallback (BarcodeDetector still experimental)
-- [ ] Public verification page: authenticity check, provenance timeline, material composition
+- [x] Scanner PWA shell: paste link → resolve → verification result (PR #16)
+- [x] PWA manifest, SVG icons, viewport/theme config, standalone display
+- [x] Security hardening: XSS fix, JSON.parse safety, no phantom API call
+- [x] QR scanning: `getUserMedia` + `barcode-detector` (ZXing WASM ponyfill) — `/scan` route (PR #17)
+- [ ] Public verification page: provenance timeline, material composition
 - [ ] Service worker for offline cache of previously scanned products
 - [ ] Deep link: scanning QR goes directly to product page
-- [ ] Luxury-grade UI consistent with ABYSSE design language
 
 #### 3.5 Lifecycle Events & Transfers (P1)
 
-- [x] Lifecycle events API: CREATED, MINTED events already working
+- [x] Lifecycle events API: CREATED, UPDATED, MINTED events working
+- [x] Recall endpoint: `POST /products/:id/recall` — ACTIVE → RECALLED with reason + RECALLED event
 - [ ] Remaining events: `TRANSFERRED`, `VERIFIED`, `OWNERSHIP_CHANGED`, `REPAIRED`, `CPO_CERTIFIED`
 - [ ] Event logging (append-only, off-chain + on-chain anchoring)
 - [ ] Transfer flow with compliance check (5 modules: jurisdiction, sanctions, brand auth, CPO, service center)

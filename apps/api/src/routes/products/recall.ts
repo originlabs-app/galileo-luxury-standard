@@ -1,0 +1,112 @@
+import type { FastifyInstance } from "fastify";
+import { requireRole } from "../../middleware/rbac.js";
+
+export default async function recallProductRoute(fastify: FastifyInstance) {
+  fastify.post<{
+    Params: { id: string };
+    Body: { reason?: string };
+  }>(
+    "/products/:id/recall",
+    {
+      onRequest: [fastify.authenticate, requireRole("BRAND_ADMIN", "ADMIN")],
+    },
+    async (request, reply) => {
+      const { id } = request.params;
+      const user = request.user;
+      const reason = request.body?.reason ?? "";
+
+      if (user.role !== "ADMIN" && !user.brandId) {
+        return reply.status(403).send({
+          success: false,
+          error: {
+            code: "FORBIDDEN",
+            message: "User must belong to a brand",
+          },
+        });
+      }
+
+      try {
+        await fastify.prisma.$transaction(
+          async (tx: import("../../plugins/prisma.js").TxClient) => {
+            const product = await tx.product.findUnique({
+              where: { id },
+            });
+
+            if (!product) {
+              throw new RecallError(404, "NOT_FOUND", "Product not found");
+            }
+
+            if (user.role !== "ADMIN" && product.brandId !== user.brandId) {
+              throw new RecallError(403, "FORBIDDEN", "Access denied");
+            }
+
+            if (product.status !== "ACTIVE") {
+              throw new RecallError(
+                409,
+                "CONFLICT",
+                "Only ACTIVE products can be recalled",
+              );
+            }
+
+            const updated = await tx.product.updateMany({
+              where: { id, status: "ACTIVE" },
+              data: { status: "RECALLED" },
+            });
+
+            if (updated.count === 0) {
+              throw new RecallError(
+                409,
+                "CONFLICT",
+                "Only ACTIVE products can be recalled",
+              );
+            }
+
+            await tx.productEvent.create({
+              data: {
+                productId: id,
+                type: "RECALLED",
+                data: { reason },
+                performedBy: user.sub,
+              },
+            });
+          },
+        );
+      } catch (err) {
+        if (err instanceof RecallError) {
+          return reply.status(err.statusCode).send({
+            success: false,
+            error: {
+              code: err.code,
+              message: err.message,
+            },
+          });
+        }
+        throw err;
+      }
+
+      const fullProduct = await fastify.prisma.product.findUnique({
+        where: { id },
+        include: {
+          passport: true,
+          events: { orderBy: { createdAt: "desc" } },
+        },
+      });
+
+      return reply.status(200).send({
+        success: true,
+        data: { product: fullProduct },
+      });
+    },
+  );
+}
+
+class RecallError extends Error {
+  constructor(
+    public statusCode: number,
+    public code: string,
+    message: string,
+  ) {
+    super(message);
+    this.name = "RecallError";
+  }
+}
