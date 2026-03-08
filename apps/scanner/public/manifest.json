@@ -3,9 +3,13 @@
   "short_name": "Galileo",
   "description": "Verify luxury product authenticity via Galileo Protocol.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#020204",
   "theme_color": "#020204",
+  "url_handlers": [
+    { "origin": "https://scanner.galileoprotocol.io" }
+  ],
   "icons": [
     {
       "src": "/icon-192.svg",
