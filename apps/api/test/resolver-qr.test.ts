@@ -5,9 +5,9 @@ import type { FastifyInstance } from "fastify";
 /**
  * Parse Set-Cookie headers and return a map of cookie name → value.
  */
-function parseCookies(
-  response: { headers: Record<string, string | string[] | undefined> },
-): Record<string, string> {
+function parseCookies(response: {
+  headers: Record<string, string | string[] | undefined>;
+}): Record<string, string> {
   const raw = response.headers["set-cookie"];
   if (!raw) return {};
   const arr = Array.isArray(raw) ? raw : [raw];
@@ -172,35 +172,38 @@ describe("Resolver & QR endpoints", () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.headers["content-type"]).toContain(
-        "application/ld+json",
-      );
+      expect(response.headers["content-type"]).toContain("application/ld+json");
 
       const body = response.json();
-      expect(body["@context"]).toEqual({
-        "@vocab": "https://schema.org/",
-        gs1: "https://ref.gs1.org/voc/",
-        galileo: "https://galileoprotocol.io/ns/",
-      });
+      expect(body["@context"]).toEqual([
+        "https://schema.org",
+        "https://ref.gs1.org/voc/",
+        "https://vocab.galileoprotocol.io/contexts/galileo.jsonld",
+      ]);
       expect(body["@type"]).toBe("IndividualProduct");
+      expect(body["@id"]).toBe(
+        `did:galileo:01:0${activeProductGtin}:21:${activeProductSerial}`,
+      );
       expect(body.name).toBe("Active Resolver Product");
       expect(body.description).toBe("An active product for resolver tests");
-      expect(body["gs1:gtin"]).toBe("0" + activeProductGtin); // 14-digit padded
+      expect(body.gtin).toBe("0" + activeProductGtin); // 14-digit padded
+      expect(body.serialNumber).toBe(activeProductSerial);
       expect(body.category).toBe("Jewelry");
-      expect(body["galileo:status"]).toBe("verified");
+      expect(body.status).toBe("verified");
 
-      // Passport fields (with galileo: namespace)
-      expect(body["galileo:passport"]).toBeDefined();
-      expect(body["galileo:passport"]["galileo:digitalLink"]).toContain("id.galileoprotocol.io");
-      expect(body["galileo:passport"]["galileo:txHash"]).toMatch(/^0x[a-f0-9]{64}$/);
-      expect(body["galileo:passport"]["galileo:tokenAddress"]).toMatch(/^0x[a-f0-9]{40}$/);
-      expect(body["galileo:passport"]["galileo:chainId"]).toBe(84532);
-      expect(body["galileo:passport"]["galileo:mintedAt"]).toBeDefined();
+      // Passport fields
+      expect(body.passport).toBeDefined();
+      expect(body.passport.digitalLink).toContain("id.galileoprotocol.io");
+      expect(body.passport.txHash).toMatch(/^0x[a-f0-9]{64}$/);
+      expect(body.passport.tokenAddress).toMatch(/^0x[a-f0-9]{40}$/);
+      expect(body.passport.chainId).toBe(84532);
+      expect(body.passport.mintedAt).toBeDefined();
 
-      // Brand fields (with galileo: namespace)
-      expect(body["galileo:brand"]).toBeDefined();
-      expect(body["galileo:brand"].name).toBe("Resolver Test Brand");
-      expect(body["galileo:brand"]["galileo:did"]).toBe("did:galileo:brand:resolver-test-brand");
+      // Brand fields (C3: @type Brand, @id instead of custom did)
+      expect(body.brand).toBeDefined();
+      expect(body.brand["@type"]).toBe("Brand");
+      expect(body.brand["@id"]).toBe("did:galileo:brand:resolver-test-brand");
+      expect(body.brand.name).toBe("Resolver Test Brand");
     });
 
     it("returns 404 for non-existent product", async () => {
@@ -237,9 +240,7 @@ describe("Resolver & QR endpoints", () => {
       });
 
       expect(response.statusCode).toBe(200);
-      expect(response.headers["content-type"]).toContain(
-        "application/ld+json",
-      );
+      expect(response.headers["content-type"]).toContain("application/ld+json");
     });
 
     it("correctly decodes URL-encoded serial number", async () => {
@@ -290,8 +291,8 @@ describe("Resolver & QR endpoints", () => {
       expect(response.headers["content-type"]).toContain("application/ld+json");
       const body = response.json();
       expect(body.name).toBe("Active Resolver Product");
-      expect(body["gs1:gtin"]).toBe(gtin14); // always returns 14-digit padded
-      expect(body["galileo:status"]).toBe("verified");
+      expect(body.gtin).toBe(gtin14); // always returns 14-digit padded
+      expect(body.status).toBe("verified");
     });
 
     it("resolves product with original 13-digit GTIN as well", async () => {
@@ -304,7 +305,7 @@ describe("Resolver & QR endpoints", () => {
       expect(response.statusCode).toBe(200);
       const body = response.json();
       expect(body.name).toBe("Active Resolver Product");
-      expect(body["galileo:status"]).toBe("verified");
+      expect(body.status).toBe("verified");
     });
   });
 

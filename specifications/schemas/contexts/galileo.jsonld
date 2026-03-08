@@ -5,7 +5,7 @@
     "@base": "https://vocab.galileoprotocol.io/",
 
     "schema": "https://schema.org/",
-    "gs1": "https://gs1.org/voc/",
+    "gs1": "https://ref.gs1.org/voc/",
     "epcis": "https://ref.gs1.org/standards/epcis/",
     "galileo": "https://vocab.galileoprotocol.io/",
     "espr": "https://vocab.galileoprotocol.io/espr/",
@@ -131,6 +131,36 @@
       "@type": "@id"
     },
 
+    "status": {
+      "@id": "galileo:status",
+      "@type": "xsd:string"
+    },
+    "passport": {
+      "@id": "galileo:passport",
+      "@type": "@id"
+    },
+    "digitalLink": {
+      "@id": "galileo:digitalLink",
+      "@type": "@id"
+    },
+    "txHash": {
+      "@id": "galileo:txHash",
+      "@type": "xsd:string"
+    },
+    "tokenAddress": {
+      "@id": "galileo:tokenAddress",
+      "@type": "xsd:string"
+    },
+    "chainId": {
+      "@id": "galileo:chainId",
+      "@type": "xsd:integer"
+    },
+    "mintedAt": {
+      "@id": "galileo:mintedAt",
+      "@type": "xsd:dateTime"
+    },
+
+    "DigitalPassport": "galileo:DigitalPassport",
     "GalileoProduct": "galileo:GalileoProduct",
     "MaterialComponent": "galileo:MaterialComponent",
     "CarbonFootprint": "galileo:CarbonFootprint",

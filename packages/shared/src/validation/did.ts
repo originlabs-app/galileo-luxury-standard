@@ -10,8 +10,7 @@
 import { validateGtin } from "./gtin.js";
 import { padGtin14 } from "./gtin.js";
 
-const DID_REGEX =
-  /^did:galileo:01:(\d{13,14}):21:(.+)$/;
+const DID_REGEX = /^did:galileo:01:(\d{13,14}):21:([A-Za-z0-9\-.]{1,20})$/;
 
 /**
  * Generates a Galileo DID from a GTIN and serial number.
@@ -43,7 +42,7 @@ export function generateDigitalLinkUrl(gtin: string, serial: string): string {
  *
  * Expected format: did:galileo:01:{gtin}:21:{serial}
  * where {gtin} is 13 or 14 numeric digits with a valid GS1 check digit,
- * and {serial} is non-empty.
+ * and {serial} is 1-20 characters of [A-Za-z0-9\-\.] per DID-METHOD.md ABNF.
  *
  * @param did - The DID string to validate.
  * @returns `true` if the DID matches the expected format and GTIN is valid, `false` otherwise.

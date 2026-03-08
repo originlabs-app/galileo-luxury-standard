@@ -77,36 +77,35 @@ export default async function resolveDigitalLinkRoute(
       const gtin14 = padGtin14(rawGtin);
       const mappedStatus = STATUS_MAP[product.status];
 
-      // Build JSON-LD payload with custom @context namespaces
+      // Build JSON-LD payload with @context array (C1: Galileo context, I1: canonical GS1 URL)
       const jsonLd = {
-        "@context": {
-          "@vocab": "https://schema.org/",
-          gs1: "https://ref.gs1.org/voc/",
-          galileo: "https://galileoprotocol.io/ns/",
-        },
+        "@context": [
+          "https://schema.org",
+          "https://ref.gs1.org/voc/",
+          "https://vocab.galileoprotocol.io/contexts/galileo.jsonld",
+        ],
         "@type": "IndividualProduct",
         "@id": `did:galileo:01:${gtin14}:21:${serial}`,
         name: product.name,
         description: product.description,
-        "gs1:gtin": gtin14,
+        gtin: gtin14,
+        serialNumber: product.serialNumber,
         category: product.category,
-        "galileo:status": mappedStatus,
-        "galileo:serialNumber": product.serialNumber,
-        "galileo:digitalLink": `https://id.galileoprotocol.io/01/${gtin14}/21/${encodeURIComponent(serial)}`,
-        "galileo:did": `did:galileo:01:${gtin14}:21:${serial}`,
-        "galileo:passport": product.passport
+        status: mappedStatus,
+        brand: product.brand
           ? {
-              "galileo:digitalLink": product.passport.digitalLink,
-              "galileo:txHash": product.passport.txHash,
-              "galileo:tokenAddress": product.passport.tokenAddress,
-              "galileo:chainId": product.passport.chainId,
-              "galileo:mintedAt": product.passport.mintedAt,
+              "@type": "Brand",
+              "@id": product.brand.did,
+              name: product.brand.name,
             }
           : null,
-        "galileo:brand": product.brand
+        passport: product.passport
           ? {
-              name: product.brand.name,
-              "galileo:did": product.brand.did,
+              digitalLink: product.passport.digitalLink,
+              txHash: product.passport.txHash,
+              tokenAddress: product.passport.tokenAddress,
+              chainId: product.passport.chainId,
+              mintedAt: product.passport.mintedAt,
             }
           : null,
       };

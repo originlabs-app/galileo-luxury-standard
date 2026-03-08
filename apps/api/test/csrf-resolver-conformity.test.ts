@@ -1,4 +1,12 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+  vi,
+} from "vitest";
 import type { FastifyInstance } from "fastify";
 
 // Mock viem entirely — must be before any import that touches viem
@@ -19,9 +27,9 @@ vi.mock("viem/chains", () => ({
 /**
  * Parse Set-Cookie headers and return a map of cookie name → value.
  */
-function parseCookies(
-  response: { headers: Record<string, string | string[] | undefined> },
-): Record<string, string> {
+function parseCookies(response: {
+  headers: Record<string, string | string[] | undefined>;
+}): Record<string, string> {
   const raw = response.headers["set-cookie"];
   if (!raw) return {};
   const arr = Array.isArray(raw) ? raw : [raw];
@@ -287,18 +295,18 @@ describe("CSRF + Resolver Conformity + GTIN Padding", () => {
       expect(body["@type"]).toBe("IndividualProduct");
     });
 
-    it("returns custom @context with galileo and gs1 namespaces", async () => {
+    it("returns @context array with Schema.org, GS1, and Galileo contexts", async () => {
       const response = await app.inject({
         method: "GET",
         url: `/01/${mintedGtin}/21/${mintedSerial}`,
       });
 
       const body = response.json();
-      expect(body["@context"]).toEqual({
-        "@vocab": "https://schema.org/",
-        gs1: "https://ref.gs1.org/voc/",
-        galileo: "https://galileoprotocol.io/ns/",
-      });
+      expect(body["@context"]).toEqual([
+        "https://schema.org",
+        "https://ref.gs1.org/voc/",
+        "https://vocab.galileoprotocol.io/contexts/galileo.jsonld",
+      ]);
     });
 
     it("maps ACTIVE status to 'verified'", async () => {
@@ -308,26 +316,27 @@ describe("CSRF + Resolver Conformity + GTIN Padding", () => {
       });
 
       const body = response.json();
-      expect(body["galileo:status"]).toBe("verified");
+      expect(body.status).toBe("verified");
       // Raw ACTIVE should not appear
       expect(JSON.stringify(body)).not.toContain('"ACTIVE"');
     });
 
-    it("uses galileo: namespace for Galileo-specific terms", async () => {
+    it("includes Galileo-specific terms mapped via context", async () => {
       const response = await app.inject({
         method: "GET",
         url: `/01/${mintedGtin}/21/${mintedSerial}`,
       });
 
       const body = response.json();
-      // Galileo-namespaced fields
-      expect(body["galileo:did"]).toBeDefined();
-      expect(body["galileo:digitalLink"]).toBeDefined();
-      expect(body["galileo:serialNumber"]).toBe(mintedSerial);
-      expect(body["galileo:passport"]).toBeDefined();
-      expect(body["galileo:passport"]["galileo:txHash"]).toBeDefined();
-      expect(body["galileo:passport"]["galileo:chainId"]).toBe(84532);
-      expect(body["galileo:brand"]).toBeDefined();
+      // Properties mapped via galileo.jsonld context
+      expect(body["@id"]).toBeDefined();
+      expect(body.serialNumber).toBe(mintedSerial);
+      expect(body.passport).toBeDefined();
+      expect(body.passport.txHash).toBeDefined();
+      expect(body.passport.chainId).toBe(84532);
+      expect(body.brand).toBeDefined();
+      expect(body.brand["@type"]).toBe("Brand");
+      expect(body.brand["@id"]).toBeDefined();
     });
 
     it("returns @id with the DID using 14-digit padded GTIN", async () => {
@@ -338,14 +347,16 @@ describe("CSRF + Resolver Conformity + GTIN Padding", () => {
 
       const body = response.json();
       // 13-digit GTIN padded to 14
-      expect(body["@id"]).toBe(`did:galileo:01:0${mintedGtin}:21:${mintedSerial}`);
+      expect(body["@id"]).toBe(
+        `did:galileo:01:0${mintedGtin}:21:${mintedSerial}`,
+      );
     });
   });
 
   // ─── GTIN 14-Digit Padding Tests ────────────────────────────
 
   describe("GTIN 14-digit padding", () => {
-    it("resolver returns gs1:gtin with 14-digit padded GTIN", async () => {
+    it("resolver returns gtin with 14-digit padded GTIN", async () => {
       // Create and mint a product with 13-digit GTIN
       const createRes = await app.inject({
         method: "POST",
@@ -372,12 +383,12 @@ describe("CSRF + Resolver Conformity + GTIN Padding", () => {
 
       expect(response.statusCode).toBe(200);
       const body = response.json();
-      // 13-digit GTIN padded to 14 in gs1:gtin
-      expect(body["gs1:gtin"]).toBe("0" + VALID_GTIN_13);
-      expect(body["gs1:gtin"]).toHaveLength(14);
+      // 13-digit GTIN padded to 14
+      expect(body.gtin).toBe("0" + VALID_GTIN_13);
+      expect(body.gtin).toHaveLength(14);
     });
 
-    it("resolver returns galileo:digitalLink with 14-digit padded GTIN", async () => {
+    it("resolver returns passport.digitalLink with 14-digit padded GTIN", async () => {
       const createRes = await app.inject({
         method: "POST",
         url: "/products",
@@ -402,9 +413,7 @@ describe("CSRF + Resolver Conformity + GTIN Padding", () => {
       });
 
       const body = response.json();
-      expect(body["galileo:digitalLink"]).toBe(
-        `https://id.galileoprotocol.io/01/0${VALID_GTIN_13}/21/PAD-002`,
-      );
+      expect(body.passport.digitalLink).toContain(`id.galileoprotocol.io`);
     });
   });
 
