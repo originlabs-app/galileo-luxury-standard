@@ -16,6 +16,14 @@ const swaggerCspDirectives = {
   frameAncestors: ["'self'"],
 };
 
+/** Pre-computed CSP header value for Swagger UI routes. */
+const swaggerCspValue = Object.entries(swaggerCspDirectives)
+  .map(
+    ([key, sources]) =>
+      `${key.replace(/([A-Z])/g, "-$1").toLowerCase()} ${sources.join(" ")}`,
+  )
+  .join("; ");
+
 export default fp(async (fastify: FastifyInstance) => {
   // Disable helmet in test environment — it can interfere with test assertions
   if (config.NODE_ENV === "test") {
@@ -51,13 +59,7 @@ export default fp(async (fastify: FastifyInstance) => {
   if (!isProduction) {
     fastify.addHook("onRequest", async (request, reply) => {
       if (request.url.startsWith("/docs")) {
-        const cspValue = Object.entries(swaggerCspDirectives)
-          .map(
-            ([key, sources]) =>
-              `${key.replace(/([A-Z])/g, "-$1").toLowerCase()} ${sources.join(" ")}`,
-          )
-          .join("; ");
-        reply.header("content-security-policy", cspValue);
+        reply.header("content-security-policy", swaggerCspValue);
       }
     });
   }

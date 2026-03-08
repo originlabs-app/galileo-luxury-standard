@@ -6,6 +6,7 @@ import {
   generateDigitalLinkUrl,
 } from "@galileo/shared";
 import { requireRole } from "../../middleware/rbac.js";
+import { isPrismaUniqueViolation } from "../../utils/prisma-errors.js";
 
 const PRODUCT_CATEGORIES = [
   "Leather Goods",
@@ -167,12 +168,7 @@ export default async function createProductRoute(fastify: FastifyInstance) {
         });
       } catch (err: unknown) {
         // Handle unique constraint violation (duplicate gtin+serial)
-        if (
-          err &&
-          typeof err === "object" &&
-          "code" in err &&
-          (err as { code: string }).code === "P2002"
-        ) {
+        if (isPrismaUniqueViolation(err)) {
           return reply.status(409).send({
             success: false,
             error: {

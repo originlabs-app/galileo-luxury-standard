@@ -1,4 +1,5 @@
 import type { FastifyInstance } from "fastify";
+import { ProductStatus, EventType } from "@galileo/shared";
 import { requireRole } from "../../middleware/rbac.js";
 import { RouteError } from "../../utils/route-error.js";
 
@@ -55,7 +56,7 @@ export default async function recallProductRoute(fastify: FastifyInstance) {
               throw new RouteError(403, "FORBIDDEN", "Access denied");
             }
 
-            if (product.status !== "ACTIVE") {
+            if (product.status !== ProductStatus.ACTIVE) {
               throw new RouteError(
                 409,
                 "CONFLICT",
@@ -64,8 +65,8 @@ export default async function recallProductRoute(fastify: FastifyInstance) {
             }
 
             const updated = await tx.product.updateMany({
-              where: { id, status: "ACTIVE" },
-              data: { status: "RECALLED" },
+              where: { id, status: ProductStatus.ACTIVE },
+              data: { status: ProductStatus.RECALLED },
             });
 
             if (updated.count === 0) {
@@ -79,7 +80,7 @@ export default async function recallProductRoute(fastify: FastifyInstance) {
             await tx.productEvent.create({
               data: {
                 productId: id,
-                type: "RECALLED",
+                type: EventType.RECALLED,
                 data: { reason },
                 performedBy: user.sub,
               },

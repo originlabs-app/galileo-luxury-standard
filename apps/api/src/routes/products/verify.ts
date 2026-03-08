@@ -40,10 +40,13 @@ export default async function verifyProductRoute(fastify: FastifyInstance) {
         // No valid auth — that's fine, this is a public endpoint
       }
 
-      // Look up the product
+      // Fetch the full product with relations upfront (single DB round-trip)
       const product = await fastify.prisma.product.findUnique({
         where: { id },
-        select: { id: true, status: true },
+        include: {
+          passport: true,
+          events: { orderBy: { createdAt: "desc" }, take: 50 },
+        },
       });
 
       if (!product) {
@@ -69,7 +72,7 @@ export default async function verifyProductRoute(fastify: FastifyInstance) {
       }
 
       // Record the VERIFIED event
-      await fastify.prisma.productEvent.create({
+      const newEvent = await fastify.prisma.productEvent.create({
         data: {
           productId: id,
           type: EventType.VERIFIED,
@@ -78,20 +81,14 @@ export default async function verifyProductRoute(fastify: FastifyInstance) {
         },
       });
 
-      // Re-fetch with full relations for the response
-      const fullProduct = await fastify.prisma.product.findUnique({
-        where: { id },
-        include: {
-          passport: true,
-          events: { orderBy: { createdAt: "desc" }, take: 50 },
-        },
-      });
+      // Prepend the new event to the already-fetched list (avoids a third DB call)
+      product.events = [newEvent, ...product.events].slice(0, 50);
 
       return reply.status(200).send({
         success: true,
         data: {
           verified: true,
-          product: fullProduct,
+          product,
         },
       });
     },

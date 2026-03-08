@@ -1,12 +1,10 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { verifyMessage, getAddress } from "viem";
-import {
-  ETHEREUM_ADDRESS_RE,
-  LINK_WALLET_MESSAGE_PREFIX,
-} from "@galileo/shared";
+import { ETHEREUM_ADDRESS_RE, buildLinkWalletMessage } from "@galileo/shared";
 import { requireCsrfHeader } from "../../middleware/csrf.js";
 import { errorResponseSchema } from "../../utils/schemas.js";
+import { isPrismaUniqueViolation } from "../../utils/prisma-errors.js";
 
 const linkWalletBody = z.object({
   address: z.string().regex(ETHEREUM_ADDRESS_RE, "Invalid Ethereum address"),
@@ -110,7 +108,7 @@ export default async function linkWalletRoute(fastify: FastifyInstance) {
         });
       }
 
-      const expectedMessage = `${LINK_WALLET_MESSAGE_PREFIX} ${currentUser.email}`;
+      const expectedMessage = buildLinkWalletMessage(currentUser.email);
       if (message !== expectedMessage) {
         return reply.status(400).send({
           success: false,
@@ -128,12 +126,7 @@ export default async function linkWalletRoute(fastify: FastifyInstance) {
           data: { walletAddress: checksumAddress },
         });
       } catch (err: unknown) {
-        if (
-          err &&
-          typeof err === "object" &&
-          "code" in err &&
-          err.code === "P2002"
-        ) {
+        if (isPrismaUniqueViolation(err)) {
           return reply.status(409).send({
             success: false,
             error: {

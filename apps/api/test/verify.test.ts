@@ -45,11 +45,13 @@ describe("POST /products/:id/verify", () => {
   });
 
   beforeEach(async () => {
-    await app.prisma.productEvent.deleteMany({});
-    await app.prisma.productPassport.deleteMany({});
-    await app.prisma.product.deleteMany({});
-    await app.prisma.user.deleteMany({});
-    await app.prisma.brand.deleteMany({});
+    await app.prisma.$transaction([
+      app.prisma.productEvent.deleteMany(),
+      app.prisma.productPassport.deleteMany(),
+      app.prisma.product.deleteMany(),
+      app.prisma.user.deleteMany(),
+      app.prisma.brand.deleteMany(),
+    ]);
 
     const brand = await app.prisma.brand.create({
       data: {

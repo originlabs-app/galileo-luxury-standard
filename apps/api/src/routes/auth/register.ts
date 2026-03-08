@@ -7,6 +7,7 @@ import { toSlug } from "../../utils/slug.js";
 import { hashToken } from "../../utils/token-hash.js";
 import { setAuthCookies } from "../../utils/cookies.js";
 import { errorResponseSchema } from "../../utils/schemas.js";
+import { isPrismaUniqueViolation } from "../../utils/prisma-errors.js";
 
 const registerBody = z.object({
   email: emailSchema,
@@ -130,12 +131,7 @@ export default async function registerRoute(fastify: FastifyInstance) {
           user = result;
         } catch (error: unknown) {
           // Handle unique constraint violation (slug or DID collision)
-          if (
-            error &&
-            typeof error === "object" &&
-            "code" in error &&
-            error.code === "P2002"
-          ) {
+          if (isPrismaUniqueViolation(error)) {
             return reply.status(409).send({
               success: false,
               error: {
