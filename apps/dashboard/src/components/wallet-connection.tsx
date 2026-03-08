@@ -1,16 +1,19 @@
 "use client";
 
-import { AlertCircle, LoaderCircle, LogOut, Wallet } from "lucide-react";
-import { useMemo } from "react";
+import { AlertCircle, Link2, LoaderCircle, LogOut, Wallet } from "lucide-react";
+import { useMemo, useState } from "react";
 import {
   useAccount,
   useConnect,
   useConnectors,
   useDisconnect,
+  useSignMessage,
   useSwitchChain,
 } from "wagmi";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/hooks/use-auth";
+import { api, ApiError } from "@/lib/api";
 import { formatWalletAddress, walletChain } from "@/lib/wallet";
 
 function resolveErrorMessage(message?: string) {
@@ -26,6 +29,7 @@ function resolveErrorMessage(message?: string) {
 }
 
 export function WalletConnection() {
+  const { user, refreshUser } = useAuth();
   const { address, chain, chainId, connector, isConnected } = useAccount();
   const connectors = useConnectors();
   const browserWalletConnector = useMemo(
@@ -50,11 +54,52 @@ export function WalletConnection() {
     error: switchChainError,
     isPending: isSwitchingChain,
   } = useSwitchChain();
+  const { signMessageAsync } = useSignMessage();
+
+  const [isLinking, setIsLinking] = useState(false);
+  const [linkError, setLinkError] = useState<string | null>(null);
 
   const isWrongChain = isConnected && chainId !== walletChain.id;
-  const errorMessage = resolveErrorMessage(
-    connectError?.message ?? switchChainError?.message ?? disconnectError?.message,
-  );
+  const isAlreadyLinked =
+    isConnected &&
+    address &&
+    user?.walletAddress?.toLowerCase() === address.toLowerCase();
+
+  const errorMessage =
+    linkError ??
+    resolveErrorMessage(
+      connectError?.message ??
+        switchChainError?.message ??
+        disconnectError?.message,
+    );
+
+  async function handleLinkWallet() {
+    if (!address) return;
+
+    setIsLinking(true);
+    setLinkError(null);
+    try {
+      const message = `Link wallet to Galileo: ${user?.email ?? "account"}`;
+      const signature = await signMessageAsync({ message });
+
+      await api("/auth/link-wallet", {
+        method: "POST",
+        body: JSON.stringify({ address, signature, message }),
+      });
+
+      await refreshUser();
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setLinkError(err.message);
+      } else if (err instanceof Error) {
+        setLinkError(err.message);
+      } else {
+        setLinkError("Failed to link wallet");
+      }
+    } finally {
+      setIsLinking(false);
+    }
+  }
 
   if (!browserWalletConnector) {
     return null;
@@ -94,12 +139,22 @@ export function WalletConnection() {
     <div className="flex items-center gap-3">
       <div className="hidden items-center gap-2 rounded-full border border-border bg-card/80 px-3 py-1.5 md:flex">
         <Badge variant={isWrongChain ? "destructive" : "secondary"}>
-          {isWrongChain ? "Wrong network" : chain?.name ?? walletChain.name}
+          {isWrongChain ? "Wrong network" : (chain?.name ?? walletChain.name)}
         </Badge>
-        <span className="text-sm text-foreground">{formatWalletAddress(address)}</span>
+        <span className="text-sm text-foreground">
+          {formatWalletAddress(address)}
+        </span>
         <span className="text-xs text-muted-foreground">
           {connector?.name ?? "Browser wallet"}
         </span>
+        {isAlreadyLinked ? (
+          <Badge
+            variant="outline"
+            className="text-[#00FF88] border-[#00FF88]/30"
+          >
+            Linked
+          </Badge>
+        ) : null}
       </div>
 
       {isWrongChain ? (
@@ -118,15 +173,38 @@ export function WalletConnection() {
         </Button>
       ) : null}
 
+      {!isWrongChain && !isAlreadyLinked ? (
+        <Button
+          size="sm"
+          variant="secondary"
+          onClick={handleLinkWallet}
+          disabled={isLinking}
+        >
+          {isLinking ? <LoaderCircle className="animate-spin" /> : <Link2 />}
+          {isLinking ? "Linking..." : "Link"}
+        </Button>
+      ) : null}
+
       <Button
         size="sm"
         variant="outline"
         onClick={() => disconnect()}
         disabled={isDisconnecting}
       >
-        {isDisconnecting ? <LoaderCircle className="animate-spin" /> : <LogOut />}
+        {isDisconnecting ? (
+          <LoaderCircle className="animate-spin" />
+        ) : (
+          <LogOut />
+        )}
         {isDisconnecting ? "Disconnecting..." : "Disconnect"}
       </Button>
+
+      {errorMessage ? (
+        <span className="hidden items-center gap-1 text-xs text-destructive lg:inline-flex">
+          <AlertCircle className="size-3.5" />
+          {errorMessage}
+        </span>
+      ) : null}
     </div>
   );
 }

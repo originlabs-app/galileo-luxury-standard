@@ -15,6 +15,7 @@ interface User {
   id: string;
   email: string;
   role: string;
+  walletAddress?: string | null;
   brand?: {
     id: string;
     name: string;
@@ -59,6 +60,7 @@ interface AuthContextValue {
   login: (params: LoginParams) => Promise<void>;
   register: (params: RegisterParams) => Promise<void>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -107,6 +109,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAuth({ state: "authenticated", user: response.data.user });
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    const response = await api<ApiResponse<MeData>>("/auth/me");
+    setAuth({ state: "authenticated", user: response.data.user });
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       await api("/auth/logout", { method: "POST" });
@@ -123,6 +130,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     login,
     register,
     logout,
+    refreshUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
