@@ -141,7 +141,7 @@ function StatusPill({ status }: { status?: string }) {
   const normalized = status?.toLowerCase();
 
   const config =
-    normalized === "verified"
+    normalized === "active"
       ? {
           label: "Verified",
           className: "bg-success/15 text-success ring-success/25",
@@ -151,10 +151,15 @@ function StatusPill({ status }: { status?: string }) {
             label: "Recalled",
             className: "bg-primary/15 text-primary ring-primary/25",
           }
-        : {
-            label: status ?? "Unknown",
-            className: "bg-muted text-foreground ring-border",
-          };
+        : normalized === "draft"
+          ? {
+              label: "Draft",
+              className: "bg-muted text-muted-foreground ring-border",
+            }
+          : {
+              label: status ?? "Unknown",
+              className: "bg-muted text-foreground ring-border",
+            };
 
   return (
     <span

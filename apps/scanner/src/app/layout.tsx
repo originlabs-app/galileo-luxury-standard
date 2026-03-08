@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Outfit } from "next/font/google";
 import "./globals.css";
+import { RegisterSW } from "./register-sw";
 
 const cormorant = Cormorant_Garamond({
   variable: "--font-cormorant",
@@ -48,6 +49,7 @@ export default function RootLayout({
         className={`${cormorant.variable} ${outfit.variable} font-sans antialiased`}
       >
         {children}
+        <RegisterSW />
       </body>
     </html>
   );
