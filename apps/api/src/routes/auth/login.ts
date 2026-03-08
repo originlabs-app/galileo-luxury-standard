@@ -6,6 +6,7 @@ import { verifyPassword } from "../../utils/password.js";
 import { generateTokenPair } from "../../utils/tokens.js";
 import { hashToken } from "../../utils/token-hash.js";
 import { setAuthCookies } from "../../utils/cookies.js";
+import { errorResponseSchema } from "../../utils/schemas.js";
 
 // Pre-hashed dummy value for timing-safe login when user is not found
 const DUMMY_HASH =
@@ -21,20 +22,6 @@ const INVALID_CREDENTIALS_ERROR = {
   error: {
     code: "UNAUTHORIZED",
     message: "Invalid email or password",
-  },
-};
-
-const errorResponseSchema = {
-  type: "object" as const,
-  properties: {
-    success: { type: "boolean" as const },
-    error: {
-      type: "object" as const,
-      properties: {
-        code: { type: "string" as const },
-        message: { type: "string" as const },
-      },
-    },
   },
 };
 

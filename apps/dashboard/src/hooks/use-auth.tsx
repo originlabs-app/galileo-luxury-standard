@@ -15,6 +15,7 @@ interface User {
   id: string;
   email: string;
   role: string;
+  brandId?: string | null;
   walletAddress?: string | null;
   brand?: {
     id: string;

@@ -1,30 +1,18 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { verifyMessage, getAddress } from "viem";
+import {
+  ETHEREUM_ADDRESS_RE,
+  LINK_WALLET_MESSAGE_PREFIX,
+} from "@galileo/shared";
 import { requireCsrfHeader } from "../../middleware/csrf.js";
-
-const ETHEREUM_ADDRESS_RE = /^0x[0-9a-fA-F]{40}$/;
-const MESSAGE_PREFIX = "Link wallet to Galileo:";
+import { errorResponseSchema } from "../../utils/schemas.js";
 
 const linkWalletBody = z.object({
   address: z.string().regex(ETHEREUM_ADDRESS_RE, "Invalid Ethereum address"),
   signature: z.string().min(1, "Signature is required"),
   message: z.string().min(1, "Message is required"),
 });
-
-const errorResponseSchema = {
-  type: "object" as const,
-  properties: {
-    success: { type: "boolean" as const },
-    error: {
-      type: "object" as const,
-      properties: {
-        code: { type: "string" as const },
-        message: { type: "string" as const },
-      },
-    },
-  },
-};
 
 export default async function linkWalletRoute(fastify: FastifyInstance) {
   fastify.post(
@@ -84,23 +72,13 @@ export default async function linkWalletRoute(fastify: FastifyInstance) {
       }
 
       const { address, signature, message } = parsed.data;
+      const checksumAddress = getAddress(address);
 
-      // 2. Validate message contains the required prefix
-      if (!message.startsWith(MESSAGE_PREFIX)) {
-        return reply.status(400).send({
-          success: false,
-          error: {
-            code: "VALIDATION_ERROR",
-            message: `Message must start with "${MESSAGE_PREFIX}"`,
-          },
-        });
-      }
-
-      // 3. Verify EIP-191 signature
+      // 2. Verify EIP-191 signature first (no DB needed — fail fast)
       let isValid: boolean;
       try {
         isValid = await verifyMessage({
-          address: getAddress(address),
+          address: checksumAddress,
           message,
           signature: signature as `0x${string}`,
         });
@@ -119,30 +97,54 @@ export default async function linkWalletRoute(fastify: FastifyInstance) {
         });
       }
 
-      // 4. Checksum-normalize the address
-      const checksumAddress = getAddress(address);
+      // 3. Fetch user email and validate message binds to this account
       const { sub } = request.user;
-
-      // 5. Check if the address is already linked to another user
-      const existingUser = await fastify.prisma.user.findUnique({
-        where: { walletAddress: checksumAddress },
+      const currentUser = await fastify.prisma.user.findUnique({
+        where: { id: sub },
+        select: { email: true },
       });
+      if (!currentUser) {
+        return reply.status(401).send({
+          success: false,
+          error: { code: "UNAUTHORIZED", message: "User not found" },
+        });
+      }
 
-      if (existingUser && existingUser.id !== sub) {
-        return reply.status(409).send({
+      const expectedMessage = `${LINK_WALLET_MESSAGE_PREFIX} ${currentUser.email}`;
+      if (message !== expectedMessage) {
+        return reply.status(400).send({
           success: false,
           error: {
-            code: "CONFLICT",
-            message: "This wallet address is already linked to another account",
+            code: "VALIDATION_ERROR",
+            message: "Signed message does not match your account",
           },
         });
       }
 
-      // 6. Update the user's wallet address
-      await fastify.prisma.user.update({
-        where: { id: sub },
-        data: { walletAddress: checksumAddress },
-      });
+      // 4. Update wallet — unique constraint on walletAddress handles conflicts
+      try {
+        await fastify.prisma.user.update({
+          where: { id: sub },
+          data: { walletAddress: checksumAddress },
+        });
+      } catch (err: unknown) {
+        if (
+          err &&
+          typeof err === "object" &&
+          "code" in err &&
+          err.code === "P2002"
+        ) {
+          return reply.status(409).send({
+            success: false,
+            error: {
+              code: "CONFLICT",
+              message:
+                "This wallet address is already linked to another account",
+            },
+          });
+        }
+        throw err;
+      }
 
       fastify.log.info({ userId: sub }, "Wallet linked");
 

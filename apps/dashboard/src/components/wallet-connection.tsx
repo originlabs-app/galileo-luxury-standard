@@ -1,7 +1,7 @@
 "use client";
 
 import { AlertCircle, Link2, LoaderCircle, LogOut, Wallet } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   useAccount,
   useConnect,
@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/use-auth";
+import { buildLinkWalletMessage } from "@galileo/shared";
 import { api, ApiError } from "@/lib/api";
 import { formatWalletAddress, walletChain } from "@/lib/wallet";
 
@@ -59,6 +60,11 @@ export function WalletConnection() {
   const [isLinking, setIsLinking] = useState(false);
   const [linkError, setLinkError] = useState<string | null>(null);
 
+  // Clear stale link error when wallet connection state changes
+  useEffect(() => {
+    setLinkError(null);
+  }, [isConnected, address]);
+
   const isWrongChain = isConnected && chainId !== walletChain.id;
   const isAlreadyLinked =
     isConnected &&
@@ -74,12 +80,12 @@ export function WalletConnection() {
     );
 
   async function handleLinkWallet() {
-    if (!address) return;
+    if (!address || !user?.email) return;
 
     setIsLinking(true);
     setLinkError(null);
     try {
-      const message = `Link wallet to Galileo: ${user?.email ?? "account"}`;
+      const message = buildLinkWalletMessage(user.email);
       const signature = await signMessageAsync({ message });
 
       await api("/auth/link-wallet", {

@@ -6,20 +6,7 @@ import {
   setAuthCookies,
   clearAuthCookies,
 } from "../../utils/cookies.js";
-
-const errorResponseSchema = {
-  type: "object" as const,
-  properties: {
-    success: { type: "boolean" as const },
-    error: {
-      type: "object" as const,
-      properties: {
-        code: { type: "string" as const },
-        message: { type: "string" as const },
-      },
-    },
-  },
-};
+import { errorResponseSchema } from "../../utils/schemas.js";
 
 export default async function refreshRoute(fastify: FastifyInstance) {
   fastify.post(

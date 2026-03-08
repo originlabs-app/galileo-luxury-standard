@@ -1,9 +1,9 @@
 import type { FastifyInstance } from "fastify";
+import { getAddress } from "viem";
+import { ETHEREUM_ADDRESS_RE, ProductStatus, EventType } from "@galileo/shared";
 import { requireRole } from "../../middleware/rbac.js";
 import { RouteError } from "../../utils/route-error.js";
-
-/** Validates an Ethereum address: 0x followed by 40 hex characters */
-const ETH_ADDRESS_RE = /^0x[0-9a-fA-F]{40}$/;
+import { errorResponseSchema } from "../../utils/schemas.js";
 
 export default async function transferProductRoute(fastify: FastifyInstance) {
   fastify.post<{
@@ -13,6 +13,47 @@ export default async function transferProductRoute(fastify: FastifyInstance) {
     "/products/:id/transfer",
     {
       onRequest: [fastify.authenticate, requireRole("BRAND_ADMIN", "ADMIN")],
+      schema: {
+        description: "Transfer a product to a new wallet address",
+        tags: ["Products"],
+        security: [{ cookieAuth: [] }],
+        params: {
+          type: "object",
+          properties: { id: { type: "string" } },
+          required: ["id"],
+        },
+        body: {
+          type: "object",
+          properties: {
+            toAddress: {
+              type: "string",
+              description: "Destination Ethereum wallet address (0x...)",
+            },
+          },
+          required: ["toAddress"],
+        },
+        response: {
+          200: {
+            type: "object",
+            properties: {
+              success: { type: "boolean" },
+              data: {
+                type: "object",
+                properties: {
+                  product: {
+                    type: "object",
+                    additionalProperties: true,
+                  },
+                },
+              },
+            },
+          },
+          400: errorResponseSchema,
+          403: errorResponseSchema,
+          404: errorResponseSchema,
+          409: errorResponseSchema,
+        },
+      },
     },
     async (request, reply) => {
       const { id } = request.params;
@@ -23,7 +64,7 @@ export default async function transferProductRoute(fastify: FastifyInstance) {
       if (
         !toAddress ||
         typeof toAddress !== "string" ||
-        !ETH_ADDRESS_RE.test(toAddress)
+        !ETHEREUM_ADDRESS_RE.test(toAddress)
       ) {
         return reply.status(400).send({
           success: false,
@@ -34,6 +75,9 @@ export default async function transferProductRoute(fastify: FastifyInstance) {
           },
         });
       }
+
+      // Checksum-normalize the destination address
+      const checksumToAddress = getAddress(toAddress);
 
       if (user.role !== "ADMIN" && !user.brandId) {
         return reply.status(403).send({
@@ -66,7 +110,7 @@ export default async function transferProductRoute(fastify: FastifyInstance) {
               throw new RouteError(403, "FORBIDDEN", "Access denied");
             }
 
-            if (product.status !== "ACTIVE") {
+            if (product.status !== ProductStatus.ACTIVE) {
               throw new RouteError(
                 409,
                 "CONFLICT",
@@ -76,16 +120,26 @@ export default async function transferProductRoute(fastify: FastifyInstance) {
 
             const fromAddress = product.walletAddress ?? null;
 
-            await tx.product.update({
-              where: { id },
-              data: { walletAddress: toAddress },
+            // Optimistic concurrency: only update if status is still ACTIVE.
+            // If a concurrent request already changed the status, count=0 → 409.
+            const updated = await tx.product.updateMany({
+              where: { id, status: ProductStatus.ACTIVE },
+              data: { walletAddress: checksumToAddress },
             });
+
+            if (updated.count === 0) {
+              throw new RouteError(
+                409,
+                "CONFLICT",
+                "Product status changed concurrently — please retry",
+              );
+            }
 
             await tx.productEvent.create({
               data: {
                 productId: id,
-                type: "TRANSFERRED",
-                data: { from: fromAddress, to: toAddress },
+                type: EventType.TRANSFERRED,
+                data: { from: fromAddress, to: checksumToAddress },
                 performedBy: user.sub,
               },
             });

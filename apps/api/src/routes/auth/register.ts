@@ -6,6 +6,7 @@ import { generateTokenPair } from "../../utils/tokens.js";
 import { toSlug } from "../../utils/slug.js";
 import { hashToken } from "../../utils/token-hash.js";
 import { setAuthCookies } from "../../utils/cookies.js";
+import { errorResponseSchema } from "../../utils/schemas.js";
 
 const registerBody = z.object({
   email: emailSchema,
@@ -16,20 +17,6 @@ const registerBody = z.object({
     .max(255, "Brand name must be at most 255 characters")
     .optional(),
 });
-
-const errorResponseSchema = {
-  type: "object" as const,
-  properties: {
-    success: { type: "boolean" as const },
-    error: {
-      type: "object" as const,
-      properties: {
-        code: { type: "string" as const },
-        message: { type: "string" as const },
-      },
-    },
-  },
-};
 
 export default async function registerRoute(fastify: FastifyInstance) {
   fastify.post(

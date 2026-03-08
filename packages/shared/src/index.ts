@@ -22,11 +22,7 @@ export {
 } from "./types/api.js";
 
 // Constants
-export {
-  ROLES,
-  type RoleKey,
-  type RoleValue,
-} from "./constants/roles.js";
+export { ROLES, type RoleKey, type RoleValue } from "./constants/roles.js";
 export { CATEGORIES, type Category } from "./constants/categories.js";
 export {
   COMPLIANCE_DEFAULT_EXPIRY,
@@ -61,3 +57,8 @@ export {
   validateDid,
 } from "./validation/did.js";
 export { emailSchema, passwordSchema } from "./validation/auth.js";
+export {
+  ETHEREUM_ADDRESS_RE,
+  LINK_WALLET_MESSAGE_PREFIX,
+  buildLinkWalletMessage,
+} from "./validation/wallet.js";
