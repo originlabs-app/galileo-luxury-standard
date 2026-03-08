@@ -1,7 +1,18 @@
 import type { FastifyInstance } from "fastify";
+import { z } from "zod";
 import { ProductStatus, EventType } from "@galileo/shared";
 import { requireRole } from "../../middleware/rbac.js";
 import { RouteError } from "../../utils/route-error.js";
+
+const recallBody = z
+  .object({
+    reason: z
+      .string()
+      .max(2000, "Reason must be at most 2000 characters")
+      .optional()
+      .default(""),
+  })
+  .strict();
 
 export default async function recallProductRoute(fastify: FastifyInstance) {
   fastify.post<{
@@ -28,7 +39,20 @@ export default async function recallProductRoute(fastify: FastifyInstance) {
     async (request, reply) => {
       const { id } = request.params;
       const user = request.user;
-      const reason = request.body?.reason ?? "";
+
+      // Validate body (reason is optional, max 2000 chars, no extra fields)
+      const bodyParsed = recallBody.safeParse(request.body ?? {});
+      if (!bodyParsed.success) {
+        return reply.status(400).send({
+          success: false,
+          error: {
+            code: "VALIDATION_ERROR",
+            message: "Invalid input",
+            details: bodyParsed.error.flatten().fieldErrors,
+          },
+        });
+      }
+      const { reason } = bodyParsed.data;
 
       if (user.role !== "ADMIN" && !user.brandId) {
         return reply.status(403).send({

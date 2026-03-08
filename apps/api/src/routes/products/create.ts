@@ -19,26 +19,28 @@ const PRODUCT_CATEGORIES = [
   "Other",
 ] as const;
 
-const createProductBody = z.object({
-  gtin: z.string().min(1, "GTIN is required"),
-  serialNumber: z
-    .string()
-    .min(1, "Serial number is required")
-    .max(100, "Serial number must be at most 100 characters"),
-  name: z
-    .string()
-    .min(1, "Name is required")
-    .max(255, "Name must be at most 255 characters"),
-  description: z
-    .string()
-    .max(2000, "Description must be at most 2000 characters")
-    .optional(),
-  category: z.enum(PRODUCT_CATEGORIES, {
-    message:
-      "Category must be one of: Leather Goods, Jewelry, Watches, Fashion, Accessories, Fragrances, Eyewear, Other",
-  }),
-  brandId: z.string().optional(),
-});
+const createProductBody = z
+  .object({
+    gtin: z.string().min(1, "GTIN is required"),
+    serialNumber: z
+      .string()
+      .min(1, "Serial number is required")
+      .max(100, "Serial number must be at most 100 characters"),
+    name: z
+      .string()
+      .min(1, "Name is required")
+      .max(255, "Name must be at most 255 characters"),
+    description: z
+      .string()
+      .max(2000, "Description must be at most 2000 characters")
+      .optional(),
+    category: z.enum(PRODUCT_CATEGORIES, {
+      message:
+        "Category must be one of: Leather Goods, Jewelry, Watches, Fashion, Accessories, Fragrances, Eyewear, Other",
+    }),
+    brandId: z.string().optional(),
+  })
+  .strict();
 
 export default async function createProductRoute(fastify: FastifyInstance) {
   fastify.post(

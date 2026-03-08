@@ -6,11 +6,13 @@ import { requireCsrfHeader } from "../../middleware/csrf.js";
 import { errorResponseSchema } from "../../utils/schemas.js";
 import { isPrismaUniqueViolation } from "../../utils/prisma-errors.js";
 
-const linkWalletBody = z.object({
-  address: z.string().regex(ETHEREUM_ADDRESS_RE, "Invalid Ethereum address"),
-  signature: z.string().min(1, "Signature is required"),
-  message: z.string().min(1, "Message is required"),
-});
+const linkWalletBody = z
+  .object({
+    address: z.string().regex(ETHEREUM_ADDRESS_RE, "Invalid Ethereum address"),
+    signature: z.string().min(1, "Signature is required"),
+    message: z.string().min(1, "Message is required"),
+  })
+  .strict();
 
 export default async function linkWalletRoute(fastify: FastifyInstance) {
   fastify.post(

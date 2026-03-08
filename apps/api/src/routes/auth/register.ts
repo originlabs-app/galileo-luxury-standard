@@ -9,15 +9,17 @@ import { setAuthCookies } from "../../utils/cookies.js";
 import { errorResponseSchema } from "../../utils/schemas.js";
 import { isPrismaUniqueViolation } from "../../utils/prisma-errors.js";
 
-const registerBody = z.object({
-  email: emailSchema,
-  password: passwordSchema,
-  brandName: z
-    .string()
-    .min(1)
-    .max(255, "Brand name must be at most 255 characters")
-    .optional(),
-});
+const registerBody = z
+  .object({
+    email: emailSchema,
+    password: passwordSchema,
+    brandName: z
+      .string()
+      .min(1)
+      .max(255, "Brand name must be at most 255 characters")
+      .optional(),
+  })
+  .strict();
 
 export default async function registerRoute(fastify: FastifyInstance) {
   fastify.post(

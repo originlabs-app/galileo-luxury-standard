@@ -1,6 +1,22 @@
 import type { FastifyInstance } from "fastify";
+import { z } from "zod";
 import { EventType } from "@galileo/shared";
 import { errorResponseSchema } from "../../utils/schemas.js";
+
+const verifyBody = z
+  .object({
+    location: z
+      .string()
+      .max(500, "Location must be at most 500 characters")
+      .optional()
+      .default(""),
+    userAgent: z
+      .string()
+      .max(500, "User agent must be at most 500 characters")
+      .optional()
+      .default(""),
+  })
+  .strict();
 
 export default async function verifyProductRoute(fastify: FastifyInstance) {
   fastify.post<{
@@ -28,8 +44,20 @@ export default async function verifyProductRoute(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const { id } = request.params;
-      const location = request.body?.location ?? "";
-      const userAgent = request.body?.userAgent ?? "";
+
+      // Validate body (all fields optional, bounded, no extra fields)
+      const bodyParsed = verifyBody.safeParse(request.body ?? {});
+      if (!bodyParsed.success) {
+        return reply.status(400).send({
+          success: false,
+          error: {
+            code: "VALIDATION_ERROR",
+            message: "Invalid input",
+            details: bodyParsed.error.flatten().fieldErrors,
+          },
+        });
+      }
+      const { location, userAgent } = bodyParsed.data;
 
       // Optional auth: try to extract user ID from cookie if present
       let performedBy: string | null = null;

@@ -12,10 +12,12 @@ import { errorResponseSchema } from "../../utils/schemas.js";
 const DUMMY_HASH =
   "$2b$12$LJ3m4ys3Lg2VBe0A8MrXxu7N6OVxB5VH6kFGz3K8HnGFbkOKMgK.i";
 
-const loginBody = z.object({
-  email: emailSchema,
-  password: passwordSchema,
-});
+const loginBody = z
+  .object({
+    email: emailSchema,
+    password: passwordSchema,
+  })
+  .strict();
 
 const INVALID_CREDENTIALS_ERROR = {
   success: false as const,
