@@ -347,7 +347,7 @@ For important GalileoLuxury PRs, merge should happen only after:
 #### 3.3 Wallet Integration (P0)
 
 - [x] Integrate wagmi + RainbowKit in dashboard for wallet connection (PR #15)
-- [ ] Implement `POST /auth/link-wallet` API endpoint
+- [x] Implement `POST /auth/link-wallet` API endpoint with EIP-191 signature verification (PR #21)
 - [ ] Smart Wallet Coinbase support (passkey, gasless) with ERC-1271 verification
 - [ ] Mint flow: review product data → wallet popup → sign tx → confirmation
 
@@ -357,7 +357,8 @@ For important GalileoLuxury PRs, merge should happen only after:
 - [x] PWA manifest, SVG icons, viewport/theme config, standalone display
 - [x] Security hardening: XSS fix, JSON.parse safety, no phantom API call
 - [x] QR scanning: `getUserMedia` + `barcode-detector` (ZXing WASM ponyfill) — `/scan` route (PR #17)
-- [ ] Public verification page: provenance timeline, material composition
+- [x] Public verification page: provenance timeline in scanner + resolver API (PR #22)
+- [ ] Material composition display
 - [ ] Service worker for offline cache of previously scanned products
 - [ ] Deep link: scanning QR goes directly to product page
 
@@ -365,7 +366,9 @@ For important GalileoLuxury PRs, merge should happen only after:
 
 - [x] Lifecycle events API: CREATED, UPDATED, MINTED events working
 - [x] Recall endpoint: `POST /products/:id/recall` — ACTIVE → RECALLED with reason + RECALLED event
-- [ ] Remaining events: `TRANSFERRED`, `VERIFIED`, `OWNERSHIP_CHANGED`, `REPAIRED`, `CPO_CERTIFIED`
+- [x] Dashboard recall button + event timeline icons for all event types (PR #20)
+- [x] Transfer endpoint: `POST /products/:id/transfer` — wallet-to-wallet with TRANSFERRED event (PR #23)
+- [ ] Remaining events: `VERIFIED`, `OWNERSHIP_CHANGED`, `REPAIRED`, `CPO_CERTIFIED`
 - [ ] Event logging (append-only, off-chain + on-chain anchoring)
 - [ ] Transfer flow with compliance check (5 modules: jurisdiction, sanctions, brand auth, CPO, service center)
 - [ ] CPO certification flow
