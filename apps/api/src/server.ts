@@ -19,7 +19,45 @@ import resolverRoutes from "./routes/resolver/index.js";
 
 export async function buildApp() {
   const fastify = Fastify({
-    logger: config.NODE_ENV !== "test",
+    logger:
+      config.NODE_ENV !== "test"
+        ? {
+            level: config.LOG_LEVEL ?? "info",
+            serializers: {
+              req(request: {
+                method: string;
+                url: string;
+                hostname: string;
+                ip: string;
+              }) {
+                return {
+                  method: request.method,
+                  url: request.url,
+                  hostname: request.hostname,
+                  remoteAddress: request.ip,
+                };
+              },
+              res(reply: { statusCode: number }) {
+                return {
+                  statusCode: reply.statusCode,
+                };
+              },
+            },
+            redact: {
+              paths: [
+                "req.headers.authorization",
+                "req.headers.cookie",
+                "req.body.password",
+                "req.body.email",
+                "req.body.passwordHash",
+              ],
+              censor: "[REDACTED]",
+            },
+          }
+        : false,
+    genReqId: (req) => {
+      return (req.headers["x-request-id"] as string) ?? crypto.randomUUID();
+    },
   });
 
   // Register Swagger only in non-production environments
