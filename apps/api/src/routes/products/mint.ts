@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import crypto from "node:crypto";
 import { requireRole } from "../../middleware/rbac.js";
+import { RouteError } from "../../utils/route-error.js";
 
 export default async function mintProductRoute(fastify: FastifyInstance) {
   fastify.post<{ Params: { id: string } }>(
@@ -53,17 +54,17 @@ export default async function mintProductRoute(fastify: FastifyInstance) {
             });
 
             if (!product) {
-              throw new MintError(404, "NOT_FOUND", "Product not found");
+              throw new RouteError(404, "NOT_FOUND", "Product not found");
             }
 
             // Brand scoping: BRAND_ADMIN can only mint their own brand's products; ADMIN can mint any
             if (user.role !== "ADMIN" && product.brandId !== user.brandId) {
-              throw new MintError(403, "FORBIDDEN", "Access denied");
+              throw new RouteError(403, "FORBIDDEN", "Access denied");
             }
 
             // Product must be in DRAFT status
             if (product.status !== "DRAFT") {
-              throw new MintError(
+              throw new RouteError(
                 409,
                 "CONFLICT",
                 "Product is not in DRAFT status",
@@ -77,7 +78,7 @@ export default async function mintProductRoute(fastify: FastifyInstance) {
             });
 
             if (updated.count === 0) {
-              throw new MintError(
+              throw new RouteError(
                 409,
                 "CONFLICT",
                 "Product is not in DRAFT status",
@@ -105,7 +106,7 @@ export default async function mintProductRoute(fastify: FastifyInstance) {
           },
         );
       } catch (err) {
-        if (err instanceof MintError) {
+        if (err instanceof RouteError) {
           return reply.status(err.statusCode).send({
             success: false,
             error: {
@@ -124,6 +125,7 @@ export default async function mintProductRoute(fastify: FastifyInstance) {
           passport: true,
           events: {
             orderBy: { createdAt: "desc" },
+            take: 50,
           },
         },
       });
@@ -144,15 +146,4 @@ export default async function mintProductRoute(fastify: FastifyInstance) {
       });
     },
   );
-}
-
-class MintError extends Error {
-  constructor(
-    public statusCode: number,
-    public code: string,
-    message: string,
-  ) {
-    super(message);
-    this.name = "MintError";
-  }
 }

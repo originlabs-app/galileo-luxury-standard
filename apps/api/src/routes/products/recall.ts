@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { requireRole } from "../../middleware/rbac.js";
+import { RouteError } from "../../utils/route-error.js";
 
 export default async function recallProductRoute(fastify: FastifyInstance) {
   fastify.post<{
@@ -30,18 +31,19 @@ export default async function recallProductRoute(fastify: FastifyInstance) {
           async (tx: import("../../plugins/prisma.js").TxClient) => {
             const product = await tx.product.findUnique({
               where: { id },
+              select: { id: true, brandId: true, status: true },
             });
 
             if (!product) {
-              throw new RecallError(404, "NOT_FOUND", "Product not found");
+              throw new RouteError(404, "NOT_FOUND", "Product not found");
             }
 
             if (user.role !== "ADMIN" && product.brandId !== user.brandId) {
-              throw new RecallError(403, "FORBIDDEN", "Access denied");
+              throw new RouteError(403, "FORBIDDEN", "Access denied");
             }
 
             if (product.status !== "ACTIVE") {
-              throw new RecallError(
+              throw new RouteError(
                 409,
                 "CONFLICT",
                 "Only ACTIVE products can be recalled",
@@ -54,7 +56,7 @@ export default async function recallProductRoute(fastify: FastifyInstance) {
             });
 
             if (updated.count === 0) {
-              throw new RecallError(
+              throw new RouteError(
                 409,
                 "CONFLICT",
                 "Only ACTIVE products can be recalled",
@@ -72,7 +74,7 @@ export default async function recallProductRoute(fastify: FastifyInstance) {
           },
         );
       } catch (err) {
-        if (err instanceof RecallError) {
+        if (err instanceof RouteError) {
           return reply.status(err.statusCode).send({
             success: false,
             error: {
@@ -88,9 +90,19 @@ export default async function recallProductRoute(fastify: FastifyInstance) {
         where: { id },
         include: {
           passport: true,
-          events: { orderBy: { createdAt: "desc" } },
+          events: { orderBy: { createdAt: "desc" }, take: 50 },
         },
       });
+
+      if (!fullProduct) {
+        return reply.status(500).send({
+          success: false,
+          error: {
+            code: "INTERNAL_ERROR",
+            message: "Product not found after recall — this should not happen",
+          },
+        });
+      }
 
       return reply.status(200).send({
         success: true,
@@ -98,15 +110,4 @@ export default async function recallProductRoute(fastify: FastifyInstance) {
       });
     },
   );
-}
-
-class RecallError extends Error {
-  constructor(
-    public statusCode: number,
-    public code: string,
-    message: string,
-  ) {
-    super(message);
-    this.name = "RecallError";
-  }
 }

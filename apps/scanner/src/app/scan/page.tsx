@@ -9,6 +9,7 @@ export default function ScanPage() {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const handleResultRef = useRef<(rawValue: string) => void>(undefined);
   const [state, setState] = useState<ScanState>("loading");
   const [error, setError] = useState<string | null>(null);
 
@@ -24,6 +25,9 @@ export default function ScanPage() {
     },
     [router, stopCamera],
   );
+
+  // Keep ref in sync so the effect closure always calls the latest version
+  handleResultRef.current = handleResult;
 
   const handleClose = useCallback(() => {
     stopCamera();
@@ -69,7 +73,9 @@ export default function ScanPage() {
       setState("scanning");
 
       function detect() {
-        if (cancelled || !videoRef.current || videoRef.current.readyState < 2) {
+        if (cancelled) return;
+
+        if (!videoRef.current || videoRef.current.readyState < 2) {
           animationId = requestAnimationFrame(detect);
           return;
         }
@@ -79,7 +85,7 @@ export default function ScanPage() {
           .then((barcodes) => {
             if (cancelled) return;
             if (barcodes.length > 0 && barcodes[0]!.rawValue) {
-              handleResult(barcodes[0]!.rawValue);
+              handleResultRef.current?.(barcodes[0]!.rawValue);
               return;
             }
             animationId = requestAnimationFrame(detect);
@@ -100,7 +106,7 @@ export default function ScanPage() {
       streamRef.current?.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
     };
-  }, [handleResult]);
+  }, []);
 
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center bg-black">
