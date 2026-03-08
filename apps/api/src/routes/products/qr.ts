@@ -6,6 +6,29 @@ export default async function qrProductRoute(fastify: FastifyInstance) {
     "/products/:id/qr",
     {
       onRequest: [fastify.authenticate],
+      schema: {
+        description:
+          "Generate a QR code PNG for a minted product's digital link",
+        tags: ["Products"],
+        security: [{ cookieAuth: [] }],
+        params: {
+          type: "object",
+          properties: {
+            id: { type: "string", description: "Product ID" },
+          },
+          required: ["id"],
+        },
+        querystring: {
+          type: "object",
+          properties: {
+            size: {
+              type: "string",
+              description:
+                "QR code image width/height in pixels (100-1000, default 300)",
+            },
+          },
+        },
+      },
     },
     async (request, reply) => {
       const { id } = request.params;

@@ -11,6 +11,29 @@ export default async function listProductsRoute(fastify: FastifyInstance) {
     "/products",
     {
       onRequest: [fastify.authenticate],
+      schema: {
+        description: "List products with pagination, scoped by brand",
+        tags: ["Products"],
+        security: [{ cookieAuth: [] }],
+        querystring: {
+          type: "object",
+          properties: {
+            page: {
+              type: "integer",
+              minimum: 1,
+              default: 1,
+              description: "Page number",
+            },
+            limit: {
+              type: "integer",
+              minimum: 1,
+              maximum: 100,
+              default: 20,
+              description: "Items per page",
+            },
+          },
+        },
+      },
     },
     async (request, reply) => {
       const parsed = listQuerySchema.safeParse(request.query);

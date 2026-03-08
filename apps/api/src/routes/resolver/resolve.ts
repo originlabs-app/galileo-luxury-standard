@@ -34,6 +34,22 @@ export default async function resolveDigitalLinkRoute(
 ) {
   fastify.get<{ Params: { gtin: string; serial: string } }>(
     "/01/:gtin/21/:serial",
+    {
+      schema: {
+        description:
+          "Resolve a GS1 Digital Link to a JSON-LD product passport. " +
+          "Public endpoint — no authentication required.",
+        tags: ["Resolver"],
+        params: {
+          type: "object",
+          properties: {
+            gtin: { type: "string", description: "GS1 GTIN (8-14 digits)" },
+            serial: { type: "string", description: "Product serial number" },
+          },
+          required: ["gtin", "serial"],
+        },
+      },
+    },
     async (request, reply) => {
       const { gtin: rawGtin } = request.params;
       // URL-decode serial (Fastify already decodes params, but ensure it)

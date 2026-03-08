@@ -10,6 +10,19 @@ export default async function recallProductRoute(fastify: FastifyInstance) {
     "/products/:id/recall",
     {
       onRequest: [fastify.authenticate, requireRole("BRAND_ADMIN", "ADMIN")],
+      schema: {
+        description:
+          "Recall an ACTIVE product, transitioning it to RECALLED status",
+        tags: ["Products"],
+        security: [{ cookieAuth: [] }],
+        params: {
+          type: "object",
+          properties: {
+            id: { type: "string", description: "Product ID" },
+          },
+          required: ["id"],
+        },
+      },
     },
     async (request, reply) => {
       const { id } = request.params;

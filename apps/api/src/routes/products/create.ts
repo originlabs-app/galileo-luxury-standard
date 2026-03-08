@@ -47,6 +47,12 @@ export default async function createProductRoute(fastify: FastifyInstance) {
         fastify.authenticate,
         requireRole("BRAND_ADMIN", "OPERATOR", "ADMIN"),
       ],
+      schema: {
+        description:
+          "Create a new product with GTIN, serial number, and metadata",
+        tags: ["Products"],
+        security: [{ cookieAuth: [] }],
+      },
     },
     async (request, reply) => {
       const parsed = createProductBody.safeParse(request.body);

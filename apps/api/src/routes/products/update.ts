@@ -41,6 +41,18 @@ export default async function updateProductRoute(fastify: FastifyInstance) {
         fastify.authenticate,
         requireRole("BRAND_ADMIN", "OPERATOR", "ADMIN"),
       ],
+      schema: {
+        description: "Update a DRAFT product's name, description, or category",
+        tags: ["Products"],
+        security: [{ cookieAuth: [] }],
+        params: {
+          type: "object",
+          properties: {
+            id: { type: "string", description: "Product ID" },
+          },
+          required: ["id"],
+        },
+      },
     },
     async (request, reply) => {
       const { id } = request.params;

@@ -5,6 +5,18 @@ export default async function getProductRoute(fastify: FastifyInstance) {
     "/products/:id",
     {
       onRequest: [fastify.authenticate],
+      schema: {
+        description: "Get a product by ID with its passport and events",
+        tags: ["Products"],
+        security: [{ cookieAuth: [] }],
+        params: {
+          type: "object",
+          properties: {
+            id: { type: "string", description: "Product ID" },
+          },
+          required: ["id"],
+        },
+      },
     },
     async (request, reply) => {
       const { id } = request.params;
