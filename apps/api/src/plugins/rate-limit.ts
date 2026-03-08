@@ -44,6 +44,11 @@ const ROUTE_LIMITS: {
 ];
 
 export default fp(async (fastify: FastifyInstance) => {
+  // Disable rate limiting in test environment to avoid interfering with test suites
+  if (process.env.NODE_ENV === "test") {
+    return;
+  }
+
   await fastify.register(rateLimit, {
     global: true,
     max: 100,

@@ -107,11 +107,11 @@ model ProductEvent {
   productId   String
   type        EventType
   data        Json      @default("{}")
-  performedBy String
+  performedBy String?
   createdAt   DateTime  @default(now())
 
   product   Product @relation(fields: [productId], references: [id])
-  performer User    @relation(fields: [performedBy], references: [id])
+  performer User?   @relation(fields: [performedBy], references: [id])
 
   @@index([productId])
   @@index([performedBy])
