@@ -40,15 +40,16 @@ galileo-protocol/
 |   |   |   +-- plugins/
 |   |   |   |   +-- auth.ts            # JWT authentication decorator
 |   |   |   |   +-- chain.ts           # viem client (mock mode — no deployer key)
-|   |   |   |   +-- cookie.ts          # @fastify/cookie
+|   |   |   |   +-- cookie.ts          # @fastify/cookie (with signing secret)
 |   |   |   |   +-- cors.ts            # CORS config
 |   |   |   |   +-- prisma.ts          # Prisma client decorator
 |   |   |   |   +-- rate-limit.ts      # @fastify/rate-limit (disabled in test)
 |   |   |   |   +-- security-headers.ts # @fastify/helmet (disabled in test)
+|   |   |   |   +-- storage.ts         # R2/S3 storage + local fallback
 |   |   |   +-- routes/
 |   |   |   |   +-- auth/              # register, login, logout, refresh, me, link-wallet
 |   |   |   |   +-- health.ts          # GET /health
-|   |   |   |   +-- products/          # CRUD, mint, qr, recall, transfer, verify
+|   |   |   |   +-- products/          # CRUD, mint, qr, recall, transfer, verify, upload
 |   |   |   |   +-- resolver/          # GS1 Digital Link resolver
 |   |   |   +-- utils/
 |   |   |       +-- cookies.ts         # Cookie helpers (set/clear)
@@ -57,20 +58,22 @@ galileo-protocol/
 |   |   |       +-- route-error.ts     # RouteError class
 |   |   |       +-- schemas.ts         # errorResponseSchema
 |   |   |       +-- slug.ts            # toSlug()
+|   |   |       +-- cid.ts             # CIDv1 computation (multiformats)
 |   |   |       +-- token-hash.ts      # SHA-256 token hashing
 |   |   |       +-- tokens.ts          # JWT generation
 |   |   +-- test/
 |   |       +-- global-setup.ts        # DB setup + teardown
-|   |       +-- helpers.ts             # parseCookies
+|   |       +-- helpers.ts             # parseCookies, cleanDb
 |   |       +-- auth.test.ts           # 32 tests
 |   |       +-- products.test.ts       # 27 tests
-|   |       +-- mint.test.ts           # 10 tests (FLAKY in full suite)
-|   |       +-- recall.test.ts         # tests (FLAKY intermittent)
+|   |       +-- mint.test.ts           # 10 tests
+|   |       +-- recall.test.ts         # 10 tests
 |   |       +-- transfer.test.ts
 |   |       +-- verify.test.ts
 |   |       +-- link-wallet.test.ts
 |   |       +-- resolver-qr.test.ts    # 17 tests
-|   |       +-- security-hardening.test.ts # 16 tests
+|   |       +-- upload.test.ts         # 10 tests
+|   |       +-- security-hardening.test.ts # 24 tests
 |   |       +-- csrf-resolver-conformity.test.ts # 18 tests
 |   |       +-- health.test.ts         # 3 tests
 |   +-- dashboard/             # Next.js B2B dashboard (shadcn/ui, wagmi)
@@ -121,7 +124,7 @@ galileo-protocol/
 
 - **User**: id, email, passwordHash, role (enum), brandId?, refreshToken?, walletAddress?
 - **Brand**: id, name, slug (unique), did (unique)
-- **Product**: id, gtin, serialNumber, did (unique), name, description?, category, status (enum: DRAFT/MINTING/ACTIVE/TRANSFERRED/RECALLED), brandId, walletAddress?
+- **Product**: id, gtin, serialNumber, did (unique), name, description?, category, status (enum: DRAFT/MINTING/ACTIVE/TRANSFERRED/RECALLED), brandId, walletAddress?, imageUrl?, imageCid?
 - **ProductPassport**: id, productId (unique), digitalLink, metadata (JSON), txHash?, tokenAddress?, chainId?, mintedAt?
 - **ProductEvent**: id, productId, type (enum: CREATED/UPDATED/MINTED/TRANSFERRED/VERIFIED/RECALLED), data (JSON), performedBy?
 
@@ -146,6 +149,7 @@ Key relations: User -> Brand (many-to-one), Product -> Brand (many-to-one), Prod
 | GET | /products/:id/qr | authenticated | QR code PNG |
 | POST | /products/:id/recall | BRAND_ADMIN, ADMIN | Recall (ACTIVE -> RECALLED) |
 | POST | /products/:id/transfer | BRAND_ADMIN, ADMIN | Transfer to wallet |
+| POST | /products/:id/upload | BRAND_ADMIN, OPERATOR, ADMIN | Upload product image (multipart) |
 | POST | /products/:id/verify | public | Record verification event |
 | GET | /01/:gtin/21/:serial | public | GS1 Digital Link resolver (JSON-LD) |
 
@@ -162,27 +166,27 @@ Key relations: User -> Brand (many-to-one), Product -> Brand (many-to-one), Prod
 - Wallet constants shared in `packages/shared/src/validation/wallet.ts`
 - Resolver includes `provenance` array (public events excluding UPDATED)
 - Enums from @galileo/shared (ProductStatus, EventType) -- not raw strings
-- Zod `.strict()` on update schemas -- should be on all body schemas
+- Zod `.strict()` on all body schemas (create, update, register, login, link-wallet, recall, verify)
 - Plugin architecture: fp() plugins decorate fastify instance
 - Config validation: Zod schema in config.ts, loaded once at startup
 
 ## Test Architecture
 
-- **Vitest**: 155+ API tests across 11 files, 69 shared tests
+- **Vitest**: 173 API tests across 12 files
 - **Playwright**: 2 e2e tests (auth + product lifecycle)
 - **Test DB**: `galileo_test` via `DATABASE_URL_TEST`
 - **Global setup**: `test/global-setup.ts` -- pushes schema, truncates on teardown
 - **File parallelism**: disabled (`fileParallelism: false` in vitest.config.ts)
-- **Known flaky**: mint.test.ts, products.test.ts, recall.test.ts -- beforeEach deleteMany timeout
+- **Cleanup**: shared `cleanDb()` helper uses raw SQL TRUNCATE CASCADE (no flaky timeouts)
 - **Mocking**: viem mocked in mint.test.ts (vi.mock before imports)
 
 ## Known Issues & Tech Debt
 
-1. **Flaky tests** (P0): beforeEach cleanup timeouts -- root cause: cascading deleteMany lock contention
-2. **No `__Host-` cookie prefix** (P1): cookies vulnerable to cookie tossing without prefix
-3. **No cookie signing** (P1): @fastify/cookie registered without secret
-4. **createProductBody lacks `.strict()`** (P1): allows extra fields in body (prototype pollution risk)
-5. **No file upload** (P1): product photos/certificates not supported yet
+1. ~~**Flaky tests**~~ RESOLVED: cleanDb() with TRUNCATE CASCADE replaces cascading deleteMany
+2. ~~**No `__Host-` cookie prefix**~~ RESOLVED: `__Host-galileo_at` (access, prod), `__Secure-galileo_rt` (refresh, prod)
+3. ~~**No cookie signing**~~ RESOLVED: COOKIE_SECRET env var, @fastify/cookie signing configured
+4. ~~**createProductBody lacks `.strict()`**~~ RESOLVED: `.strict()` on all body schemas
+5. ~~**No file upload**~~ RESOLVED: POST /products/:id/upload with R2 storage + CIDv1
 6. **Blockchain blocked** (P0): real chain deploy needs RPC key
 7. **Smart Wallet pending** (P1): ERC-1271 verification not implemented
 8. **No GDPR endpoints** (P2): erasure + export not implemented
