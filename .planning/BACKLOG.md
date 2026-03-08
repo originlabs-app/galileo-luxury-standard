@@ -23,7 +23,7 @@ EPICs (functional bricks, in epics/)
 
 ### P0 -- Critical
 
-- [ ] `EPIC-007` Fix flaky test suites (mint, products, recall) -- [source: ROADMAP 4.8]
+- [x] `EPIC-007` Fix flaky test suites (mint, products, recall) -- [source: ROADMAP 4.8] -- DONE (3ac8bf6)
   - **Context**: beforeEach DB cleanup hooks timeout (10s) under concurrent test execution. Shared PostgreSQL causes lock contention during deleteMany cascades. fileParallelism is already false but individual file runs still contend.
   - **Verify**: `pnpm --filter api test` passes 3 consecutive runs with zero timeouts
 
@@ -37,15 +37,15 @@ EPICs (functional bricks, in epics/)
 
 ### P1 -- High
 
-- [ ] `EPIC-005` OWASP input validation audit -- [source: ROADMAP 4.1]
+- [x] `EPIC-005` OWASP input validation audit -- [source: ROADMAP 4.1] -- DONE (75d4038)
   - **Context**: Audit all API routes against OWASP top 10. Check for prototype pollution, mass assignment, injection vectors.
   - **Verify**: Each route reviewed, findings documented, fixes applied. No prototype pollution possible.
 
-- [ ] `EPIC-005` Cookie hardening -- [source: ROADMAP 4.1]
+- [x] `EPIC-005` Cookie hardening -- [source: ROADMAP 4.1] -- DONE (61ebf4e)
   - **Context**: Add `__Host-` prefix for production cookies, cookie signing via @fastify/cookie secret, log warning when secure:false in dev.
   - **Verify**: Production cookies use `__Host-galileo_at` prefix. Cookie secret configured. Dev mode logs warning about insecure cookies.
 
-- [ ] `EPIC-006` File upload to R2 + CID -- [source: ROADMAP 3.7]
+- [x] `EPIC-006` File upload to R2 + CID -- [source: ROADMAP 3.7] -- DONE (9600650)
   - **Context**: Photo/certificate upload to Cloudflare R2 with local CIDv1 computation for tamper-evidence. Dashboard upload UI.
   - **Verify**: Product create/edit form has photo upload. Photos stored in R2. CID computed and stored.
 
