@@ -5,9 +5,12 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft,
+  ArrowRightLeft,
+  Ban,
   Download,
   Edit3,
   Loader2,
+  ShieldCheck,
   Sparkles,
   Clock,
   CheckCircle2,
@@ -104,6 +107,18 @@ const EVENT_ICON: Record<string, typeof Clock> = {
   CREATED: CheckCircle2,
   UPDATED: FileEdit,
   MINTED: Coins,
+  RECALLED: Ban,
+  TRANSFERRED: ArrowRightLeft,
+  VERIFIED: ShieldCheck,
+};
+
+const EVENT_ICON_COLOR: Record<string, string> = {
+  CREATED: "text-[#00FF88]",
+  UPDATED: "text-blue-400",
+  MINTED: "text-yellow-400",
+  RECALLED: "text-red-400",
+  TRANSFERRED: "text-[#00FFFF]",
+  VERIFIED: "text-[#00FF88]",
 };
 
 const EVENT_LABEL: Record<string, string> = {
@@ -174,6 +189,10 @@ export default function ProductDetailPage() {
   const [isMinting, setIsMinting] = useState(false);
   const [mintError, setMintError] = useState<string | null>(null);
 
+  // Recall states
+  const [isRecalling, setIsRecalling] = useState(false);
+  const [recallError, setRecallError] = useState<string | null>(null);
+
   // Edit mode
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState("");
@@ -223,6 +242,35 @@ export default function ProductDetailPage() {
       }
     } finally {
       setIsMinting(false);
+    }
+  }
+
+  /* ---------- Recall action ---------- */
+
+  async function handleRecall() {
+    const reason = window.prompt(
+      "Are you sure you want to recall this product?\n\nOptionally enter a reason:",
+    );
+
+    // prompt returns null when user clicks Cancel
+    if (reason === null) return;
+
+    setIsRecalling(true);
+    setRecallError(null);
+    try {
+      const res = await api<ProductResponse>(`/products/${productId}/recall`, {
+        method: "POST",
+        body: JSON.stringify({ reason: reason || undefined }),
+      });
+      setProduct(res.data.product);
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setRecallError(err.message);
+      } else {
+        setRecallError("Failed to recall product");
+      }
+    } finally {
+      setIsRecalling(false);
     }
   }
 
@@ -345,7 +393,9 @@ export default function ProductDetailPage() {
   if (error || !product) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center py-16 text-center">
-        <p className="text-sm text-destructive">{error ?? "Product not found"}</p>
+        <p className="text-sm text-destructive">
+          {error ?? "Product not found"}
+        </p>
         <Button
           variant="outline"
           size="sm"
@@ -402,10 +452,25 @@ export default function ProductDetailPage() {
             </>
           )}
           {isActive && (
-            <Button size="sm" onClick={handleDownloadQR}>
-              <Download className="size-4" />
-              Download QR
-            </Button>
+            <>
+              <Button size="sm" onClick={handleDownloadQR}>
+                <Download className="size-4" />
+                Download QR
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleRecall}
+                disabled={isRecalling}
+              >
+                {isRecalling ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Ban className="size-4" />
+                )}
+                {isRecalling ? "Recalling…" : "Recall"}
+              </Button>
+            </>
           )}
         </div>
       </div>
@@ -414,6 +479,13 @@ export default function ProductDetailPage() {
       {mintError && (
         <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           {mintError}
+        </div>
+      )}
+
+      {/* Recall error banner */}
+      {recallError && (
+        <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          {recallError}
         </div>
       )}
 
@@ -524,9 +596,7 @@ export default function ProductDetailPage() {
                 </div>
                 <div className="flex flex-col gap-1">
                   <dt className="text-muted-foreground">Category</dt>
-                  <dd className="text-foreground">
-                    {product.category}
-                  </dd>
+                  <dd className="text-foreground">{product.category}</dd>
                 </div>
                 {product.description && (
                   <div className="flex flex-col gap-1">
@@ -588,9 +658,7 @@ export default function ProductDetailPage() {
 
                 {passport?.txHash && (
                   <div className="flex flex-col gap-1">
-                    <dt className="text-muted-foreground">
-                      Transaction Hash
-                    </dt>
+                    <dt className="text-muted-foreground">Transaction Hash</dt>
                     <dd className="break-all font-mono text-xs text-foreground">
                       {truncate(passport.txHash, 42)}
                     </dd>
@@ -637,12 +705,14 @@ export default function ProductDetailPage() {
                 {sortedEvents.map((event) => {
                   const Icon = EVENT_ICON[event.type] ?? Clock;
                   const label = EVENT_LABEL[event.type] ?? event.type;
+                  const iconColor =
+                    EVENT_ICON_COLOR[event.type] ?? "text-muted-foreground";
 
                   return (
                     <div key={event.id} className="relative flex gap-4">
                       {/* Dot */}
                       <div className="absolute -left-6 flex size-[22px] items-center justify-center rounded-full border border-border bg-card">
-                        <Icon className="size-3 text-muted-foreground" />
+                        <Icon className={`size-3 ${iconColor}`} />
                       </div>
 
                       <div className="flex flex-col gap-0.5">
