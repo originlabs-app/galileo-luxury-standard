@@ -20,6 +20,12 @@ type ResolverResult = {
     chainId?: number | null;
     mintedAt?: string | null;
   } | null;
+  provenance?: Array<{
+    "@type"?: string;
+    eventType?: string;
+    timestamp?: string;
+    description?: string;
+  }>;
 };
 
 type ResolveState = {
@@ -156,6 +162,82 @@ function StatusPill({ status }: { status?: string }) {
     >
       {config.label}
     </span>
+  );
+}
+
+const EVENT_LABELS: Record<string, string> = {
+  CREATED: "Product registered",
+  MINTED: "Passport minted",
+  RECALLED: "Product recalled",
+  TRANSFERRED: "Ownership transferred",
+  VERIFIED: "Product verified",
+};
+
+function formatEventDate(timestamp: string): string {
+  return new Date(timestamp).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
+function ProvenanceTimeline({
+  events,
+}: {
+  events: NonNullable<ResolverResult["provenance"]>;
+}) {
+  if (events.length === 0) return null;
+
+  return (
+    <section className="mt-5 rounded-[28px] border border-border/80 bg-card p-5 shadow-xl shadow-black/20">
+      <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+        Provenance Timeline
+      </p>
+      <div className="space-y-0">
+        {events.map((event, index) => {
+          const isRecalled = event.eventType === "RECALLED";
+          const isLast = index === events.length - 1;
+          const label =
+            (event.eventType && EVENT_LABELS[event.eventType]) ??
+            event.eventType ??
+            "Event";
+
+          return (
+            <div
+              key={`${event.eventType}-${event.timestamp}-${index}`}
+              className="relative flex gap-3"
+            >
+              {/* Vertical line + dot */}
+              <div className="flex flex-col items-center">
+                <div
+                  className={`mt-1 h-3 w-3 shrink-0 rounded-full border-2 ${
+                    isRecalled
+                      ? "border-primary bg-primary"
+                      : "border-success bg-success"
+                  }`}
+                />
+                {!isLast && <div className="w-px flex-1 bg-border/60" />}
+              </div>
+
+              {/* Content */}
+              <div className={`${isLast ? "pb-0" : "pb-4"}`}>
+                <p className="text-sm font-medium text-foreground">{label}</p>
+                {event.timestamp && (
+                  <p className="text-xs text-muted-foreground">
+                    {formatEventDate(event.timestamp)}
+                  </p>
+                )}
+                {event.description && (
+                  <p className="mt-1 text-xs text-muted-foreground/80">
+                    Reason: {String(event.description)}
+                  </p>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 
@@ -440,6 +522,12 @@ export default async function Home({
             )}
           </dl>
         </section>
+      ) : null}
+
+      {result?.ok &&
+      result.data?.provenance &&
+      result.data.provenance.length > 0 ? (
+        <ProvenanceTimeline events={result.data.provenance} />
       ) : null}
 
       <section className="mt-5 rounded-[28px] border border-border/60 bg-background/40 p-5">
