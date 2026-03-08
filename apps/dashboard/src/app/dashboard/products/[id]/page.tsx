@@ -193,6 +193,10 @@ export default function ProductDetailPage() {
   const [isRecalling, setIsRecalling] = useState(false);
   const [recallError, setRecallError] = useState<string | null>(null);
 
+  // Transfer states
+  const [isTransferring, setIsTransferring] = useState(false);
+  const [transferError, setTransferError] = useState<string | null>(null);
+
   // Edit mode
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState("");
@@ -271,6 +275,42 @@ export default function ProductDetailPage() {
       }
     } finally {
       setIsRecalling(false);
+    }
+  }
+
+  /* ---------- Transfer action ---------- */
+
+  async function handleTransfer() {
+    const toAddress = window.prompt(
+      "Enter the recipient wallet address (0x...):",
+    );
+
+    if (toAddress === null) return;
+
+    if (!/^0x[0-9a-fA-F]{40}$/.test(toAddress)) {
+      setTransferError("Invalid Ethereum address");
+      return;
+    }
+
+    setIsTransferring(true);
+    setTransferError(null);
+    try {
+      const res = await api<ProductResponse>(
+        `/products/${productId}/transfer`,
+        {
+          method: "POST",
+          body: JSON.stringify({ toAddress }),
+        },
+      );
+      setProduct(res.data.product);
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setTransferError(err.message);
+      } else {
+        setTransferError("Failed to transfer product");
+      }
+    } finally {
+      setIsTransferring(false);
     }
   }
 
@@ -458,6 +498,19 @@ export default function ProductDetailPage() {
                 Download QR
               </Button>
               <Button
+                variant="outline"
+                size="sm"
+                onClick={handleTransfer}
+                disabled={isTransferring}
+              >
+                {isTransferring ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <ArrowRightLeft className="size-4" />
+                )}
+                {isTransferring ? "Transferring…" : "Transfer"}
+              </Button>
+              <Button
                 variant="destructive"
                 size="sm"
                 onClick={handleRecall}
@@ -486,6 +539,13 @@ export default function ProductDetailPage() {
       {recallError && (
         <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           {recallError}
+        </div>
+      )}
+
+      {/* Transfer error banner */}
+      {transferError && (
+        <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          {transferError}
         </div>
       )}
 
@@ -610,6 +670,14 @@ export default function ProductDetailPage() {
                     <StatusBadge status={product.status} />
                   </dd>
                 </div>
+                {product.walletAddress && (
+                  <div className="flex flex-col gap-1">
+                    <dt className="text-muted-foreground">Wallet</dt>
+                    <dd className="break-all font-mono text-xs text-foreground">
+                      {product.walletAddress}
+                    </dd>
+                  </div>
+                )}
               </dl>
             </CardContent>
           </Card>

@@ -38,6 +38,7 @@ export default async function meRoute(fastify: FastifyInstance) {
                       email: { type: "string" },
                       role: { type: "string" },
                       brandId: { type: "string", nullable: true },
+                      walletAddress: { type: "string", nullable: true },
                       createdAt: { type: "string" },
                       updatedAt: { type: "string" },
                       brand: {
@@ -86,6 +87,7 @@ export default async function meRoute(fastify: FastifyInstance) {
             email: user.email,
             role: user.role,
             brandId: user.brandId,
+            walletAddress: user.walletAddress,
             createdAt: user.createdAt,
             updatedAt: user.updatedAt,
             brand: user.brand
