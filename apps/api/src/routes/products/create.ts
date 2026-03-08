@@ -19,6 +19,11 @@ const PRODUCT_CATEGORIES = [
   "Other",
 ] as const;
 
+const materialSchema = z.object({
+  name: z.string().min(1).max(100),
+  percentage: z.number().min(0).max(100),
+});
+
 const createProductBody = z
   .object({
     gtin: z.string().min(1, "GTIN is required"),
@@ -39,6 +44,7 @@ const createProductBody = z
         "Category must be one of: Leather Goods, Jewelry, Watches, Fashion, Accessories, Fragrances, Eyewear, Other",
     }),
     brandId: z.string().optional(),
+    materials: z.array(materialSchema).max(20).optional(),
   })
   .strict();
 
@@ -77,6 +83,7 @@ export default async function createProductRoute(fastify: FastifyInstance) {
         description,
         category,
         brandId: bodyBrandId,
+        materials,
       } = parsed.data;
 
       // Validate GTIN check digit
@@ -145,6 +152,7 @@ export default async function createProductRoute(fastify: FastifyInstance) {
               data: {
                 productId: product.id,
                 digitalLink,
+                ...(materials ? { metadata: { materials } } : {}),
               },
             });
 

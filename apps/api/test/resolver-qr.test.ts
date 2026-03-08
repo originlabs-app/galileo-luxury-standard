@@ -282,6 +282,69 @@ describe("Resolver & QR endpoints", () => {
       expect(body.name).toBe("Active Resolver Product");
       expect(body.status).toBe("verified");
     });
+
+    it("includes hasMaterialComposition when product has materials in metadata", async () => {
+      // Store materials in product passport metadata
+      const passport = await app.prisma.productPassport.findUnique({
+        where: { productId: activeProductId },
+      });
+      await app.prisma.productPassport.update({
+        where: { id: passport!.id },
+        data: {
+          metadata: {
+            materials: [
+              { name: "Calfskin Leather", percentage: 65 },
+              { name: "Cotton Canvas", percentage: 30 },
+              { name: "Brass Hardware", percentage: 5 },
+            ],
+          },
+        },
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/01/${activeProductGtin}/21/${activeProductSerial}`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = response.json();
+      expect(body.hasMaterialComposition).toBeDefined();
+      expect(body.hasMaterialComposition).toHaveLength(3);
+      expect(body.hasMaterialComposition[0].name).toBe("Calfskin Leather");
+      expect(body.hasMaterialComposition[0].percentage).toBe(65);
+      expect(body.hasMaterialComposition[1].name).toBe("Cotton Canvas");
+      expect(body.hasMaterialComposition[2].name).toBe("Brass Hardware");
+    });
+
+    it("omits hasMaterialComposition when product has no materials in metadata", async () => {
+      const response = await app.inject({
+        method: "GET",
+        url: `/01/${activeProductGtin}/21/${activeProductSerial}`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = response.json();
+      expect(body.hasMaterialComposition).toBeUndefined();
+    });
+
+    it("omits hasMaterialComposition when metadata materials is empty array", async () => {
+      const passport = await app.prisma.productPassport.findUnique({
+        where: { productId: activeProductId },
+      });
+      await app.prisma.productPassport.update({
+        where: { id: passport!.id },
+        data: { metadata: { materials: [] } },
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/01/${activeProductGtin}/21/${activeProductSerial}`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = response.json();
+      expect(body.hasMaterialComposition).toBeUndefined();
+    });
   });
 
   // ─── QR Code Generation ──────────────────────────────────────

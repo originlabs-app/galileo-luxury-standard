@@ -377,6 +377,71 @@ describe("Product CRUD endpoints", () => {
 
       expect(response.statusCode).toBe(400);
     });
+
+    it("creates product with materials and stores them in passport metadata", async () => {
+      const materials = [
+        { name: "Calfskin Leather", percentage: 65 },
+        { name: "Cotton Canvas", percentage: 30 },
+        { name: "Brass Hardware", percentage: 5 },
+      ];
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/products",
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
+        payload: {
+          gtin: VALID_GTIN_13,
+          serialNumber: "SN-MAT-001",
+          name: "Material Product",
+          category: "Leather Goods",
+          materials,
+        },
+      });
+
+      expect(response.statusCode).toBe(201);
+      const body = response.json();
+      expect(body.success).toBe(true);
+
+      // Verify materials stored in passport metadata
+      const passport = await app.prisma.productPassport.findUnique({
+        where: { productId: body.data.product.id },
+      });
+      const metadata = passport!.metadata as Record<string, unknown>;
+      expect(metadata.materials).toEqual(materials);
+    });
+
+    it("creates product without materials (field is optional)", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/products",
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
+        payload: {
+          gtin: VALID_GTIN_13,
+          serialNumber: "SN-NOMAT-001",
+          name: "No Material Product",
+          category: "Watches",
+        },
+      });
+
+      expect(response.statusCode).toBe(201);
+    });
+
+    it("rejects materials with invalid structure", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/products",
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
+        payload: {
+          gtin: VALID_GTIN_13,
+          serialNumber: "SN-BADMAT-001",
+          name: "Bad Material Product",
+          category: "Watches",
+          materials: [{ name: "", percentage: 200 }],
+        },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
   });
 
   // ─── GET /products ──────────────────────────────────────────
@@ -717,6 +782,31 @@ describe("Product CRUD endpoints", () => {
       });
 
       expect(response.statusCode).toBe(401);
+    });
+
+    it("updates product with materials stored in passport metadata", async () => {
+      const materials = [
+        { name: "18K Gold", percentage: 75 },
+        { name: "Diamond", percentage: 25 },
+      ];
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/products/${draftProductId}`,
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
+        payload: {
+          materials,
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      // Verify materials stored in passport metadata
+      const passport = await app.prisma.productPassport.findUnique({
+        where: { productId: draftProductId },
+      });
+      const metadata = passport!.metadata as Record<string, unknown>;
+      expect(metadata.materials).toEqual(materials);
     });
   });
 });

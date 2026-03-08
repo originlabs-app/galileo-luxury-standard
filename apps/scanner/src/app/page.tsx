@@ -1,5 +1,10 @@
 import { validateGtin, generateDigitalLinkUrl } from "@galileo/shared";
 
+type MaterialEntry = {
+  name: string;
+  percentage: number;
+};
+
 type ResolverResult = {
   "@id": string;
   name?: string;
@@ -20,6 +25,7 @@ type ResolverResult = {
     chainId?: number | null;
     mintedAt?: string | null;
   } | null;
+  hasMaterialComposition?: MaterialEntry[];
   provenance?: Array<{
     "@type"?: string;
     eventType?: string;
@@ -241,6 +247,38 @@ function ProvenanceTimeline({
             </div>
           );
         })}
+      </div>
+    </section>
+  );
+}
+
+function MaterialComposition({ materials }: { materials: MaterialEntry[] }) {
+  if (materials.length === 0) return null;
+
+  return (
+    <section className="mt-5 rounded-[28px] border border-border/80 bg-card p-5 shadow-xl shadow-black/20">
+      <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+        Material Composition
+      </p>
+      <div className="space-y-3">
+        {materials.map((material) => (
+          <div key={material.name}>
+            <div className="mb-1 flex items-center justify-between">
+              <span className="text-sm font-medium text-foreground">
+                {material.name}
+              </span>
+              <span className="text-xs tabular-nums text-muted-foreground">
+                {material.percentage}%
+              </span>
+            </div>
+            <div className="h-2 overflow-hidden rounded-full bg-border/40">
+              <div
+                className="h-full rounded-full bg-primary/70 transition-all"
+                style={{ width: `${Math.min(material.percentage, 100)}%` }}
+              />
+            </div>
+          </div>
+        ))}
       </div>
     </section>
   );
@@ -527,6 +565,12 @@ export default async function Home({
             )}
           </dl>
         </section>
+      ) : null}
+
+      {result?.ok &&
+      result.data?.hasMaterialComposition &&
+      result.data.hasMaterialComposition.length > 0 ? (
+        <MaterialComposition materials={result.data.hasMaterialComposition} />
       ) : null}
 
       {result?.ok &&

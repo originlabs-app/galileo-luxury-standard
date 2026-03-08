@@ -13,6 +13,11 @@ const PRODUCT_CATEGORIES = [
   "Other",
 ] as const;
 
+const materialSchema = z.object({
+  name: z.string().min(1).max(100),
+  percentage: z.number().min(0).max(100),
+});
+
 const updateProductBody = z
   .object({
     name: z
@@ -30,6 +35,7 @@ const updateProductBody = z
           "Category must be one of: Leather Goods, Jewelry, Watches, Fashion, Accessories, Fragrances, Eyewear, Other",
       })
       .optional(),
+    materials: z.array(materialSchema).max(20).optional(),
   })
   .strict();
 
@@ -83,10 +89,10 @@ export default async function updateProductRoute(fastify: FastifyInstance) {
         });
       }
 
-      const updateData = parsed.data;
+      const { materials, ...productFields } = parsed.data;
 
-      // Must have at least one field to update
-      if (Object.keys(updateData).length === 0) {
+      // Must have at least one field to update (product fields or materials)
+      if (Object.keys(productFields).length === 0 && materials === undefined) {
         return reply.status(400).send({
           success: false,
           error: {
@@ -136,16 +142,35 @@ export default async function updateProductRoute(fastify: FastifyInstance) {
       // Update product and create UPDATED event in a transaction
       const updated = await fastify.prisma.$transaction(
         async (tx: import("../../plugins/prisma.js").TxClient) => {
-          await tx.product.update({
-            where: { id },
-            data: updateData,
-          });
+          if (Object.keys(productFields).length > 0) {
+            await tx.product.update({
+              where: { id },
+              data: productFields,
+            });
+          }
+
+          // Store materials in passport metadata (merge with existing)
+          if (materials !== undefined) {
+            const passport = await tx.productPassport.findUnique({
+              where: { productId: id },
+            });
+            if (passport) {
+              const existingMetadata =
+                (passport.metadata as Record<string, unknown>) ?? {};
+              await tx.productPassport.update({
+                where: { id: passport.id },
+                data: {
+                  metadata: { ...existingMetadata, materials },
+                },
+              });
+            }
+          }
 
           await tx.productEvent.create({
             data: {
               productId: id,
               type: "UPDATED",
-              data: updateData,
+              data: { ...productFields, ...(materials ? { materials } : {}) },
               performedBy: user.sub,
             },
           });

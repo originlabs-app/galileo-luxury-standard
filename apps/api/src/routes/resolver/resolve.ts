@@ -106,6 +106,15 @@ export default async function resolveDigitalLinkRoute(
       const gtin14 = padGtin14(rawGtin);
       const mappedStatus = STATUS_MAP[product.status];
 
+      // Extract materials from passport metadata
+      const metadata = product.passport?.metadata as Record<
+        string,
+        unknown
+      > | null;
+      const materials = Array.isArray(metadata?.materials)
+        ? metadata.materials
+        : [];
+
       // Build JSON-LD payload with @context array (C1: Galileo context, I1: canonical GS1 URL)
       const jsonLd = {
         "@context": JSONLD_CONTEXT,
@@ -133,6 +142,7 @@ export default async function resolveDigitalLinkRoute(
               mintedAt: product.passport.mintedAt,
             }
           : null,
+        ...(materials.length > 0 ? { hasMaterialComposition: materials } : {}),
         provenance:
           product.events
             ?.filter((e) => e.type !== "UPDATED")
