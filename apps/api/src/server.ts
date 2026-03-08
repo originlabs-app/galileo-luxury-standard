@@ -1,4 +1,5 @@
 import Fastify from "fastify";
+import fastifyMultipart from "@fastify/multipart";
 import fastifySwagger from "@fastify/swagger";
 import fastifySwaggerUi from "@fastify/swagger-ui";
 import { config } from "./config.js";
@@ -9,6 +10,7 @@ import cookiePlugin from "./plugins/cookie.js";
 import chainPlugin from "./plugins/chain.js";
 import rateLimitPlugin from "./plugins/rate-limit.js";
 import securityHeadersPlugin from "./plugins/security-headers.js";
+import storagePlugin from "./plugins/storage.js";
 import { ACCESS_COOKIE_NAME } from "./utils/cookies.js";
 import healthRoutes from "./routes/health.js";
 import authRoutes from "./routes/auth/index.js";
@@ -55,6 +57,12 @@ export async function buildApp() {
   }
 
   // Register plugins
+  await fastify.register(fastifyMultipart, {
+    limits: {
+      fileSize: 5 * 1024 * 1024, // 5 MB
+      files: 1,
+    },
+  });
   await fastify.register(securityHeadersPlugin);
   await fastify.register(corsPlugin);
   await fastify.register(cookiePlugin);
@@ -62,6 +70,7 @@ export async function buildApp() {
   await fastify.register(authPlugin);
   await fastify.register(prismaPlugin);
   await fastify.register(chainPlugin);
+  await fastify.register(storagePlugin);
 
   // Register routes
   await fastify.register(healthRoutes);

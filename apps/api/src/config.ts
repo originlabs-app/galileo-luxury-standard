@@ -11,6 +11,11 @@ const envSchema = z.object({
     .string()
     .min(32, "COOKIE_SECRET must be at least 32 characters")
     .optional(),
+  R2_ACCOUNT_ID: z.string().optional(),
+  R2_ACCESS_KEY_ID: z.string().optional(),
+  R2_SECRET_ACCESS_KEY: z.string().optional(),
+  R2_BUCKET_NAME: z.string().optional(),
+  R2_PUBLIC_URL: z.string().url().optional(),
   PORT: z.coerce.number().int().positive().default(4000),
   CORS_ORIGIN: z.string().url().default("http://localhost:3000"),
   NODE_ENV: z

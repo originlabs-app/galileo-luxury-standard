@@ -14,10 +14,10 @@
 
 | # | Task | Epic | Status | Verify | Commit |
 |---|------|------|--------|--------|--------|
-| 1 | Fix flaky test suites | EPIC-007 | todo | `pnpm --filter api test` passes 3x consecutively | -- |
-| 2 | OWASP input validation audit | EPIC-005 | todo | All routes reviewed, prototype pollution blocked | -- |
-| 3 | Cookie hardening | EPIC-005 | todo | `__Host-` prefix in prod, cookie signing, dev warning | -- |
-| 4 | File upload (R2 + CID) | EPIC-006 | todo | Photo upload in dashboard, CID computed, R2 storage | -- |
+| 1 | Fix flaky test suites | EPIC-007 | done | `pnpm --filter api test` passes 3x consecutively | 3ac8bf6 |
+| 2 | OWASP input validation audit | EPIC-005 | done | All routes reviewed, prototype pollution blocked | 75d4038 |
+| 3 | Cookie hardening | EPIC-005 | done | `__Host-` prefix in prod, cookie signing, dev warning | 61ebf4e |
+| 4 | File upload (R2 + CID) | EPIC-006 | done | Photo upload in dashboard, CID computed, R2 storage | -- |
 
 ### Status values
 - `todo` -- Not started

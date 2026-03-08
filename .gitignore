@@ -53,6 +53,9 @@ planning/
 *.key
 *.p12
 
+# Uploads (local storage fallback)
+uploads/
+
 # Misc
 .vercel
 *.tsbuildinfo
