@@ -19,6 +19,7 @@ export const metadata: Metadata = {
   title: "Galileo Scanner",
   description: "Mobile-first Galileo product verification scanner.",
   applicationName: "Galileo Scanner",
+  manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -29,8 +30,11 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
   viewportFit: "cover",
   themeColor: "#020204",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({

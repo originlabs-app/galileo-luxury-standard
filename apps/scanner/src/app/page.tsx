@@ -5,21 +5,20 @@ type ResolverResult = {
   name?: string;
   description?: string | null;
   category?: string | null;
-  "gs1:gtin"?: string;
-  "galileo:status"?: string;
-  "galileo:serialNumber"?: string;
-  "galileo:digitalLink"?: string;
-  "galileo:did"?: string;
-  "galileo:passport"?: {
-    "galileo:digitalLink"?: string | null;
-    "galileo:txHash"?: string | null;
-    "galileo:tokenAddress"?: string | null;
-    "galileo:chainId"?: number | null;
-    "galileo:mintedAt"?: string | null;
-  } | null;
-  "galileo:brand"?: {
+  gtin?: string;
+  serialNumber?: string;
+  status?: string;
+  brand?: {
+    "@type"?: string;
+    "@id"?: string;
     name?: string | null;
-    "galileo:did"?: string | null;
+  } | null;
+  passport?: {
+    digitalLink?: string | null;
+    txHash?: string | null;
+    tokenAddress?: string | null;
+    chainId?: number | null;
+    mintedAt?: string | null;
   } | null;
 };
 
@@ -31,12 +30,15 @@ type ResolveState = {
   requestedUrl?: string;
 };
 
-const DEFAULT_LINK = "https://id.galileoprotocol.io/01/00012345678905/21/SERIAL-001";
+const DEFAULT_LINK =
+  "https://id.galileoprotocol.io/01/00012345678905/21/SERIAL-001";
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_RESOLVER_BASE_URL?.replace(/\/$/, "") ??
   "http://localhost:4000";
 
-function normalizeResolverInput(input: string): { resolverPath: string; canonicalUrl: string } | null {
+function normalizeResolverInput(
+  input: string,
+): { resolverPath: string; canonicalUrl: string } | null {
   const trimmed = input.trim();
 
   if (!trimmed) return null;
@@ -146,19 +148,39 @@ function StatusPill({ status }: { status?: string }) {
           };
 
   return (
-    <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] ring-1 ${config.className}`}>
+    <span
+      className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] ring-1 ${config.className}`}
+    >
       {config.label}
     </span>
   );
 }
 
-function DetailRow({ label, value, mono = false }: { label: string; value?: string | number | null; mono?: boolean }) {
+function DetailRow({
+  label,
+  value,
+  mono = false,
+}: {
+  label: string;
+  value?: string | number | null;
+  mono?: boolean;
+}) {
   if (value === undefined || value === null || value === "") return null;
 
   return (
     <div className="flex flex-col gap-1 rounded-2xl border border-border/80 bg-background/40 p-4">
-      <dt className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{label}</dt>
-      <dd className={mono ? "break-all font-mono text-sm text-foreground" : "text-sm text-foreground"}>{value}</dd>
+      <dt className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+        {label}
+      </dt>
+      <dd
+        className={
+          mono
+            ? "break-all font-mono text-sm text-foreground"
+            : "text-sm text-foreground"
+        }
+      >
+        {value}
+      </dd>
     </div>
   );
 }
@@ -176,15 +198,38 @@ export default async function Home({
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col px-4 py-6 sm:px-6">
       <div className="mb-6 flex items-center gap-3">
         <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-primary/20 bg-card text-primary shadow-[0_0_30px_rgba(0,255,255,0.08)]">
-          <svg width="24" height="24" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <circle cx="20" cy="20" r="16" stroke="currentColor" strokeWidth="1.5" />
-            <circle cx="20" cy="20" r="8" stroke="currentColor" strokeWidth="1.5" />
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 40 40"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <circle
+              cx="20"
+              cy="20"
+              r="16"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            />
+            <circle
+              cx="20"
+              cy="20"
+              r="8"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            />
             <circle cx="20" cy="20" r="3" fill="currentColor" />
           </svg>
         </div>
         <div>
-          <p className="text-xs uppercase tracking-[0.24em] text-primary/80">Scanner</p>
-          <h1 className="font-serif text-3xl font-semibold tracking-tight">Galileo Verify</h1>
+          <p className="text-xs uppercase tracking-[0.24em] text-primary/80">
+            Scanner
+          </p>
+          <h1 className="font-serif text-3xl font-semibold tracking-tight">
+            Galileo Verify
+          </h1>
         </div>
       </div>
 
@@ -192,7 +237,8 @@ export default async function Home({
         <div className="space-y-2">
           <h2 className="text-lg font-semibold">Paste a Digital Link</h2>
           <p className="text-sm leading-6 text-muted-foreground">
-            Open a Galileo or GS1 Digital Link to verify a product with the existing public resolver.
+            Open a Galileo or GS1 Digital Link to verify a product with the
+            existing public resolver.
           </p>
         </div>
 
@@ -231,30 +277,47 @@ export default async function Home({
         <section className="mt-5 rounded-[28px] border border-border/80 bg-card p-5 shadow-xl shadow-black/20">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Verification result</p>
+              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                Verification result
+              </p>
               <h2 className="mt-2 text-xl font-semibold text-foreground">
-                {result.ok ? result.data?.name ?? "Verified product" : "Unable to verify"}
+                {result.ok
+                  ? (result.data?.name ?? "Verified product")
+                  : "Unable to verify"}
               </h2>
             </div>
-            {result.ok ? <StatusPill status={result.data?.["galileo:status"]} /> : null}
+            {result.ok ? <StatusPill status={result.data?.status} /> : null}
           </div>
 
           <p className="mt-3 text-sm leading-6 text-muted-foreground">
             {result.ok
-              ? result.data?.description ?? "This product resolved successfully through the public Galileo resolver."
+              ? (result.data?.description ??
+                "This product resolved successfully through the public Galileo resolver.")
               : result.error}
           </p>
 
           <dl className="mt-5 grid gap-3">
-            <DetailRow label="Requested link" value={result.requestedUrl} mono />
+            <DetailRow
+              label="Requested link"
+              value={result.requestedUrl}
+              mono
+            />
             {result.ok ? (
               <>
-                <DetailRow label="Brand" value={result.data?.["galileo:brand"]?.name} />
-                <DetailRow label="GTIN" value={result.data?.["gs1:gtin"]} mono />
-                <DetailRow label="Serial" value={result.data?.["galileo:serialNumber"]} mono />
+                <DetailRow label="Brand" value={result.data?.brand?.name} />
+                <DetailRow label="GTIN" value={result.data?.gtin} mono />
+                <DetailRow
+                  label="Serial"
+                  value={result.data?.serialNumber}
+                  mono
+                />
                 <DetailRow label="Category" value={result.data?.category} />
-                <DetailRow label="DID" value={result.data?.["galileo:did"]} mono />
-                <DetailRow label="Passport link" value={result.data?.["galileo:passport"]?.["galileo:digitalLink"]} mono />
+                <DetailRow label="DID" value={result.data?.["@id"]} mono />
+                <DetailRow
+                  label="Passport link"
+                  value={result.data?.passport?.digitalLink}
+                  mono
+                />
               </>
             ) : (
               <DetailRow label="HTTP status" value={result.status} />
@@ -264,11 +327,19 @@ export default async function Home({
       ) : null}
 
       <section className="mt-5 rounded-[28px] border border-border/60 bg-background/40 p-5">
-        <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">How it works</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+          How it works
+        </h2>
         <ol className="mt-3 space-y-2 text-sm leading-6 text-muted-foreground">
           <li>1. Paste a Galileo / GS1 Digital Link or a Galileo DID.</li>
-          <li>2. The scanner normalizes the identifier and calls the existing public resolver route.</li>
-          <li>3. You get a clear verified or not-found result with public product metadata only.</li>
+          <li>
+            2. The scanner normalizes the identifier and calls the existing
+            public resolver route.
+          </li>
+          <li>
+            3. You get a clear verified or not-found result with public product
+            metadata only.
+          </li>
         </ol>
       </section>
     </main>
