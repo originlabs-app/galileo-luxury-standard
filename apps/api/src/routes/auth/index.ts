@@ -4,6 +4,7 @@ import loginRoute from "./login.js";
 import refreshRoute from "./refresh.js";
 import meRoute from "./me.js";
 import logoutRoute from "./logout.js";
+import linkWalletRoute from "./link-wallet.js";
 
 export default async function authRoutes(fastify: FastifyInstance) {
   await fastify.register(registerRoute);
@@ -11,4 +12,5 @@ export default async function authRoutes(fastify: FastifyInstance) {
   await fastify.register(refreshRoute);
   await fastify.register(meRoute);
   await fastify.register(logoutRoute);
+  await fastify.register(linkWalletRoute);
 }

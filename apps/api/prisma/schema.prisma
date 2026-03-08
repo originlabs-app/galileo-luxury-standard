@@ -32,14 +32,15 @@ enum EventType {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
-  role         Role     @default(VIEWER)
-  brandId      String?
-  refreshToken String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id            String   @id @default(cuid())
+  email         String   @unique
+  passwordHash  String
+  role          Role     @default(VIEWER)
+  brandId       String?
+  refreshToken  String?
+  walletAddress String?  @unique
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   brand  Brand?         @relation(fields: [brandId], references: [id])
   events ProductEvent[]
@@ -63,13 +64,13 @@ model Brand {
 }
 
 model Product {
-  id           String        @id @default(cuid())
-  gtin         String
-  serialNumber String
-  did          String        @unique
-  name         String
-  description  String?
-  category     String
+  id            String        @id @default(cuid())
+  gtin          String
+  serialNumber  String
+  did           String        @unique
+  name          String
+  description   String?
+  category      String
   status        ProductStatus @default(DRAFT)
   brandId       String
   walletAddress String?

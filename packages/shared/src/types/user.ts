@@ -12,6 +12,7 @@ export interface UserPublic {
   email: string;
   role: Role;
   brandId: string | null;
+  walletAddress: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
