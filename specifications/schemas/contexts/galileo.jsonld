@@ -44,6 +44,10 @@
       "@id": "schema:brand",
       "@type": "@id"
     },
+    "category": {
+      "@id": "schema:category",
+      "@type": "xsd:string"
+    },
     "manufacturer": {
       "@id": "schema:manufacturer",
       "@type": "@id"

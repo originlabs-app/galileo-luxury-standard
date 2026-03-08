@@ -1,4 +1,12 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+  vi,
+} from "vitest";
 import type { FastifyInstance } from "fastify";
 
 // Mock viem entirely — must be before any import that touches viem
@@ -16,23 +24,7 @@ vi.mock("viem/chains", () => ({
   baseSepolia: { id: 84532, name: "Base Sepolia" },
 }));
 
-/**
- * Parse Set-Cookie headers and return a map of cookie name → value.
- */
-function parseCookies(
-  response: { headers: Record<string, string | string[] | undefined> },
-): Record<string, string> {
-  const raw = response.headers["set-cookie"];
-  if (!raw) return {};
-  const arr = Array.isArray(raw) ? raw : [raw];
-  const result: Record<string, string> = {};
-  for (const header of arr) {
-    const [pair] = header.split(";");
-    const [name, ...rest] = pair!.split("=");
-    result[name!.trim()] = rest.join("=").trim();
-  }
-  return result;
-}
+import { parseCookies } from "./helpers.js";
 
 // Valid GTINs (GS1 check digit verified)
 const VALID_GTIN_13 = "4006381333931";

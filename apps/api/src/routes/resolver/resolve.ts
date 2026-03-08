@@ -1,14 +1,29 @@
 import type { FastifyInstance } from "fastify";
+import type { ProductStatus } from "../../generated/prisma/enums.js";
 import { validateGtin, padGtin14 } from "@galileo/shared";
 
 /**
  * Maps internal product status to public-safe resolver values.
  * Only ACTIVE and RECALLED are exposed; other statuses are hidden behind 404.
  */
-const STATUS_MAP: Record<string, string> = {
+const STATUS_MAP: Partial<Record<ProductStatus, string>> = {
   ACTIVE: "verified",
   RECALLED: "recalled",
 };
+
+/** Prisma include for resolver queries — passport + brand relations. */
+const RESOLVER_INCLUDE = { passport: true, brand: true } as const;
+
+/**
+ * JSON-LD @context array.
+ * Order matters: later contexts override earlier ones for term collisions.
+ * Galileo context is last so its mappings (e.g. "status") take precedence.
+ */
+export const JSONLD_CONTEXT = [
+  "https://schema.org",
+  "https://ref.gs1.org/voc/",
+  "https://vocab.galileoprotocol.io/contexts/galileo.jsonld",
+] as const;
 
 export default async function resolveDigitalLinkRoute(
   fastify: FastifyInstance,
@@ -38,10 +53,7 @@ export default async function resolveDigitalLinkRoute(
         where: {
           gtin_serialNumber: { gtin: rawGtin, serialNumber: serial },
         },
-        include: {
-          passport: true,
-          brand: true,
-        },
+        include: RESOLVER_INCLUDE,
       });
 
       if (!product) {
@@ -54,10 +66,7 @@ export default async function resolveDigitalLinkRoute(
             where: {
               gtin_serialNumber: { gtin: gtin13, serialNumber: serial },
             },
-            include: {
-              passport: true,
-              brand: true,
-            },
+            include: RESOLVER_INCLUDE,
           });
         }
       }
@@ -79,11 +88,7 @@ export default async function resolveDigitalLinkRoute(
 
       // Build JSON-LD payload with @context array (C1: Galileo context, I1: canonical GS1 URL)
       const jsonLd = {
-        "@context": [
-          "https://schema.org",
-          "https://ref.gs1.org/voc/",
-          "https://vocab.galileoprotocol.io/contexts/galileo.jsonld",
-        ],
+        "@context": JSONLD_CONTEXT,
         "@type": "IndividualProduct",
         "@id": `did:galileo:01:${gtin14}:21:${serial}`,
         name: product.name,

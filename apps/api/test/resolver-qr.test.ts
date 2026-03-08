@@ -1,24 +1,8 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import { buildApp } from "../src/server.js";
 import type { FastifyInstance } from "fastify";
-
-/**
- * Parse Set-Cookie headers and return a map of cookie name → value.
- */
-function parseCookies(response: {
-  headers: Record<string, string | string[] | undefined>;
-}): Record<string, string> {
-  const raw = response.headers["set-cookie"];
-  if (!raw) return {};
-  const arr = Array.isArray(raw) ? raw : [raw];
-  const result: Record<string, string> = {};
-  for (const header of arr) {
-    const [pair] = header.split(";");
-    const [name, ...rest] = pair!.split("=");
-    result[name!.trim()] = rest.join("=").trim();
-  }
-  return result;
-}
+import { parseCookies } from "./helpers.js";
+import { JSONLD_CONTEXT } from "../src/routes/resolver/resolve.js";
 
 // Valid GTINs (GS1 check digit verified)
 const VALID_GTIN = "4006381333931";
@@ -175,11 +159,7 @@ describe("Resolver & QR endpoints", () => {
       expect(response.headers["content-type"]).toContain("application/ld+json");
 
       const body = response.json();
-      expect(body["@context"]).toEqual([
-        "https://schema.org",
-        "https://ref.gs1.org/voc/",
-        "https://vocab.galileoprotocol.io/contexts/galileo.jsonld",
-      ]);
+      expect(body["@context"]).toEqual(JSONLD_CONTEXT);
       expect(body["@type"]).toBe("IndividualProduct");
       expect(body["@id"]).toBe(
         `did:galileo:01:0${activeProductGtin}:21:${activeProductSerial}`,

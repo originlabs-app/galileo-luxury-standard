@@ -7,8 +7,7 @@
  * @module validation/did
  */
 
-import { validateGtin } from "./gtin.js";
-import { padGtin14 } from "./gtin.js";
+import { validateGtin, padGtin14 } from "./gtin.js";
 
 const DID_REGEX = /^did:galileo:01:(\d{13,14}):21:([A-Za-z0-9\-.]{1,20})$/;
 
