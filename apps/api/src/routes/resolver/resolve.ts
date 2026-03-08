@@ -11,8 +11,12 @@ const STATUS_MAP: Partial<Record<ProductStatus, string>> = {
   RECALLED: "recalled",
 };
 
-/** Prisma include for resolver queries — passport + brand relations. */
-const RESOLVER_INCLUDE = { passport: true, brand: true } as const;
+/** Prisma include for resolver queries — passport + brand + events relations. */
+const RESOLVER_INCLUDE = {
+  passport: true,
+  brand: true,
+  events: { orderBy: { createdAt: "asc" as const }, take: 50 },
+} as const;
 
 /**
  * JSON-LD @context array.
@@ -113,6 +117,22 @@ export default async function resolveDigitalLinkRoute(
               mintedAt: product.passport.mintedAt,
             }
           : null,
+        provenance:
+          product.events
+            ?.filter((e) => e.type !== "UPDATED")
+            .map((e) => ({
+              "@type": "ProvenanceEvent",
+              eventType: e.type,
+              timestamp: e.createdAt,
+              ...(e.type === "RECALLED" &&
+              e.data &&
+              typeof e.data === "object" &&
+              "reason" in (e.data as Record<string, unknown>)
+                ? {
+                    description: (e.data as Record<string, unknown>).reason,
+                  }
+                : {}),
+            })) ?? [],
       };
 
       return reply
