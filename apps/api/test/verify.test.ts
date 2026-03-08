@@ -23,7 +23,7 @@ vi.mock("viem/chains", () => ({
   baseSepolia: { id: 84532, name: "Base Sepolia" },
 }));
 
-import { parseCookies } from "./helpers.js";
+import { parseCookies, cleanDb } from "./helpers.js";
 
 const VALID_GTIN_13 = "4006381333931";
 const CSRF = { "x-galileo-client": "test" };
@@ -45,13 +45,7 @@ describe("POST /products/:id/verify", () => {
   });
 
   beforeEach(async () => {
-    await app.prisma.$transaction([
-      app.prisma.productEvent.deleteMany(),
-      app.prisma.productPassport.deleteMany(),
-      app.prisma.product.deleteMany(),
-      app.prisma.user.deleteMany(),
-      app.prisma.brand.deleteMany(),
-    ]);
+    await cleanDb(app.prisma);
 
     const brand = await app.prisma.brand.create({
       data: {

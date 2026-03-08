@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import { createHash } from "node:crypto";
 import { buildApp } from "../src/server.js";
 import type { FastifyInstance } from "fastify";
-import { parseCookies } from "./helpers.js";
+import { parseCookies, cleanDb } from "./helpers.js";
 
 /**
  * Return all Set-Cookie headers as raw strings for flag inspection.
@@ -36,35 +36,9 @@ describe("Auth endpoints", () => {
     await app.close();
   });
 
-  // Clean up test users before each test to avoid state leakage
+  // Clean up all test data before each test to avoid state leakage
   beforeEach(async () => {
-    // Delete test users (cascade will handle related records)
-    await app.prisma.user.deleteMany({
-      where: {
-        email: {
-          in: [
-            "register@test.com",
-            "duplicate@test.com",
-            "brand@test.com",
-            "brand-collision@test.com",
-            "brand-collision2@test.com",
-            "login@test.com",
-            "refresh@test.com",
-            "me@test.com",
-            "logout@test.com",
-            "cors@test.com",
-          ],
-        },
-      },
-    });
-    // Delete test brands
-    await app.prisma.brand.deleteMany({
-      where: {
-        slug: {
-          in: ["acme-luxury", "test-brand", "collision-brand"],
-        },
-      },
-    });
+    await cleanDb(app.prisma);
   });
 
   // ─── Register ───────────────────────────────────────────────

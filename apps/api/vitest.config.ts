@@ -10,6 +10,8 @@ export default defineConfig({
     environment: "node",
     globalSetup: "./test/global-setup.ts",
     fileParallelism: false,
+    hookTimeout: 30_000,
+    testTimeout: 30_000,
     env: {
       DATABASE_URL: TEST_DATABASE_URL,
       NODE_ENV: "test",

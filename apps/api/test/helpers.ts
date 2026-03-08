@@ -15,3 +15,18 @@ export function parseCookies(response: {
   }
   return result;
 }
+
+/**
+ * Truncate all application tables using raw SQL.
+ *
+ * Replaces cascading deleteMany chains that caused lock contention and
+ * flaky timeouts. A single TRUNCATE ... CASCADE statement releases locks
+ * faster than 5 sequential Prisma deleteMany calls.
+ */
+export async function cleanDb(prisma: {
+  $executeRawUnsafe: (query: string) => Promise<number>;
+}): Promise<void> {
+  await prisma.$executeRawUnsafe(
+    `TRUNCATE TABLE "ProductEvent", "ProductPassport", "Product", "User", "Brand" CASCADE`,
+  );
+}

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import { buildApp } from "../src/server.js";
 import type { FastifyInstance } from "fastify";
-import { parseCookies } from "./helpers.js";
+import { parseCookies, cleanDb } from "./helpers.js";
 
 // Valid GTINs (GS1 check digit verified)
 const VALID_GTIN_13 = "4006381333931";
@@ -30,12 +30,7 @@ describe("Product CRUD endpoints", () => {
   });
 
   beforeEach(async () => {
-    // Clean up all test data
-    await app.prisma.productEvent.deleteMany({});
-    await app.prisma.productPassport.deleteMany({});
-    await app.prisma.product.deleteMany({});
-    await app.prisma.user.deleteMany({});
-    await app.prisma.brand.deleteMany({});
+    await cleanDb(app.prisma);
 
     // Create test brand
     const brand = await app.prisma.brand.create({

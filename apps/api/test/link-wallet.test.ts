@@ -4,7 +4,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import { mainnet } from "viem/chains";
 import { buildApp } from "../src/server.js";
 import type { FastifyInstance } from "fastify";
-import { parseCookies } from "./helpers.js";
+import { parseCookies, cleanDb } from "./helpers.js";
 
 /**
  * Generate a deterministic wallet and sign a message.
@@ -42,13 +42,7 @@ describe("POST /auth/link-wallet", () => {
   });
 
   beforeEach(async () => {
-    await app.prisma.user.deleteMany({
-      where: {
-        email: {
-          in: ["wallet-link@test.com", "wallet-link2@test.com"],
-        },
-      },
-    });
+    await cleanDb(app.prisma);
   });
 
   /**
