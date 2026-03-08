@@ -359,7 +359,7 @@ For important GalileoLuxury PRs, merge should happen only after:
 - [x] QR scanning: `getUserMedia` + `barcode-detector` (ZXing WASM ponyfill) — `/scan` route (PR #17)
 - [x] Public verification page: provenance timeline in scanner + resolver API (PR #22)
 - [ ] Material composition display
-- [ ] Service worker for offline cache of previously scanned products
+- [x] Service worker for offline cache of previously scanned products
 - [ ] Deep link: scanning QR goes directly to product page
 
 #### 3.5 Lifecycle Events & Transfers (P1)
@@ -368,7 +368,8 @@ For important GalileoLuxury PRs, merge should happen only after:
 - [x] Recall endpoint: `POST /products/:id/recall` — ACTIVE → RECALLED with reason + RECALLED event
 - [x] Dashboard recall button + event timeline icons for all event types (PR #20)
 - [x] Transfer endpoint: `POST /products/:id/transfer` — wallet-to-wallet with TRANSFERRED event (PR #23)
-- [ ] Remaining events: `VERIFIED`, `OWNERSHIP_CHANGED`, `REPAIRED`, `CPO_CERTIFIED`
+- [x] Verify endpoint: `POST /products/:id/verify` — public, records VERIFIED event with optional auth
+- [ ] Remaining events: `OWNERSHIP_CHANGED`, `REPAIRED`, `CPO_CERTIFIED`
 - [ ] Event logging (append-only, off-chain + on-chain anchoring)
 - [ ] Transfer flow with compliance check (5 modules: jurisdiction, sanctions, brand auth, CPO, service center)
 - [ ] CPO certification flow
@@ -405,9 +406,9 @@ For important GalileoLuxury PRs, merge should happen only after:
 
 #### 4.1 Security Hardening (P0)
 
-- [ ] Rate limiting on all endpoints (brute force prevention)
+- [x] Rate limiting on all endpoints (`@fastify/rate-limit` — 5/min auth, 60/min resolver, 100/min default)
 - [ ] Input validation audit against OWASP top 10
-- [ ] Content Security Policy (CSP) headers on API responses
+- [x] Security headers via `@fastify/helmet` (CSP, HSTS, X-Frame-Options, CORP, COOP, referrer-policy)
 - [ ] Consider `__Host-` cookie prefix for production (`__Host-galileo_at`)
 - [ ] Cookie signing via `@fastify/cookie` secret (defense in depth on top of JWT signature)
 - [ ] Log warning when `secure: false` in development mode
