@@ -159,14 +159,26 @@ function StatusPill({ status }: { status?: string }) {
   );
 }
 
+const CHAIN_NAMES: Record<number, string> = {
+  8453: "Base",
+  84532: "Base Sepolia",
+};
+
+const EXPLORER_URLS: Record<number, string> = {
+  8453: "https://basescan.org",
+  84532: "https://sepolia.basescan.org",
+};
+
 function DetailRow({
   label,
   value,
   mono = false,
+  href,
 }: {
   label: string;
   value?: string | number | null;
   mono?: boolean;
+  href?: string | null;
 }) {
   if (value === undefined || value === null || value === "") return null;
 
@@ -182,7 +194,18 @@ function DetailRow({
             : "text-sm text-foreground"
         }
       >
-        {value}
+        {href ? (
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary underline decoration-primary/30 underline-offset-2 transition hover:decoration-primary"
+          >
+            {value}
+          </a>
+        ) : (
+          value
+        )}
       </dd>
     </div>
   );
@@ -355,6 +378,62 @@ export default async function Home({
                   value={result.data?.passport?.digitalLink}
                   mono
                 />
+
+                {result.data?.passport?.txHash ? (
+                  <>
+                    <div className="mt-2 border-t border-border/40 pt-3">
+                      <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                        Blockchain proof
+                      </p>
+                    </div>
+                    <DetailRow
+                      label="Transaction"
+                      value={`${result.data.passport.txHash.slice(0, 10)}…${result.data.passport.txHash.slice(-8)}`}
+                      mono
+                      href={
+                        result.data.passport.chainId
+                          ? `${EXPLORER_URLS[result.data.passport.chainId] ?? "https://basescan.org"}/tx/${result.data.passport.txHash}`
+                          : null
+                      }
+                    />
+                    <DetailRow
+                      label="Chain"
+                      value={
+                        result.data.passport.chainId
+                          ? (CHAIN_NAMES[result.data.passport.chainId] ??
+                            `Chain ${result.data.passport.chainId}`)
+                          : null
+                      }
+                    />
+                    <DetailRow
+                      label="Minted"
+                      value={
+                        result.data.passport.mintedAt
+                          ? new Date(
+                              result.data.passport.mintedAt,
+                            ).toLocaleDateString("en-US", {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })
+                          : null
+                      }
+                    />
+                    <DetailRow
+                      label="Token address"
+                      value={result.data.passport.tokenAddress}
+                      mono
+                      href={
+                        result.data.passport.chainId &&
+                        result.data.passport.tokenAddress
+                          ? `${EXPLORER_URLS[result.data.passport.chainId] ?? "https://basescan.org"}/address/${result.data.passport.tokenAddress}`
+                          : null
+                      }
+                    />
+                  </>
+                ) : null}
               </>
             ) : (
               <DetailRow label="HTTP status" value={result.status} />
