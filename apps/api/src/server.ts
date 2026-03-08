@@ -9,6 +9,7 @@ import cookiePlugin from "./plugins/cookie.js";
 import chainPlugin from "./plugins/chain.js";
 import rateLimitPlugin from "./plugins/rate-limit.js";
 import securityHeadersPlugin from "./plugins/security-headers.js";
+import { ACCESS_COOKIE_NAME } from "./utils/cookies.js";
 import healthRoutes from "./routes/health.js";
 import authRoutes from "./routes/auth/index.js";
 import productRoutes from "./routes/products/index.js";
@@ -41,7 +42,7 @@ export async function buildApp() {
             cookieAuth: {
               type: "apiKey",
               in: "cookie",
-              name: "galileo_at",
+              name: ACCESS_COOKIE_NAME,
             },
           },
         },

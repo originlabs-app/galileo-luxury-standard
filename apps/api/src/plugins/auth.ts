@@ -2,6 +2,7 @@ import fp from "fastify-plugin";
 import fastifyJwt from "@fastify/jwt";
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { config } from "../config.js";
+import { ACCESS_COOKIE_NAME } from "../utils/cookies.js";
 
 declare module "@fastify/jwt" {
   interface FastifyJWT {
@@ -35,7 +36,7 @@ export default fp(async (fastify: FastifyInstance) => {
       expiresIn: "15m",
     },
     cookie: {
-      cookieName: "galileo_at",
+      cookieName: ACCESS_COOKIE_NAME,
       signed: false,
     },
   });
