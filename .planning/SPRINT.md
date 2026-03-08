@@ -4,9 +4,9 @@
 > Created by the Researcher from the BACKLOG. Each task includes a brief: files to modify, approach, patterns, edge cases.
 > Archived when all tasks are validated or deferred.
 
-## Sprint #1 -- Hardening & Quality
+## Sprint #2 -- Scanner Completion + Observability Foundation
 
-**Goal**: Fix flaky tests, harden security (OWASP + cookies), and add file upload -- unblocking quality and features without waiting on blockchain RPC key.
+**Goal**: Complete the Scanner PWA (EPIC-004) by adding material composition display and deep link support, then lay the observability foundation (EPIC-007) with enhanced health checks and structured logging -- preparing for production deployment.
 **Started**: 2026-03-08
 **Status**: active
 
@@ -14,10 +14,10 @@
 
 | # | Task | Epic | Status | Verify | Commit |
 |---|------|------|--------|--------|--------|
-| 1 | Fix flaky test suites | EPIC-007 | done | `pnpm --filter api test` passes 3x consecutively | 3ac8bf6 |
-| 2 | OWASP input validation audit | EPIC-005 | done | All routes reviewed, prototype pollution blocked | 75d4038 |
-| 3 | Cookie hardening | EPIC-005 | done | `__Host-` prefix in prod, cookie signing, dev warning | 61ebf4e |
-| 4 | File upload (R2 + CID) | EPIC-006 | done | Photo upload in dashboard, CID computed, R2 storage | 9600650 |
+| 1 | Scanner material composition display | EPIC-004 | todo | Scanner shows material composition when product has metadata | -- |
+| 2 | Scanner deep link | EPIC-004 | todo | QR scan opens product page directly, bypassing scanner home | -- |
+| 3 | Health check with dependency status | EPIC-007 | todo | GET /health returns db + chain status | -- |
+| 4 | Structured logging (no PII) | EPIC-007 | todo | JSON logs with request IDs, no email/password in logs | -- |
 
 ### Status values
 - `todo` -- Not started
@@ -30,224 +30,371 @@
 ## Completion Criteria
 
 - [ ] All tasks validated or explicitly deferred
-- [ ] All tests pass (including previously flaky ones)
+- [ ] All tests pass (173+ API tests, 69 shared tests)
 - [ ] No P0 bugs introduced
 - [ ] CONTEXT.md updated if architecture changed
+- [ ] EPIC-004 status updated to `completed` after scanner tasks validated
 
 ## Task Briefs
 
-### Brief #1: Fix Flaky Test Suites
-
-**Type**: testing
-**Priority**: P0
-**Epic**: EPIC-007-observability-quality
-
-**Files to modify**:
-- `apps/api/vitest.config.ts` -- add hookTimeout, testTimeout
-- `apps/api/test/mint.test.ts` -- optimize beforeEach cleanup
-- `apps/api/test/products.test.ts` -- optimize beforeEach cleanup
-- `apps/api/test/recall.test.ts` -- optimize beforeEach cleanup
-- `apps/api/test/helpers.ts` -- add shared cleanup helper
-
-**Approach**:
-
-The root cause is `beforeEach` hooks timing out (default 10s) because `deleteMany` cascades on shared PostgreSQL cause lock contention. `fileParallelism: false` is already set, so tests run sequentially by file -- but individual test setups still do heavy cleanup (register 4-5 users via HTTP per test).
-
-Recommended fix (two-pronged):
-
-1. **Increase timeouts** in vitest.config.ts as immediate mitigation:
-   ```typescript
-   test: {
-     hookTimeout: 30_000,  // 30s for beforeEach/afterAll hooks
-     testTimeout: 30_000,  // 30s per test
-   }
-   ```
-
-2. **Optimize cleanup** -- replace cascading `deleteMany` chain with a single raw SQL `TRUNCATE ... CASCADE` in a shared helper:
-   ```typescript
-   // test/helpers.ts
-   export async function cleanDb(prisma: PrismaClient) {
-     await prisma.$executeRawUnsafe(
-       `TRUNCATE TABLE "ProductEvent", "ProductPassport", "Product", "User", "Brand" CASCADE`
-     );
-   }
-   ```
-   This avoids the Prisma ORM overhead of 5 sequential deleteMany calls and releases locks faster.
-
-3. **Reuse app instance** -- each test file already uses `beforeAll` to build the app once. Ensure no test file rebuilds the app in `beforeEach`.
-
-**Patterns to follow**:
-- `global-setup.ts` already uses raw SQL TRUNCATE in teardown -- same pattern
-- Rate limiting and helmet are already disabled in test env
-- Keep `fileParallelism: false` -- do NOT enable parallel files
-
-**Edge cases**:
-- TRUNCATE CASCADE might fail if a test leaves an open transaction -- ensure no hanging transactions
-- hookTimeout increase is a safety net, not a fix -- the TRUNCATE optimization should bring cleanup under 1s
-
-**Verify**: Run `pnpm --filter api test` three consecutive times. Zero timeouts. All 155+ tests pass each time.
-
----
-
-### Brief #2: OWASP Input Validation Audit
-
-**Type**: security
-**Priority**: P1
-**Epic**: EPIC-005-security-hardening
-
-**Files to modify**:
-- `apps/api/src/routes/products/create.ts` -- add prototype pollution guard
-- `apps/api/src/routes/products/update.ts` -- verify `.strict()` blocks extra fields
-- `apps/api/src/routes/auth/register.ts` -- verify email normalization
-- `apps/api/src/routes/auth/login.ts` -- verify no injection vectors
-- `apps/api/src/routes/auth/link-wallet.ts` -- verify address validation
-- `apps/api/src/routes/products/transfer.ts` -- verify wallet address validation
-- `apps/api/src/routes/products/verify.ts` -- verify public endpoint safety
-- `apps/api/src/routes/products/recall.ts` -- verify reason string sanitization
-- `apps/api/src/routes/resolver/resolve.ts` -- verify GTIN/serial params sanitized
-- `apps/api/test/security-hardening.test.ts` -- add new OWASP test cases
-
-**Approach**:
-
-Audit each route against OWASP Top 10 (2021):
-
-1. **A01 Broken Access Control** -- already covered by RBAC middleware + brandId scoping. Verify no bypass paths.
-2. **A02 Cryptographic Failures** -- JWT secrets validated (min 32 chars), bcrypt for passwords. Check: refresh token rotation is atomic.
-3. **A03 Injection** -- Prisma parameterizes queries. Check: no raw SQL with user input. Check: `$executeRawUnsafe` not used with user input.
-4. **A04 Insecure Design** -- verify rate limits on auth endpoints (already 5/min).
-5. **A05 Security Misconfiguration** -- Swagger guarded in prod. Check: error responses don't leak stack traces.
-6. **A06 Vulnerable Components** -- run `pnpm audit`. Document findings.
-7. **A07 Auth Failures** -- timing-safe login (dummy hash). Check: no user enumeration via register.
-8. **A08 Data Integrity** -- CID ensures tamper-evidence. Check: no deserialization of untrusted data.
-9. **A09 Logging Failures** -- check that security events are logged.
-10. **A10 SSRF** -- check: no user-controlled URLs fetched server-side.
-
-Key actions:
-- Add `.strict()` to `createProductBody` schema (update.ts already has it, create.ts doesn't)
-- Ensure `recall.ts` reason field is bounded (check max length)
-- Ensure resolver params are validated (GTIN format, serial format)
-- Add prototype pollution tests: `POST /products` with `{"__proto__": {"admin": true}}`
-- Verify Zod strips `__proto__` and `constructor` keys
-
-**Patterns to follow**:
-- Use Zod `.strict()` on all body schemas to reject unexpected fields
-- Use existing `errorResponseSchema` for consistent error format
-- Test security assertions in `security-hardening.test.ts`
-
-**Edge cases**:
-- Zod v4 `.strict()` behavior may differ from v3 -- verify it rejects `__proto__`
-- Prototype pollution via JSON.parse is mitigated by Fastify's content-type parser -- verify no custom parsers bypass this
-
-**Verify**: All existing tests still pass. New security tests in `security-hardening.test.ts` cover: prototype pollution rejection, `.strict()` rejects unknown fields, bounded string lengths, GTIN format validation on resolver params.
-
----
-
-### Brief #3: Cookie Hardening
-
-**Type**: security
-**Priority**: P1
-**Epic**: EPIC-005-security-hardening
-
-**Files to modify**:
-- `apps/api/src/utils/cookies.ts` -- add `__Host-` prefix, dev warning
-- `apps/api/src/plugins/cookie.ts` -- add cookie signing secret
-- `apps/api/src/config.ts` -- add `COOKIE_SECRET` env var (optional in dev/test)
-- `apps/api/src/plugins/auth.ts` -- update cookie name references
-- `apps/api/test/helpers.ts` -- update cookie name in parseCookies usage
-- `apps/api/test/*.test.ts` -- update `galileo_at` references to `__Host-galileo_at` (production) or keep `galileo_at` (test env)
-
-**Approach**:
-
-1. **`__Host-` prefix** (production only):
-   - `__Host-` cookies require `Secure`, `Path=/`, and no `Domain` -- prevents cookie tossing attacks
-   - In production: `__Host-galileo_at`, `__Host-galileo_rt`
-   - In dev/test: keep `galileo_at`, `galileo_rt` (because `__Host-` requires HTTPS)
-   - Update `cookies.ts` to conditionally apply the prefix based on `config.NODE_ENV`
-
-2. **Cookie signing**:
-   - Add `COOKIE_SECRET` to config.ts env schema (optional in dev/test, required in production)
-   - Pass secret to `@fastify/cookie` registration in `cookie.ts`
-   - Fastify will automatically sign/unsign cookies
-
-3. **Dev-mode warning**:
-   - In `cookies.ts`, if `!isProduction`, log once: `"WARNING: Cookies are not secure (HTTP only). Set NODE_ENV=production for secure cookies."`
-
-**Patterns to follow**:
-- Cookie options pattern already in `cookies.ts` -- extend, don't restructure
-- Config validation pattern in `config.ts` -- add new env var with `.optional()` and production guard
-- Rate limiting and helmet already follow the "disabled in test" pattern
-
-**Edge cases**:
-- Tests use `galileo_at` as cookie name in `parseCookies` -- since tests run with `NODE_ENV=test`, the prefix won't be applied, so tests should not break
-- `__Host-` prefix on refresh cookie: `__Host-` requires `Path=/`, but refresh cookie has `Path=/auth/refresh` -- this is incompatible. Options: (a) use `__Host-` only for access cookie, (b) change refresh cookie to `Path=/` with route-level check, (c) use `__Secure-` prefix for refresh cookie instead. **Recommended: (c)** -- `__Secure-` only requires `Secure` flag, no `Path=/` constraint.
-- Cookie signing changes the cookie value format -- existing sessions will be invalidated on deploy (acceptable for a security upgrade)
-
-**Verify**: In test env, cookies still work as before. In production config, access cookie uses `__Host-galileo_at`, refresh cookie uses `__Secure-galileo_rt`. Cookie secret is configured. Dev mode logs insecure cookie warning once.
-
----
-
-### Brief #4: File Upload (R2 + CID)
+### Brief #1: Scanner Material Composition Display
 
 **Type**: feature
 **Priority**: P1
-**Epic**: EPIC-006-data-compliance
+**Epic**: EPIC-004-scanner-pwa
 
 **Files to modify**:
-- Create: `apps/api/src/plugins/storage.ts` -- R2/S3 client plugin
-- Create: `apps/api/src/utils/cid.ts` -- CIDv1 computation
-- Create: `apps/api/src/routes/products/upload.ts` -- upload endpoint
-- Modify: `apps/api/src/routes/products/index.ts` -- register upload route
-- Modify: `apps/api/src/server.ts` -- register storage plugin
-- Modify: `apps/api/src/config.ts` -- add R2 env vars
-- Modify: `apps/api/prisma/schema.prisma` -- add `imageUrl`/`imageCid` fields to Product
-- Create: `apps/api/test/upload.test.ts` -- upload tests
-- Modify: `apps/dashboard/src/app/dashboard/products/new/page.tsx` -- add photo upload
-- Modify: `apps/dashboard/src/app/dashboard/products/[id]/page.tsx` -- show photo + upload in edit
+- `apps/scanner/src/app/page.tsx` -- add MaterialComposition component + render it in verification result
+- `apps/api/src/routes/resolver/resolve.ts` -- include `metadata` from ProductPassport in JSON-LD response
+- `apps/api/src/routes/products/create.ts` -- add optional `materials` field to createProductBody schema
+- `apps/api/src/routes/products/update.ts` -- add optional `materials` field to updateProductBody schema
+- `packages/shared/src/types/product.ts` -- add Material type (if not already there)
+- `apps/api/test/resolver-qr.test.ts` -- add test for material composition in resolver response
 
 **Approach**:
 
-1. **Storage plugin** (`storage.ts`):
-   - Use `@aws-sdk/client-s3` (R2 is S3-compatible)
-   - Create a Fastify plugin that decorates `fastify.storage` with `upload(key, buffer, contentType)` and `delete(key)` methods
-   - In test/dev without R2 credentials: use local filesystem fallback (`uploads/` directory)
-   - Env vars: `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME` (all optional -- fallback to local)
+Material composition data needs to flow from product creation to the scanner display. The `ProductPassport.metadata` JSON field already exists and is the right place to store DPP-related data like materials. ESPR requires material composition in Digital Product Passports for textiles/footwear.
 
-2. **CID computation** (`cid.ts`):
-   - Compute CIDv1 using `multiformats` npm package (official IPFS CID library)
-   - `sha256` hash of the file buffer -> CIDv1 with `raw` codec
-   - Pure function, no network: `computeCid(buffer: Buffer): string`
+1. **Data model** -- no schema migration needed. Use the existing `ProductPassport.metadata` JSON field. Store materials as:
+   ```typescript
+   // In metadata JSON
+   {
+     materials: [
+       { name: "Calfskin Leather", percentage: 65 },
+       { name: "Cotton Canvas", percentage: 30 },
+       { name: "Brass Hardware", percentage: 5 }
+     ]
+   }
+   ```
 
-3. **Upload endpoint** (`upload.ts`):
-   - `POST /products/:id/upload` -- multipart form with `file` field
-   - Use `@fastify/multipart` for multipart parsing
-   - Validate: file size (max 5MB), content type (image/jpeg, image/png, image/webp)
-   - Flow: parse file -> compute CID -> upload to R2 (key: `products/{productId}/{cid}.{ext}`) -> update Product with imageUrl + imageCid
-   - Auth: BRAND_ADMIN, OPERATOR, ADMIN (same as product CRUD)
-   - Only DRAFT products can have images added
+2. **Create/Update routes** -- add an optional `materials` array to the Zod body schemas:
+   ```typescript
+   const materialSchema = z.object({
+     name: z.string().min(1).max(100),
+     percentage: z.number().min(0).max(100),
+   });
 
-4. **Schema migration**:
-   - Add `imageUrl String?` and `imageCid String?` to Product model
-   - Run `pnpm prisma generate` after schema change
+   // In createProductBody / updateProductBody:
+   materials: z.array(materialSchema).max(20).optional(),
+   ```
+   When `materials` is provided, store it in `ProductPassport.metadata`:
+   ```typescript
+   await tx.productPassport.update({
+     where: { productId: product.id },
+     data: { metadata: { materials: parsed.data.materials } },
+   });
+   ```
 
-5. **Dashboard UI**:
-   - Add file input to product create/edit forms
-   - Show uploaded image in product detail page
-   - Use fetch with FormData for multipart upload
+3. **Resolver** -- include materials from `metadata` in the JSON-LD response:
+   ```typescript
+   // In resolve.ts, after building jsonLd:
+   const metadata = product.passport?.metadata as Record<string, unknown> | null;
+   const materials = Array.isArray(metadata?.materials) ? metadata.materials : [];
+   // Add to jsonLd:
+   ...(materials.length > 0 ? { hasMaterialComposition: materials } : {}),
+   ```
+
+4. **Scanner UI** -- add a `MaterialComposition` component:
+   - Renders a list of materials with percentage bars
+   - Only shown when `hasMaterialComposition` is present and non-empty
+   - Styled consistently with ProvenanceTimeline (same card + section pattern)
+   - Update `ResolverResult` type to include `hasMaterialComposition`
 
 **Patterns to follow**:
-- Plugin pattern: same structure as `prisma.ts`, `chain.ts` (fp plugin with decorator)
-- Route pattern: same structure as `create.ts` (Zod validation, RBAC, error handling)
-- Prisma migration: remember to regenerate client (`pnpm prisma generate`)
-- Config pattern: optional env vars with `.optional()` and runtime fallback
+- Same card styling as ProvenanceTimeline (rounded-[28px], border, bg-card, shadow)
+- Zod `.strict()` on body schemas (already done)
+- Use metadata JSON field (no schema migration needed)
+- Resolver only exposes public-safe data (materials are public per ESPR)
 
 **Edge cases**:
-- 🔒 R2 credentials are sensitive -- never commit, validate in config.ts
-- Large files: enforce 5MB limit in multipart config, not just validation
-- Multiple uploads: overwrite previous image (single image per product for MVP)
-- CID determinism: same file -> same CID (important for tamper-evidence)
-- Content-type spoofing: validate actual file magic bytes, not just Content-Type header (stretch goal -- acceptable to skip for MVP)
+- Materials percentages may not sum to 100 (some products have partial composition data) -- do NOT validate sum
+- Empty materials array should be treated as "no materials" -- don't render the section
+- Metadata field may contain other keys in the future -- use spread/merge when updating, not overwrite
+- Old products with no materials in metadata should render normally without the section
 
-**Verify**: Create product -> upload photo -> photo visible in product detail. CID stored in database. File in R2 (or local uploads/ dir in dev). Uploading to non-DRAFT product returns 400. File > 5MB rejected. Non-image files rejected.
+**Verify**: Create a product with materials -> mint it -> resolve via scanner -> material composition displayed with percentage bars. Product without materials shows no composition section.
+
+---
+
+### Brief #2: Scanner Deep Link
+
+**Type**: feature
+**Priority**: P1
+**Epic**: EPIC-004-scanner-pwa
+
+**Files to modify**:
+- `apps/scanner/src/app/scan/page.tsx` -- already routes to `/?link=...` after scan (this works)
+- `apps/scanner/src/app/page.tsx` -- auto-resolve when `?link=` param is present (already works)
+- `apps/scanner/src/app/layout.tsx` -- no changes needed
+- `apps/scanner/public/manifest.json` -- add `url_handlers` for deep linking
+- `apps/scanner/next.config.ts` -- add `assetLinks` / `apple-app-site-association` rewrites if needed
+
+**Approach**:
+
+The scanner already handles deep links partially -- when you scan a QR code on `/scan`, it redirects to `/?link=<encoded-url>` which auto-resolves via `resolveLink()`. The missing piece is **external deep linking**: when a user scans a Galileo QR code with their native camera app (not inside the scanner), the QR contains a GS1 Digital Link URL like `https://id.galileoprotocol.io/01/00012345678905/21/SERIAL-001`. This needs to open the scanner app and show the verification result.
+
+Three things to implement:
+
+1. **Add a catch-all route for GS1 Digital Link paths** -- create `apps/scanner/src/app/01/[gtin]/21/[serial]/page.tsx` that extracts GTIN/serial from the URL path and renders the verification result directly (reusing the same resolver logic from the home page).
+
+   ```typescript
+   // apps/scanner/src/app/01/[gtin]/21/[serial]/page.tsx
+   import { redirect } from "next/navigation";
+
+   export default async function DeepLinkPage({
+     params,
+   }: {
+     params: Promise<{ gtin: string; serial: string }>;
+   }) {
+     const { gtin, serial } = await params;
+     // Redirect to home with link param -- reuses all existing resolution + display logic
+     redirect(`/?link=${encodeURIComponent(`/01/${gtin}/21/${serial}`)}`);
+   }
+   ```
+
+2. **Update PWA manifest** -- add `start_url` that preserves query params, ensure `scope` allows the `/01/` path:
+   ```json
+   {
+     "start_url": "/",
+     "scope": "/",
+     "url_handlers": [{ "origin": "https://scanner.galileoprotocol.io" }]
+   }
+   ```
+
+3. **Service worker** -- update `sw.js` to handle `/01/` paths as navigation requests (not cache-first):
+   ```javascript
+   // In sw.js fetch handler, skip caching for /01/ paths (always network-first for fresh verification)
+   if (url.pathname.startsWith('/01/')) {
+     return; // Let the browser handle it (network request to Next.js)
+   }
+   ```
+
+**Patterns to follow**:
+- Next.js App Router dynamic segments: `[gtin]` and `[serial]` as folder names
+- Redirect pattern: `redirect()` from `next/navigation` for server-side redirect
+- Service worker: network-first for dynamic content, cache-first for static assets (already the pattern in sw.js)
+
+**Edge cases**:
+- URL-encoded serial numbers (e.g., `SERIAL%20001`) -- `decodeURIComponent` in the redirect handles this
+- Invalid GTIN in deep link -- the home page resolver will show the "Invalid GTIN" error (handled by existing validation)
+- `/01/` path must not be cached by the service worker -- stale cache would show old verification results
+- Deep link from external camera app: depends on the QR URL domain matching the scanner's deployed domain. For local dev, deep links only work via `/?link=` param.
+
+**Verify**: Navigate to `/01/0012345678905/21/SERIAL-001` in the scanner -- redirects to home page with verification result. QR scan still works (redirect to `/?link=...`). Service worker does not cache `/01/` paths.
+
+---
+
+### Brief #3: Health Check with Dependency Status
+
+**Type**: improvement
+**Priority**: P2
+**Epic**: EPIC-007-observability-quality
+
+**Files to modify**:
+- `apps/api/src/routes/health.ts` -- extend handler to check DB + chain status
+- `apps/api/test/health.test.ts` -- add tests for dependency status
+
+**Approach**:
+
+Extend the existing `GET /health` endpoint to report dependency status. The current endpoint returns `{ status, version, uptime }`. Add `dependencies` with DB and chain RPC status.
+
+1. **Database check** -- use `fastify.prisma.$queryRaw` to execute a lightweight query:
+   ```typescript
+   let dbStatus: "ok" | "error" = "error";
+   try {
+     await fastify.prisma.$queryRawUnsafe("SELECT 1");
+     dbStatus = "ok";
+   } catch {
+     dbStatus = "error";
+   }
+   ```
+
+2. **Chain RPC check** -- use `fastify.chain.chainEnabled` flag:
+   ```typescript
+   let chainStatus: "ok" | "disabled" | "error" = "disabled";
+   if (fastify.chain.chainEnabled) {
+     try {
+       await fastify.chain.publicClient.getChainId();
+       chainStatus = "ok";
+     } catch {
+       chainStatus = "error";
+     }
+   }
+   ```
+
+3. **Response format**:
+   ```typescript
+   {
+     status: dbStatus === "ok" ? "ok" : "degraded",
+     version: pkg.version,
+     uptime: process.uptime(),
+     dependencies: {
+       database: dbStatus,
+       chain: chainStatus,
+     }
+   }
+   ```
+
+4. **HTTP status code**: Return `200` when `status === "ok"`, `503` when `status === "degraded"`. Load balancers and monitoring tools use the HTTP status to determine if the service is healthy.
+
+5. **Update route schema** to reflect new response shape:
+   ```typescript
+   response: {
+     200: {
+       type: "object",
+       properties: {
+         status: { type: "string", enum: ["ok"] },
+         version: { type: "string" },
+         uptime: { type: "number" },
+         dependencies: {
+           type: "object",
+           properties: {
+             database: { type: "string", enum: ["ok", "error"] },
+             chain: { type: "string", enum: ["ok", "disabled", "error"] },
+           },
+         },
+       },
+     },
+     503: {
+       type: "object",
+       properties: {
+         status: { type: "string", enum: ["degraded"] },
+         version: { type: "string" },
+         uptime: { type: "number" },
+         dependencies: {
+           type: "object",
+           properties: {
+             database: { type: "string", enum: ["ok", "error"] },
+             chain: { type: "string", enum: ["ok", "disabled", "error"] },
+           },
+         },
+       },
+     },
+   }
+   ```
+
+**Important**: The current health.test.ts creates a standalone Fastify instance without plugins (no prisma, no chain). The new health route needs `fastify.prisma` and `fastify.chain` decorators. Two options:
+- (a) Use `buildApp()` from server.ts in the test (requires test DB)
+- (b) Keep the lightweight test but mock the decorators
+
+**Recommended: (b)** -- mock the decorators. This keeps the health test fast and independent of the DB:
+```typescript
+beforeAll(async () => {
+  app = Fastify();
+  // Mock prisma decorator
+  app.decorate("prisma", {
+    $queryRawUnsafe: async () => [{ "?column?": 1 }],
+  });
+  // Mock chain decorator
+  app.decorate("chain", { chainEnabled: false });
+  await app.register(healthRoutes);
+  await app.ready();
+});
+```
+
+**Patterns to follow**:
+- Health endpoint remains public (no auth required)
+- Response format consistent with existing `{ success, data }` or stay with current flat format (current flat format is fine for health -- keep it flat)
+- Error handling: never throw from health check -- always return a response with status info
+
+**Edge cases**:
+- DB connection pool exhausted -- `$queryRawUnsafe("SELECT 1")` should time out, not hang. Add a timeout wrapper if needed (stretch goal).
+- Chain disabled (no DEPLOYER_PRIVATE_KEY) -- report `"disabled"`, not `"error"`. This is the expected state until RPC key is provided.
+- Health check should NOT be rate-limited (it already isn't because it's GET and rate-limit targets all routes equally, but load balancers may hit it frequently). If rate limiting becomes an issue, exempt `/health` in the rate-limit plugin.
+
+**Verify**: GET /health returns `{ status: "ok", version, uptime, dependencies: { database: "ok", chain: "disabled" } }` with 200. When DB is down, returns 503 with `status: "degraded"`. Existing health tests still pass.
+
+---
+
+### Brief #4: Structured Logging (No PII)
+
+**Type**: improvement
+**Priority**: P2
+**Epic**: EPIC-007-observability-quality
+
+**Files to modify**:
+- `apps/api/src/server.ts` -- configure Pino logger options (serializers, redaction, request ID)
+- `apps/api/src/config.ts` -- add optional `LOG_LEVEL` env var
+- `apps/api/test/health.test.ts` -- may need `logger: false` on test Fastify instance (already the case)
+
+**Approach**:
+
+Fastify already uses Pino as its built-in logger (`Fastify({ logger: true })`). The task is to configure Pino properly for production: JSON format (default), correlation IDs (Fastify adds `reqId` automatically), and PII redaction.
+
+1. **Logger configuration** in `server.ts`:
+   ```typescript
+   const fastify = Fastify({
+     logger: config.NODE_ENV !== "test" ? {
+       level: config.LOG_LEVEL ?? "info",
+       // Pino serializers control what gets logged for req/res
+       serializers: {
+         req(request) {
+           return {
+             method: request.method,
+             url: request.url,
+             hostname: request.hostname,
+             remoteAddress: request.ip,
+             // Exclude headers that may contain auth tokens
+           };
+         },
+         res(reply) {
+           return {
+             statusCode: reply.statusCode,
+           };
+         },
+       },
+       // Redact paths that could contain PII
+       redact: {
+         paths: [
+           "req.headers.authorization",
+           "req.headers.cookie",
+           "req.body.password",
+           "req.body.email",
+           "req.body.passwordHash",
+         ],
+         censor: "[REDACTED]",
+       },
+     } : false,
+     // Generate unique request IDs for correlation
+     genReqId: (req) => {
+       return req.headers["x-request-id"] as string ?? crypto.randomUUID();
+     },
+   });
+   ```
+
+2. **Add `LOG_LEVEL` to config.ts**:
+   ```typescript
+   LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace"]).optional(),
+   ```
+
+3. **PII redaction strategy**:
+   - `req.headers.authorization` -- may contain Bearer token
+   - `req.headers.cookie` -- contains auth cookies
+   - `req.body.password` -- plaintext password in login/register
+   - `req.body.email` -- PII in login/register
+   - Pino's `redact` option replaces these paths with `[REDACTED]` in all log output
+   - This is more reliable than manual filtering -- works on ALL log calls automatically
+
+4. **Request ID correlation**:
+   - Fastify already adds `reqId` to every log line within a request context
+   - Configure `genReqId` to use the incoming `x-request-id` header if present (supports distributed tracing) or generate a UUID
+   - Import `crypto` from Node.js built-in (available since Node 19+)
+
+5. **No new dependencies** -- Pino is built into Fastify. `crypto.randomUUID()` is a Node.js built-in.
+
+**Patterns to follow**:
+- Logger disabled in test env (`logger: false`) -- already the case, keep it
+- Config pattern: optional env var with `.optional()`
+- Pino redaction is path-based -- uses dot notation for nested fields
+- `genReqId` is a Fastify built-in option -- no plugin needed
+
+**Edge cases**:
+- `req.body` may not exist for GET requests -- Pino's redact handles missing paths gracefully (no error)
+- `x-request-id` header from client could be spoofed -- acceptable for logging (not security-critical). The ID is for log correlation only.
+- Pino serializers receive the raw Fastify request/reply objects -- the serializer functions must be careful not to access properties that trigger side effects
+- In production, Pino outputs JSON by default (no config needed). In development with `logger: true`, it also outputs JSON. If human-readable logs are desired in dev, add `pino-pretty` as a dev dependency and use `transport: { target: "pino-pretty" }` -- but this is optional and can be deferred.
+
+**Verify**: Start API server, make requests. Log output is JSON with `reqId` field. `password` and `email` fields are redacted in log output. `req.headers.cookie` is redacted. No PII visible in any log line. All existing tests still pass.
 
 ## Notes
 

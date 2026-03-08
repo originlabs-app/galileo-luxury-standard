@@ -10,7 +10,7 @@ Test stability, error tracking, monitoring, and structured logging. Ensures the 
 
 ## Tasks
 
-- [ ] Fix flaky tests: mint.test.ts, products.test.ts, recall.test.ts timeout in full suite
+- [x] Fix flaky tests: mint.test.ts, products.test.ts, recall.test.ts timeout in full suite
 - [ ] Consider per-file test database isolation (schema-per-suite)
 - [ ] Sentry integration (error tracking)
 - [ ] Vercel Analytics (frontend)

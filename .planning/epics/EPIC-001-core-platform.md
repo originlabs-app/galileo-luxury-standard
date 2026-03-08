@@ -1,6 +1,6 @@
 # EPIC-001: Core Platform
 
-**Status**: mostly-complete
+**Status**: completed
 **Owner**: Researcher
 **Created**: 2026-03-08
 
@@ -22,7 +22,7 @@ Foundation of the Galileo Protocol platform: monorepo setup, authentication, RBA
 - [x] Security hardening: SHA-256 hashed refresh tokens, timing-safe login, CSRF header
 - [x] httpOnly cookie auth, SameSite=Lax
 - [x] AuthProvider Context (single /auth/me fetch), SSR-safe AuthGuard
-- [ ] Cookie hardening: `__Host-` prefix for production, cookie signing, dev-mode log warning
+- [x] Cookie hardening: `__Host-` prefix for production, cookie signing, dev-mode log warning
 
 ## Acceptance Criteria
 

@@ -6,7 +6,7 @@
 
 ## Last Updated
 
-2026-03-08 -- full bootstrap mapping by Researcher loop
+2026-03-08 -- updated after Sprint #1 completion + Sprint #2 creation
 
 ## Tech Stack
 
@@ -172,7 +172,7 @@ Key relations: User -> Brand (many-to-one), Product -> Brand (many-to-one), Prod
 
 ## Test Architecture
 
-- **Vitest**: 173 API tests across 12 files
+- **Vitest**: 173+ API tests across 13 files (upload.test.ts added in Sprint #1)
 - **Playwright**: 2 e2e tests (auth + product lifecycle)
 - **Test DB**: `galileo_test` via `DATABASE_URL_TEST`
 - **Global setup**: `test/global-setup.ts` -- pushes schema, truncates on teardown

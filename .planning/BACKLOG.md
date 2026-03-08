@@ -23,9 +23,7 @@ EPICs (functional bricks, in epics/)
 
 ### P0 -- Critical
 
-- [x] `EPIC-007` Fix flaky test suites (mint, products, recall) -- [source: ROADMAP 4.8] -- DONE (3ac8bf6)
-  - **Context**: beforeEach DB cleanup hooks timeout (10s) under concurrent test execution. Shared PostgreSQL causes lock contention during deleteMany cascades. fileParallelism is already false but individual file runs still contend.
-  - **Verify**: `pnpm --filter api test` passes 3 consecutive runs with zero timeouts
+- [x] `EPIC-007` Fix flaky test suites (mint, products, recall) -- DONE (Sprint #1, 3ac8bf6)
 
 - [ ] `EPIC-003` Deploy contracts on Base Sepolia -- [source: ROADMAP 3.1] -- BLOCKED (needs RPC key)
   - **Context**: All 12 contracts via Deploy.s.sol. Post-deploy config needed.
@@ -37,23 +35,15 @@ EPICs (functional bricks, in epics/)
 
 ### P1 -- High
 
-- [x] `EPIC-005` OWASP input validation audit -- [source: ROADMAP 4.1] -- DONE (75d4038)
-  - **Context**: Audit all API routes against OWASP top 10. Check for prototype pollution, mass assignment, injection vectors.
-  - **Verify**: Each route reviewed, findings documented, fixes applied. No prototype pollution possible.
+- [x] `EPIC-005` OWASP input validation audit -- DONE (Sprint #1, 75d4038)
+- [x] `EPIC-005` Cookie hardening -- DONE (Sprint #1, 61ebf4e)
+- [x] `EPIC-006` File upload to R2 + CID -- DONE (Sprint #1, 9600650)
 
-- [x] `EPIC-005` Cookie hardening -- [source: ROADMAP 4.1] -- DONE (61ebf4e)
-  - **Context**: Add `__Host-` prefix for production cookies, cookie signing via @fastify/cookie secret, log warning when secure:false in dev.
-  - **Verify**: Production cookies use `__Host-galileo_at` prefix. Cookie secret configured. Dev mode logs warning about insecure cookies.
-
-- [x] `EPIC-006` File upload to R2 + CID -- [source: ROADMAP 3.7] -- DONE (9600650)
-  - **Context**: Photo/certificate upload to Cloudflare R2 with local CIDv1 computation for tamper-evidence. Dashboard upload UI.
-  - **Verify**: Product create/edit form has photo upload. Photos stored in R2. CID computed and stored.
-
-- [ ] `EPIC-004` Scanner material composition display -- [source: ROADMAP 3.4]
-  - **Context**: Show material composition from DPP data in scanner verification page
+- [ ] `EPIC-004` Scanner material composition display -- [source: ROADMAP 3.4] -- IN SPRINT #2
+  - **Context**: Show material composition from DPP metadata in scanner verification page
   - **Verify**: Scanner shows material composition when available in product data
 
-- [ ] `EPIC-004` Scanner deep link -- [source: ROADMAP 3.4]
+- [ ] `EPIC-004` Scanner deep link -- [source: ROADMAP 3.4] -- IN SPRINT #2
   - **Context**: Scanning QR goes directly to product page (not scanner home)
   - **Verify**: QR scan opens product verification page directly
 
@@ -71,17 +61,17 @@ EPICs (functional bricks, in epics/)
 
 ### P2 -- Medium
 
-- [ ] `EPIC-007` Sentry integration -- [source: ROADMAP 4.4]
-  - **Context**: Error tracking for API and frontend
-  - **Verify**: Errors captured in Sentry dashboard
+- [ ] `EPIC-007` Health check with dependency status -- [source: ROADMAP 4.4] -- IN SPRINT #2
+  - **Context**: Existing /health endpoint extended with DB + chain RPC status
+  - **Verify**: /health returns { db: "ok", chain: "ok|disabled" }
 
-- [ ] `EPIC-007` Structured logging (no PII) -- [source: ROADMAP 4.4]
+- [ ] `EPIC-007` Structured logging (no PII) -- [source: ROADMAP 4.4] -- IN SPRINT #2
   - **Context**: JSON structured logs with correlation IDs, no personal data
   - **Verify**: Logs are parseable JSON, no PII present
 
-- [ ] `EPIC-007` Health check with dependency status -- [source: ROADMAP 4.4]
-  - **Context**: Existing /health endpoint extended with DB + chain RPC status
-  - **Verify**: /health returns { db: "ok", chain: "ok|disabled" }
+- [ ] `EPIC-007` Sentry integration -- [source: ROADMAP 4.4]
+  - **Context**: Error tracking for API and frontend
+  - **Verify**: Errors captured in Sentry dashboard
 
 - [ ] `EPIC-005` MFA: TOTP + passkey -- [source: ROADMAP 4.5]
   - **Context**: Enterprise-grade MFA for brand admin users

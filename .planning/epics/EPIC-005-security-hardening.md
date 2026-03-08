@@ -12,10 +12,10 @@ Production-grade security: OWASP compliance, cookie hardening, MFA, SIWE wallet 
 
 - [x] Rate limiting on all endpoints (@fastify/rate-limit)
 - [x] Security headers via @fastify/helmet (CSP, HSTS, X-Frame-Options, CORP, COOP)
-- [ ] OWASP input validation audit against top 10
-- [ ] `__Host-` cookie prefix for production
-- [ ] Cookie signing via @fastify/cookie secret
-- [ ] Log warning when `secure: false` in development mode
+- [x] OWASP input validation audit against top 10
+- [x] `__Host-` cookie prefix for production
+- [x] Cookie signing via @fastify/cookie secret
+- [x] Log warning when `secure: false` in development mode
 - [ ] MFA: TOTP + passkey (enterprise-grade security)
 - [ ] SIWE (EIP-4361) for wallet login with ERC-1271 smart wallet verification
 

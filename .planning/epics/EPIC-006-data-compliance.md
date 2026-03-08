@@ -1,6 +1,6 @@
 # EPIC-006: Data Compliance
 
-**Status**: not-started
+**Status**: in-progress
 **Owner**: Researcher
 **Created**: 2026-03-08
 
@@ -10,8 +10,8 @@ GDPR compliance, multi-tenant data isolation, file upload (R2 + CID), and audit 
 
 ## Tasks
 
-- [ ] File upload: photo/certificate -> Cloudflare R2 + local CIDv1 computation
-- [ ] Dashboard: photo upload UI in product create/edit form
+- [x] File upload: photo/certificate -> Cloudflare R2 + local CIDv1 computation
+- [x] Dashboard: photo upload UI in product create/edit form
 - [ ] `DELETE /users/:id/data` — GDPR erasure (Art. 17)
 - [ ] `GET /users/:id/data` — GDPR data export (Art. 15)
 - [ ] Audit trail: who did what, when (append-only log)
