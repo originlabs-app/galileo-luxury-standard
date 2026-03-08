@@ -236,6 +236,36 @@ export default async function Home({
         </div>
       </div>
 
+      <a
+        href="/scan"
+        className="flex items-center gap-4 rounded-[28px] border border-primary/30 bg-primary/5 p-5 shadow-2xl shadow-black/20 backdrop-blur transition hover:bg-primary/10"
+      >
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-primary">
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            aria-hidden="true"
+          >
+            <path d="M4 8V6a2 2 0 0 1 2-2h2" />
+            <path d="M4 16v2a2 2 0 0 0 2 2h2" />
+            <path d="M16 4h2a2 2 0 0 1 2 2v2" />
+            <path d="M16 20h2a2 2 0 0 0 2-2v-2" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-foreground">Scan QR Code</p>
+          <p className="text-xs text-muted-foreground">
+            Use your camera to scan a product QR code
+          </p>
+        </div>
+      </a>
+
       <section className="rounded-[28px] border border-border/80 bg-card/95 p-5 shadow-2xl shadow-black/20 backdrop-blur">
         <div className="space-y-2">
           <h2 className="text-lg font-semibold">Paste a Digital Link</h2>
@@ -338,7 +368,10 @@ export default async function Home({
           How it works
         </h2>
         <ol className="mt-3 space-y-2 text-sm leading-6 text-muted-foreground">
-          <li>1. Paste a Galileo / GS1 Digital Link or a Galileo DID.</li>
+          <li>
+            1. Scan a QR code with your camera or paste a Galileo / GS1 Digital
+            Link.
+          </li>
           <li>
             2. The scanner normalizes the identifier and calls the existing
             public resolver route.
