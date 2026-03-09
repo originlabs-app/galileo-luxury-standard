@@ -6,7 +6,7 @@
 
 ## Sprint #5 -- Dashboard Live Data
 
-**Goal**: Replace hardcoded zeros and placeholders in the dashboard with live data from the API -- a stats endpoint, real stat cards + activity feed on the home page, and filter dropdowns on the product list.
+**Goal**: Close the pilot dashboard gap -- live data, filtering, and image upload in the dashboard UI. All APIs already exist; this sprint wires the frontend.
 **Started**: 2026-03-09
 **Status**: active
 
@@ -17,6 +17,7 @@
 | 1 | GET /products/stats endpoint | EPIC-002 | todo | Returns counts per status, total verifications, recent events. Brand-scoped for non-ADMIN. | |
 | 2 | Dashboard home: live stats + recent activity | EPIC-002 | todo | Stats cards show real numbers from API, activity feed shows recent events with timestamps. | |
 | 3 | Dashboard product list: filter UI (status + category dropdowns) | EPIC-002 | todo | Selecting a filter updates the product list. Clearing filter shows all products. | |
+| 4 | Dashboard product image upload UI | EPIC-006 | todo | Product create/edit forms allow image upload. Uploaded image visible on product detail. | |
 
 ### Status values
 - `todo` -- Not started
@@ -669,6 +670,189 @@ Important implementation notes:
 11. Take screenshots as evidence
 
 **Verify**: Filter dropdowns appear above the product table. Selecting a status filters the list. Selecting a category filters the list. Both filters can be combined. "Clear filters" button appears when filters are active and resets both. Pagination resets to page 1 on filter change.
+
+---
+
+### Brief #4: Dashboard Product Image Upload UI
+
+**Type**: UI
+**Priority**: P2
+**Epic**: EPIC-006-data-compliance
+
+**Files to modify**:
+- `apps/dashboard/src/app/dashboard/products/new/page.tsx` -- add image upload field to create form
+- `apps/dashboard/src/app/dashboard/products/[id]/page.tsx` -- add image upload to edit form + display existing image
+
+**Approach**:
+
+The API endpoint `POST /products/:id/upload` already exists (Sprint #1, multipart form data). The dashboard needs a file input that:
+1. Shows a preview of the selected image before upload
+2. Uploads the file after product creation (create form) or on demand (edit form)
+3. Displays the current product image on the detail page (from `imageUrl`)
+
+**Step 1: Create a reusable ImageUpload component**
+
+Create `apps/dashboard/src/components/image-upload.tsx`:
+
+```typescript
+"use client";
+
+import { useCallback, useState } from "react";
+import { Upload, X, Image as ImageIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { api } from "@/lib/api";
+
+interface ImageUploadProps {
+  productId: string;
+  currentImageUrl?: string | null;
+  onUploadComplete?: (imageUrl: string) => void;
+}
+
+export function ImageUpload({
+  productId,
+  currentImageUrl,
+  onUploadComplete,
+}: ImageUploadProps) {
+  const [preview, setPreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleFileSelect = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      // Preview
+      const reader = new FileReader();
+      reader.onload = () => setPreview(reader.result as string);
+      reader.readAsDataURL(file);
+
+      // Upload
+      setIsUploading(true);
+      setError(null);
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/products/${productId}/upload`,
+          {
+            method: "POST",
+            body: formData,
+            credentials: "include",
+            headers: {
+              "X-Galileo-Client": "dashboard",
+            },
+          },
+        );
+
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error?.message ?? "Upload failed");
+        }
+
+        const data = await res.json();
+        onUploadComplete?.(data.data.imageUrl);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Upload failed");
+        setPreview(null);
+      } finally {
+        setIsUploading(false);
+      }
+    },
+    [productId, onUploadComplete],
+  );
+
+  const displayUrl = preview ?? currentImageUrl;
+
+  return (
+    <div className="flex flex-col gap-2">
+      <label className="text-sm font-medium text-foreground">
+        Product Image
+      </label>
+      {displayUrl ? (
+        <div className="relative aspect-square w-full max-w-[200px] overflow-hidden rounded-lg border">
+          <img
+            src={displayUrl}
+            alt="Product"
+            className="size-full object-cover"
+          />
+        </div>
+      ) : (
+        <div className="flex aspect-square w-full max-w-[200px] items-center justify-center rounded-lg border border-dashed">
+          <ImageIcon className="size-8 text-muted-foreground" />
+        </div>
+      )}
+      <div className="flex items-center gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={isUploading}
+          asChild
+        >
+          <label className="cursor-pointer">
+            <Upload className="mr-1 size-3" />
+            {isUploading ? "Uploading..." : "Upload image"}
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleFileSelect}
+            />
+          </label>
+        </Button>
+      </div>
+      {error && (
+        <p className="text-xs text-destructive">{error}</p>
+      )}
+    </div>
+  );
+}
+```
+
+**Step 2: Add ImageUpload to product detail/edit page**
+
+In `[id]/page.tsx`, import and render `<ImageUpload>` when viewing or editing a product:
+- Show current image (from `product.imageUrl`)
+- Allow upload (calls POST /products/:id/upload with CSRF header)
+- On success, refresh product data to show new image
+
+**Step 3: Add ImageUpload to create form**
+
+In `new/page.tsx`, show the ImageUpload component AFTER product creation:
+- Product must exist before upload (API requires product ID)
+- After successful POST /products, redirect to detail page where user can upload
+- OR: show a two-step flow (create → upload on same page)
+- Recommended: redirect to detail page after create, user uploads there
+
+**Patterns to follow**:
+- CSRF header `X-Galileo-Client: dashboard` on all mutation requests
+- `credentials: "include"` for cookie auth
+- Use native `fetch` for multipart (not the `api()` wrapper which sets JSON content-type)
+- Image preview via FileReader (no external library)
+- Max file size validation client-side (match API limit)
+
+**Edge cases**:
+- No product ID yet (create form): disable upload, show after product exists
+- Large file: API has size limit -- show error from API response
+- Invalid file type: `accept="image/*"` on input + API validates server-side
+- Upload fails: show error, keep previous image
+- No image: show placeholder icon
+
+**E2E validation (R36)**: The Tester MUST validate this task in a real browser:
+1. Start dev server (`pnpm dev`)
+2. Create a new product → verify redirect to detail page
+3. On detail page, click "Upload image" → select an image file
+4. Verify preview appears immediately
+5. Verify image persists after page reload (stored via API)
+6. Edit an existing product → verify current image is displayed
+7. Upload a new image on existing product → verify image updates
+8. Test with invalid file (e.g. .txt) → verify rejection
+9. Resize to mobile (375px) → verify image and upload button render correctly
+10. Take screenshots as evidence
+
+**Verify**: Product create/edit forms show an image upload area. Selecting a file shows preview and uploads to API. Uploaded image visible on product detail page. Error handling for invalid/large files.
 
 ## Notes
 
