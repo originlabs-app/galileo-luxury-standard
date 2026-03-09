@@ -64,16 +64,20 @@ test.describe("Dashboard Home", () => {
     await page.goto("/dashboard");
 
     // The activity feed header should be visible
-    await expect(page.getByText("Recent Activity")).toBeVisible();
+    await expect(page.getByText("Recent Activity", { exact: true })).toBeVisible();
 
     // Should show either events or the empty state message
-    const hasEvents = (await page.getByRole("listitem").count()) > 0;
-    const hasEmptyState = await page
-      .getByText("No recent activity")
-      .isVisible()
-      .catch(() => false);
+    await expect
+      .poll(async () => {
+        const hasEvents = (await page.getByRole("listitem").count()) > 0;
+        const hasEmptyState = await page
+          .getByText("No recent activity")
+          .isVisible()
+          .catch(() => false);
 
-    expect(hasEvents || hasEmptyState).toBe(true);
+        return hasEvents || hasEmptyState;
+      })
+      .toBe(true);
   });
 
   test("stat cards are responsive on mobile viewport", async ({ page }) => {
