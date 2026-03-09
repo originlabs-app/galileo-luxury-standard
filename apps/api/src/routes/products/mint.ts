@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import crypto from "node:crypto";
+import { EventType } from "@galileo/shared";
 import { requireRole } from "../../middleware/rbac.js";
 import { RouteError } from "../../utils/route-error.js";
 import { enqueueWebhookEvent } from "../../services/webhooks/outbox.js";
@@ -156,7 +157,7 @@ export default async function mintProductRoute(fastify: FastifyInstance) {
 
       // Fire webhook (non-blocking, R29 — cross-cutting hooks fail silently)
       try {
-        enqueueWebhookEvent("MINTED", id, {
+        enqueueWebhookEvent(EventType.MINTED, id, {
           productId: id,
           txHash,
           tokenAddress,

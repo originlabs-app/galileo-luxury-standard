@@ -97,9 +97,8 @@ export async function processNext(): Promise<boolean> {
   const sub = subscriptions.get(event.subscriptionId);
 
   if (!sub) {
-    // Subscription removed while event was pending — mark as failed
-    event.status = "failed";
-    event.lastError = "Subscription not found";
+    // Subscription removed while event was pending — remove from queue
+    outboxQueue.splice(idx, 1);
     return true;
   }
 
@@ -107,11 +106,13 @@ export async function processNext(): Promise<boolean> {
   const result = await deliverWebhook(event, sub);
 
   if (result.success) {
-    event.status = "delivered";
+    // Terminal state: remove from queue to prevent unbounded growth
+    outboxQueue.splice(idx, 1);
   } else {
     event.lastError = result.error;
     if (event.attempts >= event.maxAttempts) {
-      event.status = "failed";
+      // Terminal state: remove from queue
+      outboxQueue.splice(idx, 1);
     } else {
       event.nextAttemptAt = new Date(
         now.getTime() + getBackoffMs(event.attempts - 1),

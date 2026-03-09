@@ -7,6 +7,8 @@ import { requireCsrfHeader } from "../../middleware/csrf.js";
 import { errorResponseSchema } from "../../utils/schemas.js";
 import { isPrismaUniqueViolation } from "../../utils/prisma-errors.js";
 
+const MESSAGE_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
+
 const linkWalletBody = z
   .object({
     address: z.string().regex(ETHEREUM_ADDRESS_RE, "Invalid Ethereum address"),
@@ -136,7 +138,6 @@ export default async function linkWalletRoute(fastify: FastifyInstance) {
       }
 
       // Verify timestamp (5-minute expiry)
-      const MESSAGE_EXPIRY_MS = 5 * 60 * 1000;
       if (Date.now() - parsedMessage.timestamp > MESSAGE_EXPIRY_MS) {
         return reply.status(400).send({
           success: false,
