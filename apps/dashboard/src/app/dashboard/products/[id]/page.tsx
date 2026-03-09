@@ -22,6 +22,7 @@ import {
 import { type ProductStatus } from "@galileo/shared";
 import { api, ApiError } from "@/lib/api";
 import { API_URL } from "@/lib/constants";
+import { ImageUpload } from "@/components/image-upload";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -79,6 +80,7 @@ interface Product {
   status: ProductStatus;
   brandId: string;
   walletAddress: string | null;
+  imageUrl: string | null;
   passport: ProductPassport | null;
   events: ProductEvent[];
   createdAt: string;
@@ -548,6 +550,17 @@ export default function ProductDetailPage() {
           {transferError}
         </div>
       )}
+
+      {/* Image upload section */}
+      <Card>
+        <CardContent className="pt-6">
+          <ImageUpload
+            productId={productId}
+            currentImageUrl={product.imageUrl}
+            onUploadComplete={() => fetchProduct()}
+          />
+        </CardContent>
+      </Card>
 
       {/* Main content grid */}
       <div className="grid gap-6 lg:grid-cols-2">
