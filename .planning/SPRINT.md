@@ -1,10 +1,10 @@
-# Sprint -- Galileo Protocol
+# Sprint — Galileo Protocol
 
 > Current batch of tasks with implementation briefs. The Developer picks from here.
 > Created by the Researcher from the BACKLOG. Each task includes a brief: files to modify, approach, patterns, edge cases.
 > Archived when all tasks are validated or deferred.
 
-## Sprint #8 -- Batch Operations & Wallet Auth
+## Sprint #8 — Batch Operations & Wallet Auth
 
 **Goal**: Add batch CSV import/mint for brand onboarding at scale, and implement SIWE (Sign-In With Ethereum) wallet login. These are the highest-priority non-blocked P1 tasks. Sprint #6 (Real Chain Unblock) remains BLOCKED on RPC key. RLS (🔒) skipped — needs operator approval.
 **Started**: 2026-03-09
@@ -12,32 +12,32 @@
 
 ## Tasks
 
-| # | Task | Epic | Status | Verify | Commit |
-|---|------|------|--------|--------|--------|
-| T8.1 | Batch CSV import endpoint | EPIC-006 | todo | Upload CSV with 100 products, all created with correct GTIN validation. Errors reported per row. | |
-| T8.2 | Batch mint endpoint | EPIC-006 | todo | POST /products/batch-mint with array of product IDs, all minted. Partial failure handled gracefully. | |
-| T8.3 | Dashboard: CSV import UI | EPIC-006 | todo | Upload button, file picker, progress feedback, error summary displayed. Works on desktop and mobile. | |
-| T8.4 | SIWE wallet login (EIP-4361) | EPIC-005 | todo | User can login with wallet signature. Nonce endpoint, SIWE message format, session created on success. | |
-| T8.5 | E2E Playwright: batch import, batch mint, SIWE login | EPIC-007 | todo | Automated Playwright specs covering Sprint #8 features. Run with `pnpm --filter dashboard exec playwright test`. | |
+| ID | Task | Epic | Status | Verify | Commit |
+|------|------|------|--------|--------|--------|
+| T8.1 | Batch CSV import endpoint | EPIC-006 | done | Upload CSV with 100 products, all created with correct GTIN validation. Errors reported per row. | 25aa114 |
+| T8.2 | Batch mint endpoint | EPIC-006 | done | POST /products/batch-mint with array of product IDs, all minted. Partial failure handled gracefully. | ccc86e8 |
+| T8.3 | Dashboard: CSV import UI | EPIC-006 | done | Upload button, file picker, progress feedback, error summary displayed. Works on desktop and mobile. | 96ba874 |
+| T8.4 | SIWE wallet login (EIP-4361) | EPIC-005 | done | User can login with wallet signature. Nonce endpoint, SIWE message format, session created on success. | d590d24 |
+| T8.5 | E2E Playwright: batch import, batch mint, SIWE login | EPIC-007 | done | Automated Playwright specs covering Sprint #8 features. Run with `pnpm --filter dashboard exec playwright test`. | a73f30c |
 
 ### Status values
-- `todo` -- Not started
-- `in_progress` -- Developer is working on it
-- `done` -- Developer committed, awaiting validation
-- `validated` -- Tester confirmed it meets verification criteria
-- `blocked` -- Cannot proceed, reason in Notes
-- `deferred` -- Pushed back to BACKLOG by the Researcher for a future sprint
+- `todo` — Not started
+- `in_progress` — Developer is working on it
+- `done` — Developer committed, awaiting validation
+- `validated` — Tester confirmed it meets verification criteria
+- `blocked` — Cannot proceed, reason in Notes
+- `deferred` — Pushed back to BACKLOG by the Researcher for a future sprint
 
 ## Completion Criteria
 
-- [ ] All tasks validated or explicitly deferred
+- [ ] All tasks validated, explicitly deferred, or blocked with reason
 - [ ] All tests pass
 - [ ] No P0 bugs introduced
 - [ ] CONTEXT.md updated if architecture changed
 
 ## Task Briefs
 
-### Brief T8.1: Batch CSV Import Endpoint
+### T8.1 — Batch CSV Import Endpoint
 
 **Type**: backend
 **Priority**: P1
@@ -45,10 +45,10 @@
 **Operator approval**: not required
 
 **Files to modify**:
-- `apps/api/src/routes/products/batch-import.ts` -- NEW: CSV import route handler
-- `apps/api/src/routes/products/index.ts` -- register batch-import route
-- `packages/shared/src/validation/gtin.ts` -- reuse existing GTIN validation
-- `apps/api/test/batch-import.test.ts` -- NEW: batch import tests
+- `apps/api/src/routes/products/batch-import.ts` —NEW: CSV import route handler
+- `apps/api/src/routes/products/index.ts` —register batch-import route
+- `packages/shared/src/validation/gtin.ts` —reuse existing GTIN validation
+- `apps/api/test/batch-import.test.ts` —NEW: batch import tests
 
 **Approach**:
 
@@ -113,7 +113,7 @@ Expected CSV columns: `name,gtin,serialNumber,category,description,materials`. F
 
 ---
 
-### Brief T8.2: Batch Mint Endpoint
+### T8.2 — Batch Mint Endpoint
 
 **Type**: backend
 **Priority**: P1
@@ -121,9 +121,9 @@ Expected CSV columns: `name,gtin,serialNumber,category,description,materials`. F
 **Operator approval**: not required
 
 **Files to modify**:
-- `apps/api/src/routes/products/batch-mint.ts` -- NEW: batch mint route handler
-- `apps/api/src/routes/products/index.ts` -- register batch-mint route
-- `apps/api/test/batch-mint.test.ts` -- NEW: batch mint tests
+- `apps/api/src/routes/products/batch-mint.ts` —NEW: batch mint route handler
+- `apps/api/src/routes/products/index.ts` —register batch-mint route
+- `apps/api/test/batch-mint.test.ts` —NEW: batch mint tests
 
 **Approach**:
 
@@ -186,7 +186,7 @@ const batchMintBodySchema = z.object({
 
 ---
 
-### Brief T8.3: Dashboard CSV Import UI
+### T8.3 — Dashboard CSV Import UI
 
 **Type**: UI
 **Priority**: P1
@@ -194,9 +194,9 @@ const batchMintBodySchema = z.object({
 **Operator approval**: not required
 
 **Files to modify**:
-- `apps/dashboard/src/components/batch-import-dialog.tsx` -- NEW: CSV import dialog component
-- `apps/dashboard/src/app/products/page.tsx` -- add import button to product list page
-- `apps/dashboard/src/lib/api.ts` -- add batch import API call
+- `apps/dashboard/src/components/batch-import-dialog.tsx` —NEW: CSV import dialog component
+- `apps/dashboard/src/app/products/page.tsx` —add import button to product list page
+- `apps/dashboard/src/lib/api.ts` —add batch import API call
 
 **Approach**:
 
@@ -242,7 +242,7 @@ Add `batchImport(file: File)` function to `api.ts` that sends the file as multip
 
 ---
 
-### Brief T8.4: SIWE Wallet Login (EIP-4361)
+### T8.4 — SIWE Wallet Login (EIP-4361)
 
 **Type**: security
 **Priority**: P1
@@ -250,13 +250,13 @@ Add `batchImport(file: File)` function to `api.ts` that sends the file as multip
 **Operator approval**: not required
 
 **Files to modify**:
-- `apps/api/src/routes/auth/siwe.ts` -- NEW: SIWE login route (nonce + verify)
-- `apps/api/src/routes/auth/index.ts` -- register SIWE routes
-- `apps/api/src/services/siwe.ts` -- NEW: SIWE message builder and verifier
-- `packages/shared/src/validation/wallet.ts` -- add SIWE message types
-- `apps/dashboard/src/components/siwe-login.tsx` -- NEW: SIWE login button component
-- `apps/dashboard/src/app/login/page.tsx` -- add SIWE login option
-- `apps/api/test/siwe.test.ts` -- NEW: SIWE tests
+- `apps/api/src/routes/auth/siwe.ts` —NEW: SIWE login route (nonce + verify)
+- `apps/api/src/routes/auth/index.ts` —register SIWE routes
+- `apps/api/src/services/siwe.ts` —NEW: SIWE message builder and verifier
+- `packages/shared/src/validation/wallet.ts` —add SIWE message types
+- `apps/dashboard/src/components/siwe-login.tsx` —NEW: SIWE login button component
+- `apps/dashboard/src/app/login/page.tsx` —add SIWE login option
+- `apps/api/test/siwe.test.ts` —NEW: SIWE tests
 
 **Approach**:
 
@@ -393,7 +393,7 @@ Add SIWE login button below the existing email/password form with a divider ("or
 
 ---
 
-### Brief T8.5: E2E Playwright -- Batch Import, Batch Mint, SIWE Login
+### T8.5 — E2E Playwright: Batch Import, Batch Mint, SIWE Login
 
 **Type**: testing
 **Priority**: P2
@@ -401,11 +401,11 @@ Add SIWE login button below the existing email/password form with a divider ("or
 **Operator approval**: not required
 
 **Files to modify**:
-- `apps/dashboard/e2e/batch-import.spec.ts` -- NEW: E2E tests for CSV import + batch mint
-- `apps/dashboard/e2e/siwe-login.spec.ts` -- NEW: E2E tests for SIWE wallet login
-- `apps/api/test/batch-import.test.ts` -- covered in T8.1 (Vitest)
-- `apps/api/test/batch-mint.test.ts` -- covered in T8.2 (Vitest)
-- `apps/api/test/siwe.test.ts` -- covered in T8.4 (Vitest)
+- `apps/dashboard/e2e/batch-import.spec.ts` —NEW: E2E tests for CSV import + batch mint
+- `apps/dashboard/e2e/siwe-login.spec.ts` —NEW: E2E tests for SIWE wallet login
+- `apps/api/test/batch-import.test.ts` —covered in T8.1 (Vitest)
+- `apps/api/test/batch-mint.test.ts` —covered in T8.2 (Vitest)
+- `apps/api/test/siwe.test.ts` —covered in T8.4 (Vitest)
 
 **Approach**:
 
