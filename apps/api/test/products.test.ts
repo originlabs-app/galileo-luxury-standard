@@ -745,6 +745,272 @@ describe("Product CRUD endpoints", () => {
     });
   });
 
+  // ─── GET /products/stats ────────────────────────────────────
+
+  describe("GET /products/stats", () => {
+    it("returns 200 with byStatus, verificationCount, recentEvents", async () => {
+      // Create a product to have some data
+      await app.inject({
+        method: "POST",
+        url: "/products",
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
+        payload: {
+          gtin: VALID_GTIN_13,
+          serialNumber: "STATS-001",
+          name: "Stats Product",
+          category: "Watches",
+        },
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/products/stats",
+        headers: { cookie: brandAdminCookie },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = response.json();
+      expect(body.success).toBe(true);
+      expect(body.data.byStatus).toBeDefined();
+      expect(typeof body.data.verificationCount).toBe("number");
+      expect(Array.isArray(body.data.recentEvents)).toBe(true);
+    });
+
+    it("byStatus counts match actual product statuses", async () => {
+      // Create 2 DRAFT products
+      await app.inject({
+        method: "POST",
+        url: "/products",
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
+        payload: {
+          gtin: VALID_GTIN_13,
+          serialNumber: "STATS-D1",
+          name: "Draft 1",
+          category: "Watches",
+        },
+      });
+      const createRes2 = await app.inject({
+        method: "POST",
+        url: "/products",
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
+        payload: {
+          gtin: VALID_GTIN_13,
+          serialNumber: "STATS-D2",
+          name: "Draft 2",
+          category: "Watches",
+        },
+      });
+
+      // Make one ACTIVE via direct DB update
+      const productId2 = createRes2.json().data.product.id;
+      await app.prisma.product.update({
+        where: { id: productId2 },
+        data: { status: "ACTIVE" },
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/products/stats",
+        headers: { cookie: brandAdminCookie },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = response.json();
+      expect(body.data.byStatus.DRAFT).toBe(1);
+      expect(body.data.byStatus.ACTIVE).toBe(1);
+    });
+
+    it("verificationCount reflects VERIFIED events", async () => {
+      // Create and make a product available for verification
+      const createRes = await app.inject({
+        method: "POST",
+        url: "/products",
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
+        payload: {
+          gtin: VALID_GTIN_13,
+          serialNumber: "STATS-V1",
+          name: "Verifiable Product",
+          category: "Watches",
+        },
+      });
+      const productId = createRes.json().data.product.id;
+
+      // Make it ACTIVE so it can be verified
+      await app.prisma.product.update({
+        where: { id: productId },
+        data: { status: "ACTIVE" },
+      });
+
+      // Verify the product (public endpoint, no CSRF needed)
+      await app.inject({
+        method: "POST",
+        url: `/products/${productId}/verify`,
+        headers: { "x-galileo-client": "1" },
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/products/stats",
+        headers: { cookie: brandAdminCookie },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = response.json();
+      expect(body.data.verificationCount).toBe(1);
+    });
+
+    it("recentEvents returns up to 10 events ordered by createdAt desc", async () => {
+      // Create multiple products to generate multiple CREATED events
+      for (let i = 0; i < 12; i++) {
+        await app.inject({
+          method: "POST",
+          url: "/products",
+          headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
+          payload: {
+            gtin: VALID_GTIN_13,
+            serialNumber: `STATS-E${String(i).padStart(3, "0")}`,
+            name: `Event Product ${i}`,
+            category: "Watches",
+          },
+        });
+      }
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/products/stats",
+        headers: { cookie: brandAdminCookie },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = response.json();
+      expect(body.data.recentEvents).toHaveLength(10);
+
+      // Check ordering: first event should be newest
+      const dates = body.data.recentEvents.map((e: { createdAt: string }) =>
+        new Date(e.createdAt).getTime(),
+      );
+      for (let i = 0; i < dates.length - 1; i++) {
+        expect(dates[i]).toBeGreaterThanOrEqual(dates[i + 1]);
+      }
+    });
+
+    it("recentEvents includes product name and gtin", async () => {
+      await app.inject({
+        method: "POST",
+        url: "/products",
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
+        payload: {
+          gtin: VALID_GTIN_13,
+          serialNumber: "STATS-PN1",
+          name: "Named Product",
+          category: "Watches",
+        },
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/products/stats",
+        headers: { cookie: brandAdminCookie },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = response.json();
+      expect(body.data.recentEvents.length).toBeGreaterThan(0);
+      const event = body.data.recentEvents[0];
+      expect(event.product.name).toBe("Named Product");
+      expect(event.product.gtin).toBe(VALID_GTIN_13);
+    });
+
+    it("brand-scoped: BRAND_ADMIN only sees own brand stats", async () => {
+      // Create product for test brand
+      await app.inject({
+        method: "POST",
+        url: "/products",
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
+        payload: {
+          gtin: VALID_GTIN_13,
+          serialNumber: "STATS-B1",
+          name: "My Brand Product",
+          category: "Watches",
+        },
+      });
+
+      // Create product for other brand
+      await app.inject({
+        method: "POST",
+        url: "/products",
+        headers: { cookie: otherBrandAdminCookie, "x-galileo-client": "1" },
+        payload: {
+          gtin: VALID_GTIN_13_B,
+          serialNumber: "STATS-OB1",
+          name: "Other Brand Product",
+          category: "Jewelry",
+        },
+      });
+
+      // Test brand admin should only see 1 product
+      const response = await app.inject({
+        method: "GET",
+        url: "/products/stats",
+        headers: { cookie: brandAdminCookie },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = response.json();
+      expect(body.data.byStatus.DRAFT).toBe(1);
+
+      // ADMIN should see 2 products
+      const adminResponse = await app.inject({
+        method: "GET",
+        url: "/products/stats",
+        headers: { cookie: adminCookie },
+      });
+
+      expect(adminResponse.statusCode).toBe(200);
+      const adminBody = adminResponse.json();
+      expect(adminBody.data.byStatus.DRAFT).toBe(2);
+    });
+
+    it("non-ADMIN without brandId gets 403", async () => {
+      // Create a user without a brand
+      await app.inject({
+        method: "POST",
+        url: "/auth/register",
+        payload: {
+          email: "nobrand-stats@test.com",
+          password: "password123",
+        },
+      });
+      const loginRes = await app.inject({
+        method: "POST",
+        url: "/auth/login",
+        payload: {
+          email: "nobrand-stats@test.com",
+          password: "password123",
+        },
+      });
+      const cookies = parseCookies(loginRes);
+      const noBrandCookie = `galileo_at=${cookies.galileo_at}`;
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/products/stats",
+        headers: { cookie: noBrandCookie },
+      });
+
+      expect(response.statusCode).toBe(403);
+    });
+
+    it("unauthenticated request gets 401", async () => {
+      const response = await app.inject({
+        method: "GET",
+        url: "/products/stats",
+      });
+
+      expect(response.statusCode).toBe(401);
+    });
+  });
+
   // ─── PATCH /products/:id ────────────────────────────────────
 
   describe("PATCH /products/:id", () => {
