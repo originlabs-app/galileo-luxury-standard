@@ -16,6 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { SiweLogin } from "@/components/siwe-login";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -26,7 +27,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<{ email?: string; password?: string }>(
-    {}
+    {},
   );
   const [serverError, setServerError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -108,14 +109,17 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value);
-                  if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
+                  if (errors.email)
+                    setErrors((prev) => ({ ...prev, email: undefined }));
                 }}
                 aria-invalid={!!errors.email}
                 aria-describedby={errors.email ? "email-error" : undefined}
                 autoComplete="email"
               />
               {errors.email && (
-                <p id="email-error" className="text-sm text-destructive">{errors.email}</p>
+                <p id="email-error" className="text-sm text-destructive">
+                  {errors.email}
+                </p>
               )}
             </div>
 
@@ -132,11 +136,15 @@ export default function LoginPage() {
                     setErrors((prev) => ({ ...prev, password: undefined }));
                 }}
                 aria-invalid={!!errors.password}
-                aria-describedby={errors.password ? "password-error" : undefined}
+                aria-describedby={
+                  errors.password ? "password-error" : undefined
+                }
                 autoComplete="current-password"
               />
               {errors.password && (
-                <p id="password-error" className="text-sm text-destructive">{errors.password}</p>
+                <p id="password-error" className="text-sm text-destructive">
+                  {errors.password}
+                </p>
               )}
             </div>
           </CardContent>
@@ -150,6 +158,12 @@ export default function LoginPage() {
             >
               {isSubmitting ? "Signing in…" : "Sign In"}
             </Button>
+            <div className="flex items-center gap-3">
+              <div className="h-px flex-1 bg-border" />
+              <span className="text-xs text-muted-foreground">or</span>
+              <div className="h-px flex-1 bg-border" />
+            </div>
+            <SiweLogin />
             <p className="text-center text-sm text-muted-foreground">
               Don&apos;t have an account?{" "}
               <Link
