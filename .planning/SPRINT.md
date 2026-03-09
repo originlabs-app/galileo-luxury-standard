@@ -14,10 +14,10 @@
 
 | ID | Task | Epic | Status | Verify | Commit |
 |------|------|------|--------|--------|--------|
-| T9.1 | ERC-1271 Smart Wallet verification (API) | EPIC-005 | todo | Smart Wallet (contract) signatures verified in SIWE login and wallet-link. EOA signatures still work. | |
-| T9.2 | Coinbase Smart Wallet connector (dashboard) | EPIC-005 | todo | Dashboard wagmi config includes Coinbase Smart Wallet connector. Users can connect with Coinbase Smart Wallet, sign SIWE messages, and link wallet. | |
-| T9.3 | Vercel Analytics integration | EPIC-007 | todo | `@vercel/analytics` active in dashboard and scanner. Page views tracked. No impact on performance or bundle size > 5KB. | |
-| T9.4 | E2E Playwright: Smart Wallet + wallet auth flows | EPIC-007 | todo | Playwright specs cover wallet-link with nonce, SIWE login with EOA, and Smart Wallet connector presence. All pass. | |
+| T9.1 | ERC-1271 Smart Wallet verification (API) | EPIC-005 | done | Smart Wallet (contract) signatures verified in SIWE login and wallet-link. EOA signatures still work. | 081ee0e |
+| T9.2 | Coinbase Smart Wallet connector (dashboard) | EPIC-005 | done | Dashboard wagmi config includes Coinbase Smart Wallet connector. Users can connect with Coinbase Smart Wallet, sign SIWE messages, and link wallet. | ce70f02 |
+| T9.3 | Vercel Analytics integration | EPIC-007 | done | `@vercel/analytics` active in dashboard and scanner. Page views tracked. No impact on performance or bundle size > 5KB. | 178035d |
+| T9.4 | E2E Playwright: Smart Wallet + wallet auth flows | EPIC-007 | done | Playwright specs cover wallet-link with nonce, SIWE login with EOA, and Smart Wallet connector presence. All pass. | 80b630a |
 
 ### Status values
 - `todo` — Not started
