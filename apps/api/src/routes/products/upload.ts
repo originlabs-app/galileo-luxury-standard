@@ -1,4 +1,5 @@
 import type { FastifyInstance } from "fastify";
+import { ProductStatus } from "@galileo/shared";
 import { requireRole } from "../../middleware/rbac.js";
 import { computeCid } from "../../utils/cid.js";
 
@@ -77,7 +78,7 @@ export default async function uploadProductImageRoute(
       }
 
       // Only DRAFT products can have images added
-      if (product.status !== "DRAFT") {
+      if (product.status !== ProductStatus.DRAFT) {
         return reply.status(400).send({
           success: false,
           error: {

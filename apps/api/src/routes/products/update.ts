@@ -83,7 +83,7 @@ export default async function updateProductRoute(fastify: FastifyInstance) {
           error: {
             code: "VALIDATION_ERROR",
             message:
-              "Invalid input. Only name, description, and category can be updated.",
+              "Invalid input. Only name, description, category, and materials can be updated.",
             details: parsed.error.flatten().fieldErrors,
           },
         });

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect } from "vitest";
 import Fastify from "fastify";
 import type { FastifyInstance } from "fastify";
 import { Writable } from "node:stream";

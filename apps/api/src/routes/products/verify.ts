@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
-import { EventType } from "@galileo/shared";
+import { ProductStatus, EventType } from "@galileo/shared";
 import { errorResponseSchema } from "../../utils/schemas.js";
 
 const verifyBody = z
@@ -88,7 +88,7 @@ export default async function verifyProductRoute(fastify: FastifyInstance) {
       }
 
       // Only ACTIVE products can be verified
-      if (product.status !== "ACTIVE") {
+      if (product.status !== ProductStatus.ACTIVE) {
         return reply.status(200).send({
           success: true,
           data: {
