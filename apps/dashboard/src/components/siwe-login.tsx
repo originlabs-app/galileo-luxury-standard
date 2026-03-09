@@ -5,12 +5,22 @@ import { useRouter } from "next/navigation";
 import { Wallet } from "lucide-react";
 import { useAccount, useConnect, useSignMessage } from "wagmi";
 import { injected, coinbaseWallet } from "wagmi/connectors";
+import type { Address } from "viem";
 import { API_URL } from "@/lib/constants";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 
 type SiweState = "idle" | "connecting" | "signing" | "verifying" | "error";
 type ConnectorType = "injected" | "coinbase";
+
+declare global {
+  interface Window {
+    __GALILEO_E2E_SIWE__?: {
+      connect: (connector: ConnectorType) => Promise<Address> | Address;
+      signMessage: (message: string) => Promise<string> | string;
+    };
+  }
+}
 
 function buildSiweMessage(params: {
   domain: string;
@@ -53,9 +63,13 @@ export function SiweLogin() {
     setErrorMessage(null);
 
     try {
+      const e2eSiwe = window.__GALILEO_E2E_SIWE__;
+
       // Step 1: Connect wallet with selected connector
       let walletAddress = address;
-      if (!isConnected || !walletAddress) {
+      if (e2eSiwe) {
+        walletAddress = await e2eSiwe.connect(connectorType);
+      } else if (!isConnected || !walletAddress) {
         const connector =
           connectorType === "coinbase"
             ? coinbaseWallet({ appName: "Galileo Protocol", preference: "all" })
@@ -88,7 +102,9 @@ export function SiweLogin() {
         uri,
       });
 
-      const signature = await signMessageAsync({ message });
+      const signature = e2eSiwe
+        ? await e2eSiwe.signMessage(message)
+        : await signMessageAsync({ message });
 
       // Step 4: Verify with API
       setState("verifying");

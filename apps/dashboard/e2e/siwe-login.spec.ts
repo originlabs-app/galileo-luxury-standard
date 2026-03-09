@@ -1,51 +1,45 @@
 import { test, expect } from "@playwright/test";
+import { privateKeyToAccount } from "viem/accounts";
+
+const SIWE_PRIVATE_KEY =
+  "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80" as const;
+const siweAccount = privateKeyToAccount(SIWE_PRIVATE_KEY);
+
+test.use({ storageState: { cookies: [], origins: [] } });
 
 test.describe("SIWE Wallet Login", () => {
-  test("login page shows 'Sign in with Wallet' button", async ({ page }) => {
-    await page.goto("/login");
-    await expect(
-      page.getByRole("button", { name: /Sign in with Wallet/i }),
-    ).toBeVisible({ timeout: 10_000 });
-  });
-
-  test("login page shows 'Sign in with Coinbase' button (Smart Wallet)", async ({
+  test("linked-wallet SIWE lands on the setup-check screen", async ({
     page,
   }) => {
-    await page.goto("/login");
-    await expect(
-      page.getByRole("button", { name: /Sign in with Coinbase/i }),
-    ).toBeVisible({ timeout: 10_000 });
-  });
+    await page.exposeFunction("galileoSignSiweMessage", async (message: string) =>
+      siweAccount.signMessage({ message }),
+    );
 
-  test("login page shows 'or' divider between email form and wallet login", async ({
-    page,
-  }) => {
+    await page.addInitScript((address) => {
+      window.__GALILEO_E2E_SIWE__ = {
+        connect: async () => address,
+        signMessage: async (message: string) =>
+          window.galileoSignSiweMessage(message),
+      };
+    }, siweAccount.address);
+
     await page.goto("/login");
-    await expect(page.getByText("or")).toBeVisible({ timeout: 10_000 });
-    await expect(page.getByRole("button", { name: /Sign In$/i })).toBeVisible();
     await expect(
-      page.getByRole("button", { name: /Sign in with Wallet/i }),
+      page.getByRole("button", { name: "Sign in with Wallet" }),
     ).toBeVisible();
+
+    const setupUrl = page.waitForURL(/\/dashboard\/setup$/, { timeout: 30_000 });
+    await page.getByRole("button", { name: "Sign in with Wallet" }).click();
+    await setupUrl;
+
+    await expect(page).toHaveURL(/\/dashboard\/setup$/);
     await expect(
-      page.getByRole("button", { name: /Sign in with Coinbase/i }),
+      page.getByRole("heading", { name: "Access readiness" }),
     ).toBeVisible();
-  });
-
-  test("both wallet buttons are present and separate", async ({ page }) => {
-    await page.goto("/login");
-
-    const walletBtn = page.getByRole("button", {
-      name: /Sign in with Wallet/i,
-    });
-    const coinbaseBtn = page.getByRole("button", {
-      name: /Sign in with Coinbase/i,
-    });
-
-    await expect(walletBtn).toBeVisible({ timeout: 10_000 });
-    await expect(coinbaseBtn).toBeVisible({ timeout: 10_000 });
-
-    // Verify they are both enabled (not loading)
-    await expect(walletBtn).toBeEnabled();
-    await expect(coinbaseBtn).toBeEnabled();
+    await expect(page.getByText("Workspace ready").first()).toBeVisible();
+    await expect(page.getByText("Galileo Luxe").first()).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "Continue to dashboard" }),
+    ).toBeVisible();
   });
 });

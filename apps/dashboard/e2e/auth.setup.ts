@@ -10,7 +10,15 @@ const TEST_PASSWORD = ["E2eTest", "Pass123!"].join("");
 const TEST_BRAND = `E2E Brand ${RUN_ID}`;
 const SEEDED_ADMIN_EMAIL = "admin@galileo.test";
 const SEEDED_ADMIN_PASSWORD = "dev-seed-password-change-me";
+const SEEDED_ADMIN_WALLET = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
 const REPO_ROOT = path.resolve(process.cwd(), "../..");
+const seedLinkedWalletSql = [
+  'UPDATE "User"',
+  'SET "brandId" = (SELECT id FROM "Brand" WHERE slug = \'galileo-luxe\' LIMIT 1),',
+  '    "role" = \'ADMIN\',',
+  `    "walletAddress" = '${SEEDED_ADMIN_WALLET}'`,
+  `WHERE email = '${SEEDED_ADMIN_EMAIL}';`,
+].join(" ");
 
 setup.beforeAll(() => {
   execSync("pnpm --filter @galileo/api exec prisma db push", {
@@ -21,6 +29,13 @@ setup.beforeAll(() => {
     cwd: REPO_ROOT,
     stdio: "inherit",
   });
+  execSync(
+    `printf '%s' ${JSON.stringify(seedLinkedWalletSql)} | pnpm --filter @galileo/api exec prisma db execute --stdin`,
+    {
+      cwd: REPO_ROOT,
+      stdio: "inherit",
+    },
+  );
 });
 
 setup("register lands on setup-check with blocking access details", async ({
