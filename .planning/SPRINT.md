@@ -14,10 +14,10 @@
 
 | # | Task | Epic | Status | Verify | Commit |
 |---|------|------|--------|--------|--------|
-| 1 | Scanner material composition display | EPIC-004 | todo | Scanner shows material composition when product has metadata | -- |
-| 2 | Scanner deep link | EPIC-004 | todo | QR scan opens product page directly, bypassing scanner home | -- |
-| 3 | Health check with dependency status | EPIC-007 | todo | GET /health returns db + chain status | -- |
-| 4 | Structured logging (no PII) | EPIC-007 | todo | JSON logs with request IDs, no email/password in logs | -- |
+| 1 | Scanner material composition display | EPIC-004 | done | Scanner shows material composition when product has metadata | f91652f |
+| 2 | Scanner deep link | EPIC-004 | done | QR scan opens product page directly, bypassing scanner home | fdcefe1 |
+| 3 | Health check with dependency status | EPIC-007 | done | GET /health returns db + chain status | 25afe6c |
+| 4 | Structured logging (no PII) | EPIC-007 | done | JSON logs with request IDs, no email/password in logs | 0749206 |
 
 ### Status values
 - `todo` -- Not started
