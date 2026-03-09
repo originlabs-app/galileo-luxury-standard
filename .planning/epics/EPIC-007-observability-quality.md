@@ -17,6 +17,7 @@ Test stability, error tracking, monitoring, and structured logging. Ensures the 
 - [x] Health check endpoints with dependency status (DB, chain RPC) (Sprint #2, 25afe6c)
 - [ ] Uptime monitoring
 - [x] Structured logging (no PII) (Sprint #2, 0749206)
+- [x] E2E Playwright: dashboard stats, filters, upload (Sprint #5, 6f1b932)
 
 ## Acceptance Criteria
 

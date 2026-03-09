@@ -21,6 +21,10 @@ EPICs (functional bricks, in epics/)
 - `P2` -- Medium: improves quality or DX
 - `P3` -- Low: nice to have, future
 
+## Work Types
+
+feature · improvement · UI · backend · security · performance · observability · data/DB migration · infrastructure · refactoring · testing · documentation
+
 ---
 
 ## Done (Sprints #1-4)
@@ -81,7 +85,7 @@ EPICs (functional bricks, in epics/)
 
 ---
 
-## Sprint #7 — Lifecycle & Compliance
+## Sprint #7 — Compliance & Event Delivery (done)
 
 ### P1 -- High
 
@@ -89,24 +93,24 @@ EPICs (functional bricks, in epics/)
   - **Context**: New EventType enum values in schema.prisma. Requires DB migration. Update @galileo/shared enums.
   - **Verify**: New event types available, old data intact after migration
 
-- [ ] `EPIC-002` Remaining lifecycle endpoints (REPAIRED, CPO_CERTIFIED)
+- [ ] `EPIC-002` Remaining lifecycle endpoints (REPAIRED, CPO_CERTIFIED) — depends on 🔒 above
   - **Context**: New API endpoints POST /products/:id/repair, POST /products/:id/certify-cpo
   - **Verify**: Events recorded and visible in provenance timeline
 
-- [ ] `EPIC-002` Transfer flow with compliance check — [source: ROADMAP 3.5]
+- [x] `EPIC-002` Transfer flow with compliance check — Sprint #7 T7.1, 72746f2
   - **Context**: 5 compliance modules: jurisdiction, sanctions, brand auth, CPO, service center
   - **Verify**: Transfer blocked when compliance fails, with reason
 
-- [ ] `EPIC-002` Webhook system (outbox/retry pattern) — [source: ROADMAP 3.5]
-  - **Context**: Outbox table + retry queue for event delivery. NOT direct HTTP callbacks.
+- [x] `EPIC-002` Webhook system (outbox/retry pattern) — Sprint #7 T7.2, 3b805f1
+  - **Context**: In-memory outbox + retry queue for event delivery. NOT direct HTTP callbacks.
   - **Verify**: Webhook configured, events delivered reliably with retry on failure
 
-- [ ] `EPIC-006` Human review for compliance rejections — [source: ROADMAP 4.3]
+- [ ] `EPIC-006` Human review for compliance rejections — [source: ROADMAP 4.3] — depends on 🔒 above
   - **Context**: GDPR Art. 22 — automated decisions need human review option
   - **Verify**: Rejected transfers can be escalated to human review
 
-- [ ] `EPIC-007` E2E Playwright: lifecycle + compliance (repair → CPO certify → transfer with compliance → webhook delivery)
-  - **Context**: End-to-end coverage of new lifecycle events and compliance rejection/approval flows
+- [x] `EPIC-007` E2E Playwright: compliance + webhooks + audit export — Sprint #7 T7.5, 60fb11e
+  - **Context**: End-to-end coverage of compliance rejection/approval flows and audit export
   - **Verify**: E2E passes for happy path + compliance rejection scenario
 
 ---
@@ -123,7 +127,7 @@ EPICs (functional bricks, in epics/)
   - **Context**: Critical for brand onboarding at scale
   - **Verify**: CSV with 100 products imports and mints successfully
 
-- [ ] `EPIC-006` Audit trail export + admin reporting
+- [x] `EPIC-006` Audit trail export + admin reporting — Sprint #7 T7.3, d6aac65
   - **Context**: Export audit log as CSV/JSON for compliance. Per-brand reporting.
   - **Verify**: ADMIN can export audit data, brand admins see only their brand
 
@@ -133,7 +137,7 @@ EPICs (functional bricks, in epics/)
 
 ### P1 -- Security
 
-- [ ] `EPIC-005` Fix wallet-link: add nonce + expiry to signed message
+- [x] `EPIC-005` Fix wallet-link: add nonce + expiry to signed message — Sprint #7 T7.4, 7e0eb06
   - **Context**: Current message is static (`"Link wallet to Galileo: {email}"`). No nonce, no expiry. Replay attack possible. Add server-generated nonce + timestamp, verify both.
   - **Verify**: Message includes nonce + expiry, old signatures rejected, replay blocked
 

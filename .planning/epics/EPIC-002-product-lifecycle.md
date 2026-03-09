@@ -25,9 +25,9 @@ Complete product lifecycle management: CRUD, mock/real mint, transfer, recall, v
 - [ ] Webhook system for real-time notifications (mint, transfer, CPO)
 - [ ] Event logging: append-only, off-chain + on-chain anchoring
 - [x] Product list filtering by status and category (Sprint #4, ff33ff6)
-- [ ] Dashboard stats API endpoint (GET /products/stats)
-- [ ] Dashboard home: live stats + recent activity
-- [ ] Dashboard product list: filter UI (status + category dropdowns)
+- [x] Dashboard stats API endpoint (GET /products/stats) (Sprint #5, 78bbd38)
+- [x] Dashboard home: live stats + recent activity (Sprint #5, e5770c3)
+- [x] Dashboard product list: filter UI (status + category dropdowns) (Sprint #5, e8fcc48)
 
 ## Acceptance Criteria
 
