@@ -4,9 +4,9 @@
 > Created by the Researcher from the BACKLOG. Each task includes a brief: files to modify, approach, patterns, edge cases.
 > Archived when all tasks are validated or deferred.
 
-## Sprint #10 — Test Stability & Deployment Readiness
+## Sprint #11 — Doc-Roadmap Drift Audit
 
-**Goal**: Fix the P0 FK constraint test flakiness (10 failing tests in batch-mint/batch-import), prepare Vercel deployment configs for frontend apps, create an API Dockerfile for containerized deployment, and draft the DPIA document required before mainnet.
+**Goal**: Update README.md and ROADMAP.md to reflect the actual state of the project after 10 sprints of autonomous development. Both files are frozen at Sprint #2 state — test counts, API endpoints, feature list, and sprint checkboxes are all stale.
 **Started**: 2026-03-10
 **Status**: active
 
@@ -14,10 +14,7 @@
 
 | ID | Task | Epic | Status | Verify | Commit |
 |------|------|------|--------|--------|--------|
-| T10.1 | Fix FK constraint violations in batch-mint/batch-import tests | EPIC-007 | validated | All 372+ tests pass consistently with zero FK violations. `pnpm test` green on full suite, 3 consecutive runs. | a4f22d0 |
-| T10.2 | Vercel deployment config for dashboard + scanner | EPIC-008 | validated | `vercel.json` present for dashboard and scanner. `pnpm turbo build` passes. Vercel CLI `vercel build` (dry-run) succeeds if available. | cddf83a |
-| T10.3 | API Dockerfile for containerized deployment | EPIC-008 | validated | `docker build -t galileo-api apps/api` succeeds. Container starts and responds to `/health`. Image size < 500MB. | d239545 |
-| T10.4 | DPIA scaffold document | EPIC-006 | validated | DPIA document exists at `specifications/dpia/galileo-dpia.md` with all required EDPB sections. Content is accurate for current architecture. | 602b60f |
+| T11.1 | Doc-roadmap drift audit: update README.md and ROADMAP.md | EPIC-007 | todo | README test counts match actual (372 unit + 9 e2e specs). API table lists all 20 endpoints. Key Features reflects Sprints 1-10. ROADMAP Sprint 3/4 checkboxes updated for completed work. No broken links. | — |
 
 ### Status values
 - `todo` — Not started
@@ -29,389 +26,288 @@
 
 ## Completion Criteria
 
-- [x] All tasks validated, explicitly deferred, or blocked with reason
-- [x] All tests pass
-- [x] No P0 bugs introduced
-- [x] CONTEXT.md updated if architecture changed
+- [ ] All tasks validated, explicitly deferred, or blocked with reason
+- [ ] All tests pass
+- [ ] No P0 bugs introduced
+- [ ] CONTEXT.md updated if architecture changed
 
 ## Task Briefs
 
-### T10.1 — Fix FK Constraint Violations in Batch Tests
-
-**Type**: testing
-**Priority**: P0
-**Epic**: EPIC-007-observability-quality
-**Operator approval**: not required
-
-**Files to modify**:
-- `apps/api/test/batch-mint.test.ts` — fix `beforeEach` user seeding pattern
-- `apps/api/test/batch-import.test.ts` — fix `beforeEach` user seeding pattern
-
-**Root cause analysis**:
-
-Both `batch-mint.test.ts` and `batch-import.test.ts` register users WITH `brandName` in `beforeEach`:
-```typescript
-await app.inject({
-  method: "POST",
-  url: "/auth/register",
-  payload: { email: "ba@test.com", password: "Password123!", brandName: "BA Brand" },
-});
-```
-
-When `brandName` is provided, `/auth/register` creates a NEW brand ("BA Brand") + user in a Prisma transaction. Then the test reassigns `brandId` to the manually-created `testBrandId`. This creates phantom brands ("BA Brand", "Admin Brand", "Other BA") that are never cleaned up within the test, and the `user.update({ brandId })` races with the `cleanDb()` TRUNCATE from the next beforeEach.
-
-The working test files (e.g., `products.test.ts`, `auth.test.ts`) register WITHOUT `brandName`, which creates a VIEWER user with no brand. Then they update role + brandId explicitly. This is the stable pattern.
-
-**Approach**:
-
-Align batch test files with the stable pattern used in `products.test.ts`:
-
-1. Register WITHOUT `brandName` — creates VIEWER user, no phantom brand
-2. Update user role + brandId explicitly
-3. Re-login to get updated JWT token
-
-**Before** (flaky):
-```typescript
-// Creates phantom brand "BA Brand" + user linked to it
-await app.inject({
-  method: "POST",
-  url: "/auth/register",
-  payload: { email: "ba@test.com", password: "Password123!", brandName: "BA Brand" },
-});
-const baUser = await app.prisma.user.findUnique({ where: { email: "ba@test.com" } });
-await app.prisma.user.update({
-  where: { id: baUser!.id },
-  data: { brandId: testBrandId, role: "BRAND_ADMIN" },
-});
-```
-
-**After** (stable):
-```typescript
-// Creates VIEWER user, no phantom brand
-await app.inject({
-  method: "POST",
-  url: "/auth/register",
-  payload: { email: "ba@test.com", password: "Password123!" },
-});
-await app.prisma.user.update({
-  where: { email: "ba@test.com" },
-  data: { brandId: testBrandId, role: "BRAND_ADMIN" },
-});
-```
-
-Apply this change to ALL user registrations in both test files:
-- `batch-mint.test.ts`: 3 users (ba@test.com, admin@test.com, other-ba@test.com)
-- `batch-import.test.ts`: 4 users (ba@test.com, admin@test.com, viewer@test.com, other-ba@test.com)
-
-For `admin@test.com`: register without brandName, then update to ADMIN role. The admin user does NOT need a brandId.
-
-For `viewer@test.com` (batch-import only): register without brandName, then update to VIEWER. Already the default role, so only need to re-login for consistent token.
-
-**Patterns to follow**:
-- `products.test.ts` beforeEach pattern (canonical, 27 tests pass reliably)
-- R16: cleanDb() + re-seed parent rows in beforeEach
-- R06: vi.mock() before imports (already correct in both files)
-- Update `where` in user.update to use `email` instead of `id` — avoids the extra `findUnique` call
-
-**Edge cases**:
-- Admin user without brand: `admin@test.com` should NOT have a brandId (ADMIN sees all brands). Remove `brandName: "Admin Brand"` from register.
-- Token refresh after role update: must re-login after `user.update({ role })` because the JWT is generated at registration time with the old role.
-- `otherBrandAdminCookie`: must be linked to `otherBrandId`, not `testBrandId`
-
-**Tests**: No new tests. Fix makes existing 10 tests (7 batch-mint + 3 batch-import) pass reliably.
-
-**Verify**: Run `pnpm test` 3 times consecutively. All runs must be green with 0 FK violations. The batch-mint and batch-import test files should each complete without errors.
-
----
-
-### T10.2 — Vercel Deployment Config for Dashboard + Scanner
-
-**Type**: infrastructure
-**Priority**: P2
-**Epic**: EPIC-008-production-deploy
-**Operator approval**: not required
-
-**Files to create**:
-- `apps/dashboard/vercel.json` — Vercel project config for dashboard
-- `apps/scanner/vercel.json` — Vercel project config for scanner
-
-**Approach**:
-
-Both dashboard and scanner are Next.js 16 apps in a pnpm monorepo. Vercel natively supports this setup. The key configuration items are:
-
-1. **Root directory**: Vercel needs to know which app directory to build (set in project settings, not vercel.json)
-2. **Build command**: `cd ../.. && pnpm turbo build --filter=@galileo/dashboard` (respects workspace deps)
-3. **Install command**: `pnpm install` (at monorepo root)
-4. **Output directory**: `.next` (default for Next.js)
-5. **Security headers**: same pattern as `website/vercel.json`
-6. **Environment variables**: `NEXT_PUBLIC_API_URL` for API base URL
-
-**Step 1: Create `apps/dashboard/vercel.json`**
-
-```json
-{
-  "buildCommand": "cd ../.. && pnpm turbo build --filter=@galileo/dashboard",
-  "installCommand": "pnpm install",
-  "framework": "nextjs",
-  "headers": [
-    {
-      "source": "/_next/static/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
-      ]
-    },
-    {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "DENY" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
-      ]
-    }
-  ]
-}
-```
-
-**Step 2: Create `apps/scanner/vercel.json`**
-
-Same structure but for scanner. Scanner also needs PWA-related headers:
-
-```json
-{
-  "buildCommand": "cd ../.. && pnpm turbo build --filter=@galileo/scanner",
-  "installCommand": "pnpm install",
-  "framework": "nextjs",
-  "headers": [
-    {
-      "source": "/_next/static/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
-      ]
-    },
-    {
-      "source": "/sw.js",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-cache" },
-        { "key": "Service-Worker-Allowed", "value": "/" }
-      ]
-    },
-    {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "DENY" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy", "value": "camera=(self), microphone=(), geolocation=()" }
-      ]
-    }
-  ]
-}
-```
-
-Note: scanner's `Permissions-Policy` allows `camera=(self)` because the QR scanner needs camera access.
-
-**Step 3: Verify build**
-
-Run `pnpm turbo build` to ensure both apps build successfully. The vercel.json files should not affect local builds.
-
-**Patterns to follow**:
-- `website/vercel.json` as reference
-- Security headers matching @fastify/helmet config
-- No environment variable secrets in vercel.json (use Vercel project settings)
-
-**Edge cases**:
-- Monorepo detection: Vercel auto-detects pnpm workspaces. The `buildCommand` with `--filter` ensures only the target app builds.
-- `@galileo/shared` workspace dependency: Turbo's `dependsOn: ["^build"]` ensures shared is built first
-- PWA service worker caching: `sw.js` must NOT be cached by CDN — use `no-cache` header
-- `NEXT_PUBLIC_API_URL`: must be set in Vercel project env vars (not in vercel.json)
-- `@vercel/analytics`: already installed, auto-activates on Vercel deployment
-
-**Tests**: No tests needed. Verify `pnpm turbo build` passes.
-
-**Verify**: Both `vercel.json` files present. `pnpm turbo build` succeeds. Security headers configured. PWA service worker headers correct for scanner.
-
----
-
-### T10.3 — API Dockerfile for Containerized Deployment
-
-**Type**: infrastructure
-**Priority**: P2
-**Epic**: EPIC-008-production-deploy
-**Operator approval**: not required
-
-**Files to create**:
-- `apps/api/Dockerfile` — multi-stage build for production API
-- `apps/api/.dockerignore` — exclude unnecessary files from build context
-- `.dockerignore` (root) — monorepo-level ignore if needed
-
-**Approach**:
-
-Create a multi-stage Dockerfile for the API that:
-1. Installs dependencies (pnpm monorepo-aware)
-2. Generates Prisma client
-3. Compiles TypeScript
-4. Produces a minimal production image
-
-The API is a Fastify + Prisma app that runs as `node dist/main.js`. It needs:
-- Node.js 22 (LTS)
-- Prisma client (generated at build time)
-- `bcrypt` native module (must be built for target platform)
-- Production dependencies only (no devDependencies)
-
-**Step 1: Create `apps/api/Dockerfile`**
-
-```dockerfile
-# Stage 1: Install dependencies
-FROM node:22-slim AS deps
-RUN corepack enable && corepack prepare pnpm@10.30.0 --activate
-WORKDIR /app
-COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
-COPY apps/api/package.json apps/api/
-COPY packages/shared/package.json packages/shared/
-RUN pnpm install --frozen-lockfile --prod=false
-
-# Stage 2: Build
-FROM node:22-slim AS builder
-RUN corepack enable && corepack prepare pnpm@10.30.0 --activate
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
-COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
-COPY . .
-WORKDIR /app/packages/shared
-RUN pnpm build
-WORKDIR /app/apps/api
-RUN pnpm prisma generate && pnpm tsc
-
-# Stage 3: Production
-FROM node:22-slim AS runner
-RUN corepack enable && corepack prepare pnpm@10.30.0 --activate
-RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
-WORKDIR /app
-ENV NODE_ENV=production
-COPY --from=builder /app/apps/api/dist ./dist
-COPY --from=builder /app/apps/api/prisma ./prisma
-COPY --from=builder /app/apps/api/src/generated ./src/generated
-COPY --from=builder /app/apps/api/node_modules ./node_modules
-COPY --from=builder /app/packages/shared/dist ../packages/shared/dist
-COPY --from=builder /app/packages/shared/package.json ../packages/shared/
-COPY --from=builder /app/apps/api/package.json ./
-EXPOSE 4000
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD node -e "fetch('http://localhost:4000/health').then(r=>{if(!r.ok)throw 1}).catch(()=>process.exit(1))"
-CMD ["node", "dist/main.js"]
-```
-
-**Step 2: Create `apps/api/.dockerignore`**
-
-```
-node_modules
-dist
-test
-*.test.ts
-.env*
-coverage
-```
-
-**Step 3: Verify build**
-
-```bash
-docker build -f apps/api/Dockerfile -t galileo-api .
-docker run --rm -p 4000:4000 \
-  -e DATABASE_URL=postgresql://... \
-  -e JWT_SECRET=test-secret-that-is-at-least-32-chars \
-  -e JWT_REFRESH_SECRET=test-refresh-secret-that-is-at-least-32-chars \
-  galileo-api
-```
-
-**Patterns to follow**:
-- Multi-stage builds for small production images
-- `node:22-slim` (not alpine, because bcrypt needs glibc)
-- `openssl` for Prisma engine
-- HEALTHCHECK directive for container orchestrators
-- No secrets in Dockerfile (use env vars at runtime)
-
-**Edge cases**:
-- `bcrypt` native module: requires glibc (not musl/alpine). Use `node:22-slim` (Debian-based).
-- Prisma engine: requires `openssl` at runtime
-- `@galileo/shared` workspace dependency: must be built and available at runtime
-- `pnpm-lock.yaml` at monorepo root: Dockerfile context must be the monorepo root, not `apps/api/`
-- `.env` files: must NOT be included in the image — use runtime env vars
-
-**Tests**: No automated tests. Manual verification: `docker build` succeeds, container starts, `/health` responds.
-
-**Verify**: `docker build -f apps/api/Dockerfile -t galileo-api .` succeeds. Image size < 500MB. Container starts and `/health` responds 200 (when DATABASE_URL is provided).
-
----
-
-### T10.4 — DPIA Scaffold Document
+### T11.1 — Doc-Roadmap Drift Audit
 
 **Type**: documentation
 **Priority**: P2
-**Epic**: EPIC-006-data-compliance
+**Epic**: EPIC-007-observability-quality
 **Operator approval**: not required
 
-**Files to create**:
-- `specifications/dpia/galileo-dpia.md` — Data Protection Impact Assessment scaffold
+**Context**: ROADMAP.md and README.md have not been updated since Sprint #2. Ten sprints of work (3-10) added major features (GDPR, audit trail, SIWE, Smart Wallet, batch operations, webhooks, compliance, Vercel Analytics, Dockerfile, DPIA) that are not reflected in these files. External readers and potential contributors see outdated information.
 
-**Approach**:
+**Files to modify**:
+- `README.md` — update test counts, API table, Key Features, testing section, repo structure, wallet section
+- `ROADMAP.md` — update Sprint 3/4 checkboxes, "Immediate Execution Focus" section, sprint status markers
 
-Create a DPIA document following the EDPB Guidelines 02/2025 structure. This is a scaffold with accurate content based on the current architecture — the operator/DPO will review and finalize before mainnet deployment.
+**IMPORTANT**: Do NOT rewrite these files from scratch. Surgically update the stale sections while preserving the operator's prose, vision sections, token architecture, GDPR architecture, and architectural constraints verbatim.
 
-The DPIA must cover:
-1. **Description of processing**: what personal data, why, how
-2. **Necessity and proportionality**: legal basis, data minimization
-3. **Risks to data subjects**: identify and assess risks
-4. **Measures to mitigate risks**: technical and organizational measures
+---
 
-**Key data processing activities in Galileo Protocol**:
-- User registration: email, passwordHash (bcrypt, never plaintext)
-- Wallet linking: walletAddress (pseudonymous on-chain identifier)
-- Product events: performedBy (userId, nullable for public verify)
-- Audit trail: actor (userId string, no FK — survives user deletion)
-- Session: httpOnly cookies (JWT access + refresh tokens)
-- Analytics: Vercel Analytics (page views, no PII by default)
-- On-chain: zero personal data on-chain (DID, GTIN, serial only)
+#### Part A — README.md Updates
 
-**Privacy-by-design measures already implemented**:
-- GDPR Art. 15 (data export) and Art. 17 (erasure) endpoints
-- PII redaction in logs (Pino serializers)
-- `__Host-`/`__Secure-` cookie prefixes in production
-- CSRF protection via `X-Galileo-Client` header
-- Rate limiting on all endpoints
-- No personal data on blockchain (privacy-first principle)
-- AuditLog actor anonymization on user deletion
+**A1. Key Features section (line 18-28)**
 
-**Step 1: Create the DPIA document**
+Replace the header `### Key Features (Sprint 1, 2 & Hardening)` with `### Key Features` (drop the sprint reference — it dates the content).
 
-Follow EDPB standard structure:
-1. Systematic description of processing
-2. Assessment of necessity and proportionality
-3. Assessment of risks to rights and freedoms
-4. Measures to address risks
-5. Involvement of stakeholders
-6. Monitoring and review
+Update the bullet list to reflect current state. Add these items after the existing bullets:
 
-**Step 2: Populate with current architecture details**
+```markdown
+- **GDPR Compliance** — Data export (Art. 15) and erasure (Art. 17) endpoints, PII-free structured logging, DPIA scaffold
+- **Audit Trail** — Append-only audit log with CSV/JSON export, actor sanitization on user deletion
+- **Wallet Authentication** — SIWE (EIP-4361) login, ERC-1271 Smart Wallet support (Coinbase), nonce-protected wallet linking
+- **Batch Operations** — CSV import (up to 500 products) and batch mint (up to 100), with row-level validation and error reporting
+- **Transfer Compliance** — 5-module compliance check (jurisdiction, sanctions, brand auth, CPO, service center)
+- **Webhook System** — Outbox pattern with HMAC-SHA256 signing and exponential backoff retry
+- **Observability** — Sentry error tracking, Vercel Analytics, structured Pino logging with PII redaction
+- **Deployment Ready** — Vercel configs for frontend apps, multi-stage Dockerfile for API, HEALTHCHECK directive
+```
 
-Use CONTEXT.md, schema.prisma, and the privacy measures already implemented. Mark sections that need operator/DPO input with `[TODO: DPO review required]`.
+Update the existing "Blockchain Integration" bullet — change "Mock minting" to "Mock minting (real chain deployment pending RPC key)".
+
+Update the existing "Authentication & RBAC" bullet — add ", SIWE wallet login, Smart Wallet (ERC-1271)" at the end.
+
+**A2. Architecture & Tech Stack section (line 32-37)**
+
+Add the scanner line:
+```markdown
+- **Scanner**: Next.js PWA with QR scanning (barcode-detector), material composition display, GS1 deep links
+```
+
+**A3. Testing section (line 86-102)**
+
+Replace the entire testing block with current numbers:
+
+```markdown
+## Testing
+
+**372 unit tests + 9 Playwright e2e specs.** Test database (`galileo_test`) is isolated via `DATABASE_URL_TEST`.
+
+| Suite | Tests | Scope |
+|-------|-------|-------|
+| @galileo/shared | 69 | GTIN validation, DID generation, auth schemas, user types, wallet validation |
+| @galileo/api | 303 | Auth (32), Products (27), Security (24), Mint (10), Resolver/QR (17), CSRF (18), Health (6), Logging (3), GDPR (12), Upload (10), Recall (10), Transfer, Verify, Link-Wallet, Sentry, Webhooks, Batch-Import, Batch-Mint, SIWE, Audit, Audit-Export |
+| Playwright e2e | 9 specs | Auth, product lifecycle, dashboard home, product filters, product upload, transfer compliance, audit export, batch import, SIWE + wallet auth |
+
+```bash
+pnpm test              # Unit tests (372)
+pnpm --filter dashboard exec playwright test  # Playwright e2e (9 specs)
+pnpm turbo typecheck   # TypeScript validation
+pnpm turbo lint        # ESLint
+pnpm turbo build       # Full build
+```
+```
+
+**A4. API Endpoints table (line 106-119)**
+
+Replace with the complete table from CONTEXT.md (all 20 endpoints):
+
+```markdown
+## API Endpoints Overview
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | `/auth/register` | public | Create account (+ optional brand) |
+| POST | `/auth/login` | public | Login (sets httpOnly cookies) |
+| POST | `/auth/logout` | authenticated | Clear cookies |
+| POST | `/auth/refresh` | cookie | Refresh access token |
+| GET | `/auth/me` | authenticated | Current user info + wallet address |
+| POST | `/auth/link-wallet` | authenticated | Link wallet via EIP-191 signature |
+| GET | `/auth/me/data` | authenticated | GDPR data export (Art. 15) |
+| DELETE | `/auth/me/data` | authenticated + CSRF | GDPR erasure (Art. 17) |
+| GET | `/auth/nonce` | authenticated | Generate nonce for wallet-link signing |
+| GET | `/auth/siwe/nonce` | public | Generate SIWE nonce |
+| POST | `/auth/siwe/verify` | public | Verify SIWE signature, issue session |
+| GET | `/health` | public | Health check (DB + chain status) |
+| POST | `/products` | BRAND_ADMIN+ | Create product |
+| GET | `/products` | authenticated | List products (brand-scoped, filterable) |
+| GET | `/products/:id` | authenticated | Product detail |
+| PATCH | `/products/:id` | BRAND_ADMIN+ | Update DRAFT product |
+| POST | `/products/:id/mint` | BRAND_ADMIN+ | Mock mint (DRAFT -> ACTIVE) |
+| POST | `/products/:id/recall` | BRAND_ADMIN+ | Recall product (ACTIVE -> RECALLED) |
+| POST | `/products/:id/transfer` | BRAND_ADMIN+ | Transfer to wallet (with compliance check) |
+| POST | `/products/:id/verify` | public | Record verification event |
+| POST | `/products/:id/upload` | BRAND_ADMIN+ | Upload product image (multipart) |
+| GET | `/products/:id/qr` | authenticated | QR code (PNG) |
+| GET | `/products/stats` | authenticated | Product statistics |
+| POST | `/products/batch-import` | BRAND_ADMIN+ | CSV import (max 500 rows) |
+| POST | `/products/batch-mint` | BRAND_ADMIN+ | Batch mint DRAFT products (max 100) |
+| GET | `/01/:gtin/21/:serial` | public | GS1 Digital Link resolver (JSON-LD) |
+| GET | `/audit-log` | ADMIN | Audit log entries (paginated) |
+| GET | `/audit-log/export` | ADMIN | Export audit log (CSV/JSON) |
+| POST | `/webhooks` | ADMIN | Register webhook subscription |
+| GET | `/webhooks` | ADMIN | List webhook subscriptions |
+```
+
+**A5. Security section (line 122-133)**
+
+Update the first line: replace "Three independent security audits completed (Sprint 1 + Sprint 2 hardening rounds):" with "Security hardened across 10 sprints of development:".
+
+Add these bullets after the existing list:
+```markdown
+- **Cookie Hardening:** `__Host-galileo_at` (access) + `__Secure-galileo_rt` (refresh) prefixes in production, signed cookies via `@fastify/cookie`
+- **Wallet Security:** Nonce-protected wallet linking (5-min TTL), SIWE with one-time nonce, ERC-1271 Smart Wallet verification
+- **Compliance:** Transfer compliance check (5 modules), GDPR Art. 15/17 endpoints, audit trail with PII sanitization
+```
+
+**A6. Wallet section (line 78-83)**
+
+Update to reflect current wallet support:
+```markdown
+### Wallet Integration
+
+- **Browser wallets**: MetaMask, Rabby, and other injected wallets via wagmi
+- **Smart Wallets**: Coinbase Smart Wallet with passkey support (ERC-1271 verification)
+- **SIWE Login**: Sign-In With Ethereum for wallet-only authentication
+- **Wallet Linking**: Nonce-protected EIP-191 signature flow for linking wallet to existing account
+```
+
+**A7. Repository Structure (line 140-150)**
+
+Update scanner line — remove "(Coming Soon)":
+```
+│   └── scanner/               # Next.js scanner PWA (QR scanning, GS1 deep links)
+```
+
+---
+
+#### Part B — ROADMAP.md Updates
+
+**B1. Sprint status markers at top (line ~237-245)**
+
+Update the sprint plan diagram — mark Sprints 1-4 status accurately:
+```
+Sprint 1 (Week 1-2)    Foundations         → Phase 0 + Phase 2 setup + Phase 3 shell          ✅
+Sprint 2 (Week 3-4)    Product & Passport  → Mock mint, GS1 resolver, QR, 186 tests + 2 e2e   ✅
+Sprint 3 (Week 5-6)    Real Chain & Scan   → Scanner PWA ✅, real chain deploy ⚠️ (blocked: RPC key)
+Sprint 4 (Week 7-8)    Stabilisation       → Security ✅, GDPR ✅, audit ✅, multi-tenant ⚠️ (RLS 🔒), deploy configs ✅
+  ── POST-PILOT GATE ──
+Sprint 5 (Week 9-12)   T1/LEOX            → Phase 6 (only after KPI validation)
+Sprint 6 (Week 13-16)  Open Source         → DX, docs, SDK, Docker, community (parallel w/ S5)
+```
+
+**B2. Sprint 3 checkboxes (section 3.3-3.8)**
+
+Update these checkboxes that were completed in Sprints 3-10:
+
+Section 3.3 Wallet Integration:
+- Check `Smart Wallet Coinbase support` — add "(Sprint #9, 081ee0e/ce70f02)"
+
+Section 3.4 Scanner PWA:
+- Check `Material composition display` — add "(Sprint #2, f91652f)"
+- Check `Deep link: scanning QR goes directly to product page` — add "(Sprint #2, fdcefe1)"
+
+Section 3.5 Lifecycle Events & Transfers:
+- Check `Transfer flow with compliance check (5 modules)` — add "(Sprint #7, 72746f2)"
+- Check `Webhook system for real-time notifications` — add "(Sprint #7, 3b805f1)"
+
+Section 3.7 File Upload:
+- Check `Photo/certificate upload → Cloudflare R2 + local CID computation` — add "(Sprint #1, 9600650)"
+- Check `Dashboard: photo upload UI` — add "(Sprint #5, e17b6e5)"
+
+**B3. Sprint 4 checkboxes (section 4.1-4.8)**
+
+Section 4.1 Security Hardening:
+- Check `Input validation audit against OWASP top 10` — add "(Sprint #1, 75d4038)"
+- Check `Consider __Host- cookie prefix` — add "(Sprint #1, 61ebf4e)"
+- Check `Cookie signing via @fastify/cookie secret` — add "(Sprint #1, 61ebf4e)"
+
+Section 4.2 Multi-Tenant Isolation:
+- Check `Batch operations: CSV import of products, batch mint` — add "(Sprint #8, 25aa114/ccc86e8)"
+
+Section 4.3 GDPR Compliance:
+- Check `DELETE /users/:id/data` — add "(Sprint #3, 22eb6c4, implemented as DELETE /auth/me/data)"
+- Check `GET /users/:id/data` — add "(Sprint #3, 8532fc3, implemented as GET /auth/me/data)"
+- Check `Audit trail` — add "(Sprint #4, 75e15ca)"
+- Check `DPIA draft` — add "(Sprint #10, 602b60f)"
+
+Section 4.4 Monitoring & Observability:
+- Check `Sentry integration` — add "(Sprint #4, 78f3042)"
+- Check `Vercel Analytics` — add "(Sprint #9, 178035d)"
+- Check `Health check endpoints with dependency status` — add "(Sprint #2, 25afe6c)"
+- Check `Structured logging (no PII)` — add "(Sprint #2, 0749206)"
+
+Section 4.5 Authentication:
+- Check `SIWE (EIP-4361) for wallet login with ERC-1271` — add "(Sprint #8/9, d590d24/081ee0e)"
+
+Section 4.6 API & Documentation:
+- Check `Publish Swagger at /docs in production` — add "(Sprint #3, 1ddbea6)"
+
+Section 4.8 Test Stability:
+- Check `Fix mint.test.ts` — add "(Sprint #1, 3ac8bf6)"
+- Check `Fix products.test.ts` — add "(Sprint #1, verified)"
+- Check `Fix recall.test.ts` — add "(Sprint #1, verified)"
+
+**B4. "Immediate Execution Focus" section (line ~285-314)**
+
+This entire section is outdated — it describes priorities that have been addressed or are blocked. Replace the content while keeping the heading:
+
+```markdown
+## Immediate Execution Focus
+
+The project has reached **steady state** for autonomous non-blocked work (as of Sprint #10).
+
+### Completed pilot path (Sprints 1-10)
+- [x] Create product with GTIN validation and DID generation
+- [x] Mock mint with optimistic concurrency (real chain blocked on RPC key)
+- [x] Scan QR and resolve DPP via GS1 Digital Link
+- [x] Verify product authenticity (public endpoint)
+- [x] Transfer with 5-module compliance check
+- [x] Scanner PWA with QR scanning, material composition, deep links
+- [x] Dashboard: full product management, batch operations, wallet connection
+- [x] Security: SIWE, Smart Wallet, nonce-protected wallet linking, GDPR, audit trail
+- [x] Observability: Sentry, Vercel Analytics, structured logging, health checks
+- [x] Deployment: Vercel configs, API Dockerfile, DPIA scaffold
+
+### Blocked — awaiting operator input
+1. **RPC key** — unlocks Sprint #6 (real chain deployment on Base Sepolia)
+2. **DB migration approval (🔒)** — unlocks REPAIRED/CPO_CERTIFIED events, MFA, RLS
+3. **Hosting accounts** — unlocks actual Vercel + API deployment
+4. **Contract deployment approval (🔒)** — unlocks Base mainnet
+```
+
+**B5. Sprint 2 "Delivered" line (line ~281)**
+
+Update the test count reference: change "186 unit tests + 2 Playwright e2e tests passing" to "186 unit tests + 2 Playwright e2e tests passing (grown to 372 + 9 specs by Sprint #10)".
+
+---
+
+#### Approach
+
+1. Open README.md, apply changes A1 through A7 surgically (edit specific sections)
+2. Open ROADMAP.md, apply changes B1 through B5 surgically (check boxes, update markers)
+3. Run `pnpm turbo typecheck` and `pnpm turbo build` to verify no breakage (documentation-only change, but good hygiene)
+4. Commit: `docs: update README and ROADMAP for Sprints 3-10 drift (Audit 5)`
 
 **Patterns to follow**:
-- EDPB Guidelines 02/2025 structure
-- Reference actual code paths (e.g., "PII redaction in `apps/api/src/main.ts` via Pino serializers")
-- Mark uncertain or legal-specific sections for DPO review
-- Use plain language (DPIA may be reviewed by non-technical stakeholders)
+- Preserve operator's prose verbatim — only update factual data (counts, checkboxes, feature lists)
+- Use commit hashes from BACKLOG.md/EPICs when checking boxes in ROADMAP
+- Keep README concise — detailed API docs live in Swagger at /docs
+- Do NOT add emojis to README (badges are fine, emoji markers are not)
 
 **Edge cases**:
-- Wallet addresses: pseudonymous but potentially linkable to identity (EDPB considers them personal data in some contexts). Document this risk.
-- On-chain data immutability: DID and product data on blockchain cannot be deleted. Document that no personal data is stored on-chain.
-- Cross-border transfers: Base Sepolia/mainnet nodes are globally distributed. Document adequacy decisions or SCCs if applicable.
-- Subprocessors: Vercel (analytics, hosting), PostgreSQL provider, R2/S3 storage. List and assess.
+- ROADMAP has double-spaced line numbers from the persisted output — Developer should work from the actual file, not the plan's line references
+- Some ROADMAP checkboxes reference endpoints at different paths than implemented (e.g., `DELETE /users/:id/data` vs actual `DELETE /auth/me/data`) — add a note in parentheses
+- The "186 tests" number appears in multiple places in ROADMAP — update all occurrences
+- Scanner repo structure line says "(Coming Soon)" — scanner is fully functional, remove this
 
-**Tests**: No automated tests. Document review by operator/DPO.
+**Tests**: No new tests. Documentation-only change.
 
-**Verify**: DPIA document exists at `specifications/dpia/galileo-dpia.md`. All EDPB-required sections present. Technical measures accurately reflect current implementation. TODO markers for sections requiring legal review.
+**Verify**:
+1. README test counts match actual: 372 unit tests (69 shared + 303 API), 9 e2e specs
+2. README API table lists all endpoints from CONTEXT.md (30 rows)
+3. README Key Features section includes GDPR, audit, SIWE, batch ops, webhooks, compliance, observability, deployment
+4. ROADMAP Sprint 3 checkboxes: Smart Wallet, material composition, deep link, compliance, webhooks, file upload checked
+5. ROADMAP Sprint 4 checkboxes: OWASP, cookies, batch ops, GDPR, audit, DPIA, Sentry, Analytics, health, logging, SIWE, Swagger, test fixes checked
+6. ROADMAP "Immediate Execution Focus" updated to steady-state summary
+7. No broken markdown formatting (tables render correctly)
+8. `pnpm turbo build` still passes
 
 ## Notes
 
@@ -419,13 +315,9 @@ Use CONTEXT.md, schema.prisma, and the privacy measures already implemented. Mar
 <!-- Operator approvals: "Approved: T{N}.{M} — {reason}" -->
 <!-- Blocked reasons: "Blocked: T{N}.{M} — {reason}" -->
 
-Sprint #6 (Real Chain Unblock) remains BLOCKED on RPC key. Sprint #10 focuses on test stability and deployment readiness.
+Sprint #11 is a lightweight documentation sprint. All remaining feature work is blocked on operator inputs (RPC key, DB migration approval, hosting accounts).
 
-🔒 MFA (TOTP + passkey) is NOT included — requires DB migration (unchanged from Sprint #9).
-
-🔒 PostgreSQL RLS is NOT included — requires operator approval (unchanged from Sprint #9).
-
-🔒 Contract deployment to mainnet is NOT included — requires testnet E2E + operator approval.
+Steady state confirmed: no promotable P1/P2 tasks remain that don't depend on blocked items or operator approval.
 
 ## Archive
 

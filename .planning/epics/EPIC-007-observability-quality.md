@@ -22,6 +22,7 @@ Test stability, error tracking, monitoring, and structured logging. Ensures the 
 - [x] E2E Playwright: compliance, webhooks, audit export (Sprint #7, 60fb11e)
 - [x] E2E Playwright: batch import + SIWE login (Sprint #8, a73f30c)
 - [x] E2E Playwright: Smart Wallet + wallet auth flows (Sprint #9, 80b630a)
+- [ ] Doc-roadmap drift audit: README.md + ROADMAP.md (Sprint #11)
 
 ## Acceptance Criteria
 
