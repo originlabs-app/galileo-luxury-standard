@@ -13,6 +13,10 @@ const SEEDED_ADMIN_PASSWORD = "dev-seed-password-change-me";
 const REPO_ROOT = path.resolve(process.cwd(), "../..");
 
 setup.beforeAll(() => {
+  execSync("pnpm --filter @galileo/api exec prisma db push", {
+    cwd: REPO_ROOT,
+    stdio: "inherit",
+  });
   execSync("pnpm --filter @galileo/api exec prisma db seed", {
     cwd: REPO_ROOT,
     stdio: "inherit",

@@ -3,12 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Package, Plus, ChevronLeft, ChevronRight, X } from "lucide-react";
-import { BatchImportDialog } from "@/components/batch-import-dialog";
+import { ChevronLeft, ChevronRight, Package, Plus, X } from "lucide-react";
 import { type ProductStatus } from "@galileo/shared";
 import { api, ApiError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -31,6 +29,7 @@ interface Product {
   gtin: string;
   serialNumber: string;
   status: ProductStatus;
+  category: string;
   createdAt: string;
 }
 
@@ -49,20 +48,6 @@ interface ProductsResponse {
   };
 }
 
-const STATUS_STYLES: Record<string, string> = {
-  DRAFT: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-  ACTIVE: "bg-[#00FF88]/20 text-[#00FF88] border-[#00FF88]/30",
-  TRANSFERRED: "bg-[#00FFFF]/20 text-[#00FFFF] border-[#00FFFF]/30",
-  RECALLED: "bg-red-500/20 text-red-400 border-red-500/30",
-};
-
-const STATUS_OPTIONS = [
-  { value: "DRAFT", label: "Draft" },
-  { value: "ACTIVE", label: "Active" },
-  { value: "TRANSFERRED", label: "Transferred" },
-  { value: "RECALLED", label: "Recalled" },
-];
-
 const CATEGORY_OPTIONS = [
   { value: "Leather Goods", label: "Leather Goods" },
   { value: "Jewelry", label: "Jewelry" },
@@ -74,16 +59,7 @@ const CATEGORY_OPTIONS = [
   { value: "Other", label: "Other" },
 ];
 
-function StatusBadge({ status }: { status: string }) {
-  return (
-    <Badge
-      variant="outline"
-      className={STATUS_STYLES[status] ?? "bg-muted text-muted-foreground"}
-    >
-      {status}
-    </Badge>
-  );
-}
+const PAGE_SIZE = 20;
 
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr);
@@ -94,7 +70,15 @@ function formatDate(dateStr: string): string {
   });
 }
 
-const PAGE_SIZE = 20;
+function IdentityState({ status }: { status: ProductStatus }) {
+  const label = status === "DRAFT" ? "Identity locked" : "Identity active";
+
+  return (
+    <span className="inline-flex w-fit rounded-full border border-border bg-muted px-2.5 py-1 text-xs font-medium text-foreground">
+      {label}
+    </span>
+  );
+}
 
 export default function ProductsPage() {
   const router = useRouter();
@@ -103,11 +87,10 @@ export default function ProductsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState<string | undefined>();
   const [categoryFilter, setCategoryFilter] = useState<string | undefined>();
 
   const fetchProducts = useCallback(
-    async (currentPage: number, status?: string, category?: string) => {
+    async (currentPage: number, category?: string) => {
       setIsLoading(true);
       setError(null);
       try {
@@ -115,8 +98,10 @@ export default function ProductsPage() {
           page: String(currentPage),
           limit: String(PAGE_SIZE),
         });
-        if (status) params.set("status", status);
-        if (category) params.set("category", category);
+
+        if (category) {
+          params.set("category", category);
+        }
 
         const res = await api<ProductsResponse>(
           `/products?${params.toString()}`,
@@ -137,13 +122,8 @@ export default function ProductsPage() {
   );
 
   useEffect(() => {
-    fetchProducts(page, statusFilter, categoryFilter);
-  }, [page, statusFilter, categoryFilter, fetchProducts]);
-
-  function handleStatusChange(value: string) {
-    setStatusFilter(value);
-    setPage(1);
-  }
+    fetchProducts(page, categoryFilter);
+  }, [page, categoryFilter, fetchProducts]);
 
   function handleCategoryChange(value: string) {
     setCategoryFilter(value);
@@ -151,12 +131,9 @@ export default function ProductsPage() {
   }
 
   function clearFilters() {
-    setStatusFilter(undefined);
     setCategoryFilter(undefined);
     setPage(1);
   }
-
-  const hasActiveFilters = statusFilter || categoryFilter;
 
   if (isLoading && !pagination) {
     return (
@@ -174,7 +151,7 @@ export default function ProductsPage() {
           variant="outline"
           size="sm"
           className="mt-4"
-          onClick={() => fetchProducts(page, statusFilter, categoryFilter)}
+          onClick={() => fetchProducts(page, categoryFilter)}
         >
           Retry
         </Button>
@@ -187,51 +164,30 @@ export default function ProductsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Page header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-serif text-2xl font-semibold text-foreground">
             Products
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Manage your product digital passports
+          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+            Track the permanent identifiers created for each item before any
+            downstream lifecycle workflows enter scope.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <BatchImportDialog
-            onImportComplete={() =>
-              fetchProducts(page, statusFilter, categoryFilter)
-            }
-          />
-          <Button asChild>
-            <Link href="/dashboard/products/new">
-              <Plus className="size-4" />
-              New Product
-            </Link>
-          </Button>
-        </div>
+        <Button asChild>
+          <Link href="/dashboard/products/new">
+            <Plus className="size-4" />
+            New Product
+          </Link>
+        </Button>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-wrap items-center gap-3">
-        <Select value={statusFilter ?? ""} onValueChange={handleStatusChange}>
-          <SelectTrigger className="w-[160px]">
-            <SelectValue placeholder="All statuses" />
-          </SelectTrigger>
-          <SelectContent>
-            {STATUS_OPTIONS.map((opt) => (
-              <SelectItem key={opt.value} value={opt.value}>
-                {opt.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
         <Select
           value={categoryFilter ?? ""}
           onValueChange={handleCategoryChange}
         >
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="All categories" />
           </SelectTrigger>
           <SelectContent>
@@ -243,7 +199,7 @@ export default function ProductsPage() {
           </SelectContent>
         </Select>
 
-        {hasActiveFilters && (
+        {categoryFilter && (
           <Button
             variant="ghost"
             size="sm"
@@ -258,7 +214,6 @@ export default function ProductsPage() {
 
       {hasProducts ? (
         <>
-          {/* Product table */}
           <div className="rounded-lg border border-border bg-card">
             <Table>
               <TableHeader>
@@ -266,7 +221,7 @@ export default function ProductsPage() {
                   <TableHead>Name</TableHead>
                   <TableHead>GTIN</TableHead>
                   <TableHead>Serial Number</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Identity</TableHead>
                   <TableHead>Created</TableHead>
                 </TableRow>
               </TableHeader>
@@ -280,7 +235,12 @@ export default function ProductsPage() {
                     }
                   >
                     <TableCell className="font-medium">
-                      {product.name}
+                      <div className="flex flex-col">
+                        <span>{product.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {product.category}
+                        </span>
+                      </div>
                     </TableCell>
                     <TableCell className="font-mono text-muted-foreground">
                       {product.gtin}
@@ -289,7 +249,7 @@ export default function ProductsPage() {
                       {product.serialNumber}
                     </TableCell>
                     <TableCell>
-                      <StatusBadge status={product.status} />
+                      <IdentityState status={product.status} />
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {formatDate(product.createdAt)}
@@ -300,7 +260,6 @@ export default function ProductsPage() {
             </Table>
           </div>
 
-          {/* Pagination */}
           {pagination && pagination.totalPages > 1 && (
             <div className="flex items-center justify-between">
               <p className="text-sm text-muted-foreground">
@@ -317,7 +276,7 @@ export default function ProductsPage() {
                   variant="outline"
                   size="sm"
                   disabled={pagination.page <= 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  onClick={() => setPage((current) => Math.max(1, current - 1))}
                 >
                   <ChevronLeft className="size-4" />
                   Previous
@@ -329,7 +288,7 @@ export default function ProductsPage() {
                   variant="outline"
                   size="sm"
                   disabled={pagination.page >= pagination.totalPages}
-                  onClick={() => setPage((p) => p + 1)}
+                  onClick={() => setPage((current) => current + 1)}
                 >
                   Next
                   <ChevronRight className="size-4" />
@@ -339,7 +298,6 @@ export default function ProductsPage() {
           )}
         </>
       ) : (
-        /* Empty state */
         <div className="flex flex-1 flex-col items-center justify-center py-16 text-center">
           <div className="rounded-full bg-muted p-4">
             <Package className="size-8 text-muted-foreground" />
@@ -348,7 +306,8 @@ export default function ProductsPage() {
             No products yet
           </h2>
           <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-            Create your first product to start building digital passports
+            Create your first product to establish its permanent identity before
+            any downstream lifecycle steps.
           </p>
           <Button asChild className="mt-6">
             <Link href="/dashboard/products/new">
