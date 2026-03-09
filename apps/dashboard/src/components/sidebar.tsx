@@ -2,44 +2,28 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  Home,
-  Package,
-  ArrowRightLeft,
-  Settings,
-  LogOut,
-} from "lucide-react";
+import { Building2, Home, LogOut, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
+import { Badge } from "@/components/ui/badge";
 
 interface NavItem {
   label: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
-  disabled?: boolean;
 }
 
 const navItems: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: Home },
   { label: "Products", href: "/dashboard/products", icon: Package },
-  {
-    label: "Transfers",
-    href: "/dashboard/transfers",
-    icon: ArrowRightLeft,
-    disabled: true,
-  },
-  {
-    label: "Settings",
-    href: "/dashboard/settings",
-    icon: Settings,
-    disabled: true,
-  },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
+  const activeBrandName = user?.brand?.name ?? "Unassigned workspace";
+  const roleLabel = user?.role?.replaceAll("_", " ").toLowerCase() ?? "viewer";
 
   async function handleLogout() {
     await logout();
@@ -48,33 +32,36 @@ export function Sidebar() {
 
   return (
     <aside className="flex h-screen w-64 flex-col border-r border-border bg-sidebar">
-      {/* Logo / Brand */}
-      <div className="flex h-16 items-center px-6">
-        <h1 className="font-serif text-xl font-semibold text-primary">
-          Galileo
-        </h1>
+      <div className="border-b border-border px-6 py-5">
+        <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+          Galileo Pilot
+        </p>
+        <div className="mt-3 rounded-xl border border-border bg-background/70 p-4">
+          <div className="flex items-start gap-3">
+            <div className="rounded-full bg-primary/10 p-2 text-primary">
+              <Building2 className="size-4" />
+            </div>
+            <div className="min-w-0">
+              <h1 className="truncate font-serif text-lg font-semibold text-foreground">
+                {activeBrandName}
+              </h1>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Single-brand operator workspace
+              </p>
+            </div>
+          </div>
+          <Badge variant="outline" className="mt-3">
+            {roleLabel}
+          </Badge>
+        </div>
       </div>
 
-      {/* Navigation */}
       <nav className="flex flex-1 flex-col gap-1 px-3 py-4">
         {navItems.map((item) => {
           const isActive =
             item.href === "/dashboard"
               ? pathname === "/dashboard"
               : pathname.startsWith(item.href);
-
-          if (item.disabled) {
-            return (
-              <span
-                key={item.label}
-                className="flex cursor-not-allowed items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground opacity-50"
-                aria-disabled="true"
-              >
-                <item.icon className="size-4" />
-                {item.label}
-              </span>
-            );
-          }
 
           return (
             <Link
@@ -93,10 +80,8 @@ export function Sidebar() {
           );
         })}
 
-        {/* Spacer */}
         <div className="flex-1" />
 
-        {/* Logout */}
         <button
           onClick={handleLogout}
           className="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"

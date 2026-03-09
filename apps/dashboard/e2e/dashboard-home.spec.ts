@@ -1,6 +1,39 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("Dashboard Home", () => {
+  test("setup-check keeps pilot brand context before workspace entry", async ({
+    page,
+  }) => {
+    await page.goto("/dashboard/setup");
+    await expect(page).toHaveURL(/\/dashboard\/setup/);
+    await expect(page.getByText("Galileo Luxe").first()).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "Continue to dashboard" }),
+    ).toBeVisible();
+  });
+
+  test("shell only exposes the mono-brand pilot navigation", async ({
+    page,
+  }) => {
+    await page.goto("/dashboard");
+    await expect(page).toHaveURL(/\/dashboard/);
+
+    await expect(
+      page.getByRole("link", { name: "Dashboard", exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "Products", exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: /transfers/i }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByRole("link", { name: /settings/i }),
+    ).toHaveCount(0);
+    await expect(page.getByText("Galileo Luxe").first()).toBeVisible();
+    await expect(page.getByText("admin").first()).toBeVisible();
+  });
+
   test("displays stat cards with correct labels", async ({ page }) => {
     await page.goto("/dashboard");
     await expect(page).toHaveURL(/\/dashboard/);
@@ -34,11 +67,7 @@ test.describe("Dashboard Home", () => {
     await expect(page.getByText("Recent Activity")).toBeVisible();
 
     // Should show either events or the empty state message
-    const hasEvents = await page
-      .locator("ul.divide-y li")
-      .first()
-      .isVisible()
-      .catch(() => false);
+    const hasEvents = (await page.getByRole("listitem").count()) > 0;
     const hasEmptyState = await page
       .getByText("No recent activity")
       .isVisible()
@@ -74,5 +103,12 @@ test.describe("Dashboard Home", () => {
     await expect(cta).toBeVisible();
     await cta.click();
     await expect(page).toHaveURL(/\/dashboard\/products/);
+  });
+
+  test("setup-check continues into the dashboard workspace", async ({ page }) => {
+    await page.goto("/dashboard/setup");
+    await page.getByRole("link", { name: "Continue to dashboard" }).click();
+    await expect(page).toHaveURL(/\/dashboard$/);
+    await expect(page.getByText("Total Products")).toBeVisible();
   });
 });
