@@ -61,10 +61,10 @@ feature · improvement · UI · backend · security · performance · observabil
 
 ### P0 -- Critical
 
-- [ ] `EPIC-007` Fix FK constraint violations in batch-mint.test.ts and batch-import.test.ts — **Sprint #10 T10.1**
-  - **Context**: 10 tests fail (7 batch-mint + 3 batch-import) due to `User_brandId_fkey` FK constraint violations in `beforeEach` setup when creating `otherBrand`/`otherUser`. Root cause: test isolation issue in seed ordering — NOT caused by any sprint code. Pre-dates Sprint #9. See pitfalls.md "FK constraint violations" entry.
+- [x] `EPIC-007` Fix FK constraint violations in batch-mint.test.ts and batch-import.test.ts — Sprint #10 T10.1, a4f22d0
+  - **Context**: Root cause: phantom brands from `brandName` in register payloads. Fixed by aligning with stable products.test.ts pattern.
   - **Type**: testing
-  - **Verify**: All 372+ tests pass consistently with zero FK violations. `pnpm test` green on full suite.
+  - **Status**: RESOLVED — all 372 tests pass consistently.
 
 ---
 
@@ -174,13 +174,13 @@ feature · improvement · UI · backend · security · performance · observabil
 
 ### P2 -- Medium
 
-- [ ] `EPIC-008` Deploy frontend to Vercel (config prep) — **Sprint #10 T10.2**
-  - **Context**: Vercel deployment configs for dashboard + scanner (vercel.json, security headers, PWA headers)
-  - **Verify**: vercel.json present for both apps, `pnpm turbo build` passes
+- [x] `EPIC-008` Deploy frontend to Vercel (config prep) — Sprint #10 T10.2, cddf83a
+  - **Context**: vercel.json for dashboard + scanner with security headers, PWA service worker cache control
+  - **Status**: Done — configs ready, needs Vercel project setup
 
-- [ ] `EPIC-008` Deploy API to dedicated host (Dockerfile) — **Sprint #10 T10.3**
-  - **Context**: Multi-stage Dockerfile for containerized API deployment
-  - **Verify**: `docker build` succeeds, container starts and `/health` responds
+- [x] `EPIC-008` Deploy API to dedicated host (Dockerfile) — Sprint #10 T10.3, d239545
+  - **Context**: Multi-stage Dockerfile, node:22-slim, Prisma generate, HEALTHCHECK
+  - **Status**: Done — Dockerfile ready, needs hosting provider
 
 - [ ] 🔒 `EPIC-008` Deploy contracts to Base mainnet — [source: ROADMAP 4.7]
   - **Context**: Only after testnet E2E passes
@@ -194,9 +194,9 @@ feature · improvement · UI · backend · security · performance · observabil
   - **Context**: External monitoring for API and frontend
   - **Verify**: Alerts configured for downtime
 
-- [ ] `EPIC-006` DPIA draft — **Sprint #10 T10.4**
-  - **Context**: Required before mainnet per EDPB Guidelines 02/2025. Scaffold with EDPB structure + current architecture details.
-  - **Verify**: DPIA document with all required sections, accurate technical content, TODO markers for DPO review
+- [x] `EPIC-006` DPIA draft — Sprint #10 T10.4, 602b60f
+  - **Context**: EDPB-structured GDPR Art. 35 assessment with 8 risks, 16 mitigations, subprocessor registry
+  - **Status**: Done — scaffold complete, needs DPO review
 
 ---
 
@@ -206,8 +206,8 @@ feature · improvement · UI · backend · security · performance · observabil
 
 - [ ] **Audit 1: Pilot path** — create → mint → scan → verify → transfer (end-to-end). Chain plugin has no contract addressing (chain.ts:17). Run before Sprint #6.
 - [ ] **Audit 2: Multi-tenant / data isolation** — all routes, Prisma queries, exports, audit-log, upload, QR. Run before Sprint #8.
-- [ ] **Audit 3: Auth-wallet security** — static message, no nonce, no SIWE, no ERC-1271. Run before Sprint #9.
-- [ ] **Audit 4: Event model / operational analytics** — stats, activity, lifecycle, webhooks depend on incomplete event model. Run before Sprint #7.
+- [x] **Audit 3: Auth-wallet security** — covered by Sprint #7 (nonce), Sprint #8 (SIWE), Sprint #9 (ERC-1271/Smart Wallet)
+- [x] **Audit 4: Event model / operational analytics** — covered by Sprint #4 (audit trail), Sprint #5 (stats), Sprint #7 (compliance/webhooks)
 - [ ] **Audit 5: Doc-roadmap drift** — Sentry/audit/filtering validated in code but ROADMAP.md/README.md lag behind. Mini sprint for hygiene.
 
 ---

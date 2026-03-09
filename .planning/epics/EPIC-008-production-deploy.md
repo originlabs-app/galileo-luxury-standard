@@ -10,8 +10,10 @@ Deploy the full stack to production: frontend on Vercel, API on dedicated host, 
 
 ## Tasks
 
-- [ ] Deploy frontend: Vercel (dashboard + scanner + website)
-- [ ] Deploy API: dedicated host (Railway, Render, or VPS)
+- [x] Vercel deployment config for dashboard + scanner (Sprint #10, cddf83a)
+- [ ] Deploy frontend: Vercel (dashboard + scanner + website) — configs ready, needs Vercel project setup
+- [x] API Dockerfile for containerized deployment (Sprint #10, d239545)
+- [ ] Deploy API: dedicated host (Railway, Render, or VPS) — Dockerfile ready, needs hosting provider
 - [ ] 🔒 Deploy contracts: Base mainnet (chainId 8453) — only after testnet E2E passes
 - [ ] Use dedicated RPC provider (Alchemy/QuickNode)
 - [ ] 🔒 Transfer contract ownership to multisig (Safe)

@@ -29,10 +29,10 @@
 
 ## Completion Criteria
 
-- [ ] All tasks validated, explicitly deferred, or blocked with reason
-- [ ] All tests pass
-- [ ] No P0 bugs introduced
-- [ ] CONTEXT.md updated if architecture changed
+- [x] All tasks validated, explicitly deferred, or blocked with reason
+- [x] All tests pass
+- [x] No P0 bugs introduced
+- [x] CONTEXT.md updated if architecture changed
 
 ## Task Briefs
 

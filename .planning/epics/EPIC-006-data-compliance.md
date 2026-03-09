@@ -17,7 +17,7 @@ GDPR compliance, multi-tenant data isolation, file upload (R2 + CID), and audit 
 - [x] Audit trail: who did what, when (append-only log) (Sprint #4, 75e15ca)
 - [x] Audit trail export (CSV/JSON) (Sprint #7, d6aac65)
 - [ ] Human review endpoint for compliance rejections (GDPR Art. 22)
-- [ ] DPIA draft (required before mainnet per EDPB Guidelines 02/2025)
+- [x] DPIA draft (required before mainnet per EDPB Guidelines 02/2025) (Sprint #10, 602b60f)
 - [ ] 🔒 PostgreSQL Row-Level Security (RLS) or schema-per-brand
 - [x] Batch operations: CSV import of products, batch mint (Sprint #8, 25aa114/ccc86e8/96ba874)
 

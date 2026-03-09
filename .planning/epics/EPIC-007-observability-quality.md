@@ -11,6 +11,7 @@ Test stability, error tracking, monitoring, and structured logging. Ensures the 
 ## Tasks
 
 - [x] Fix flaky tests: mint.test.ts, products.test.ts, recall.test.ts timeout in full suite
+- [x] Fix FK constraint violations in batch-mint/batch-import tests (Sprint #10, a4f22d0)
 - [ ] Consider per-file test database isolation (schema-per-suite)
 - [x] Sentry integration (error tracking) (Sprint #4, 78f3042)
 - [x] Vercel Analytics (frontend) (Sprint #9, 178035d)
