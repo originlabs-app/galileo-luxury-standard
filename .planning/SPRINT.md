@@ -4,9 +4,9 @@
 > Created by the Researcher from the BACKLOG. Each task includes a brief: files to modify, approach, patterns, edge cases.
 > Archived when all tasks are validated or deferred.
 
-## Sprint #8 — Batch Operations & Wallet Auth
+## Sprint #9 — Smart Wallet & Observability
 
-**Goal**: Add batch CSV import/mint for brand onboarding at scale, and implement SIWE (Sign-In With Ethereum) wallet login. These are the highest-priority non-blocked P1 tasks. Sprint #6 (Real Chain Unblock) remains BLOCKED on RPC key. RLS (🔒) skipped — needs operator approval.
+**Goal**: Add ERC-1271 Smart Wallet support for Coinbase Smart Wallet users (both SIWE login and wallet-link), integrate Vercel Analytics for frontend observability, and cover the new auth flows with E2E tests. MFA (🔒) deferred — requires DB migration for TOTP secret storage.
 **Started**: 2026-03-09
 **Status**: active
 
@@ -14,11 +14,10 @@
 
 | ID | Task | Epic | Status | Verify | Commit |
 |------|------|------|--------|--------|--------|
-| T8.1 | Batch CSV import endpoint | EPIC-006 | validated | Upload CSV with 100 products, all created with correct GTIN validation. Errors reported per row. | 25aa114 |
-| T8.2 | Batch mint endpoint | EPIC-006 | validated | POST /products/batch-mint with array of product IDs, all minted. Partial failure handled gracefully. | ccc86e8 |
-| T8.3 | Dashboard: CSV import UI | EPIC-006 | validated | Upload button, file picker, progress feedback, error summary displayed. Works on desktop and mobile. | 96ba874 |
-| T8.4 | SIWE wallet login (EIP-4361) | EPIC-005 | validated | User can login with wallet signature. Nonce endpoint, SIWE message format, session created on success. | d590d24 |
-| T8.5 | E2E Playwright: batch import, batch mint, SIWE login | EPIC-007 | validated | Automated Playwright specs covering Sprint #8 features. Run with `pnpm --filter dashboard exec playwright test`. | a73f30c |
+| T9.1 | ERC-1271 Smart Wallet verification (API) | EPIC-005 | todo | Smart Wallet (contract) signatures verified in SIWE login and wallet-link. EOA signatures still work. | |
+| T9.2 | Coinbase Smart Wallet connector (dashboard) | EPIC-005 | todo | Dashboard wagmi config includes Coinbase Smart Wallet connector. Users can connect with Coinbase Smart Wallet, sign SIWE messages, and link wallet. | |
+| T9.3 | Vercel Analytics integration | EPIC-007 | todo | `@vercel/analytics` active in dashboard and scanner. Page views tracked. No impact on performance or bundle size > 5KB. | |
+| T9.4 | E2E Playwright: Smart Wallet + wallet auth flows | EPIC-007 | todo | Playwright specs cover wallet-link with nonce, SIWE login with EOA, and Smart Wallet connector presence. All pass. | |
 
 ### Status values
 - `todo` — Not started
@@ -30,219 +29,14 @@
 
 ## Completion Criteria
 
-- [x] All tasks validated, explicitly deferred, or blocked with reason
-- [x] All tests pass
-- [x] No P0 bugs introduced
-- [x] CONTEXT.md updated if architecture changed
+- [ ] All tasks validated, explicitly deferred, or blocked with reason
+- [ ] All tests pass
+- [ ] No P0 bugs introduced
+- [ ] CONTEXT.md updated if architecture changed
 
 ## Task Briefs
 
-### T8.1 — Batch CSV Import Endpoint
-
-**Type**: backend
-**Priority**: P1
-**Epic**: EPIC-006-data-compliance
-**Operator approval**: not required
-
-**Files to modify**:
-- `apps/api/src/routes/products/batch-import.ts` —NEW: CSV import route handler
-- `apps/api/src/routes/products/index.ts` —register batch-import route
-- `packages/shared/src/validation/gtin.ts` —reuse existing GTIN validation
-- `apps/api/test/batch-import.test.ts` —NEW: batch import tests
-
-**Approach**:
-
-Add a `POST /products/batch-import` endpoint that accepts a CSV file (multipart/form-data) and creates products in bulk. Each row is validated independently — invalid rows are skipped and reported in the response.
-
-**Step 1: Define CSV format**
-
-Expected CSV columns: `name,gtin,serialNumber,category,description,materials`. First row is header. GTIN is validated using existing `validateGtin` from @galileo/shared. Category must match existing enum values.
-
-**Step 2: Create `apps/api/src/routes/products/batch-import.ts`**
-
-- Accept multipart file upload (reuse existing @fastify/multipart setup from file upload)
-- Parse CSV content (use a lightweight CSV parser — split by newlines and commas with quote handling, or use `csv-parse/sync` if already available)
-- For each row: validate GTIN, validate required fields, create product via Prisma
-- Wrap in a transaction: all-or-nothing by default, with `?partial=true` query param for partial success mode
-- Return summary: `{ created: number, errors: Array<{ row: number, field: string, message: string }> }`
-
-**Step 3: Auth and scoping**
-
-- Requires ADMIN or BRAND_ADMIN role
-- BRAND_ADMIN: all products created under their brand
-- ADMIN: must specify brandId in CSV or query param
-
-**Step 4: Limits**
-
-- Max 500 rows per upload (safety limit)
-- Max file size: 1MB
-- Duplicate GTIN+serial within the CSV: reject the duplicate row
-
-**Patterns to follow**:
-- requireRole middleware for ADMIN + BRAND_ADMIN (existing pattern)
-- CSRF header on mutation (R01)
-- Brand scoping (R31)
-- Zod validation per row
-- Multipart file upload (existing pattern from image upload)
-- Transaction for atomicity (default) or partial mode
-
-**Edge cases**:
-- Empty CSV (header only): return `{ created: 0, errors: [] }`
-- All rows invalid: return 0 created with all errors
-- Duplicate GTIN+serial in CSV: report error on duplicate row
-- Duplicate GTIN+serial vs existing DB: report conflict error per row
-- Malformed CSV (missing columns, extra columns): report parse error
-- BOM (byte order mark) in UTF-8 CSV: strip BOM before parsing
-- BRAND_ADMIN uploading for another brand: 403
-
-**Tests** (~12 tests):
-- Upload valid CSV with 5 products — all created (201)
-- Upload CSV with invalid GTIN — row error reported, others created (partial mode)
-- Upload CSV with duplicate GTIN+serial — error on duplicate
-- Empty CSV returns 0 created
-- Exceeding 500 rows returns 400
-- BRAND_ADMIN can import for own brand
-- BRAND_ADMIN cannot import for other brand (403)
-- VIEWER role returns 403
-- Unauthenticated returns 401
-- Malformed CSV returns 400 with parse error
-- Transaction mode: one invalid row rolls back all (default)
-- Partial mode: valid rows created, invalid rows reported
-
-**Verify**: Upload a CSV with 10 valid products — all created. Upload CSV with 2 invalid rows — errors reported per row. Check products exist in DB. Verify BRAND_ADMIN scoping.
-
----
-
-### T8.2 — Batch Mint Endpoint
-
-**Type**: backend
-**Priority**: P1
-**Epic**: EPIC-006-data-compliance
-**Operator approval**: not required
-
-**Files to modify**:
-- `apps/api/src/routes/products/batch-mint.ts` —NEW: batch mint route handler
-- `apps/api/src/routes/products/index.ts` —register batch-mint route
-- `apps/api/test/batch-mint.test.ts` —NEW: batch mint tests
-
-**Approach**:
-
-Add a `POST /products/batch-mint` endpoint that accepts an array of product IDs and mints them all. Uses the existing mint logic (mock mint for now) applied to each product.
-
-**Step 1: Create `apps/api/src/routes/products/batch-mint.ts`**
-
-```typescript
-const batchMintBodySchema = z.object({
-  productIds: z.array(z.string().uuid()).min(1).max(100),
-});
-```
-
-- Validate all product IDs exist and are in DRAFT status
-- For each product: run the existing mint flow (DID generation, mock on-chain data, status update to ACTIVE)
-- Wrap in a transaction for atomicity
-- Return summary: `{ minted: number, errors: Array<{ productId: string, message: string }> }`
-
-**Step 2: Auth and scoping**
-
-- Requires ADMIN or BRAND_ADMIN
-- BRAND_ADMIN: can only mint products belonging to their brand
-- Pre-check: verify all products belong to user's brand before starting
-
-**Step 3: Concurrency**
-
-- Use optimistic concurrency (existing pattern from single mint) per product
-- If a product was already minted between validation and execution, report it in errors
-
-**Patterns to follow**:
-- Reuse existing mint logic from `apps/api/src/routes/products/mint.ts`
-- requireRole middleware
-- CSRF header
-- Brand scoping (R31)
-- Optimistic concurrency (existing mint pattern)
-- Webhook outbox enqueue for each minted product (T7.2 integration)
-
-**Edge cases**:
-- Empty array: rejected by `.min(1)` validation
-- Mix of valid and invalid products: report per-product errors
-- Product already ACTIVE: skip with error "already minted"
-- Product in RECALLED status: skip with error "cannot mint recalled product"
-- Cross-brand products for BRAND_ADMIN: 403
-- Concurrent batch mints: optimistic concurrency handles race conditions
-- Very large batch: capped at 100 products per request
-
-**Tests** (~10 tests):
-- Batch mint 3 DRAFT products — all become ACTIVE (200)
-- Batch mint with non-existent product ID — error reported
-- Batch mint product already ACTIVE — error "already minted"
-- Batch mint RECALLED product — error reported
-- BRAND_ADMIN can only mint own brand's products
-- Cross-brand product in batch — 403
-- Empty productIds array — 400 validation error
-- Over 100 products — 400 validation error
-- Webhook events fired for each minted product
-- Unauthenticated returns 401
-
-**Verify**: Create 5 products via CSV import (T8.1). Batch mint all 5 — all become ACTIVE. Verify DID and mock on-chain data generated for each. Verify webhook events fired.
-
----
-
-### T8.3 — Dashboard CSV Import UI
-
-**Type**: UI
-**Priority**: P1
-**Epic**: EPIC-006-data-compliance
-**Operator approval**: not required
-
-**Files to modify**:
-- `apps/dashboard/src/components/batch-import-dialog.tsx` —NEW: CSV import dialog component
-- `apps/dashboard/src/app/products/page.tsx` —add import button to product list page
-- `apps/dashboard/src/lib/api.ts` —add batch import API call
-
-**Approach**:
-
-Add a "Import CSV" button to the product list page that opens a dialog with file upload, preview, and progress feedback.
-
-**Step 1: Create `batch-import-dialog.tsx`**
-
-Dialog component with:
-- File input accepting `.csv` files only
-- Preview of first 5 rows after file selection (parsed client-side)
-- "Import" button to submit to `POST /products/batch-import`
-- Progress state: idle → uploading → success/error
-- Error summary: table showing row number, field, and error message
-- Success summary: "X products created successfully"
-
-**Step 2: Integrate in product list page**
-
-Add an "Import CSV" button next to the existing "Add Product" button. Only visible for ADMIN and BRAND_ADMIN roles.
-
-**Step 3: API integration**
-
-Add `batchImport(file: File)` function to `api.ts` that sends the file as multipart/form-data with CSRF header.
-
-**Patterns to follow**:
-- shadcn/ui Dialog, Button, Table components
-- TanStack Query for mutation (useMutation)
-- CSRF header on mutation (X-Galileo-Client)
-- Role-based UI visibility (existing pattern)
-- File upload pattern from existing image upload component
-- Toast notifications for success/error (existing pattern)
-
-**Edge cases**:
-- Large file: show loading spinner during upload
-- Network error: show retry option
-- All rows failed: show full error table
-- User cancels dialog mid-upload: mutation cancelled
-- Non-CSV file selected: validate file extension client-side
-- Empty file: show "No data found" message
-
-**Tests**: Covered by T8.5 E2E specs.
-
-**Verify**: Click "Import CSV" on product list. Select a valid CSV. Preview shows first rows. Click Import. Products appear in list. Select CSV with errors. Error summary displayed. Works on desktop and mobile.
-
----
-
-### T8.4 — SIWE Wallet Login (EIP-4361)
+### T9.1 — ERC-1271 Smart Wallet Verification (API)
 
 **Type**: security
 **Priority**: P1
@@ -250,150 +44,278 @@ Add `batchImport(file: File)` function to `api.ts` that sends the file as multip
 **Operator approval**: not required
 
 **Files to modify**:
-- `apps/api/src/routes/auth/siwe.ts` —NEW: SIWE login route (nonce + verify)
-- `apps/api/src/routes/auth/index.ts` —register SIWE routes
-- `apps/api/src/services/siwe.ts` —NEW: SIWE message builder and verifier
-- `packages/shared/src/validation/wallet.ts` —add SIWE message types
-- `apps/dashboard/src/components/siwe-login.tsx` —NEW: SIWE login button component
-- `apps/dashboard/src/app/login/page.tsx` —add SIWE login option
-- `apps/api/test/siwe.test.ts` —NEW: SIWE tests
+- `apps/api/src/plugins/chain.ts` — always create publicClient (even without DEPLOYER_PRIVATE_KEY)
+- `apps/api/src/routes/auth/siwe.ts` — use publicClient.verifyMessage for ERC-1271 support
+- `apps/api/src/routes/auth/link-wallet.ts` — use publicClient.verifyMessage for ERC-1271 support
+- `apps/api/test/siwe.test.ts` — add ERC-1271 test cases
+- `apps/api/test/link-wallet.test.ts` — add ERC-1271 test cases
 
 **Approach**:
 
-Implement Sign-In With Ethereum (EIP-4361) as an alternative login method. Users with a linked wallet can authenticate by signing a SIWE message instead of using email/password.
+The current SIWE and wallet-link routes use `viem.verifyMessage()` (standalone import) which only does `ecrecover` — EOA verification. Smart Wallets (Coinbase Smart Wallet, Safe, etc.) use ERC-1271: their signatures are verified by calling `isValidSignature(bytes32, bytes)` on the wallet contract. viem's `publicClient.verifyMessage()` automatically handles both: it tries ecrecover first, then falls back to ERC-1271 on-chain verification.
 
-**Step 1: Install siwe dependency**
+**Step 1: Modify chain plugin to always provide publicClient**
 
-```bash
-pnpm --filter api add siwe
-```
-
-The `siwe` package handles message creation and verification per EIP-4361 spec.
-
-**Step 2: Create SIWE service (`apps/api/src/services/siwe.ts`)**
+Currently, `chain.ts` only creates `publicClient` when `DEPLOYER_PRIVATE_KEY` is set. For ERC-1271 verification, we only need a publicClient (read-only RPC access, no private key). Restructure so that:
+- `publicClient` is ALWAYS created (Base Sepolia with default public RPC)
+- `walletClient` is only created when DEPLOYER_PRIVATE_KEY is present
+- `chainEnabled` reflects whether the walletClient is available (for minting)
 
 ```typescript
-import { SiweMessage } from "siwe";
+// Always create a publicClient for read-only operations (ERC-1271 verification)
+const publicClient = createPublicClient({
+  chain: baseSepolia,
+  transport: http(),
+});
 
-export function createSiweMessage(params: {
-  address: string;
-  nonce: string;
-  chainId: number;
-  domain: string;
-  uri: string;
-  statement?: string;
-}): string {
-  const message = new SiweMessage({
-    domain: params.domain,
-    address: params.address,
-    statement: params.statement ?? "Sign in to Galileo Protocol",
-    uri: params.uri,
-    version: "1",
-    chainId: params.chainId,
-    nonce: params.nonce,
-  });
-  return message.prepareMessage();
-}
+fastify.decorate("chain", {
+  chainEnabled: !!deployerKey,
+  publicClient, // Always available
+  walletClient, // Only when DEPLOYER_PRIVATE_KEY is set
+});
+```
 
-export async function verifySiweMessage(
-  message: string,
-  signature: string,
-  nonce: string,
-): Promise<{ address: string; chainId: number } | null> {
-  try {
-    const siweMessage = new SiweMessage(message);
-    const result = await siweMessage.verify({ signature, nonce });
-    if (!result.success) return null;
-    return {
-      address: result.data.address,
-      chainId: result.data.chainId,
+**Step 2: Update SIWE verify route**
+
+In `siwe.ts`, replace standalone `verifyMessage` import with `fastify.chain.publicClient.verifyMessage()`:
+
+```typescript
+// Before (EOA only):
+const { verifyMessage } = await import("viem");
+isValid = await verifyMessage({ address, message, signature });
+
+// After (EOA + ERC-1271):
+isValid = await fastify.chain.publicClient.verifyMessage({
+  address: checksumAddress,
+  message,
+  signature: signature as `0x${string}`,
+});
+```
+
+The `publicClient.verifyMessage()` from viem:
+1. First tries `ecrecover` (EOA) — no RPC call
+2. If that fails, checks if address is a contract via `eth_getCode`
+3. If contract, calls `isValidSignature(hash, signature)` via `eth_call`
+4. Returns true only if the contract returns the ERC-1271 magic value (`0x1626ba7e`)
+
+**Step 3: Update link-wallet route**
+
+Same change in `link-wallet.ts` — replace standalone `verifyMessage` with `fastify.chain.publicClient.verifyMessage()`.
+
+**Step 4: Update type declarations**
+
+Update the `FastifyInstance` augmentation in `chain.ts` to make `publicClient` non-optional:
+
+```typescript
+declare module "fastify" {
+  interface FastifyInstance {
+    chain: {
+      chainEnabled: boolean;
+      publicClient: PublicClient; // Always available
+      walletClient?: WalletClient; // Only with deployer key
     };
-  } catch {
-    return null;
   }
 }
 ```
 
-**Step 3: Create SIWE routes (`apps/api/src/routes/auth/siwe.ts`)**
+**Step 5: Handle test environment**
 
-Two endpoints:
-
-1. `GET /auth/siwe/nonce` — Generate a nonce for SIWE signing (reuse nonce pattern from T7.4, but without requiring auth — this is for login). Store nonce in memory with TTL.
-
-2. `POST /auth/siwe/verify` — Accept `{ message, signature }`. Verify SIWE message against nonce. Look up user by wallet address (`walletAddress` field on User). If found, issue session cookie (same as existing login flow). If no user linked to that wallet, return 404 with clear message.
-
-```typescript
-// POST /auth/siwe/verify
-const body = siweVerifySchema.parse(request.body);
-const verified = await verifySiweMessage(body.message, body.signature, expectedNonce);
-if (!verified) {
-  return reply.status(401).send({ success: false, error: { code: "INVALID_SIGNATURE", message: "SIWE verification failed" } });
-}
-
-const user = await fastify.prisma.user.findFirst({
-  where: { walletAddress: getAddress(verified.address) },
-});
-if (!user) {
-  return reply.status(404).send({ success: false, error: { code: "WALLET_NOT_LINKED", message: "No account linked to this wallet. Login with email first and link your wallet." } });
-}
-
-// Issue session cookie (reuse existing session creation logic)
-const token = signJwt({ sub: user.id, role: user.role, brandId: user.brandId });
-setCookie(reply, token);
-return reply.send({ success: true, data: { user: { id: user.id, email: user.email, role: user.role } } });
-```
-
-**Step 4: Dashboard SIWE login component**
-
-Create `siwe-login.tsx`:
-- "Sign in with Wallet" button on login page
-- Connect wallet via wagmi (existing setup)
-- Fetch nonce from `GET /auth/siwe/nonce`
-- Build SIWE message and request signature via wagmi `signMessage`
-- Submit to `POST /auth/siwe/verify`
-- On success: redirect to dashboard
-- On 404 (wallet not linked): show message directing user to email login + wallet link
-
-**Step 5: Add to login page**
-
-Add SIWE login button below the existing email/password form with a divider ("or").
+In tests, `chain` plugin is sometimes mocked. Ensure the mock includes a `publicClient` with a `verifyMessage` method. For SIWE and link-wallet tests that mock viem:
+- Update the mock to provide `publicClient.verifyMessage` instead of standalone `verifyMessage`
+- Keep the same test patterns (vi.mock before imports)
 
 **Patterns to follow**:
-- Nonce pattern from T7.4 (in-memory store, TTL, one-time use)
-- Session cookie creation (reuse from existing login route)
-- wagmi for wallet interactions (existing in dashboard)
-- Checksum address comparison with `getAddress` from viem
-- No body/response JSON schema (R01)
-- CSRF header not needed on login (no session yet)
+- Plugin architecture: fp() plugins decorate fastify instance (chain.ts)
+- viem publicClient for read-only chain operations
+- Mock decorators pattern for isolated route tests (R17)
+- vi.mock() before imports (R06)
+- No body/response schema changes (R01)
 
 **Edge cases**:
-- Wallet not linked to any account: 404 with clear guidance
-- Expired nonce: 401 with "nonce expired"
-- Replayed signature: nonce consumed on first use
-- Wrong chain: SIWE message includes chainId, mismatch rejected
-- User with multiple wallets: findFirst by walletAddress (currently one wallet per user)
-- User account disabled/deleted: check user status before issuing session
-- ERC-1271 smart wallet: the `siwe` package supports ERC-1271 verification (Smart Wallet Coinbase compatibility for free)
+- Smart Wallet on a chain not supported by our RPC: publicClient is configured for Base Sepolia only. Smart Wallets on other chains will fail ERC-1271 verification (expected — we only support Base Sepolia)
+- EOA fallback: ecrecover is tried first, so existing EOA flows are unaffected. No RPC call needed for EOA signatures.
+- RPC unavailable: if the public RPC is down, ERC-1271 verification fails (ecrecover still works for EOA). The error is caught and returns 401.
+- publicClient in test env: tests can mock `fastify.chain.publicClient.verifyMessage` to control verification results
+- Smart Wallet not deployed yet: if the contract doesn't exist at the address, `eth_getCode` returns empty, verification fails — correct behavior
 
-**Tests** (~12 tests):
-- GET /auth/siwe/nonce returns 200 with nonce string
-- POST /auth/siwe/verify with valid signature — 200 with session cookie
-- POST /auth/siwe/verify with invalid signature — 401
-- POST /auth/siwe/verify with expired nonce — 401
-- POST /auth/siwe/verify with replayed nonce — 401
-- POST /auth/siwe/verify with wallet not linked — 404
-- Session cookie set correctly after SIWE login
-- User can access protected routes after SIWE login
-- SIWE message includes correct domain and chainId
-- Nonce is consumed after use (one-time)
-- Wrong chainId in message — rejected
-- Checksum address comparison works
+**Tests** (~8 tests across siwe.test.ts and link-wallet.test.ts):
+- SIWE verify with EOA signature still works (regression)
+- SIWE verify with Smart Wallet signature (mock publicClient returns true)
+- SIWE verify with invalid Smart Wallet signature (mock returns false) — 401
+- Link-wallet with EOA signature still works (regression)
+- Link-wallet with Smart Wallet signature (mock publicClient returns true)
+- Link-wallet with Smart Wallet signature invalid (mock returns false) — 400
+- publicClient.verifyMessage called with correct params
+- RPC error during ERC-1271 check — returns 401 gracefully
 
-**Verify**: Connect wallet in dashboard. Click "Sign in with Wallet". Sign the SIWE message. Session created, redirected to dashboard. Try with unlinked wallet — shows "link wallet first" message. Try replaying signature — rejected.
+**Verify**: Deploy a test with mocked publicClient. EOA signatures work as before. Smart Wallet signatures verified via publicClient.verifyMessage. Invalid signatures rejected. RPC errors handled gracefully.
 
 ---
 
-### T8.5 — E2E Playwright: Batch Import, Batch Mint, SIWE Login
+### T9.2 — Coinbase Smart Wallet Connector (Dashboard)
+
+**Type**: UI
+**Priority**: P1
+**Epic**: EPIC-005-security-hardening
+**Operator approval**: not required
+
+**Files to modify**:
+- `apps/dashboard/src/lib/wallet.ts` — add Coinbase Smart Wallet connector to wagmi config
+- `apps/dashboard/src/components/siwe-login.tsx` — support Smart Wallet connector selection
+- `apps/dashboard/src/components/wallet-connection.tsx` — support Smart Wallet connector for wallet-link
+
+**Approach**:
+
+Add Coinbase Smart Wallet as a connector option in the wagmi configuration. Coinbase Smart Wallet uses the `coinbaseWallet` connector from wagmi with `preference: 'smartWalletOnly'` for smart wallet, or `preference: 'all'` to support both EOA and Smart Wallet.
+
+**Step 1: Add Coinbase Wallet connector**
+
+In `apps/dashboard/src/lib/wallet.ts`:
+
+```typescript
+import { createConfig, http } from "wagmi";
+import { baseSepolia } from "wagmi/chains";
+import { injected, coinbaseWallet } from "wagmi/connectors";
+
+export const walletConfig = createConfig({
+  chains: [walletChain],
+  connectors: [
+    injected({ shimDisconnect: true }),
+    coinbaseWallet({
+      appName: "Galileo Protocol",
+      preference: "all", // Support both EOA (Coinbase Wallet) and Smart Wallet
+    }),
+  ],
+  ssr: true,
+  transports: {
+    [walletChain.id]: http(),
+  },
+});
+```
+
+The `coinbaseWallet` connector from wagmi v3 natively supports:
+- **EOA**: Traditional Coinbase Wallet (browser extension, mobile)
+- **Smart Wallet**: Coinbase Smart Wallet (passkey-based, gasless)
+
+When `preference: "all"`, the user chooses between EOA and Smart Wallet in the Coinbase Wallet UI. The signature mechanism adapts automatically — Smart Wallet signs via ERC-1271, EOA signs via ecrecover. No code changes needed in the signing flow.
+
+**Step 2: Update SIWE login component**
+
+In `siwe-login.tsx`, update to allow connector selection when multiple connectors are available:
+
+```typescript
+// Instead of always using injected(), let the user choose:
+const { connectors } = useConnect();
+
+// Try Coinbase Wallet first (if available), then injected
+const connector = connectors.find(c => c.id === "coinbaseWalletSDK") ?? connectors[0];
+const result = await connectAsync({ connector });
+```
+
+Alternatively, keep it simple: add a second "Sign in with Coinbase Wallet" button that uses the `coinbaseWallet` connector explicitly.
+
+Recommended approach: **Two buttons** — "Sign in with Wallet" (injected/MetaMask) and "Sign in with Coinbase" (coinbaseWallet). This is clearer UX than a single button with a connector picker.
+
+**Step 3: Update wallet-connection component**
+
+Same pattern for wallet-link: add Coinbase Wallet as a connector option. If the user is already connected via Coinbase Smart Wallet, the link-wallet flow uses the same connector for signing.
+
+**Patterns to follow**:
+- wagmi v3 connectors pattern (existing in wallet.ts)
+- shadcn Button component for UI
+- Lucide icons for wallet brand indicators
+- Keep SSR compatibility (ssr: true in wagmi config)
+- No breaking changes to existing MetaMask/injected flow
+
+**Edge cases**:
+- User has both MetaMask and Coinbase Wallet installed: both buttons visible, user chooses
+- Coinbase Wallet not installed: button still works — Coinbase SDK opens a popup/redirect for wallet creation
+- Smart Wallet passkey: signing uses WebAuthn — transparent to our code (wagmi handles it)
+- Mobile: Coinbase Wallet mobile app opens for signing via WalletConnect or deep link
+- SSR: connector initialization deferred to client (wagmi handles with ssr: true)
+
+**Tests**: Covered by T9.4 E2E specs.
+
+**Verify**: Open login page — two wallet buttons visible (injected + Coinbase). Click "Sign in with Coinbase" — Coinbase Wallet SDK initiates connection. Sign SIWE message via Smart Wallet — session created. Navigate to wallet-link — Coinbase connector available for linking.
+
+---
+
+### T9.3 — Vercel Analytics Integration
+
+**Type**: observability
+**Priority**: P2
+**Epic**: EPIC-007-observability-quality
+**Operator approval**: not required
+
+**Files to modify**:
+- `apps/dashboard/src/app/layout.tsx` — add Analytics component
+- `apps/dashboard/package.json` — add @vercel/analytics dependency
+- `apps/scanner/src/app/layout.tsx` — add Analytics component
+- `apps/scanner/package.json` — add @vercel/analytics dependency
+
+**Approach**:
+
+Add Vercel Analytics to both dashboard and scanner apps. Vercel Analytics is a lightweight (~1KB) client-side analytics library that tracks page views automatically. It works on any hosting provider (not just Vercel) in development mode, and provides full analytics on Vercel-hosted apps.
+
+**Step 1: Install @vercel/analytics**
+
+```bash
+pnpm --filter dashboard add @vercel/analytics
+pnpm --filter scanner add @vercel/analytics
+```
+
+**Step 2: Add Analytics component to dashboard layout**
+
+In `apps/dashboard/src/app/layout.tsx`:
+
+```typescript
+import { Analytics } from "@vercel/analytics/next";
+
+// In the return, after {children}:
+<Analytics />
+```
+
+The `Analytics` component:
+- Auto-tracks page views (route changes via Next.js router)
+- No configuration needed for basic page view tracking
+- No-op in development (unless `VERCEL_ANALYTICS_ID` is set)
+- ~1KB bundle size impact
+- Respects Do Not Track browser setting
+
+**Step 3: Add Analytics component to scanner layout**
+
+Same pattern in `apps/scanner/src/app/layout.tsx`:
+
+```typescript
+import { Analytics } from "@vercel/analytics/next";
+
+// After {children} and <RegisterSW />:
+<Analytics />
+```
+
+**Step 4: Verify no impact on tests**
+
+The Analytics component renders nothing in non-Vercel environments. It should not affect existing E2E tests or unit tests. Verify by running the full test suite.
+
+**Patterns to follow**:
+- Next.js App Router: component goes in root layout.tsx
+- Import from `@vercel/analytics/next` (not `@vercel/analytics/react`) for App Router
+- No environment variable configuration needed for basic setup
+- Graceful no-op when not deployed on Vercel (R30 pattern — optional integration)
+
+**Edge cases**:
+- Not deployed on Vercel yet: Analytics is a no-op, zero impact
+- PWA scanner: Analytics works in PWA mode (it's a standard script)
+- CSP headers: if helmet is configured in production, may need to allow Vercel Analytics script domain (`vitals.vercel-insights.com`). Currently helmet is disabled in test, and production CSP is not yet configured.
+- Ad blockers: some ad blockers block Vercel Analytics. This is expected behavior — analytics should never block the app.
+
+**Tests**: No specific tests needed — verify existing tests still pass after adding the component. Analytics is a passive observer, not testable in unit/E2E without Vercel deployment.
+
+**Verify**: Add Analytics component. Run `pnpm turbo typecheck` — passes. Run `pnpm test` — all 369 tests pass. Run `pnpm turbo build` — builds successfully. In dev mode, Analytics component renders without errors in browser console.
+
+---
+
+### T9.4 — E2E Playwright: Smart Wallet + Wallet Auth Flows
 
 **Type**: testing
 **Priority**: P2
@@ -401,52 +323,57 @@ Add SIWE login button below the existing email/password form with a divider ("or
 **Operator approval**: not required
 
 **Files to modify**:
-- `apps/dashboard/e2e/batch-import.spec.ts` —NEW: E2E tests for CSV import + batch mint
-- `apps/dashboard/e2e/siwe-login.spec.ts` —NEW: E2E tests for SIWE wallet login
-- `apps/api/test/batch-import.test.ts` —covered in T8.1 (Vitest)
-- `apps/api/test/batch-mint.test.ts` —covered in T8.2 (Vitest)
-- `apps/api/test/siwe.test.ts` —covered in T8.4 (Vitest)
+- `apps/dashboard/e2e/wallet-auth.spec.ts` — NEW: comprehensive wallet auth E2E tests
+- `apps/dashboard/e2e/siwe-login.spec.ts` — extend with Smart Wallet connector test
 
 **Approach**:
 
-Write Playwright E2E specs for Sprint #8 dashboard features.
+Write Playwright E2E specs covering the wallet authentication flows: wallet-link with nonce, SIWE login, and Coinbase Smart Wallet connector availability. Smart Wallet signing cannot be fully E2E tested (requires real wallet interaction), but we can verify the connector is present and the UI flow works up to the signing step.
 
-**Spec 1: `batch-import.spec.ts`**
-
-```
-describe("Batch CSV Import & Mint")
-  - navigate to product list → click "Import CSV" → upload valid CSV → products created
-  - upload CSV with invalid rows → error summary shown
-  - select imported products → batch mint → all become ACTIVE
-  - verify minted products show DID and status ACTIVE in list
-```
-
-Setup: create a test CSV file with known valid and invalid rows. Use auth state for BRAND_ADMIN.
-
-**Spec 2: `siwe-login.spec.ts`**
+**Spec 1: `wallet-auth.spec.ts`**
 
 ```
-describe("SIWE Wallet Login")
-  - login page shows "Sign in with Wallet" button
-  - SIWE login flow: connect wallet → sign message → redirected to dashboard
-  - unlinked wallet shows error message
+describe("Wallet Auth Flows")
+  - login page shows "Sign in with Wallet" button (injected)
+  - login page shows "Sign in with Coinbase" button (Smart Wallet)
+  - wallet-link page: nonce fetched before signing
+  - API: GET /auth/siwe/nonce returns valid nonce
+  - API: POST /auth/siwe/verify with valid signature returns session
+  - API: POST /auth/siwe/verify with invalid signature returns 401
+  - API: POST /auth/link-wallet with valid nonce + signature succeeds
+  - API: POST /auth/link-wallet with replayed nonce returns 400
 ```
 
-Note: SIWE E2E requires mocking wallet interactions. Use Playwright's route interception to mock the wallet provider, or test the API flow directly via `request` context with pre-signed messages.
+Testing approach:
+- **UI presence**: verify buttons render with correct labels
+- **API flow**: use Playwright `request` context for direct API calls with pre-signed messages
+- **Nonce lifecycle**: test create → consume → reject-replay via API
+- **Smart Wallet**: verify the Coinbase connector is listed in wagmi config (check for button in UI)
+
+**Spec 2: Extend `siwe-login.spec.ts`**
+
+Add test for Coinbase Smart Wallet button presence:
+
+```
+- "Sign in with Coinbase" button is visible on login page
+- clicking it opens Coinbase Wallet SDK (mock/intercept the SDK call)
+```
 
 **Patterns to follow**:
-- Auth: use `storageState` for authenticated tests
-- File upload: use Playwright's `setInputFiles` for CSV upload
-- Selectors: prefer `getByRole`, `getByText`, `getByLabel`
-- Waits: use `expect(locator).toBeVisible({ timeout })` not sleeps
+- Auth: use `storageState` for authenticated tests (wallet-link requires auth)
 - API testing: use `request.newContext()` for direct API calls
+- Selectors: prefer `getByRole`, `getByText`
+- Waits: use `expect(locator).toBeVisible({ timeout })` not sleeps
+- Do not test actual wallet signing (requires real wallet extension) — test up to the signing step, mock the rest
 
 **Edge cases**:
-- CSV upload dialog may vary by browser — use Playwright's file chooser API
-- SIWE wallet mock: may need custom page.evaluate to inject mock provider
-- Batch mint button state: disabled when no products selected
+- Coinbase Wallet SDK popup: cannot test real popup in Playwright — verify button exists and click triggers
+- Wallet extensions: Playwright headless mode doesn't have wallet extensions — use API-level tests for signature verification
+- SIWE message format: test the API contract, not the browser signing
 
-**Verify**: `pnpm --filter dashboard exec playwright test` runs all specs including new ones. All pass.
+**Tests**: ~8 Playwright specs across the two files.
+
+**Verify**: `pnpm --filter dashboard exec playwright test` runs all specs including new ones. All pass. Login page shows both wallet buttons. API-level wallet auth flows tested comprehensively.
 
 ## Notes
 
@@ -454,9 +381,11 @@ Note: SIWE E2E requires mocking wallet interactions. Use Playwright's route inte
 <!-- Operator approvals: "Approved: T{N}.{M} — {reason}" -->
 <!-- Blocked reasons: "Blocked: T{N}.{M} — {reason}" -->
 
-Sprint #6 (Real Chain Unblock) remains BLOCKED on RPC key. Sprint #8 pulls forward non-blocked P1 tasks: batch operations (EPIC-006) and SIWE wallet login (EPIC-005).
+Sprint #6 (Real Chain Unblock) remains BLOCKED on RPC key. Sprint #9 focuses on Smart Wallet support and observability.
 
-🔒 PostgreSQL RLS is NOT included — requires operator approval. Smart Wallet Coinbase (ERC-1271) gets partial coverage through the `siwe` package in T8.4, which supports ERC-1271 verification natively.
+🔒 MFA (TOTP + passkey) is NOT included — requires DB migration to add `totpSecret`, `totpEnabled` fields to User model. Deferred to a future sprint after operator approval.
+
+🔒 PostgreSQL RLS is NOT included — requires operator approval (unchanged from Sprint #8).
 
 ## Archive
 

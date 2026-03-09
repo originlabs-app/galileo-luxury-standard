@@ -145,17 +145,17 @@ feature · improvement · UI · backend · security · performance · observabil
   - **Context**: Sign-In With Ethereum. Requires nonce endpoint, SIWE message format, ERC-1271 verification.
   - **Verify**: Users can login with wallet signature
 
-- [ ] `EPIC-005` Smart Wallet Coinbase support (ERC-1271) — [source: ROADMAP 3.3]
+- [ ] `EPIC-005` Smart Wallet Coinbase support (ERC-1271) — [source: ROADMAP 3.3] — **Sprint #9 T9.1/T9.2**
   - **Context**: ERC-1271 verification, passkey, gasless. Requires Smart Wallet SDK integration.
   - **Verify**: Smart Wallet users can connect and sign transactions
 
-- [ ] `EPIC-005` MFA: TOTP + passkey — [source: ROADMAP 4.5]
-  - **Context**: Enterprise-grade MFA for brand admin users
+- [ ] 🔒 `EPIC-005` MFA: TOTP + passkey — [source: ROADMAP 4.5]
+  - **Context**: Enterprise-grade MFA for brand admin users. Requires DB migration (totpSecret, totpEnabled fields on User).
   - **Verify**: TOTP enrollment and verification flow works
 
-- [ ] `EPIC-007` E2E Playwright: wallet link (with nonce) + SIWE login + MFA enrollment
-  - **Context**: Full auth/wallet E2E coverage. Mock wallet interactions with Playwright.
-  - **Verify**: E2E covers wallet link, SIWE login, MFA TOTP enrollment + verification
+- [ ] `EPIC-007` E2E Playwright: wallet link (with nonce) + SIWE login + Smart Wallet — **Sprint #9 T9.4**
+  - **Context**: Auth/wallet E2E coverage. Mock wallet interactions with Playwright. MFA tests deferred until MFA is implemented.
+  - **Verify**: E2E covers wallet link, SIWE login, Smart Wallet connector presence
 
 ---
 
@@ -175,7 +175,7 @@ feature · improvement · UI · backend · security · performance · observabil
   - **Context**: Only after testnet E2E passes
   - **Verify**: Contracts deployed, verified, ownership transferred to multisig
 
-- [ ] `EPIC-007` Vercel Analytics — [source: ROADMAP 4.4]
+- [ ] `EPIC-007` Vercel Analytics — [source: ROADMAP 4.4] — **Sprint #9 T9.3**
   - **Context**: Frontend analytics for dashboard and scanner
   - **Verify**: Analytics dashboard shows page views
 
