@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { api } from "@/lib/api";
+import { api, ApiError } from "@/lib/api";
 import { clearLegacyTokens } from "@/lib/auth";
 
 interface User {
@@ -20,6 +20,7 @@ interface User {
   brand?: {
     id: string;
     name: string;
+    slug: string;
     did: string;
   } | null;
 }
@@ -69,6 +70,11 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [auth, setAuth] = useState<AuthState>({ state: "loading", user: null });
 
+  const hydrateUser = useCallback(async () => {
+    const response = await api<ApiResponse<MeData>>("/auth/me");
+    setAuth({ state: "authenticated", user: response.data.user });
+  }, []);
+
   // Clear legacy localStorage tokens and fetch user on mount
   useEffect(() => {
     clearLegacyTokens();
@@ -93,27 +99,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(async (params: LoginParams) => {
-    const response = await api<ApiResponse<AuthData>>("/auth/login", {
+    await api<ApiResponse<AuthData>>("/auth/login", {
       method: "POST",
       body: JSON.stringify(params),
       skipAuth: true,
     });
-    setAuth({ state: "authenticated", user: response.data.user });
-  }, []);
+    await hydrateUser();
+  }, [hydrateUser]);
 
   const register = useCallback(async (params: RegisterParams) => {
-    const response = await api<ApiResponse<AuthData>>("/auth/register", {
+    await api<ApiResponse<AuthData>>("/auth/register", {
       method: "POST",
       body: JSON.stringify(params),
       skipAuth: true,
     });
-    setAuth({ state: "authenticated", user: response.data.user });
-  }, []);
+    await hydrateUser();
+  }, [hydrateUser]);
 
   const refreshUser = useCallback(async () => {
-    const response = await api<ApiResponse<MeData>>("/auth/me");
-    setAuth({ state: "authenticated", user: response.data.user });
-  }, []);
+    try {
+      await hydrateUser();
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        setAuth({ state: "unauthenticated", user: null });
+      }
+      throw error;
+    }
+  }, [hydrateUser]);
 
   const logout = useCallback(async () => {
     try {

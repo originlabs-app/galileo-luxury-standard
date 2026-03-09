@@ -6,6 +6,7 @@ import { Wallet } from "lucide-react";
 import { useAccount, useConnect, useSignMessage } from "wagmi";
 import { injected, coinbaseWallet } from "wagmi/connectors";
 import { API_URL } from "@/lib/constants";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 
 type SiweState = "idle" | "connecting" | "signing" | "verifying" | "error";
@@ -35,6 +36,7 @@ function buildSiweMessage(params: {
 
 export function SiweLogin() {
   const router = useRouter();
+  const { refreshUser } = useAuth();
   const { address, isConnected } = useAccount();
   const { connectAsync } = useConnect();
   const { signMessageAsync } = useSignMessage();
@@ -110,7 +112,8 @@ export function SiweLogin() {
         throw new Error(data.error?.message ?? "SIWE verification failed");
       }
 
-      // Success — redirect to dashboard
+      // Rehydrate auth state from the server-authoritative profile contract.
+      await refreshUser();
       router.push("/dashboard");
     } catch (err) {
       setState("error");
