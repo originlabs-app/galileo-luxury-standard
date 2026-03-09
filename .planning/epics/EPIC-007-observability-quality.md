@@ -14,9 +14,9 @@ Test stability, error tracking, monitoring, and structured logging. Ensures the 
 - [ ] Consider per-file test database isolation (schema-per-suite)
 - [ ] Sentry integration (error tracking)
 - [ ] Vercel Analytics (frontend)
-- [x] Health check endpoints with dependency status (DB, chain RPC) (Sprint #2, 25afe6c — pending Tester validation)
+- [x] Health check endpoints with dependency status (DB, chain RPC) (Sprint #2, 25afe6c)
 - [ ] Uptime monitoring
-- [x] Structured logging (no PII) (Sprint #2, 0749206 — pending Tester validation)
+- [x] Structured logging (no PII) (Sprint #2, 0749206)
 
 ## Acceptance Criteria
 

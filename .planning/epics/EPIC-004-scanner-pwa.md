@@ -1,8 +1,9 @@
 # EPIC-004: Scanner PWA
 
-**Status**: mostly-complete
+**Status**: completed
 **Owner**: Researcher
 **Created**: 2026-03-08
+**Completed**: 2026-03-09
 
 ## Description
 
@@ -16,8 +17,8 @@ Mobile-first Progressive Web App for end customers to verify product authenticit
 - [x] QR scanning: getUserMedia + barcode-detector (ZXing WASM ponyfill) — /scan route
 - [x] Public verification page: provenance timeline in scanner + resolver API
 - [x] Service worker for offline cache of previously scanned products
-- [x] Material composition display (Sprint #2, f91652f — pending Tester validation)
-- [x] Deep link: scanning QR goes directly to product page (Sprint #2, fdcefe1 — pending Tester validation)
+- [x] Material composition display (Sprint #2, f91652f)
+- [x] Deep link: scanning QR goes directly to product page (Sprint #2, fdcefe1)
 
 ## Acceptance Criteria
 

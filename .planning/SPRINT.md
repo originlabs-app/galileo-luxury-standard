@@ -4,20 +4,19 @@
 > Created by the Researcher from the BACKLOG. Each task includes a brief: files to modify, approach, patterns, edge cases.
 > Archived when all tasks are validated or deferred.
 
-## Sprint #2 -- Scanner Completion + Observability Foundation
+## Sprint #3 -- Data Compliance & Production API Polish
 
-**Goal**: Complete the Scanner PWA (EPIC-004) by adding material composition display and deep link support, then lay the observability foundation (EPIC-007) with enhanced health checks and structured logging -- preparing for production deployment.
-**Started**: 2026-03-08
+**Goal**: Make the API production-ready by enabling Swagger docs in all environments and implementing GDPR Art. 15 (data export) and Art. 17 (erasure) endpoints -- closing critical compliance gaps before deployment.
+**Started**: 2026-03-09
 **Status**: active
 
 ## Tasks
 
 | # | Task | Epic | Status | Verify | Commit |
 |---|------|------|--------|--------|--------|
-| 1 | Scanner material composition display | EPIC-004 | validated | Scanner shows material composition when product has metadata | f91652f |
-| 2 | Scanner deep link | EPIC-004 | validated | QR scan opens product page directly, bypassing scanner home | fdcefe1 |
-| 3 | Health check with dependency status | EPIC-007 | validated | GET /health returns db + chain status | 25afe6c |
-| 4 | Structured logging (no PII) | EPIC-007 | validated | JSON logs with request IDs, no email/password in logs | 0749206 |
+| 1 | Publish Swagger at /docs in production | EPIC-008 | todo | /docs accessible when ENABLE_SWAGGER=true in production | |
+| 2 | GDPR data export (GET /auth/me/data) | EPIC-006 | todo | Authenticated user gets full JSON export of all their data | |
+| 3 | GDPR erasure (DELETE /auth/me/data) | EPIC-006 | todo | User data deleted from PostgreSQL, events anonymized, cookies cleared | |
 
 ### Status values
 - `todo` -- Not started
@@ -29,372 +28,310 @@
 
 ## Completion Criteria
 
-- [x] All tasks validated or explicitly deferred
-- [x] All tests pass (186 API tests, 69 shared tests — 255 total, 0 failures)
-- [x] No P0 bugs introduced
-- [x] CONTEXT.md updated if architecture changed
-- [ ] EPIC-004 status updated to `completed` after scanner tasks validated
+- [ ] All tasks validated or explicitly deferred
+- [ ] All tests pass (186+ API tests, 69 shared tests, 0 failures)
+- [ ] No P0 bugs introduced
+- [ ] CONTEXT.md updated if architecture changed
 
 ## Task Briefs
 
-### Brief #1: Scanner Material Composition Display
-
-**Type**: feature
-**Priority**: P1
-**Epic**: EPIC-004-scanner-pwa
-
-**Files to modify**:
-- `apps/scanner/src/app/page.tsx` -- add MaterialComposition component + render it in verification result
-- `apps/api/src/routes/resolver/resolve.ts` -- include `metadata` from ProductPassport in JSON-LD response
-- `apps/api/src/routes/products/create.ts` -- add optional `materials` field to createProductBody schema
-- `apps/api/src/routes/products/update.ts` -- add optional `materials` field to updateProductBody schema
-- `packages/shared/src/types/product.ts` -- add Material type (if not already there)
-- `apps/api/test/resolver-qr.test.ts` -- add test for material composition in resolver response
-
-**Approach**:
-
-Material composition data needs to flow from product creation to the scanner display. The `ProductPassport.metadata` JSON field already exists and is the right place to store DPP-related data like materials. ESPR requires material composition in Digital Product Passports for textiles/footwear.
-
-1. **Data model** -- no schema migration needed. Use the existing `ProductPassport.metadata` JSON field. Store materials as:
-   ```typescript
-   // In metadata JSON
-   {
-     materials: [
-       { name: "Calfskin Leather", percentage: 65 },
-       { name: "Cotton Canvas", percentage: 30 },
-       { name: "Brass Hardware", percentage: 5 }
-     ]
-   }
-   ```
-
-2. **Create/Update routes** -- add an optional `materials` array to the Zod body schemas:
-   ```typescript
-   const materialSchema = z.object({
-     name: z.string().min(1).max(100),
-     percentage: z.number().min(0).max(100),
-   });
-
-   // In createProductBody / updateProductBody:
-   materials: z.array(materialSchema).max(20).optional(),
-   ```
-   When `materials` is provided, store it in `ProductPassport.metadata`:
-   ```typescript
-   await tx.productPassport.update({
-     where: { productId: product.id },
-     data: { metadata: { materials: parsed.data.materials } },
-   });
-   ```
-
-3. **Resolver** -- include materials from `metadata` in the JSON-LD response:
-   ```typescript
-   // In resolve.ts, after building jsonLd:
-   const metadata = product.passport?.metadata as Record<string, unknown> | null;
-   const materials = Array.isArray(metadata?.materials) ? metadata.materials : [];
-   // Add to jsonLd:
-   ...(materials.length > 0 ? { hasMaterialComposition: materials } : {}),
-   ```
-
-4. **Scanner UI** -- add a `MaterialComposition` component:
-   - Renders a list of materials with percentage bars
-   - Only shown when `hasMaterialComposition` is present and non-empty
-   - Styled consistently with ProvenanceTimeline (same card + section pattern)
-   - Update `ResolverResult` type to include `hasMaterialComposition`
-
-**Patterns to follow**:
-- Same card styling as ProvenanceTimeline (rounded-[28px], border, bg-card, shadow)
-- Zod `.strict()` on body schemas (already done)
-- Use metadata JSON field (no schema migration needed)
-- Resolver only exposes public-safe data (materials are public per ESPR)
-
-**Edge cases**:
-- Materials percentages may not sum to 100 (some products have partial composition data) -- do NOT validate sum
-- Empty materials array should be treated as "no materials" -- don't render the section
-- Metadata field may contain other keys in the future -- use spread/merge when updating, not overwrite
-- Old products with no materials in metadata should render normally without the section
-
-**Verify**: Create a product with materials -> mint it -> resolve via scanner -> material composition displayed with percentage bars. Product without materials shows no composition section.
-
----
-
-### Brief #2: Scanner Deep Link
-
-**Type**: feature
-**Priority**: P1
-**Epic**: EPIC-004-scanner-pwa
-
-**Files to modify**:
-- `apps/scanner/src/app/scan/page.tsx` -- already routes to `/?link=...` after scan (this works)
-- `apps/scanner/src/app/page.tsx` -- auto-resolve when `?link=` param is present (already works)
-- `apps/scanner/src/app/layout.tsx` -- no changes needed
-- `apps/scanner/public/manifest.json` -- add `url_handlers` for deep linking
-- `apps/scanner/next.config.ts` -- add `assetLinks` / `apple-app-site-association` rewrites if needed
-
-**Approach**:
-
-The scanner already handles deep links partially -- when you scan a QR code on `/scan`, it redirects to `/?link=<encoded-url>` which auto-resolves via `resolveLink()`. The missing piece is **external deep linking**: when a user scans a Galileo QR code with their native camera app (not inside the scanner), the QR contains a GS1 Digital Link URL like `https://id.galileoprotocol.io/01/00012345678905/21/SERIAL-001`. This needs to open the scanner app and show the verification result.
-
-Three things to implement:
-
-1. **Add a catch-all route for GS1 Digital Link paths** -- create `apps/scanner/src/app/01/[gtin]/21/[serial]/page.tsx` that extracts GTIN/serial from the URL path and renders the verification result directly (reusing the same resolver logic from the home page).
-
-   ```typescript
-   // apps/scanner/src/app/01/[gtin]/21/[serial]/page.tsx
-   import { redirect } from "next/navigation";
-
-   export default async function DeepLinkPage({
-     params,
-   }: {
-     params: Promise<{ gtin: string; serial: string }>;
-   }) {
-     const { gtin, serial } = await params;
-     // Redirect to home with link param -- reuses all existing resolution + display logic
-     redirect(`/?link=${encodeURIComponent(`/01/${gtin}/21/${serial}`)}`);
-   }
-   ```
-
-2. **Update PWA manifest** -- add `start_url` that preserves query params, ensure `scope` allows the `/01/` path:
-   ```json
-   {
-     "start_url": "/",
-     "scope": "/",
-     "url_handlers": [{ "origin": "https://scanner.galileoprotocol.io" }]
-   }
-   ```
-
-3. **Service worker** -- update `sw.js` to handle `/01/` paths as navigation requests (not cache-first):
-   ```javascript
-   // In sw.js fetch handler, skip caching for /01/ paths (always network-first for fresh verification)
-   if (url.pathname.startsWith('/01/')) {
-     return; // Let the browser handle it (network request to Next.js)
-   }
-   ```
-
-**Patterns to follow**:
-- Next.js App Router dynamic segments: `[gtin]` and `[serial]` as folder names
-- Redirect pattern: `redirect()` from `next/navigation` for server-side redirect
-- Service worker: network-first for dynamic content, cache-first for static assets (already the pattern in sw.js)
-
-**Edge cases**:
-- URL-encoded serial numbers (e.g., `SERIAL%20001`) -- `decodeURIComponent` in the redirect handles this
-- Invalid GTIN in deep link -- the home page resolver will show the "Invalid GTIN" error (handled by existing validation)
-- `/01/` path must not be cached by the service worker -- stale cache would show old verification results
-- Deep link from external camera app: depends on the QR URL domain matching the scanner's deployed domain. For local dev, deep links only work via `/?link=` param.
-
-**Verify**: Navigate to `/01/0012345678905/21/SERIAL-001` in the scanner -- redirects to home page with verification result. QR scan still works (redirect to `/?link=...`). Service worker does not cache `/01/` paths.
-
----
-
-### Brief #3: Health Check with Dependency Status
+### Brief #1: Publish Swagger at /docs in Production
 
 **Type**: improvement
 **Priority**: P2
-**Epic**: EPIC-007-observability-quality
+**Epic**: EPIC-008-production-deploy
 
 **Files to modify**:
-- `apps/api/src/routes/health.ts` -- extend handler to check DB + chain status
-- `apps/api/test/health.test.ts` -- add tests for dependency status
+- `apps/api/src/config.ts` -- add `ENABLE_SWAGGER` env var
+- `apps/api/src/server.ts` -- replace `NODE_ENV !== "production"` guard with `ENABLE_SWAGGER` check
 
 **Approach**:
 
-Extend the existing `GET /health` endpoint to report dependency status. The current endpoint returns `{ status, version, uptime }`. Add `dependencies` with DB and chain RPC status.
+Currently, Swagger UI is guarded by `config.NODE_ENV !== "production"` in `server.ts` (line 64). This prevents API documentation from being available in production. For a B2B API, having `/docs` accessible in production is important for brand integrators.
 
-1. **Database check** -- use `fastify.prisma.$queryRaw` to execute a lightweight query:
+Instead of simply removing the guard (which would always enable Swagger), add a configurable `ENABLE_SWAGGER` env var that defaults to `true` in development/test and can be explicitly set in production.
+
+1. **Add `ENABLE_SWAGGER` to config.ts**:
    ```typescript
-   let dbStatus: "ok" | "error" = "error";
-   try {
-     await fastify.prisma.$queryRawUnsafe("SELECT 1");
-     dbStatus = "ok";
-   } catch {
-     dbStatus = "error";
-   }
+   ENABLE_SWAGGER: z
+     .enum(["true", "false"])
+     .default("true")
+     .transform((v) => v === "true"),
    ```
 
-2. **Chain RPC check** -- use `fastify.chain.chainEnabled` flag:
+2. **Update the guard in server.ts** (line 64):
    ```typescript
-   let chainStatus: "ok" | "disabled" | "error" = "disabled";
-   if (fastify.chain.chainEnabled) {
-     try {
-       await fastify.chain.publicClient.getChainId();
-       chainStatus = "ok";
-     } catch {
-       chainStatus = "error";
-     }
-   }
+   // Before:
+   if (config.NODE_ENV !== "production") {
+   // After:
+   if (config.ENABLE_SWAGGER) {
    ```
 
-3. **Response format**:
-   ```typescript
-   {
-     status: dbStatus === "ok" ? "ok" : "degraded",
-     version: pkg.version,
-     uptime: process.uptime(),
-     dependencies: {
-       database: dbStatus,
-       chain: chainStatus,
-     }
-   }
-   ```
+3. No changes to the Swagger config content itself. The existing server URL (`http://localhost:{PORT}`) is fine -- browsers auto-detect the actual server. A future task can add a configurable `API_BASE_URL` if needed.
 
-4. **HTTP status code**: Return `200` when `status === "ok"`, `503` when `status === "degraded"`. Load balancers and monitoring tools use the HTTP status to determine if the service is healthy.
-
-5. **Update route schema** to reflect new response shape:
-   ```typescript
-   response: {
-     200: {
-       type: "object",
-       properties: {
-         status: { type: "string", enum: ["ok"] },
-         version: { type: "string" },
-         uptime: { type: "number" },
-         dependencies: {
-           type: "object",
-           properties: {
-             database: { type: "string", enum: ["ok", "error"] },
-             chain: { type: "string", enum: ["ok", "disabled", "error"] },
-           },
-         },
-       },
-     },
-     503: {
-       type: "object",
-       properties: {
-         status: { type: "string", enum: ["degraded"] },
-         version: { type: "string" },
-         uptime: { type: "number" },
-         dependencies: {
-           type: "object",
-           properties: {
-             database: { type: "string", enum: ["ok", "error"] },
-             chain: { type: "string", enum: ["ok", "disabled", "error"] },
-           },
-         },
-       },
-     },
-   }
-   ```
-
-**Important**: The current health.test.ts creates a standalone Fastify instance without plugins (no prisma, no chain). The new health route needs `fastify.prisma` and `fastify.chain` decorators. Two options:
-- (a) Use `buildApp()` from server.ts in the test (requires test DB)
-- (b) Keep the lightweight test but mock the decorators
-
-**Recommended: (b)** -- mock the decorators. This keeps the health test fast and independent of the DB:
-```typescript
-beforeAll(async () => {
-  app = Fastify();
-  // Mock prisma decorator
-  app.decorate("prisma", {
-    $queryRawUnsafe: async () => [{ "?column?": 1 }],
-  });
-  // Mock chain decorator
-  app.decorate("chain", { chainEnabled: false });
-  await app.register(healthRoutes);
-  await app.ready();
-});
-```
+**Tests**: No new test file needed. This is a config change. Verify with `pnpm turbo typecheck`. The existing test suite does not exercise Swagger registration (test env has `logger: false` and Swagger was already registering in non-test envs).
 
 **Patterns to follow**:
-- Health endpoint remains public (no auth required)
-- Response format consistent with existing `{ success, data }` or stay with current flat format (current flat format is fine for health -- keep it flat)
-- Error handling: never throw from health check -- always return a response with status info
+- Config pattern: Zod schema in config.ts with `.default()` for optional vars (R12)
+- Boolean env vars: parse as `z.enum(["true", "false"]).transform()` since env vars are always strings
 
 **Edge cases**:
-- DB connection pool exhausted -- `$queryRawUnsafe("SELECT 1")` should time out, not hang. Add a timeout wrapper if needed (stretch goal).
-- Chain disabled (no DEPLOYER_PRIVATE_KEY) -- report `"disabled"`, not `"error"`. This is the expected state until RPC key is provided.
-- Health check should NOT be rate-limited (it already isn't because it's GET and rate-limit targets all routes equally, but load balancers may hit it frequently). If rate limiting becomes an issue, exempt `/health` in the rate-limit plugin.
+- `ENABLE_SWAGGER` not set: defaults to `"true"` -> Swagger enabled. This is the desired behavior for dev/test, and production deployments must explicitly set env vars anyway.
+- `ENABLE_SWAGGER=false` in production: Swagger disabled, `/docs` returns 404. Useful for internal-only deployments.
+- Swagger in production exposes API structure: acceptable for a B2B API. The endpoints are protected by auth/RBAC regardless.
 
-**Verify**: GET /health returns `{ status: "ok", version, uptime, dependencies: { database: "ok", chain: "disabled" } }` with 200. When DB is down, returns 503 with `status: "degraded"`. Existing health tests still pass.
+**Verify**: Set `ENABLE_SWAGGER=true` in env. Start server. Navigate to `/docs`. Swagger UI loads with all API routes. Set `ENABLE_SWAGGER=false` -- `/docs` returns 404. All existing tests pass.
 
 ---
 
-### Brief #4: Structured Logging (No PII)
+### Brief #2: GDPR Data Export (GET /auth/me/data)
 
-**Type**: improvement
+**Type**: feature
 **Priority**: P2
-**Epic**: EPIC-007-observability-quality
+**Epic**: EPIC-006-data-compliance
 
 **Files to modify**:
-- `apps/api/src/server.ts` -- configure Pino logger options (serializers, redaction, request ID)
-- `apps/api/src/config.ts` -- add optional `LOG_LEVEL` env var
-- `apps/api/test/health.test.ts` -- may need `logger: false` on test Fastify instance (already the case)
+- `apps/api/src/routes/auth/data-export.ts` -- NEW: GET /auth/me/data route
+- `apps/api/src/routes/auth/index.ts` -- register the new route
+- `apps/api/test/gdpr.test.ts` -- NEW: tests for data export (and erasure in task 3)
 
 **Approach**:
 
-Fastify already uses Pino as its built-in logger (`Fastify({ logger: true })`). The task is to configure Pino properly for production: JSON format (default), correlation IDs (Fastify adds `reqId` automatically), and PII redaction.
+GDPR Art. 15 gives users the right to access all their personal data. This endpoint returns a JSON package containing everything the system knows about the authenticated user, excluding sensitive internal fields (passwordHash, refreshToken).
 
-1. **Logger configuration** in `server.ts`:
+1. **Create `data-export.ts`** route:
+
    ```typescript
-   const fastify = Fastify({
-     logger: config.NODE_ENV !== "test" ? {
-       level: config.LOG_LEVEL ?? "info",
-       // Pino serializers control what gets logged for req/res
-       serializers: {
-         req(request) {
-           return {
-             method: request.method,
-             url: request.url,
-             hostname: request.hostname,
-             remoteAddress: request.ip,
-             // Exclude headers that may contain auth tokens
-           };
-         },
-         res(reply) {
-           return {
-             statusCode: reply.statusCode,
-           };
+   import type { FastifyInstance } from "fastify";
+
+   export default async function dataExportRoute(fastify: FastifyInstance) {
+     fastify.get(
+       "/auth/me/data",
+       {
+         onRequest: [fastify.authenticate],
+         schema: {
+           description:
+             "Export all personal data for the authenticated user (GDPR Art. 15). " +
+             "Returns user profile, brand association, products, and events performed.",
+           tags: ["Auth", "GDPR"],
+           security: [{ cookieAuth: [] }],
          },
        },
-       // Redact paths that could contain PII
-       redact: {
-         paths: [
-           "req.headers.authorization",
-           "req.headers.cookie",
-           "req.body.password",
-           "req.body.email",
-           "req.body.passwordHash",
-         ],
-         censor: "[REDACTED]",
+       async (request, reply) => {
+         const { sub } = request.user;
+
+         const user = await fastify.prisma.user.findUnique({
+           where: { id: sub },
+           include: { brand: true },
+         });
+
+         if (!user) {
+           return reply.status(404).send({
+             success: false,
+             error: { code: "NOT_FOUND", message: "User not found" },
+           });
+         }
+
+         // Products owned by user's brand (if any)
+         let products: unknown[] = [];
+         if (user.brandId) {
+           products = await fastify.prisma.product.findMany({
+             where: { brandId: user.brandId },
+             include: { passport: true },
+           });
+         }
+
+         // Events performed by this user
+         const events = await fastify.prisma.productEvent.findMany({
+           where: { performedBy: sub },
+           orderBy: { createdAt: "desc" },
+           take: 1000,
+         });
+
+         // Build export -- explicitly exclude passwordHash and refreshToken
+         const exportData = {
+           exportedAt: new Date().toISOString(),
+           user: {
+             id: user.id,
+             email: user.email,
+             role: user.role,
+             walletAddress: user.walletAddress,
+             createdAt: user.createdAt,
+             updatedAt: user.updatedAt,
+           },
+           brand: user.brand
+             ? {
+                 id: user.brand.id,
+                 name: user.brand.name,
+                 slug: user.brand.slug,
+                 did: user.brand.did,
+                 createdAt: user.brand.createdAt,
+               }
+             : null,
+           products,
+           events,
+         };
+
+         return reply.status(200).send({
+           success: true,
+           data: exportData,
+         });
        },
-     } : false,
-     // Generate unique request IDs for correlation
-     genReqId: (req) => {
-       return req.headers["x-request-id"] as string ?? crypto.randomUUID();
-     },
-   });
+     );
+   }
    ```
 
-2. **Add `LOG_LEVEL` to config.ts**:
+2. **Register in `auth/index.ts`**:
    ```typescript
-   LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace"]).optional(),
+   import dataExportRoute from "./data-export.js";
+   // ...in the function body:
+   await fastify.register(dataExportRoute);
    ```
 
-3. **PII redaction strategy**:
-   - `req.headers.authorization` -- may contain Bearer token
-   - `req.headers.cookie` -- contains auth cookies
-   - `req.body.password` -- plaintext password in login/register
-   - `req.body.email` -- PII in login/register
-   - Pino's `redact` option replaces these paths with `[REDACTED]` in all log output
-   - This is more reliable than manual filtering -- works on ALL log calls automatically
-
-4. **Request ID correlation**:
-   - Fastify already adds `reqId` to every log line within a request context
-   - Configure `genReqId` to use the incoming `x-request-id` header if present (supports distributed tracing) or generate a UUID
-   - Import `crypto` from Node.js built-in (available since Node 19+)
-
-5. **No new dependencies** -- Pino is built into Fastify. `crypto.randomUUID()` is a Node.js built-in.
+3. **Tests** in `gdpr.test.ts` (~7 tests):
+   - Authenticated user gets 200 with export data containing user, brand, products, events
+   - Export includes user profile WITHOUT passwordHash or refreshToken
+   - Export includes brand data when user has brand
+   - Export includes products when user's brand has products
+   - Export includes events performed by user
+   - User without brand: `brand: null`, `products: []`
+   - Unauthenticated request returns 401
 
 **Patterns to follow**:
-- Logger disabled in test env (`logger: false`) -- already the case, keep it
-- Config pattern: optional env var with `.optional()`
-- Pino redaction is path-based -- uses dot notation for nested fields
-- `genReqId` is a Fastify built-in option -- no plugin needed
+- Auth route pattern: `onRequest: [fastify.authenticate]` (same as me.ts, logout.ts)
+- Response format: `{ success: true, data: { ... } }` (standard API pattern)
+- No body/response JSON schema in route config (R01)
+- Use `buildApp()` in tests, `cleanDb()` + re-seed in `beforeEach` (R03, R16)
+- GET request -- no CSRF header needed (CSRF only on POST/PATCH/DELETE/PUT)
 
 **Edge cases**:
-- `req.body` may not exist for GET requests -- Pino's redact handles missing paths gracefully (no error)
-- `x-request-id` header from client could be spoofed -- acceptable for logging (not security-critical). The ID is for log correlation only.
-- Pino serializers receive the raw Fastify request/reply objects -- the serializer functions must be careful not to access properties that trigger side effects
-- In production, Pino outputs JSON by default (no config needed). In development with `logger: true`, it also outputs JSON. If human-readable logs are desired in dev, add `pino-pretty` as a dev dependency and use `transport: { target: "pino-pretty" }` -- but this is optional and can be deferred.
+- User with no brand: `brand: null`, `products: []` -- still valid export
+- User with brand but no products: `products: []`
+- Large number of events: limit to 1000 most recent to prevent memory issues
+- `passwordHash` and `refreshToken` must NEVER appear in export -- use explicit field selection (not `select: { passwordHash: false }` which is fragile if new fields are added)
+- Products include passport data (metadata, digitalLink) -- this is the user's own brand data
 
-**Verify**: Start API server, make requests. Log output is JSON with `reqId` field. `password` and `email` fields are redacted in log output. `req.headers.cookie` is redacted. No PII visible in any log line. All existing tests still pass.
+**Verify**: Register user with brand, create products, perform events (mint, verify). GET /auth/me/data returns complete JSON with user, brand, products, events. passwordHash is absent from response. Unauthenticated request returns 401.
+
+---
+
+### Brief #3: GDPR Erasure (DELETE /auth/me/data)
+
+**Type**: feature
+**Priority**: P2
+**Epic**: EPIC-006-data-compliance
+
+**Files to modify**:
+- `apps/api/src/routes/auth/data-erasure.ts` -- NEW: DELETE /auth/me/data route
+- `apps/api/src/routes/auth/index.ts` -- register the new route (add alongside task 2 import)
+- `apps/api/test/gdpr.test.ts` -- add erasure tests (same file as task 2)
+
+**Approach**:
+
+GDPR Art. 17 gives users the right to erasure ("right to be forgotten"). This endpoint deletes the authenticated user's personal data from PostgreSQL and clears their auth cookies.
+
+**Key design decisions**:
+- **Products and images are NOT deleted** -- they belong to the brand (business data), not the individual user. If a brand admin leaves, their products remain under the brand.
+- **Events are anonymized** -- `performedBy` is set to `null` (this field is already nullable, see R08). The event itself stays for audit/provenance purposes.
+- **User record is deleted** -- email, passwordHash, refreshToken, walletAddress are all purged.
+- **Auth cookies are cleared** -- the user is logged out after deletion.
+
+1. **Create `data-erasure.ts`** route:
+
+   ```typescript
+   import type { FastifyInstance } from "fastify";
+   import { clearAuthCookies } from "../../utils/cookies.js";
+   import { requireCsrfHeader } from "../../middleware/csrf.js";
+
+   export default async function dataErasureRoute(fastify: FastifyInstance) {
+     fastify.delete(
+       "/auth/me/data",
+       {
+         onRequest: [requireCsrfHeader, fastify.authenticate],
+         schema: {
+           description:
+             "Delete all personal data for the authenticated user (GDPR Art. 17). " +
+             "Anonymizes event references, removes user record, and clears auth cookies. " +
+             "Products and images belong to the brand and are NOT deleted.",
+           tags: ["Auth", "GDPR"],
+           security: [{ cookieAuth: [] }],
+         },
+       },
+       async (request, reply) => {
+         const { sub } = request.user;
+
+         const user = await fastify.prisma.user.findUnique({
+           where: { id: sub },
+         });
+
+         if (!user) {
+           return reply.status(404).send({
+             success: false,
+             error: { code: "NOT_FOUND", message: "User not found" },
+           });
+         }
+
+         await fastify.prisma.$transaction(
+           async (tx: import("../../plugins/prisma.js").TxClient) => {
+             // 1. Anonymize events performed by this user (set performedBy to null)
+             await tx.productEvent.updateMany({
+               where: { performedBy: sub },
+               data: { performedBy: null },
+             });
+
+             // 2. Delete the user record (cascades are handled by Prisma)
+             await tx.user.delete({
+               where: { id: sub },
+             });
+           },
+         );
+
+         // 3. Clear auth cookies
+         clearAuthCookies(reply);
+
+         return reply.status(200).send({
+           success: true,
+           data: {
+             message: "All personal data has been deleted",
+             deletedAt: new Date().toISOString(),
+           },
+         });
+       },
+     );
+   }
+   ```
+
+2. **Register in `auth/index.ts`**:
+   ```typescript
+   import dataErasureRoute from "./data-erasure.js";
+   // ...in the function body:
+   await fastify.register(dataErasureRoute);
+   ```
+
+3. **Tests** in `gdpr.test.ts` (~7 tests):
+   - Authenticated user DELETE /auth/me/data returns 200 with success message
+   - User record is gone from database after erasure (findUnique returns null)
+   - Events previously performed by user now have `performedBy: null`
+   - Products belonging to the user's brand still exist (not deleted)
+   - Auth cookies are cleared in response (Set-Cookie headers with maxAge=0 or empty)
+   - Unauthenticated request returns 401
+   - Request without `X-Galileo-Client` header returns 403 CSRF_REQUIRED
+
+**Patterns to follow**:
+- Mutating route: `onRequest: [requireCsrfHeader, fastify.authenticate]` (same as logout.ts)
+- Transaction: `$transaction(async (tx) => { ... })` with TxClient type
+- Cookie clearing: `clearAuthCookies(reply)` from utils/cookies.ts
+- No body/response JSON schema (R01)
+- ProductEvent.performedBy is nullable (R08) -- setting to null is safe
+
+**Edge cases**:
+- User with no brand: no products involved, just delete user + anonymize events
+- User who is sole BRAND_ADMIN: deletion succeeds. Brand becomes orphaned. This is acceptable -- GDPR Art. 17 right takes precedence. An ADMIN can manage orphaned brands.
+- Concurrent requests: user deletes their account while another request is in-flight. The in-flight request will fail with 401 on next `authenticate` call (user not found). Acceptable behavior.
+- FK constraint on ProductEvent.performedBy: setting to null first, then deleting user avoids FK violations. The `updateMany` runs before `delete` in the same transaction.
+- User without any events: `updateMany` with 0 matches is a no-op -- no error.
+
+**Verify**: Register user, create products with brand, perform events (mint, verify). DELETE /auth/me/data with X-Galileo-Client header. Verify: user record gone from DB, events have performedBy=null, products still exist under brand, cookies cleared. Follow-up GET /auth/me returns 401.
 
 ## Notes
 
