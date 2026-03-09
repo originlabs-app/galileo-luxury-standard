@@ -14,7 +14,7 @@
 
 | ID | Task | Epic | Status | Verify | Commit |
 |------|------|------|--------|--------|--------|
-| T11.1 | Doc-roadmap drift audit: update README.md and ROADMAP.md | EPIC-007 | done | README test counts match actual (372 unit + 9 e2e specs). API table lists all 20 endpoints. Key Features reflects Sprints 1-10. ROADMAP Sprint 3/4 checkboxes updated for completed work. No broken links. | 5f35bdb |
+| T11.1 | Doc-roadmap drift audit: update README.md and ROADMAP.md | EPIC-007 | validated | README test counts match actual (372 unit + 9 e2e specs). API table lists all 20 endpoints. Key Features reflects Sprints 1-10. ROADMAP Sprint 3/4 checkboxes updated for completed work. No broken links. | 5f35bdb |
 
 ### Status values
 - `todo` — Not started
