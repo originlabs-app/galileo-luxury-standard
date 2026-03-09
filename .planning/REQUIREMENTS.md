@@ -11,7 +11,7 @@ Requirements for the current pilot cycle: one luxury brand running a real end-to
 
 - [x] **AUTH-01**: Operator can sign in to the pilot workspace using an approved Galileo authentication flow
 - [x] **AUTH-02**: Operator session persists securely across dashboard navigation and refresh
-- [ ] **AUTH-03**: Operator actions are restricted to the single pilot brand workspace and authorized roles
+- [x] **AUTH-03**: Operator actions are restricted to the single pilot brand workspace and authorized roles
 
 ### Product Identity & Catalog
 
@@ -93,7 +93,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | AUTH-01 | Phase 1 | Complete |
 | AUTH-02 | Phase 1 | Complete |
-| AUTH-03 | Phase 1 | Pending |
+| AUTH-03 | Phase 1 | Complete |
 | PROD-01 | Phase 1 | Complete |
 | PROD-03 | Phase 1 | Complete |
 | PROD-02 | Phase 2 | Pending |
