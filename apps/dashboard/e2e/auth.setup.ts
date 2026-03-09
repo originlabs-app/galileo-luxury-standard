@@ -1,13 +1,27 @@
 import { test as setup, expect } from "@playwright/test";
+import { execSync } from "node:child_process";
 import * as fs from "node:fs";
+import path from "node:path";
 
 const RUN_ID = Date.now();
 const TEST_EMAIL = `e2e-${RUN_ID}@galileo.test`;
 // Test-only credential — not a real secret
 const TEST_PASSWORD = ["E2eTest", "Pass123!"].join("");
 const TEST_BRAND = `E2E Brand ${RUN_ID}`;
+const SEEDED_ADMIN_EMAIL = "admin@galileo.test";
+const SEEDED_ADMIN_PASSWORD = "dev-seed-password-change-me";
+const REPO_ROOT = path.resolve(process.cwd(), "../..");
 
-setup("register and authenticate test user", async ({ page }) => {
+setup.beforeAll(() => {
+  execSync("pnpm --filter @galileo/api exec prisma db seed", {
+    cwd: REPO_ROOT,
+    stdio: "inherit",
+  });
+});
+
+setup("register lands on setup-check with blocking access details", async ({
+  page,
+}) => {
   // Navigate to the register page
   await page.goto("/register");
   await expect(
@@ -22,11 +36,31 @@ setup("register and authenticate test user", async ({ page }) => {
   // Submit registration
   await page.getByRole("button", { name: "Create Account" }).click();
 
-  // Wait for redirect to dashboard (auth cookies set automatically by browser)
-  await page.waitForURL(/\/dashboard/, { timeout: 30_000 });
+  // Wait for redirect to setup-check (auth cookies set automatically by browser)
+  await page.waitForURL(/\/dashboard\/setup/, { timeout: 30_000 });
 
-  // Verify we are authenticated by seeing dashboard content
-  await expect(page.locator("body")).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Access readiness" }),
+  ).toBeVisible();
+  await expect(page.getByText("Brand assignment required")).toBeVisible();
+  await expect(page.getByText("Role approval required")).toBeVisible();
+});
+
+setup("login lands on setup-check before entering the workspace", async ({
+  page,
+}) => {
+  await page.goto("/login");
+  await page.getByLabel("Email").fill(SEEDED_ADMIN_EMAIL);
+  await page.getByLabel("Password").fill(SEEDED_ADMIN_PASSWORD);
+  await page.getByRole("button", { name: "Sign In", exact: true }).click();
+
+  await page.waitForURL(/\/dashboard\/setup/, { timeout: 30_000 });
+  await expect(page.getByText("Workspace ready").first()).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Continue to dashboard" }),
+  ).toBeVisible();
+  await page.getByRole("link", { name: "Continue to dashboard" }).click();
+  await page.waitForURL(/\/dashboard$/, { timeout: 30_000 });
 
   // Ensure the auth directory exists before writing storage state
   fs.mkdirSync("playwright/.auth", { recursive: true });

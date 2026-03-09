@@ -36,7 +36,7 @@ export default function RegisterPage() {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace("/dashboard");
+      router.replace("/dashboard/setup");
     }
   }, [isAuthenticated, router]);
 
@@ -72,7 +72,7 @@ export default function RegisterPage() {
         password,
         brandName: brandName.trim() || undefined,
       });
-      router.push("/dashboard");
+      router.push("/dashboard/setup");
     } catch (error) {
       if (error instanceof ApiError) {
         if (error.status === 409) {
@@ -165,7 +165,7 @@ export default function RegisterPage() {
                 autoComplete="organization"
               />
               <p className="text-xs text-muted-foreground">
-                Optional — create your brand during registration
+                Optional hint for the Galileo team when assigning your pilot workspace
               </p>
             </div>
           </CardContent>

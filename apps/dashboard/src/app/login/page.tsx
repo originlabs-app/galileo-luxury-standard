@@ -35,7 +35,7 @@ export default function LoginPage() {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace("/dashboard");
+      router.replace("/dashboard/setup");
     }
   }, [isAuthenticated, router]);
 
@@ -65,7 +65,7 @@ export default function LoginPage() {
     setIsSubmitting(true);
     try {
       await login({ email: email.trim(), password });
-      router.push("/dashboard");
+      router.push("/dashboard/setup");
     } catch (error) {
       if (error instanceof ApiError) {
         setServerError("Invalid email or password. Please try again.");

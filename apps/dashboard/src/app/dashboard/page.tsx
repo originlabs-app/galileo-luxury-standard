@@ -83,6 +83,7 @@ export default function DashboardPage() {
   }, [fetchStats]);
 
   const displayName = user?.email ?? "there";
+  const activeBrandName = user?.brand?.name ?? "pilot workspace";
 
   const totalProducts =
     (byStatus.DRAFT ?? 0) +
@@ -110,7 +111,7 @@ export default function DashboardPage() {
           Welcome back, {displayName}
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Here&apos;s an overview of your Galileo Protocol activity.
+          {activeBrandName} is live as your active pilot workspace for this session.
         </p>
       </div>
 

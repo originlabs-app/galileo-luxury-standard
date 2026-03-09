@@ -114,7 +114,7 @@ export function SiweLogin() {
 
       // Rehydrate auth state from the server-authoritative profile contract.
       await refreshUser();
-      router.push("/dashboard");
+      router.push("/dashboard/setup");
     } catch (err) {
       setState("error");
       setActiveConnector(null);
