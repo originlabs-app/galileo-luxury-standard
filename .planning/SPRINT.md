@@ -18,7 +18,7 @@
 | 2 | Dashboard home: live stats + recent activity | EPIC-002 | done | Stats cards show real numbers from API, activity feed shows recent events with timestamps. | e5770c3 |
 | 3 | Dashboard product list: filter UI (status + category dropdowns) | EPIC-002 | done | Selecting a filter updates the product list. Clearing filter shows all products. | e8fcc48 |
 | 4 | Dashboard product image upload UI | EPIC-006 | done | Product create/edit forms allow image upload. Uploaded image visible on product detail. | e17b6e5 |
-| 5 | E2E Playwright: dashboard stats, filters, upload | EPIC-007 | in_progress | Automated Playwright specs covering Sprint #5 features. Run with `pnpm --filter dashboard exec playwright test`. | |
+| 5 | E2E Playwright: dashboard stats, filters, upload | EPIC-007 | done | Automated Playwright specs covering Sprint #5 features. Run with `pnpm --filter dashboard exec playwright test`. | 6f1b932 |
 
 ### Status values
 - `todo` -- Not started
