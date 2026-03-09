@@ -561,6 +561,105 @@ describe("Product CRUD endpoints", () => {
 
       expect(response.statusCode).toBe(401);
     });
+
+    it("filters by status", async () => {
+      // All seeded products are DRAFT. Change a few to ACTIVE.
+      const allProducts = await app.prisma.product.findMany({
+        where: { brandId: testBrandId },
+        take: 3,
+      });
+      for (const p of allProducts) {
+        await app.prisma.product.update({
+          where: { id: p.id },
+          data: { status: "ACTIVE" },
+        });
+      }
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/products?status=ACTIVE&limit=100",
+        headers: { cookie: brandAdminCookie },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = response.json();
+      expect(body.data.pagination.total).toBe(3);
+      for (const product of body.data.products) {
+        expect(product.status).toBe("ACTIVE");
+      }
+    });
+
+    it("filters by category", async () => {
+      // All 25 seeded products have category "Watches"
+      // Create one product with a different category
+      await app.inject({
+        method: "POST",
+        url: "/products",
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
+        payload: {
+          gtin: VALID_GTIN_13,
+          serialNumber: "CAT-FILTER-001",
+          name: "Category Filter Product",
+          category: "Jewelry",
+        },
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/products?category=Jewelry&limit=100",
+        headers: { cookie: brandAdminCookie },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = response.json();
+      expect(body.data.pagination.total).toBe(1);
+      expect(body.data.products[0].category).toBe("Jewelry");
+    });
+
+    it("combines status and category filters", async () => {
+      // Create a product with different category and make it ACTIVE
+      const createRes = await app.inject({
+        method: "POST",
+        url: "/products",
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
+        payload: {
+          gtin: VALID_GTIN_13,
+          serialNumber: "COMBO-FILTER-001",
+          name: "Combo Filter Product",
+          category: "Jewelry",
+        },
+      });
+      const productId = createRes.json().data.product.id;
+      await app.prisma.product.update({
+        where: { id: productId },
+        data: { status: "ACTIVE" },
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/products?status=ACTIVE&category=Jewelry&limit=100",
+        headers: { cookie: brandAdminCookie },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = response.json();
+      expect(body.data.pagination.total).toBe(1);
+      expect(body.data.products[0].status).toBe("ACTIVE");
+      expect(body.data.products[0].category).toBe("Jewelry");
+    });
+
+    it("returns 400 for invalid status value", async () => {
+      const response = await app.inject({
+        method: "GET",
+        url: "/products?status=INVALID",
+        headers: { cookie: brandAdminCookie },
+      });
+
+      expect(response.statusCode).toBe(400);
+      const body = response.json();
+      expect(body.success).toBe(false);
+      expect(body.error.code).toBe("VALIDATION_ERROR");
+    });
   });
 
   // ─── GET /products/:id ──────────────────────────────────────

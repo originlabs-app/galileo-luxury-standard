@@ -1,9 +1,12 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
+import { ProductStatus } from "@galileo/shared";
 
 const listQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(100).default(20),
+  status: z.nativeEnum(ProductStatus).optional(),
+  category: z.string().max(100).optional(),
 });
 
 export default async function listProductsRoute(fastify: FastifyInstance) {
@@ -31,6 +34,15 @@ export default async function listProductsRoute(fastify: FastifyInstance) {
               default: 20,
               description: "Items per page",
             },
+            status: {
+              type: "string",
+              description:
+                "Filter by product status (DRAFT, MINTING, ACTIVE, TRANSFERRED, RECALLED)",
+            },
+            category: {
+              type: "string",
+              description: "Filter by product category",
+            },
           },
         },
       },
@@ -48,7 +60,7 @@ export default async function listProductsRoute(fastify: FastifyInstance) {
         });
       }
 
-      const { page, limit } = parsed.data;
+      const { page, limit, status, category } = parsed.data;
       const user = request.user;
 
       // brandId null guard: non-ADMIN users without a brandId cannot access product routes
@@ -63,8 +75,12 @@ export default async function listProductsRoute(fastify: FastifyInstance) {
       }
 
       // Brand scoping: ADMIN sees all, others see only their brand
-      const where =
+      const where: Record<string, unknown> =
         user.role === "ADMIN" ? {} : { brandId: user.brandId as string };
+
+      // Apply optional filters
+      if (status) where.status = status;
+      if (category) where.category = category;
 
       const [products, total] = await Promise.all([
         fastify.prisma.product.findMany({
