@@ -264,6 +264,51 @@ describe("Product CRUD endpoints", () => {
       expect(body.error.message).toContain("Invalid GTIN");
     });
 
+    it("returns 400 for serials that cannot generate a Galileo DID", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/products",
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
+        payload: {
+          gtin: VALID_GTIN_13,
+          serialNumber: "SN/002",
+          name: "Bad Serial Product",
+          category: "Watches",
+        },
+      });
+
+      expect(response.statusCode).toBe(400);
+      const body = response.json();
+      expect(body.success).toBe(false);
+      expect(body.error.message).toContain("Serial number");
+      expect(body.error.details.serialNumber?.[0]).toContain("hyphens");
+    });
+
+    it("creates product when serial uses the shared 20-character DID limit", async () => {
+      const serialNumber = "12345678901234567890";
+      const response = await app.inject({
+        method: "POST",
+        url: "/products",
+        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
+        payload: {
+          gtin: VALID_GTIN_13,
+          serialNumber,
+          name: "Max Serial Product",
+          category: "Watches",
+        },
+      });
+
+      expect(response.statusCode).toBe(201);
+      const body = response.json();
+      expect(body.data.product.serialNumber).toBe(serialNumber);
+      expect(body.data.product.did).toBe(
+        `did:galileo:01:0${VALID_GTIN_13}:21:${serialNumber}`,
+      );
+      expect(body.data.passport.digitalLink).toBe(
+        `https://id.galileoprotocol.io/01/0${VALID_GTIN_13}/21/${serialNumber}`,
+      );
+    });
+
     it("returns 400 for non-numeric GTIN", async () => {
       const response = await app.inject({
         method: "POST",

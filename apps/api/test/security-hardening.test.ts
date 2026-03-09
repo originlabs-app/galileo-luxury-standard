@@ -326,14 +326,14 @@ describe("Security Hardening", () => {
       expect(response.json().success).toBe(false);
     });
 
-    it("returns 400 for serialNumber exceeding 100 characters", async () => {
+    it("returns 400 for serialNumber exceeding 20 characters", async () => {
       const response = await app.inject({
         method: "POST",
         url: "/products",
         headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
         payload: {
           gtin: VALID_GTIN_13,
-          serialNumber: "S".repeat(101),
+          serialNumber: "S".repeat(21),
           name: "Valid Name",
           category: "Watches",
         },

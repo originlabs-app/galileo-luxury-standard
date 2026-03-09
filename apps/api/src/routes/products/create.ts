@@ -1,9 +1,9 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import {
-  validateGtin,
   generateDid,
   generateDigitalLinkUrl,
+  productIdentitySchema,
 } from "@galileo/shared";
 import { requireRole } from "../../middleware/rbac.js";
 import { isPrismaUniqueViolation } from "../../utils/prisma-errors.js";
@@ -24,13 +24,8 @@ const materialSchema = z.object({
   percentage: z.number().min(0).max(100),
 });
 
-const createProductBody = z
-  .object({
-    gtin: z.string().min(1, "GTIN is required"),
-    serialNumber: z
-      .string()
-      .min(1, "Serial number is required")
-      .max(100, "Serial number must be at most 100 characters"),
+const createProductBody = productIdentitySchema
+  .extend({
     name: z
       .string()
       .min(1, "Name is required")
@@ -66,12 +61,18 @@ export default async function createProductRoute(fastify: FastifyInstance) {
     async (request, reply) => {
       const parsed = createProductBody.safeParse(request.body);
       if (!parsed.success) {
+        const fieldErrors = parsed.error.flatten().fieldErrors;
+
         return reply.status(400).send({
           success: false,
           error: {
             code: "VALIDATION_ERROR",
-            message: "Invalid input",
-            details: parsed.error.flatten().fieldErrors,
+            message:
+              fieldErrors.gtin?.[0] ??
+              fieldErrors.serialNumber?.[0] ??
+              parsed.error.issues[0]?.message ??
+              "Invalid input",
+            details: fieldErrors,
           },
         });
       }
@@ -85,17 +86,6 @@ export default async function createProductRoute(fastify: FastifyInstance) {
         brandId: bodyBrandId,
         materials,
       } = parsed.data;
-
-      // Validate GTIN check digit
-      if (!validateGtin(gtin)) {
-        return reply.status(400).send({
-          success: false,
-          error: {
-            code: "VALIDATION_ERROR",
-            message: "Invalid GTIN: check digit verification failed",
-          },
-        });
-      }
 
       const user = request.user;
 

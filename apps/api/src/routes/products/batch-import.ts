@@ -1,11 +1,11 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import {
-  validateGtin,
   generateDid,
   generateDigitalLinkUrl,
   CATEGORIES,
   EventType,
+  productIdentitySchema,
 } from "@galileo/shared";
 import { requireRole } from "../../middleware/rbac.js";
 import { isPrismaUniqueViolation } from "../../utils/prisma-errors.js";
@@ -13,11 +13,9 @@ import { isPrismaUniqueViolation } from "../../utils/prisma-errors.js";
 const MAX_ROWS = 500;
 const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1 MB
 
-const csvRowSchema = z
-  .object({
+const csvRowSchema = productIdentitySchema
+  .extend({
     name: z.string().min(1, "Name is required").max(255),
-    gtin: z.string().min(1, "GTIN is required"),
-    serialNumber: z.string().min(1, "Serial number is required").max(100),
     category: z.enum(CATEGORIES, {
       message: "Invalid category",
     }),
@@ -245,16 +243,6 @@ export default async function batchImportRoute(fastify: FastifyInstance) {
         }
 
         const data = result.data;
-
-        // Validate GTIN check digit
-        if (!validateGtin(data.gtin)) {
-          errors.push({
-            row: rowNum,
-            field: "gtin",
-            message: "Invalid GTIN: check digit verification failed",
-          });
-          continue;
-        }
 
         // Check for duplicate within CSV
         const key = `${data.gtin}:${data.serialNumber}`;
