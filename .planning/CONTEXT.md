@@ -6,7 +6,7 @@
 
 ## Last Updated
 
-2026-03-08 -- updated after Sprint #1 completion + Sprint #2 creation
+2026-03-09 -- updated after Sprint #2 implementation (awaiting Tester validation)
 
 ## Tech Stack
 
@@ -75,7 +75,8 @@ galileo-protocol/
 |   |       +-- upload.test.ts         # 10 tests
 |   |       +-- security-hardening.test.ts # 24 tests
 |   |       +-- csrf-resolver-conformity.test.ts # 18 tests
-|   |       +-- health.test.ts         # 3 tests
+|   |       +-- health.test.ts         # 6 tests (extended in Sprint #2)
+|   |       +-- logging.test.ts        # 3 tests (new in Sprint #2)
 |   +-- dashboard/             # Next.js B2B dashboard (shadcn/ui, wagmi)
 |   |   +-- src/
 |   |       +-- app/
@@ -97,11 +98,13 @@ galileo-protocol/
 |   |           +-- wallet.ts         # Wallet config
 |   +-- scanner/               # Next.js scanner PWA (QR, barcode-detector)
 |       +-- src/app/
-|       |   +-- page.tsx              # Verification page
+|       |   +-- page.tsx              # Verification page (+ material composition display)
 |       |   +-- scan/page.tsx         # QR scanner
+|       |   +-- 01/[gtin]/21/[serial]/page.tsx # GS1 deep link redirect (Sprint #2)
 |       |   +-- layout.tsx
 |       |   +-- register-sw.tsx       # Service worker registration
 |       +-- public/sw.js             # Service worker
+|       +-- public/manifest.json     # PWA manifest (url_handlers for deep link)
 +-- packages/
 |   +-- shared/                # @galileo/shared (Zod schemas, GTIN, DID)
 |       +-- src/
@@ -169,10 +172,15 @@ Key relations: User -> Brand (many-to-one), Product -> Brand (many-to-one), Prod
 - Zod `.strict()` on all body schemas (create, update, register, login, link-wallet, recall, verify)
 - Plugin architecture: fp() plugins decorate fastify instance
 - Config validation: Zod schema in config.ts, loaded once at startup
+- Structured logging: Pino with PII redaction (req.headers.authorization, cookie, body.password, body.email)
+- Request ID correlation: genReqId uses x-request-id header or crypto.randomUUID()
+- Health check pattern: mock decorators for isolated route tests (health.test.ts, logging.test.ts)
+- Deep link pattern: Next.js dynamic segments redirect to home with ?link= param for reuse
+- Materials stored in ProductPassport.metadata JSON (no schema migration, merge on update)
 
 ## Test Architecture
 
-- **Vitest**: 173+ API tests across 13 files (upload.test.ts added in Sprint #1)
+- **Vitest**: 186 API tests across 13 files (logging.test.ts, health.test.ts extended in Sprint #2)
 - **Playwright**: 2 e2e tests (auth + product lifecycle)
 - **Test DB**: `galileo_test` via `DATABASE_URL_TEST`
 - **Global setup**: `test/global-setup.ts` -- pushes schema, truncates on teardown
@@ -182,7 +190,7 @@ Key relations: User -> Brand (many-to-one), Product -> Brand (many-to-one), Prod
 
 ## Known Issues & Tech Debt
 
-1. ~~**Flaky tests**~~ RESOLVED: cleanDb() with TRUNCATE CASCADE replaces cascading deleteMany
+1. ~~**Flaky tests**~~ RESOLVED: cleanDb() with TRUNCATE CASCADE replaces cascading deleteMany. FK constraint flakiness also resolved (verified 2026-03-09: all 13 files pass consistently in combined runs)
 2. ~~**No `__Host-` cookie prefix**~~ RESOLVED: `__Host-galileo_at` (access, prod), `__Secure-galileo_rt` (refresh, prod)
 3. ~~**No cookie signing**~~ RESOLVED: COOKIE_SECRET env var, @fastify/cookie signing configured
 4. ~~**createProductBody lacks `.strict()`**~~ RESOLVED: `.strict()` on all body schemas

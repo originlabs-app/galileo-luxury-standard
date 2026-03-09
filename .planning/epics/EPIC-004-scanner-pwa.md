@@ -16,8 +16,8 @@ Mobile-first Progressive Web App for end customers to verify product authenticit
 - [x] QR scanning: getUserMedia + barcode-detector (ZXing WASM ponyfill) — /scan route
 - [x] Public verification page: provenance timeline in scanner + resolver API
 - [x] Service worker for offline cache of previously scanned products
-- [ ] Material composition display
-- [ ] Deep link: scanning QR goes directly to product page
+- [x] Material composition display (Sprint #2, f91652f — pending Tester validation)
+- [x] Deep link: scanning QR goes directly to product page (Sprint #2, fdcefe1 — pending Tester validation)
 
 ## Acceptance Criteria
 

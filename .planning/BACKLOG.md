@@ -25,6 +25,10 @@ EPICs (functional bricks, in epics/)
 
 - [x] `EPIC-007` Fix flaky test suites (mint, products, recall) -- DONE (Sprint #1, 3ac8bf6)
 
+- [x] `EPIC-007` Fix FK constraint violations in combined test runs (verify, transfer, upload) -- RESOLVED (verified 2026-03-09: all 13 test files, 186 tests pass consistently in combined runs)
+  - **Context**: Root cause was inconsistent cleanup/re-seed in beforeEach. Fixed by ensuring all test files use cleanDb() + re-seed parent rows (brand, user) consistently. fileParallelism: false prevents inter-file races.
+  - **Verify**: All 13 test files pass when run together via `pnpm test` -- confirmed
+
 - [ ] `EPIC-003` Deploy contracts on Base Sepolia -- [source: ROADMAP 3.1] -- BLOCKED (needs RPC key)
   - **Context**: All 12 contracts via Deploy.s.sol. Post-deploy config needed.
   - **Verify**: All contracts verified on Basescan Sepolia, addresses committed
@@ -39,13 +43,8 @@ EPICs (functional bricks, in epics/)
 - [x] `EPIC-005` Cookie hardening -- DONE (Sprint #1, 61ebf4e)
 - [x] `EPIC-006` File upload to R2 + CID -- DONE (Sprint #1, 9600650)
 
-- [ ] `EPIC-004` Scanner material composition display -- [source: ROADMAP 3.4] -- IN SPRINT #2
-  - **Context**: Show material composition from DPP metadata in scanner verification page
-  - **Verify**: Scanner shows material composition when available in product data
-
-- [ ] `EPIC-004` Scanner deep link -- [source: ROADMAP 3.4] -- IN SPRINT #2
-  - **Context**: Scanning QR goes directly to product page (not scanner home)
-  - **Verify**: QR scan opens product verification page directly
+- [x] `EPIC-004` Scanner material composition display -- DONE (Sprint #2, f91652f)
+- [x] `EPIC-004` Scanner deep link -- DONE (Sprint #2, fdcefe1)
 
 - [ ] `EPIC-005` Smart Wallet Coinbase support -- [source: ROADMAP 3.3]
   - **Context**: ERC-1271 verification, passkey, gasless. Requires Smart Wallet SDK integration.
@@ -61,13 +60,8 @@ EPICs (functional bricks, in epics/)
 
 ### P2 -- Medium
 
-- [ ] `EPIC-007` Health check with dependency status -- [source: ROADMAP 4.4] -- IN SPRINT #2
-  - **Context**: Existing /health endpoint extended with DB + chain RPC status
-  - **Verify**: /health returns { db: "ok", chain: "ok|disabled" }
-
-- [ ] `EPIC-007` Structured logging (no PII) -- [source: ROADMAP 4.4] -- IN SPRINT #2
-  - **Context**: JSON structured logs with correlation IDs, no personal data
-  - **Verify**: Logs are parseable JSON, no PII present
+- [x] `EPIC-007` Health check with dependency status -- DONE (Sprint #2, 25afe6c, pending validation)
+- [x] `EPIC-007` Structured logging (no PII) -- DONE (Sprint #2, 0749206, pending validation)
 
 - [ ] `EPIC-007` Sentry integration -- [source: ROADMAP 4.4]
   - **Context**: Error tracking for API and frontend
