@@ -27,6 +27,6 @@ export async function cleanDb(prisma: {
   $executeRawUnsafe: (query: string) => Promise<number>;
 }): Promise<void> {
   await prisma.$executeRawUnsafe(
-    `TRUNCATE TABLE "ProductEvent", "ProductPassport", "Product", "User", "Brand" CASCADE`,
+    `TRUNCATE TABLE "AuditLog", "ProductEvent", "ProductPassport", "Product", "User", "Brand" CASCADE`,
   );
 }

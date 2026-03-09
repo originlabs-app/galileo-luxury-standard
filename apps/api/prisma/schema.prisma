@@ -119,3 +119,18 @@ model ProductEvent {
   @@index([performedBy])
   @@index([type])
 }
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actor      String?
+  action     String
+  resource   String
+  resourceId String?
+  metadata   Json     @default("{}")
+  ip         String?
+  createdAt  DateTime @default(now())
+
+  @@index([actor])
+  @@index([resource])
+  @@index([createdAt])
+}

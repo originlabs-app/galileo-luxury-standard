@@ -12,11 +12,13 @@ import rateLimitPlugin from "./plugins/rate-limit.js";
 import securityHeadersPlugin from "./plugins/security-headers.js";
 import storagePlugin from "./plugins/storage.js";
 import sentryPlugin from "./plugins/sentry.js";
+import auditPlugin from "./plugins/audit.js";
 import { ACCESS_COOKIE_NAME } from "./utils/cookies.js";
 import healthRoutes from "./routes/health.js";
 import authRoutes from "./routes/auth/index.js";
 import productRoutes from "./routes/products/index.js";
 import resolverRoutes from "./routes/resolver/index.js";
+import auditRoutes from "./routes/audit/index.js";
 
 export async function buildApp() {
   const fastify = Fastify({
@@ -111,12 +113,14 @@ export async function buildApp() {
   await fastify.register(chainPlugin);
   await fastify.register(storagePlugin);
   await fastify.register(sentryPlugin);
+  await fastify.register(auditPlugin);
 
   // Register routes
   await fastify.register(healthRoutes);
   await fastify.register(authRoutes);
   await fastify.register(productRoutes);
   await fastify.register(resolverRoutes);
+  await fastify.register(auditRoutes);
 
   return fastify;
 }

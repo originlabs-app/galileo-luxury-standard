@@ -39,7 +39,7 @@ export default async function globalSetup() {
     await client.connect();
     try {
       await client.query(`
-        TRUNCATE TABLE "ProductEvent", "ProductPassport", "Product", "User", "Brand"
+        TRUNCATE TABLE "AuditLog", "ProductEvent", "ProductPassport", "Product", "User", "Brand"
         CASCADE
       `);
     } finally {
