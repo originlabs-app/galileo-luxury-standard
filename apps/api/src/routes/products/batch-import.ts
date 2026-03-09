@@ -4,6 +4,8 @@ import {
   validateGtin,
   generateDid,
   generateDigitalLinkUrl,
+  CATEGORIES,
+  EventType,
 } from "@galileo/shared";
 import { requireRole } from "../../middleware/rbac.js";
 import { isPrismaUniqueViolation } from "../../utils/prisma-errors.js";
@@ -11,23 +13,12 @@ import { isPrismaUniqueViolation } from "../../utils/prisma-errors.js";
 const MAX_ROWS = 500;
 const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1 MB
 
-const PRODUCT_CATEGORIES = [
-  "Leather Goods",
-  "Jewelry",
-  "Watches",
-  "Fashion",
-  "Accessories",
-  "Fragrances",
-  "Eyewear",
-  "Other",
-] as const;
-
 const csvRowSchema = z
   .object({
     name: z.string().min(1, "Name is required").max(255),
     gtin: z.string().min(1, "GTIN is required"),
     serialNumber: z.string().min(1, "Serial number is required").max(100),
-    category: z.enum(PRODUCT_CATEGORIES, {
+    category: z.enum(CATEGORIES, {
       message: "Invalid category",
     }),
     description: z.string().max(2000).optional(),
@@ -288,6 +279,52 @@ export default async function batchImportRoute(fastify: FastifyInstance) {
         });
       }
 
+      // Helper: create a single product row within a transaction client
+      async function createProductRow(
+        tx: import("../../plugins/prisma.js").TxClient,
+        data: z.infer<typeof csvRowSchema>,
+        userId: string,
+      ) {
+        const did = generateDid(data.gtin, data.serialNumber);
+        const digitalLink = generateDigitalLinkUrl(
+          data.gtin,
+          data.serialNumber,
+        );
+        const product = await tx.product.create({
+          data: {
+            gtin: data.gtin,
+            serialNumber: data.serialNumber,
+            did,
+            name: data.name,
+            description: data.description ?? null,
+            category: data.category,
+            brandId,
+          },
+        });
+        await tx.productPassport.create({
+          data: {
+            productId: product.id,
+            digitalLink,
+            ...(data.materials
+              ? { metadata: { materials: data.materials } }
+              : {}),
+          },
+        });
+        await tx.productEvent.create({
+          data: {
+            productId: product.id,
+            type: EventType.CREATED,
+            data: {
+              name: data.name,
+              gtin: data.gtin,
+              serialNumber: data.serialNumber,
+              category: data.category,
+            },
+            performedBy: userId,
+          },
+        });
+      }
+
       // Create products
       let created = 0;
 
@@ -295,46 +332,9 @@ export default async function batchImportRoute(fastify: FastifyInstance) {
         // Partial mode: create each valid row independently
         for (const { rowNum, data } of validRows) {
           try {
-            const did = generateDid(data.gtin, data.serialNumber);
-            const digitalLink = generateDigitalLinkUrl(
-              data.gtin,
-              data.serialNumber,
-            );
             await fastify.prisma.$transaction(
               async (tx: import("../../plugins/prisma.js").TxClient) => {
-                const product = await tx.product.create({
-                  data: {
-                    gtin: data.gtin,
-                    serialNumber: data.serialNumber,
-                    did,
-                    name: data.name,
-                    description: data.description ?? null,
-                    category: data.category,
-                    brandId,
-                  },
-                });
-                await tx.productPassport.create({
-                  data: {
-                    productId: product.id,
-                    digitalLink,
-                    ...(data.materials
-                      ? { metadata: { materials: data.materials } }
-                      : {}),
-                  },
-                });
-                await tx.productEvent.create({
-                  data: {
-                    productId: product.id,
-                    type: "CREATED",
-                    data: {
-                      name: data.name,
-                      gtin: data.gtin,
-                      serialNumber: data.serialNumber,
-                      category: data.category,
-                    },
-                    performedBy: user.sub,
-                  },
-                });
+                await createProductRow(tx, data, user.sub);
               },
             );
             created++;
@@ -361,44 +361,7 @@ export default async function batchImportRoute(fastify: FastifyInstance) {
           await fastify.prisma.$transaction(
             async (tx: import("../../plugins/prisma.js").TxClient) => {
               for (const { data } of validRows) {
-                const did = generateDid(data.gtin, data.serialNumber);
-                const digitalLink = generateDigitalLinkUrl(
-                  data.gtin,
-                  data.serialNumber,
-                );
-                const product = await tx.product.create({
-                  data: {
-                    gtin: data.gtin,
-                    serialNumber: data.serialNumber,
-                    did,
-                    name: data.name,
-                    description: data.description ?? null,
-                    category: data.category,
-                    brandId,
-                  },
-                });
-                await tx.productPassport.create({
-                  data: {
-                    productId: product.id,
-                    digitalLink,
-                    ...(data.materials
-                      ? { metadata: { materials: data.materials } }
-                      : {}),
-                  },
-                });
-                await tx.productEvent.create({
-                  data: {
-                    productId: product.id,
-                    type: "CREATED",
-                    data: {
-                      name: data.name,
-                      gtin: data.gtin,
-                      serialNumber: data.serialNumber,
-                      category: data.category,
-                    },
-                    performedBy: user.sub,
-                  },
-                });
+                await createProductRow(tx, data, user.sub);
                 created++;
               }
             },

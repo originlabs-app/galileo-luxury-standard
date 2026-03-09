@@ -1,7 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import crypto from "node:crypto";
 import { z } from "zod";
-import { EventType } from "@galileo/shared";
+import { EventType, ProductStatus } from "@galileo/shared";
 import { requireRole } from "../../middleware/rbac.js";
 import { enqueueWebhookEvent } from "../../services/webhooks/outbox.js";
 
@@ -95,12 +95,12 @@ export default async function batchMintRoute(fastify: FastifyInstance) {
           });
         }
 
-        if (product.status === "ACTIVE") {
+        if (product.status === ProductStatus.ACTIVE) {
           errors.push({ productId: id, message: "Product already minted" });
           continue;
         }
 
-        if (product.status === "RECALLED") {
+        if (product.status === ProductStatus.RECALLED) {
           errors.push({
             productId: id,
             message: "Cannot mint recalled product",
@@ -108,7 +108,7 @@ export default async function batchMintRoute(fastify: FastifyInstance) {
           continue;
         }
 
-        if (product.status !== "DRAFT") {
+        if (product.status !== ProductStatus.DRAFT) {
           errors.push({
             productId: id,
             message: `Product is in ${product.status} status`,
@@ -138,8 +138,8 @@ export default async function batchMintRoute(fastify: FastifyInstance) {
 
                 // Optimistic concurrency: only update if still DRAFT
                 const updated = await tx.product.updateMany({
-                  where: { id, status: "DRAFT" },
-                  data: { status: "ACTIVE" },
+                  where: { id, status: ProductStatus.DRAFT },
+                  data: { status: ProductStatus.ACTIVE },
                 });
 
                 if (updated.count === 0) {
@@ -158,7 +158,7 @@ export default async function batchMintRoute(fastify: FastifyInstance) {
                 await tx.productEvent.create({
                   data: {
                     productId: id,
-                    type: "MINTED",
+                    type: EventType.MINTED,
                     data: { txHash, tokenAddress, chainId: CHAIN_ID },
                     performedBy: user.sub,
                   },
