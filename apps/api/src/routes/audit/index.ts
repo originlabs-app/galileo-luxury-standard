@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { requireRole } from "../../middleware/rbac.js";
+import auditExportRoute from "./export.js";
 
 const auditQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
@@ -10,6 +11,9 @@ const auditQuerySchema = z.object({
 });
 
 export default async function auditRoutes(fastify: FastifyInstance) {
+  // Register export route first (more specific path)
+  await fastify.register(auditExportRoute);
+
   fastify.get(
     "/audit-log",
     {
