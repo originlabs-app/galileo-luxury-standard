@@ -6,7 +6,7 @@
 
 ## Last Updated
 
-2026-03-09 -- updated after Sprint #4 implementation (Sentry, audit trail, product filtering)
+2026-03-09 -- updated after Sprint #4 archival + Sprint #5 dashboard task analysis
 
 ## Tech Stack
 
@@ -83,7 +83,12 @@ galileo-protocol/
 |   +-- dashboard/             # Next.js B2B dashboard (shadcn/ui, wagmi)
 |   |   +-- src/
 |   |       +-- app/
-|   |       |   +-- dashboard/         # Authenticated pages (layout, products, detail)
+|   |       |   +-- dashboard/
+|   |       |   |   +-- page.tsx             # Home: stat cards (hardcoded 0s) + empty activity feed
+|   |       |   |   +-- products/
+|   |       |   |       +-- page.tsx         # Product list table with pagination
+|   |       |   |       +-- new/page.tsx     # Create product form
+|   |       |   |       +-- [id]/page.tsx    # Product detail with edit, mint, QR
 |   |       |   +-- login/page.tsx
 |   |       |   +-- register/page.tsx
 |   |       +-- components/
@@ -92,10 +97,10 @@ galileo-protocol/
 |   |       |   +-- sidebar.tsx
 |   |       |   +-- wallet-connection.tsx # wagmi wallet link
 |   |       |   +-- providers/wallet-provider.tsx
-|   |       |   +-- ui/               # shadcn components
-|   |       +-- hooks/use-auth.tsx     # AuthProvider Context
+|   |       |   +-- ui/               # shadcn: badge, button, card, input, label, select, table, textarea
+|   |       +-- hooks/use-auth.tsx     # AuthProvider Context (single AuthState type)
 |   |       +-- lib/
-|   |           +-- api.ts            # Fetch wrapper
+|   |           +-- api.ts            # Fetch wrapper (auto-refresh, CSRF, retry on 401)
 |   |           +-- auth.ts           # Auth utilities
 |   |           +-- constants.ts
 |   |           +-- wallet.ts         # Wallet config
@@ -188,6 +193,12 @@ Key relations: User -> Brand (many-to-one), Product -> Brand (many-to-one), Prod
 - Product list filtering: optional status/category query params, AND-ed with brand scoping (R31)
 - Audit trail: onResponse hook logs successful mutations, AuditLog model standalone (no FK)
 - Sentry plugin: decorate-null pattern (R30), no-op when SENTRY_DSN absent
+- Dashboard data fetching: `api<T>(path)` wrapper with auto-refresh, CSRF headers, 401 retry
+- Dashboard pages are "use client" components using useState/useEffect for data loading
+- Dashboard product list: fetchProducts callback with page state, pagination from API response
+- Dashboard home: stat cards with hardcoded 0 values, empty activity feed placeholder
+- Shared categories: CATEGORIES array in @galileo/shared/constants/categories (Title Case strings)
+- Available shadcn components: badge, button, card, input, label, select, table, textarea
 
 ## Test Architecture
 

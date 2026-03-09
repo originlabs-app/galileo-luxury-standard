@@ -4,9 +4,9 @@
 > Created by the Researcher from the BACKLOG. Each task includes a brief: files to modify, approach, patterns, edge cases.
 > Archived when all tasks are validated or deferred.
 
-## Sprint #4 -- Production Observability & API Usability
+## Sprint #5 -- Dashboard Live Data
 
-**Goal**: Add error tracking (Sentry), an append-only audit trail for all mutations, and product list filtering -- moving the API closer to production-grade observability and usability.
+**Goal**: Replace hardcoded zeros and placeholders in the dashboard with live data from the API -- a stats endpoint, real stat cards + activity feed on the home page, and filter dropdowns on the product list.
 **Started**: 2026-03-09
 **Status**: active
 
@@ -14,9 +14,9 @@
 
 | # | Task | Epic | Status | Verify | Commit |
 |---|------|------|--------|--------|--------|
-| 1 | Sentry error tracking integration | EPIC-007 | done | Unhandled errors captured in Sentry, SENTRY_DSN configurable | 78f3042 |
-| 2 | Audit trail: AuditLog model + onResponse hook + admin endpoint | EPIC-006 | done | All POST/PATCH/DELETE mutations logged, GET /audit-log returns entries for ADMIN | 75e15ca |
-| 3 | Product list filtering by status and category | EPIC-002 | done | GET /products?status=ACTIVE&category=watches returns filtered results | ff33ff6 |
+| 1 | GET /products/stats endpoint | EPIC-002 | todo | Returns counts per status, total verifications, recent events. Brand-scoped for non-ADMIN. | |
+| 2 | Dashboard home: live stats + recent activity | EPIC-002 | todo | Stats cards show real numbers from API, activity feed shows recent events with timestamps. | |
+| 3 | Dashboard product list: filter UI (status + category dropdowns) | EPIC-002 | todo | Selecting a filter updates the product list. Clearing filter shows all products. | |
 
 ### Status values
 - `todo` -- Not started
@@ -35,357 +35,111 @@
 
 ## Task Briefs
 
-### Brief #1: Sentry Error Tracking Integration
+### Brief #1: GET /products/stats Endpoint
 
-**Type**: observability
+**Type**: backend
 **Priority**: P2
-**Epic**: EPIC-007-observability-quality
+**Epic**: EPIC-002-product-lifecycle
 
 **Files to modify**:
-- `apps/api/package.json` -- add `@sentry/node` dependency
-- `apps/api/src/config.ts` -- add `SENTRY_DSN` env var (optional)
-- `apps/api/src/plugins/sentry.ts` -- NEW: Sentry plugin (fp() pattern)
-- `apps/api/src/server.ts` -- register sentry plugin (before routes, after core plugins)
-- `apps/api/test/sentry.test.ts` -- NEW: tests using mock decorator pattern
+- `apps/api/src/routes/products/stats.ts` -- NEW: stats route handler
+- `apps/api/src/routes/products/index.ts` -- register stats route
+- `apps/api/test/products.test.ts` -- add stats tests
 
 **Approach**:
 
-Sentry captures unhandled errors and sends them to a remote dashboard for monitoring. For Galileo, we use `@sentry/node` directly with a Fastify plugin that:
-1. Initializes Sentry with the DSN from config
-2. Adds an `onError` hook that captures exceptions
-3. Gracefully no-ops when `SENTRY_DSN` is not set (dev/test)
+A new GET endpoint that aggregates product data for the dashboard. It returns:
+- Product counts grouped by status (DRAFT, ACTIVE, TRANSFERRED, RECALLED)
+- Total verification count (VERIFIED events)
+- Recent ProductEvents (last 10) for the activity feed
 
-**Step 1: Add dependency**
+The endpoint is authenticated and brand-scoped: non-ADMIN users see only their brand's data (R31). ADMIN users see all data.
 
-```bash
-cd apps/api && pnpm add @sentry/node
-```
-
-**Step 2: Add `SENTRY_DSN` to config.ts**
-
-```typescript
-SENTRY_DSN: z.string().url().optional(),
-```
-
-This follows R12 (optional in dev/test, used in production).
-
-**Step 3: Create `apps/api/src/plugins/sentry.ts`**
-
-```typescript
-import fp from "fastify-plugin";
-import * as Sentry from "@sentry/node";
-import type { FastifyInstance } from "fastify";
-import { config } from "../config.js";
-
-declare module "fastify" {
-  interface FastifyInstance {
-    sentry: typeof Sentry | null;
-  }
-}
-
-export default fp(async (fastify: FastifyInstance) => {
-  if (!config.SENTRY_DSN) {
-    fastify.decorate("sentry", null);
-    return;
-  }
-
-  Sentry.init({
-    dsn: config.SENTRY_DSN,
-    environment: config.NODE_ENV,
-    tracesSampleRate: config.NODE_ENV === "production" ? 0.1 : 1.0,
-  });
-
-  fastify.decorate("sentry", Sentry);
-
-  // Capture unhandled errors
-  fastify.addHook("onError", async (_request, _reply, error) => {
-    Sentry.captureException(error);
-  });
-
-  // Flush on shutdown
-  fastify.addHook("onClose", async () => {
-    await Sentry.close(2000);
-  });
-});
-```
-
-**Step 4: Register in `server.ts`**
-
-Add import and register after `storagePlugin`, before routes:
-
-```typescript
-import sentryPlugin from "./plugins/sentry.js";
-// ... in buildApp():
-await fastify.register(sentryPlugin);
-```
-
-**Step 5: Tests in `apps/api/test/sentry.test.ts`**
-
-Use the mock decorator pattern (R17) -- no real Sentry connection needed:
-
-```typescript
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import Fastify from "fastify";
-import type { FastifyInstance } from "fastify";
-
-describe("Sentry plugin", () => {
-  it("decorates fastify with sentry: null when no DSN configured", async () => {
-    const app = Fastify();
-    // Plugin reads config.SENTRY_DSN which is undefined in test env
-    const { default: sentryPlugin } = await import("../src/plugins/sentry.js");
-    await app.register(sentryPlugin);
-    await app.ready();
-
-    expect(app.sentry).toBeNull();
-
-    await app.close();
-  });
-
-  it("does not throw when sentry is null and an error occurs", async () => {
-    const app = Fastify();
-    const { default: sentryPlugin } = await import("../src/plugins/sentry.js");
-    await app.register(sentryPlugin);
-
-    // Add a route that throws
-    app.get("/error-test", async () => {
-      throw new Error("Test error");
-    });
-
-    await app.ready();
-
-    const response = await app.inject({
-      method: "GET",
-      url: "/error-test",
-    });
-
-    // Fastify returns 500 for unhandled errors
-    expect(response.statusCode).toBe(500);
-
-    await app.close();
-  });
-});
-```
-
-**Patterns to follow**:
-- Plugin architecture: `fp()` wrapper, decorate fastify instance (same as prisma.ts, chain.ts)
-- Config pattern: optional env var with no default (R12)
-- Mock decorator pattern for tests (R17)
-- Sentry SDK is disabled in test env (SENTRY_DSN not set)
-
-**Edge cases**:
-- `SENTRY_DSN` not set: plugin decorates `sentry: null`, no errors captured. This is the default for dev/test.
-- `SENTRY_DSN` set but invalid: Sentry SDK handles this gracefully (logs warning, does not throw)
-- High error volume: `tracesSampleRate: 0.1` in production limits trace collection
-- Shutdown: `Sentry.close(2000)` flushes pending events with a 2-second timeout
-
-**Verify**: `SENTRY_DSN` not set: app starts normally, `sentry` decorator is null. With DSN set: errors are captured (verify via Sentry dashboard or mock). All existing tests pass.
-
----
-
-### Brief #2: Audit Trail -- AuditLog Model + onResponse Hook + Admin Endpoint
-
-**Type**: feature
-**Priority**: P2
-**Epic**: EPIC-006-data-compliance
-
-**Files to modify**:
-- `apps/api/prisma/schema.prisma` -- add `AuditLog` model
-- `apps/api/src/plugins/audit.ts` -- NEW: Fastify plugin with onResponse hook
-- `apps/api/src/routes/audit/index.ts` -- NEW: GET /audit-log endpoint (ADMIN only)
-- `apps/api/src/server.ts` -- register audit plugin + audit routes
-- `apps/api/test/helpers.ts` -- add `AuditLog` to TRUNCATE statement
-- `apps/api/test/global-setup.ts` -- add `AuditLog` to TRUNCATE statement
-- `apps/api/test/audit.test.ts` -- NEW: tests
-
-**Approach**:
-
-An append-only audit log records who did what, when. This is a lightweight first version -- a Prisma model with a Fastify `onResponse` hook that logs all successful mutations (POST, PATCH, DELETE that returned 2xx). A later sprint can add hash-chain integrity per the full spec in `specifications/infrastructure/audit-trail.md`.
-
-**Step 1: Add AuditLog model to Prisma schema**
-
-```prisma
-model AuditLog {
-  id         String   @id @default(cuid())
-  actor      String?  // User ID (null for unauthenticated actions like verify)
-  action     String   // HTTP method + route: "POST /products"
-  resource   String   // Resource type: "product", "user", "auth"
-  resourceId String?  // ID of the affected resource (if applicable)
-  metadata   Json     @default("{}")  // Request body (sanitized), status code, etc.
-  ip         String?  // Client IP for forensics
-  createdAt  DateTime @default(now())
-
-  @@index([actor])
-  @@index([resource])
-  @@index([createdAt])
-}
-```
-
-After adding this, run: `cd apps/api && pnpm prisma generate`
-
-**Step 2: Create `apps/api/src/plugins/audit.ts`**
-
-```typescript
-import fp from "fastify-plugin";
-import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
-
-/** HTTP methods that are considered mutations and should be audited */
-const MUTATION_METHODS = new Set(["POST", "PATCH", "PUT", "DELETE"]);
-
-/** Fields to strip from request body before logging (PII/secrets) */
-const SENSITIVE_FIELDS = new Set([
-  "password",
-  "passwordHash",
-  "refreshToken",
-  "email",
-]);
-
-/** Sanitize request body: remove sensitive fields, truncate large values */
-function sanitizeBody(body: unknown): Record<string, unknown> {
-  if (!body || typeof body !== "object") return {};
-  const sanitized: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(body as Record<string, unknown>)) {
-    if (SENSITIVE_FIELDS.has(key)) {
-      sanitized[key] = "[REDACTED]";
-    } else if (typeof value === "string" && value.length > 200) {
-      sanitized[key] = value.slice(0, 200) + "...";
-    } else {
-      sanitized[key] = value;
-    }
-  }
-  return sanitized;
-}
-
-/** Extract resource type from URL path */
-function extractResource(url: string): string {
-  // /products/:id/mint -> "product"
-  // /auth/login -> "auth"
-  // /auth/me/data -> "auth"
-  const segments = url.split("/").filter(Boolean);
-  if (segments[0] === "auth") return "auth";
-  if (segments[0] === "products") return "product";
-  if (segments[0] === "01") return "resolver";
-  return segments[0] ?? "unknown";
-}
-
-/** Extract resource ID from URL path if present */
-function extractResourceId(url: string): string | null {
-  // /products/:id/... -> id
-  const match = url.match(/\/products\/([^/]+)/);
-  return match?.[1] ?? null;
-}
-
-export default fp(async (fastify: FastifyInstance) => {
-  fastify.addHook(
-    "onResponse",
-    async (request: FastifyRequest, reply: FastifyReply) => {
-      // Only audit mutations that succeeded (2xx)
-      if (!MUTATION_METHODS.has(request.method)) return;
-      if (reply.statusCode < 200 || reply.statusCode >= 300) return;
-
-      // Skip health checks and other non-business routes
-      if (request.url === "/health") return;
-
-      const actor = request.user?.sub ?? null;
-      const action = `${request.method} ${request.routeOptions?.url ?? request.url}`;
-      const resource = extractResource(request.url);
-      const resourceId = extractResourceId(request.url);
-
-      try {
-        await fastify.prisma.auditLog.create({
-          data: {
-            actor,
-            action,
-            resource,
-            resourceId,
-            metadata: {
-              statusCode: reply.statusCode,
-              body: sanitizeBody(request.body),
-              requestId: request.id,
-            },
-            ip: request.ip,
-          },
-        });
-      } catch {
-        // Audit logging must never break the request -- log and continue
-        request.log.error("Failed to write audit log entry");
-      }
-    },
-  );
-});
-```
-
-**Step 3: Create `apps/api/src/routes/audit/index.ts`**
+**Step 1: Create `apps/api/src/routes/products/stats.ts`**
 
 ```typescript
 import type { FastifyInstance } from "fastify";
-import { z } from "zod";
-import { requireRole } from "../../middleware/rbac.js";
+import { EventType } from "@galileo/shared";
 
-const auditQuerySchema = z.object({
-  page: z.coerce.number().int().positive().default(1),
-  limit: z.coerce.number().int().positive().max(100).default(20),
-  resource: z.string().optional(),
-  actor: z.string().optional(),
-});
-
-export default async function auditRoutes(fastify: FastifyInstance) {
+export default async function statsProductRoute(fastify: FastifyInstance) {
   fastify.get(
-    "/audit-log",
+    "/products/stats",
     {
-      onRequest: [fastify.authenticate, requireRole("ADMIN")],
+      onRequest: [fastify.authenticate],
       schema: {
         description:
-          "List audit log entries. ADMIN only. " +
-          "Supports pagination and filtering by resource type or actor.",
-        tags: ["Audit"],
+          "Get aggregated product statistics for the dashboard. " +
+          "Brand-scoped for non-ADMIN users.",
+        tags: ["Products"],
         security: [{ cookieAuth: [] }],
-        querystring: {
-          type: "object",
-          properties: {
-            page: { type: "integer", minimum: 1, default: 1 },
-            limit: { type: "integer", minimum: 1, maximum: 100, default: 20 },
-            resource: { type: "string", description: "Filter by resource type" },
-            actor: { type: "string", description: "Filter by actor user ID" },
-          },
-        },
       },
     },
     async (request, reply) => {
-      const parsed = auditQuerySchema.safeParse(request.query);
-      if (!parsed.success) {
-        return reply.status(400).send({
+      const user = request.user;
+
+      // brandId null guard: non-ADMIN users without a brandId cannot access
+      if (user.role !== "ADMIN" && !user.brandId) {
+        return reply.status(403).send({
           success: false,
           error: {
-            code: "VALIDATION_ERROR",
-            message: "Invalid query parameters",
-            details: parsed.error.flatten().fieldErrors,
+            code: "FORBIDDEN",
+            message: "User must belong to a brand",
           },
         });
       }
 
-      const { page, limit, resource, actor } = parsed.data;
+      // Brand scoping: ADMIN sees all, others see only their brand
+      const brandFilter: Record<string, unknown> =
+        user.role === "ADMIN" ? {} : { brandId: user.brandId as string };
 
-      const where: Record<string, string> = {};
-      if (resource) where.resource = resource;
-      if (actor) where.actor = actor;
-
-      const [entries, total] = await Promise.all([
-        fastify.prisma.auditLog.findMany({
-          where,
-          skip: (page - 1) * limit,
-          take: limit,
-          orderBy: { createdAt: "desc" },
+      // Run all queries in parallel for performance
+      const [
+        statusCounts,
+        verificationCount,
+        recentEvents,
+      ] = await Promise.all([
+        // Product counts by status using groupBy
+        fastify.prisma.product.groupBy({
+          by: ["status"],
+          where: brandFilter,
+          _count: { status: true },
         }),
-        fastify.prisma.auditLog.count({ where }),
+
+        // Total verification events
+        fastify.prisma.productEvent.count({
+          where: {
+            type: EventType.VERIFIED,
+            product: brandFilter,
+          },
+        }),
+
+        // Recent 10 events for activity feed
+        fastify.prisma.productEvent.findMany({
+          where: {
+            product: brandFilter,
+          },
+          orderBy: { createdAt: "desc" },
+          take: 10,
+          include: {
+            product: {
+              select: { name: true, gtin: true },
+            },
+          },
+        }),
       ]);
 
-      const totalPages = Math.ceil(total / limit);
+      // Transform groupBy result into a flat object
+      const byStatus: Record<string, number> = {};
+      for (const row of statusCounts) {
+        byStatus[row.status] = row._count.status;
+      }
 
       return reply.status(200).send({
         success: true,
         data: {
-          entries,
-          pagination: { total, page, limit, totalPages },
+          byStatus,
+          verificationCount,
+          recentEvents,
         },
       });
     },
@@ -393,145 +147,528 @@ export default async function auditRoutes(fastify: FastifyInstance) {
 }
 ```
 
-**Step 4: Register in `server.ts`**
+**Step 2: Register in `apps/api/src/routes/products/index.ts`**
+
+Add import and register alongside existing routes:
 
 ```typescript
-import auditPlugin from "./plugins/audit.js";
-import auditRoutes from "./routes/audit/index.js";
-// ... in buildApp():
-await fastify.register(auditPlugin);  // after prisma, before routes
-// ... with other route registrations:
-await fastify.register(auditRoutes);
+import statsProductRoute from "./stats.js";
+// ... inside productRoutes():
+await fastify.register(statsProductRoute);
 ```
 
-**Step 5: Update `test/helpers.ts` TRUNCATE**
+**Step 3: Add tests in `apps/api/test/products.test.ts`**
 
-Add `"AuditLog"` to the TRUNCATE statement:
-
-```typescript
-`TRUNCATE TABLE "AuditLog", "ProductEvent", "ProductPassport", "Product", "User", "Brand" CASCADE`
-```
-
-Do the same in `test/global-setup.ts` teardown.
-
-**Step 6: Tests in `apps/api/test/audit.test.ts`**
+Add a new describe block within the existing file:
 
 ```
-~10 tests:
-- POST /products creates an audit log entry with actor, action, resource, resourceId
-- Audit log entry has sanitized body (password redacted)
-- GET /audit-log returns paginated entries for ADMIN
-- GET /audit-log with ?resource=product filters by resource
-- GET /audit-log with ?actor=userId filters by actor
-- GET /audit-log returns 403 for non-ADMIN users
-- GET /audit-log returns 401 for unauthenticated requests
-- Failed mutations (4xx) are NOT logged
-- GET requests are NOT logged (only mutations)
-- Audit hook failure does not break the request (error handling)
+~8 tests:
+- GET /products/stats returns 200 with byStatus, verificationCount, recentEvents
+- byStatus counts match actual product statuses (create 2 DRAFT, mint 1 -> 1 ACTIVE + 1 DRAFT)
+- verificationCount reflects VERIFIED events (verify a product, count increments)
+- recentEvents returns up to 10 events ordered by createdAt desc
+- recentEvents includes product name and gtin
+- Brand-scoped: BRAND_ADMIN only sees own brand's stats
+- Non-ADMIN without brandId gets 403
+- Unauthenticated request gets 401
 ```
 
-Use `buildApp()` + `cleanDb()` + re-seed pattern (R03, R16).
+Use `buildApp()` + `cleanDb()` + re-seed pattern (R03, R16). For mint tests, the product must be DRAFT first, then minted via the API endpoint (not direct DB manipulation) to generate the MINTED event.
 
 **Patterns to follow**:
-- Plugin architecture: `fp()` wrapper (same as prisma.ts, rate-limit.ts)
-- Pagination: same pattern as products/list.ts (page/limit/totalPages)
-- RBAC: `requireRole("ADMIN")` (same as existing admin guards)
-- PII redaction: sanitize body before logging (R22 principle)
-- Error resilience: audit logging must never break the request
-- No body/response JSON schema in route config (R01)
+- Brand scoping: ADMIN sees all, others see own brand (R31)
+- brandId null guard (same as list.ts, get.ts)
+- No body/response JSON schema (R01)
+- Parallel queries with `Promise.all` (R33)
+- Route as default export async function (standard route pattern)
+- Enums from @galileo/shared (R09)
+- CSRF: stats route is registered under products/ group which has CSRF hook, but GET requests are exempt from CSRF check by the middleware
 
 **Edge cases**:
-- Public endpoints (verify): `actor` is null, still logged
-- Large request body: truncated to 200 chars per field
-- Multipart upload: body sanitization handles non-object bodies gracefully
-- Prisma error during audit write: caught silently, logged via Pino
-- New TRUNCATE in helpers.ts: must be updated or existing tests will have stale AuditLog rows
+- No products: byStatus is `{}`, verificationCount is 0, recentEvents is `[]`
+- Missing statuses: only statuses with products appear in byStatus (frontend must default missing keys to 0)
+- Brand with no events: recentEvents is empty array
+- MINTING status: transient state, may appear in byStatus during concurrent mint operations
+- Verification by anonymous user: event exists with `performedBy: null`, still counted
 
-**Verify**: Create a product (POST). Check AuditLog table has entry with actor, action="POST /products", resource="product", resourceId=productId. GET /audit-log as ADMIN returns the entry. Non-ADMIN gets 403. Failed requests (4xx) do not create entries.
+**Verify**: Create products with different statuses. GET /products/stats returns correct byStatus counts. Verify a product -- verificationCount increments. Recent events list shows the latest 10 events with product name and gtin.
 
 ---
 
-### Brief #3: Product List Filtering by Status and Category
+### Brief #2: Dashboard Home -- Live Stats + Recent Activity
 
-**Type**: improvement
+**Type**: UI
 **Priority**: P2
 **Epic**: EPIC-002-product-lifecycle
 
 **Files to modify**:
-- `apps/api/src/routes/products/list.ts` -- add `status` and `category` query params
-- `apps/api/test/products.test.ts` -- add filtering tests
+- `apps/dashboard/src/app/dashboard/page.tsx` -- replace hardcoded stats with API data, add activity feed
 
 **Approach**:
 
-The product list endpoint already supports pagination (page/limit). Add optional `status` and `category` query params for filtering. This enables the dashboard to show "only active products" or "only watches".
+Replace the hardcoded `stats` array (all zeros) with a `useEffect` fetch to `GET /products/stats`. Map the API response to the 4 stat cards. Populate the activity feed with `recentEvents` from the same endpoint. The page already has the correct UI structure -- we just need to wire it to real data.
 
-**Step 1: Update `listQuerySchema` in list.ts**
+**Step 1: Update `apps/dashboard/src/app/dashboard/page.tsx`**
 
-```typescript
-import { ProductStatus } from "@galileo/shared";
-
-const listQuerySchema = z.object({
-  page: z.coerce.number().int().positive().default(1),
-  limit: z.coerce.number().int().positive().max(100).default(20),
-  status: z.nativeEnum(ProductStatus).optional(),
-  category: z.string().max(100).optional(),
-});
-```
-
-Note: Use `z.nativeEnum(ProductStatus)` to validate against the shared enum (R09).
-
-**Step 2: Update the querystring schema metadata** (for Swagger docs)
+Remove the static `stats` array. Add state and fetch logic:
 
 ```typescript
-querystring: {
-  type: "object",
-  properties: {
-    page: { type: "integer", minimum: 1, default: 1, description: "Page number" },
-    limit: { type: "integer", minimum: 1, maximum: 100, default: 20, description: "Items per page" },
-    status: { type: "string", enum: ["DRAFT", "MINTING", "ACTIVE", "TRANSFERRED", "RECALLED"], description: "Filter by product status" },
-    category: { type: "string", description: "Filter by product category" },
-  },
-},
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+import {
+  Package,
+  Shield,
+  ArrowRightLeft,
+  CheckCircle,
+  Activity,
+} from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { api, ApiError } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+
+interface StatsResponse {
+  success: true;
+  data: {
+    byStatus: Record<string, number>;
+    verificationCount: number;
+    recentEvents: Array<{
+      id: string;
+      type: string;
+      createdAt: string;
+      product: {
+        name: string;
+        gtin: string;
+      };
+    }>;
+  };
+}
+
+const EVENT_LABELS: Record<string, string> = {
+  CREATED: "Product created",
+  UPDATED: "Product updated",
+  MINTED: "Passport minted",
+  TRANSFERRED: "Product transferred",
+  VERIFIED: "Product verified",
+  RECALLED: "Product recalled",
+};
+
+function formatRelativeTime(dateStr: string): string {
+  const now = new Date();
+  const date = new Date(dateStr);
+  const diffMs = now.getTime() - date.getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 1) return "just now";
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHours = Math.floor(diffMin / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+  const diffDays = Math.floor(diffHours / 24);
+  return `${diffDays}d ago`;
+}
+
+export default function DashboardPage() {
+  const { user } = useAuth();
+  const [byStatus, setByStatus] = useState<Record<string, number>>({});
+  const [verificationCount, setVerificationCount] = useState(0);
+  const [recentEvents, setRecentEvents] = useState<
+    StatsResponse["data"]["recentEvents"]
+  >([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchStats = useCallback(async () => {
+    try {
+      const res = await api<StatsResponse>("/products/stats");
+      setByStatus(res.data.byStatus);
+      setVerificationCount(res.data.verificationCount);
+      setRecentEvents(res.data.recentEvents);
+    } catch (err) {
+      // Silently fail -- show zeros if stats unavailable
+      if (!(err instanceof ApiError)) {
+        console.error("Failed to load stats", err);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
+
+  const displayName = user?.email ?? "there";
+
+  const totalProducts =
+    (byStatus.DRAFT ?? 0) +
+    (byStatus.ACTIVE ?? 0) +
+    (byStatus.TRANSFERRED ?? 0) +
+    (byStatus.RECALLED ?? 0) +
+    (byStatus.MINTING ?? 0);
+
+  const stats = [
+    { label: "Total Products", value: totalProducts, icon: Package },
+    { label: "Active Passports", value: byStatus.ACTIVE ?? 0, icon: Shield },
+    {
+      label: "Transferred",
+      value: byStatus.TRANSFERRED ?? 0,
+      icon: ArrowRightLeft,
+    },
+    { label: "Verifications", value: verificationCount, icon: CheckCircle },
+  ];
+
+  return (
+    <div className="flex flex-col gap-8">
+      {/* Welcome message */}
+      <div>
+        <h1 className="font-serif text-2xl font-semibold text-foreground">
+          Welcome back, {displayName}
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Here&apos;s an overview of your Galileo Protocol activity.
+        </p>
+      </div>
+
+      {/* Stat cards */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {stats.map((stat) => (
+          <Card key={stat.label}>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                {stat.label}
+              </CardTitle>
+              <stat.icon className="size-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold text-foreground">
+                {isLoading ? "—" : stat.value}
+              </p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Activity feed */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base font-medium">
+            Recent Activity
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            </div>
+          ) : recentEvents.length > 0 ? (
+            <ul className="divide-y divide-border">
+              {recentEvents.map((event) => (
+                <li
+                  key={event.id}
+                  className="flex items-center justify-between py-3"
+                >
+                  <div className="flex flex-col gap-0.5">
+                    <p className="text-sm font-medium text-foreground">
+                      {EVENT_LABELS[event.type] ?? event.type}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {event.product.name} ({event.product.gtin})
+                    </p>
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {formatRelativeTime(event.createdAt)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <Activity className="mb-3 size-8 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">
+                No recent activity
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* CTA */}
+      <div className="flex justify-center">
+        <Button asChild size="lg">
+          <Link href="/dashboard/products">
+            {totalProducts > 0 ? "View products" : "Create your first product"}
+          </Link>
+        </Button>
+      </div>
+    </div>
+  );
+}
 ```
 
-**Step 3: Update the where clause in the handler**
-
-```typescript
-const { page, limit, status, category } = parsed.data;
-
-// Brand scoping: ADMIN sees all, others see only their brand
-const where: Record<string, unknown> =
-  user.role === "ADMIN" ? {} : { brandId: user.brandId as string };
-
-// Apply optional filters
-if (status) where.status = status;
-if (category) where.category = category;
-```
-
-**Step 4: Add tests in products.test.ts**
-
-Add to the existing `describe("Product CRUD endpoints")` block:
-
-```
-~4 tests:
-- GET /products?status=ACTIVE returns only active products
-- GET /products?category=watches returns only watches
-- GET /products?status=ACTIVE&category=watches combines both filters
-- GET /products with invalid status returns 400 validation error
-```
+Key changes:
+- Import `api` and `ApiError` from `@/lib/api`
+- Add `StatsResponse` interface matching the API response
+- Fetch stats on mount with `useEffect` + `useCallback`
+- Compute `totalProducts` from byStatus values (default missing keys to 0)
+- Show loading skeleton ("--") while fetching
+- Map `recentEvents` to activity feed list items with relative timestamps
+- Show "No recent activity" only when events array is empty after loading
+- CTA text changes based on whether products exist
 
 **Patterns to follow**:
-- Use enums from @galileo/shared (R09)
-- Zod validation on query params (same as existing page/limit)
-- No response schema in route config (R01)
+- Dashboard data fetching: `api<T>(path)` wrapper (same as products page)
+- State management: useState + useEffect + useCallback (same as products page)
+- Error handling: silent fail for stats (show zeros), unlike product list which shows error
+- Loading state: inline spinner for activity feed, "em dash" for stat values
+- No external state library (no TanStack Query yet -- keep consistent with existing pages)
 
 **Edge cases**:
-- No products match filter: returns empty array with pagination `{ total: 0, products: [], pagination: { ... } }`
-- Invalid status value: Zod rejects with VALIDATION_ERROR
-- Category is free-text: accepts any string up to 100 chars
-- Combined with brand scoping: filters are AND-ed with brand scope
+- API returns empty byStatus: all stat values default to 0
+- API unreachable: stats show 0, activity feed shows "No recent activity" (graceful degradation)
+- Events with unknown type: fallback to raw event.type string
+- Long product name in activity feed: CSS will handle truncation naturally
+- User without brand: API returns 403, stats show 0 (same behavior as product list)
 
-**Verify**: Create products with different statuses and categories. GET /products?status=ACTIVE returns only active ones. GET /products?category=watches returns only watches. Invalid status returns 400.
+**E2E validation (R36)**: The Tester MUST validate this task in a real browser:
+1. Start dev server (`pnpm dev`)
+2. Log in as a brand user who has products
+3. Navigate to `/dashboard` -- verify stat cards show real numbers (not all zeros)
+4. Verify activity feed shows recent events with product name, GTIN, and relative time
+5. Resize to mobile viewport (375px) -- verify stat cards stack vertically, activity feed is readable
+6. Log in as a user with no products -- verify stats show 0 and activity says "No recent activity"
+7. Take screenshots as evidence
+
+**Verify**: Dashboard home shows real stats from API. Stat cards display Total Products, Active Passports, Transferred, and Verifications with correct counts. Activity feed shows up to 10 recent events with timestamps. Loading state shows dashes and spinner. Empty state shows zeros and "No recent activity".
+
+---
+
+### Brief #3: Dashboard Product List -- Filter UI (Status + Category Dropdowns)
+
+**Type**: UI
+**Priority**: P2
+**Epic**: EPIC-002-product-lifecycle
+
+**Files to modify**:
+- `apps/dashboard/src/app/dashboard/products/page.tsx` -- add filter dropdowns above the table
+
+**Approach**:
+
+Add two Select dropdowns (shadcn `Select` component, already installed) between the page header and the product table. When the user selects a status or category, append `?status=X` and/or `?category=Y` to the API call. A "Clear" button resets both filters. The existing `fetchProducts` function just needs the filter values added to its query string.
+
+**Step 1: Update `apps/dashboard/src/app/dashboard/products/page.tsx`**
+
+Add imports for Select components and filter state:
+
+```typescript
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Package, Plus, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { type ProductStatus } from "@galileo/shared";
+import { api, ApiError } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+
+// ... existing interfaces (Product, Pagination, ProductsResponse) stay the same ...
+
+const STATUS_OPTIONS = [
+  { value: "DRAFT", label: "Draft" },
+  { value: "ACTIVE", label: "Active" },
+  { value: "TRANSFERRED", label: "Transferred" },
+  { value: "RECALLED", label: "Recalled" },
+];
+
+const CATEGORY_OPTIONS = [
+  { value: "Leather Goods", label: "Leather Goods" },
+  { value: "Jewelry", label: "Jewelry" },
+  { value: "Watches", label: "Watches" },
+  { value: "Fashion", label: "Fashion" },
+  { value: "Accessories", label: "Accessories" },
+  { value: "Fragrances", label: "Fragrances" },
+  { value: "Eyewear", label: "Eyewear" },
+  { value: "Other", label: "Other" },
+];
+
+// ... existing STATUS_STYLES, StatusBadge, formatDate stay the same ...
+
+const PAGE_SIZE = 20;
+
+export default function ProductsPage() {
+  const router = useRouter();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [pagination, setPagination] = useState<Pagination | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState<string | undefined>();
+  const [categoryFilter, setCategoryFilter] = useState<string | undefined>();
+
+  const fetchProducts = useCallback(
+    async (currentPage: number, status?: string, category?: string) => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const params = new URLSearchParams({
+          page: String(currentPage),
+          limit: String(PAGE_SIZE),
+        });
+        if (status) params.set("status", status);
+        if (category) params.set("category", category);
+
+        const res = await api<ProductsResponse>(
+          `/products?${params.toString()}`,
+        );
+        setProducts(res.data.products);
+        setPagination(res.data.pagination);
+      } catch (err) {
+        if (err instanceof ApiError) {
+          setError(err.message);
+        } else {
+          setError("Failed to load products");
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [],
+  );
+
+  useEffect(() => {
+    fetchProducts(page, statusFilter, categoryFilter);
+  }, [page, statusFilter, categoryFilter, fetchProducts]);
+
+  // Reset to page 1 when filters change
+  function handleStatusChange(value: string) {
+    setStatusFilter(value);
+    setPage(1);
+  }
+
+  function handleCategoryChange(value: string) {
+    setCategoryFilter(value);
+    setPage(1);
+  }
+
+  function clearFilters() {
+    setStatusFilter(undefined);
+    setCategoryFilter(undefined);
+    setPage(1);
+  }
+
+  const hasActiveFilters = statusFilter || categoryFilter;
+
+  // ... rest of the component (loading, error states) stays the same ...
+  // Insert the filter bar between the page header and the product table/empty state
+```
+
+Insert the filter bar JSX between the page header `<div>` and the `{hasProducts ? (` conditional:
+
+```tsx
+{/* Filters */}
+<div className="flex flex-wrap items-center gap-3">
+  <Select
+    value={statusFilter ?? ""}
+    onValueChange={handleStatusChange}
+  >
+    <SelectTrigger className="w-[160px]">
+      <SelectValue placeholder="All statuses" />
+    </SelectTrigger>
+    <SelectContent>
+      {STATUS_OPTIONS.map((opt) => (
+        <SelectItem key={opt.value} value={opt.value}>
+          {opt.label}
+        </SelectItem>
+      ))}
+    </SelectContent>
+  </Select>
+
+  <Select
+    value={categoryFilter ?? ""}
+    onValueChange={handleCategoryChange}
+  >
+    <SelectTrigger className="w-[180px]">
+      <SelectValue placeholder="All categories" />
+    </SelectTrigger>
+    <SelectContent>
+      {CATEGORY_OPTIONS.map((opt) => (
+        <SelectItem key={opt.value} value={opt.value}>
+          {opt.label}
+        </SelectItem>
+      ))}
+    </SelectContent>
+  </Select>
+
+  {hasActiveFilters && (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={clearFilters}
+      className="text-muted-foreground"
+    >
+      <X className="mr-1 size-3" />
+      Clear filters
+    </Button>
+  )}
+</div>
+```
+
+Important implementation notes:
+- The `Select` component from shadcn uses Radix UI which requires `value` to be a string (not undefined for "no selection"). Pass empty string `""` when no filter is active, and use `placeholder` prop on `SelectValue` for the default display text.
+- Reset `page` to 1 whenever a filter changes to avoid requesting a page beyond the filtered result set.
+- `clearFilters` sets both to `undefined` and resets page.
+- The `X` icon import is added at the top (`lucide-react`).
+- The `fetchProducts` callback now accepts status and category params, building a URLSearchParams object.
+
+**Patterns to follow**:
+- shadcn Select component already installed at `apps/dashboard/src/components/ui/select.tsx`
+- Categories from `@galileo/shared` constants (CATEGORIES array, Title Case)
+- Status values match ProductStatus enum from `@galileo/shared`
+- URLSearchParams for clean query string construction
+- Reset page to 1 on filter change (standard UX pattern)
+- No body/response JSON schema (R01) -- API already supports these query params from Sprint #4
+
+**Edge cases**:
+- Radix Select `value=""` vs `undefined`: Radix requires a controlled value string. Use `""` for "no filter selected" and the `placeholder` prop to show "All statuses"/"All categories". When `onValueChange` fires, the new value is always a non-empty string (one of the options).
+- Clearing a single filter: the Radix Select component does not support "deselect" natively. The "Clear filters" button resets both. This is a known UX compromise. A future improvement could add an "All" option to each dropdown.
+- MINTING status not shown in filter: MINTING is a transient state (seconds) and not useful for filtering. Excluded from STATUS_OPTIONS intentionally.
+- Category values are Title Case strings (e.g. "Leather Goods") matching the API exactly.
+- Empty filtered result: shows existing empty state ("No products yet") which is correct.
+
+**E2E validation (R36)**: The Tester MUST validate this task in a real browser:
+1. Start dev server (`pnpm dev`)
+2. Log in as a brand user with multiple products (different statuses and categories)
+3. Navigate to `/dashboard/products`
+4. Open the Status dropdown -- verify all options (Draft, Active, Transferred, Recalled) are listed
+5. Select "Active" -- verify only active products appear, pagination updates
+6. Open the Category dropdown -- verify all 8 categories listed
+7. Select a category -- verify products filter correctly (combined status + category)
+8. Click "Clear filters" -- verify all products appear again
+9. Resize to mobile (375px) -- verify dropdowns wrap to next line, are still usable
+10. Test with empty result: select a status/category combo that has no products -- verify empty state shows
+11. Take screenshots as evidence
+
+**Verify**: Filter dropdowns appear above the product table. Selecting a status filters the list. Selecting a category filters the list. Both filters can be combined. "Clear filters" button appears when filters are active and resets both. Pagination resets to page 1 on filter change.
 
 ## Notes
 
