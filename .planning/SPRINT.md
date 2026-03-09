@@ -14,10 +14,10 @@
 
 | ID | Task | Epic | Status | Verify | Commit |
 |------|------|------|--------|--------|--------|
-| T10.1 | Fix FK constraint violations in batch-mint/batch-import tests | EPIC-007 | done | All 372+ tests pass consistently with zero FK violations. `pnpm test` green on full suite, 3 consecutive runs. | a4f22d0 |
-| T10.2 | Vercel deployment config for dashboard + scanner | EPIC-008 | done | `vercel.json` present for dashboard and scanner. `pnpm turbo build` passes. Vercel CLI `vercel build` (dry-run) succeeds if available. | cddf83a |
-| T10.3 | API Dockerfile for containerized deployment | EPIC-008 | done | `docker build -t galileo-api apps/api` succeeds. Container starts and responds to `/health`. Image size < 500MB. | d239545 |
-| T10.4 | DPIA scaffold document | EPIC-006 | done | DPIA document exists at `specifications/dpia/galileo-dpia.md` with all required EDPB sections. Content is accurate for current architecture. | 602b60f |
+| T10.1 | Fix FK constraint violations in batch-mint/batch-import tests | EPIC-007 | validated | All 372+ tests pass consistently with zero FK violations. `pnpm test` green on full suite, 3 consecutive runs. | a4f22d0 |
+| T10.2 | Vercel deployment config for dashboard + scanner | EPIC-008 | validated | `vercel.json` present for dashboard and scanner. `pnpm turbo build` passes. Vercel CLI `vercel build` (dry-run) succeeds if available. | cddf83a |
+| T10.3 | API Dockerfile for containerized deployment | EPIC-008 | validated | `docker build -t galileo-api apps/api` succeeds. Container starts and responds to `/health`. Image size < 500MB. | d239545 |
+| T10.4 | DPIA scaffold document | EPIC-006 | validated | DPIA document exists at `specifications/dpia/galileo-dpia.md` with all required EDPB sections. Content is accurate for current architecture. | 602b60f |
 
 ### Status values
 - `todo` — Not started
