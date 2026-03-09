@@ -691,6 +691,8 @@ The API endpoint `POST /products/:id/upload` already exists (Sprint #1, multipar
 2. Uploads the file after product creation (create form) or on demand (edit form)
 3. Displays the current product image on the detail page (from `imageUrl`)
 
+**Important**: The `Product` interface in `[id]/page.tsx` (line ~72-86) does NOT include `imageUrl`. The API returns it (from Prisma), but the frontend TypeScript type omits it. The Developer must add `imageUrl: string | null;` to the interface.
+
 **Step 1: Create a reusable ImageUpload component**
 
 Create `apps/dashboard/src/components/image-upload.tsx`:
