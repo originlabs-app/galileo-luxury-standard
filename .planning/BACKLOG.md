@@ -49,6 +49,7 @@ EPICs (functional bricks, in epics/)
 - [ ] `EPIC-002` Dashboard home: live stats + recent activity
 - [ ] `EPIC-002` Dashboard product list: filter UI (status + category dropdowns)
 - [ ] `EPIC-006` Dashboard product image upload UI
+- [ ] `EPIC-007` E2E Playwright: dashboard stats, filters, upload
 
 ---
 
@@ -73,6 +74,10 @@ EPICs (functional bricks, in epics/)
 - [ ] `EPIC-007` Health check: verify RPC connectivity
   - **Context**: Health endpoint already checks DB + chain. Enhance to verify authenticated RPC responds and contract is reachable.
   - **Verify**: /health returns degraded when RPC unreachable
+
+- [ ] `EPIC-007` E2E Playwright: real mint flow (create → mint on-chain → verify → scan)
+  - **Context**: Extend product-lifecycle.spec.ts to verify real txHash, Basescan link, scanner resolution
+  - **Verify**: E2E covers the full pilot path with real on-chain data
 
 ---
 
@@ -99,6 +104,10 @@ EPICs (functional bricks, in epics/)
 - [ ] `EPIC-006` Human review for compliance rejections — [source: ROADMAP 4.3]
   - **Context**: GDPR Art. 22 — automated decisions need human review option
   - **Verify**: Rejected transfers can be escalated to human review
+
+- [ ] `EPIC-007` E2E Playwright: lifecycle + compliance (repair → CPO certify → transfer with compliance → webhook delivery)
+  - **Context**: End-to-end coverage of new lifecycle events and compliance rejection/approval flows
+  - **Verify**: E2E passes for happy path + compliance rejection scenario
 
 ---
 
@@ -139,6 +148,10 @@ EPICs (functional bricks, in epics/)
 - [ ] `EPIC-005` MFA: TOTP + passkey — [source: ROADMAP 4.5]
   - **Context**: Enterprise-grade MFA for brand admin users
   - **Verify**: TOTP enrollment and verification flow works
+
+- [ ] `EPIC-007` E2E Playwright: wallet link (with nonce) + SIWE login + MFA enrollment
+  - **Context**: Full auth/wallet E2E coverage. Mock wallet interactions with Playwright.
+  - **Verify**: E2E covers wallet link, SIWE login, MFA TOTP enrollment + verification
 
 ---
 

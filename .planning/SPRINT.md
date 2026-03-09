@@ -18,6 +18,7 @@
 | 2 | Dashboard home: live stats + recent activity | EPIC-002 | todo | Stats cards show real numbers from API, activity feed shows recent events with timestamps. | |
 | 3 | Dashboard product list: filter UI (status + category dropdowns) | EPIC-002 | todo | Selecting a filter updates the product list. Clearing filter shows all products. | |
 | 4 | Dashboard product image upload UI | EPIC-006 | todo | Product create/edit forms allow image upload. Uploaded image visible on product detail. | |
+| 5 | E2E Playwright: dashboard stats, filters, upload | EPIC-007 | todo | Automated Playwright specs covering Sprint #5 features. Run with `pnpm --filter dashboard exec playwright test`. | |
 
 ### Status values
 - `todo` -- Not started
@@ -853,6 +854,83 @@ In `new/page.tsx`, show the ImageUpload component AFTER product creation:
 10. Take screenshots as evidence
 
 **Verify**: Product create/edit forms show an image upload area. Selecting a file shows preview and uploads to API. Uploaded image visible on product detail page. Error handling for invalid/large files.
+
+---
+
+### Brief #5: E2E Playwright — Dashboard Stats, Filters, Upload
+
+**Type**: testing
+**Priority**: P2
+**Epic**: EPIC-007-observability-quality
+
+**Files to modify**:
+- `apps/dashboard/e2e/dashboard-home.spec.ts` -- NEW: E2E tests for dashboard home (stats + activity)
+- `apps/dashboard/e2e/product-filters.spec.ts` -- NEW: E2E tests for product list filters
+- `apps/dashboard/e2e/product-upload.spec.ts` -- NEW: E2E tests for image upload
+- `apps/dashboard/e2e/product-lifecycle.spec.ts` -- extend existing spec if needed
+
+**Approach**:
+
+Existing E2E infrastructure: `auth.setup.ts` registers a user + saves auth state, `playwright.config.ts` starts API + dashboard servers. Tests run against `http://localhost:3000` with auth cookies.
+
+Write 3 new Playwright spec files that cover all Sprint #5 features. These tests persist and run in every future cycle, protecting the critical dashboard paths.
+
+**Spec 1: `dashboard-home.spec.ts`**
+
+```
+describe("Dashboard Home")
+  - navigates to /dashboard and sees stat cards (Total Products, Active Passports, Transferred, Verifications)
+  - stat cards show real numbers (not zeros) after product lifecycle setup
+  - activity feed shows recent events with product name and relative timestamps
+  - activity feed shows "No recent activity" for brand with no events
+  - stat cards are responsive on mobile viewport (375px)
+```
+
+Setup: reuse auth state from `auth.setup.ts`. The product-lifecycle spec already creates + mints a product, so run dashboard-home after to verify stats reflect that data.
+
+**Spec 2: `product-filters.spec.ts`**
+
+```
+describe("Product List Filters")
+  - filter by status: select "Active" → only active products shown
+  - filter by category: select "Leather Goods" → only matching products shown
+  - combined filters: status + category → intersection shown
+  - clear filters: click "Clear filters" → all products shown again
+  - empty result: filter combo with no matches → shows empty state
+  - pagination resets to page 1 when filter changes
+  - dropdowns are usable on mobile viewport (375px)
+```
+
+Setup: create 3+ products with different statuses and categories during test setup.
+
+**Spec 3: `product-upload.spec.ts`**
+
+```
+describe("Product Image Upload")
+  - create product → navigate to detail → upload image → preview shown
+  - uploaded image persists after page reload
+  - upload on existing product replaces previous image
+  - upload button disabled during upload (loading state)
+  - image visible on mobile viewport (375px)
+```
+
+Setup: create a product first, then test upload flow. Use a small test image file (create a 1x1 PNG fixture or use `page.setInputFiles()`).
+
+**Patterns to follow**:
+- Auth: all specs use `storageState: "playwright/.auth/user.json"` (configured in playwright.config.ts)
+- Selectors: prefer `getByRole`, `getByText`, `getByLabel` (accessible selectors)
+- Waits: use `expect(locator).toBeVisible({ timeout })` instead of arbitrary waits
+- Viewport: test mobile with `page.setViewportSize({ width: 375, height: 812 })`
+- Fixtures: create test products via UI (not direct API) to test the full flow
+- Isolation: each spec file is independent — creates its own test data
+
+**Edge cases**:
+- Race condition: stats endpoint may return before product events are committed — use `expect.poll()` or retry
+- File upload: use Playwright's `page.setInputFiles()` to programmatically set the file input
+- Flaky selectors: avoid CSS class selectors, use role-based or text-based locators
+- Server startup: playwright.config.ts already handles API + dashboard startup with health check
+
+**Verify**: `pnpm --filter dashboard exec playwright test` runs all E2E specs (auth setup + product lifecycle + 3 new specs). All pass. New specs cover dashboard home stats, product filters, and image upload.
 
 ## Notes
 
