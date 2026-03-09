@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { validateGtin } from "@galileo/shared";
 import { api, ApiError } from "@/lib/api";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -51,6 +52,7 @@ interface CreateProductResponse {
 
 export default function NewProductPage() {
   const router = useRouter();
+  const { user } = useAuth();
 
   const [name, setName] = useState("");
   const [gtin, setGtin] = useState("");
@@ -95,6 +97,7 @@ export default function NewProductPage() {
 
     setIsSubmitting(true);
     try {
+      const effectiveBrandId = user?.brandId ?? user?.brand?.id;
       const res = await api<CreateProductResponse>("/products", {
         method: "POST",
         body: JSON.stringify({
@@ -103,10 +106,11 @@ export default function NewProductPage() {
           serialNumber: serialNumber.trim(),
           category,
           description: description.trim() || undefined,
+          brandId: effectiveBrandId,
         }),
       });
 
-      router.push(`/dashboard/products/${res.data.product.id}`);
+      router.push(`/dashboard/products/${res.data.product.id}/identity`);
     } catch (err) {
       if (err instanceof ApiError) {
         setServerError(err.message);
