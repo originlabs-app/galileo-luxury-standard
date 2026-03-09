@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import crypto from "node:crypto";
 import { requireRole } from "../../middleware/rbac.js";
 import { RouteError } from "../../utils/route-error.js";
+import { enqueueWebhookEvent } from "../../services/webhooks/outbox.js";
 
 export default async function mintProductRoute(fastify: FastifyInstance) {
   fastify.post<{ Params: { id: string } }>(
@@ -151,6 +152,17 @@ export default async function mintProductRoute(fastify: FastifyInstance) {
             message: "Product not found after mint — this should not happen",
           },
         });
+      }
+
+      // Fire webhook (non-blocking, R29 — cross-cutting hooks fail silently)
+      try {
+        enqueueWebhookEvent("MINTED", id, {
+          productId: id,
+          txHash,
+          tokenAddress,
+        });
+      } catch {
+        // Webhook enqueue failure must not break the request
       }
 
       return reply.status(200).send({

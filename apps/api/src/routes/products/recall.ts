@@ -3,6 +3,7 @@ import { z } from "zod";
 import { ProductStatus, EventType } from "@galileo/shared";
 import { requireRole } from "../../middleware/rbac.js";
 import { RouteError } from "../../utils/route-error.js";
+import { enqueueWebhookEvent } from "../../services/webhooks/outbox.js";
 
 const recallBody = z
   .object({
@@ -140,6 +141,16 @@ export default async function recallProductRoute(fastify: FastifyInstance) {
             message: "Product not found after recall — this should not happen",
           },
         });
+      }
+
+      // Fire webhook (non-blocking, R29 — cross-cutting hooks fail silently)
+      try {
+        enqueueWebhookEvent(EventType.RECALLED, id, {
+          productId: id,
+          reason: bodyParsed.data.reason,
+        });
+      } catch {
+        // Webhook enqueue failure must not break the request
       }
 
       return reply.status(200).send({

@@ -13,6 +13,7 @@ import { sanctionsCheck } from "../../services/compliance/sanctions.js";
 import { brandAuthCheck } from "../../services/compliance/brand-auth.js";
 import { cpoCheck } from "../../services/compliance/cpo.js";
 import { serviceCenterCheck } from "../../services/compliance/service-center.js";
+import { enqueueWebhookEvent } from "../../services/webhooks/outbox.js";
 
 export default async function transferProductRoute(fastify: FastifyInstance) {
   fastify.post<{
@@ -213,6 +214,16 @@ export default async function transferProductRoute(fastify: FastifyInstance) {
               "Product not found after transfer — this should not happen",
           },
         });
+      }
+
+      // Fire webhook (non-blocking, R29 — cross-cutting hooks fail silently)
+      try {
+        enqueueWebhookEvent(EventType.TRANSFERRED, id, {
+          productId: id,
+          toAddress: checksumToAddress,
+        });
+      } catch {
+        // Webhook enqueue failure must not break the request
       }
 
       return reply.status(200).send({

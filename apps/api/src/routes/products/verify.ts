@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { ProductStatus, EventType } from "@galileo/shared";
 import { errorResponseSchema } from "../../utils/schemas.js";
+import { enqueueWebhookEvent } from "../../services/webhooks/outbox.js";
 
 const verifyBody = z
   .object({
@@ -111,6 +112,16 @@ export default async function verifyProductRoute(fastify: FastifyInstance) {
 
       // Prepend the new event to the already-fetched list (avoids a third DB call)
       product.events = [newEvent, ...product.events].slice(0, 50);
+
+      // Fire webhook (non-blocking, R29 — cross-cutting hooks fail silently)
+      try {
+        enqueueWebhookEvent(EventType.VERIFIED, id, {
+          productId: id,
+          location,
+        });
+      } catch {
+        // Webhook enqueue failure must not break the request
+      }
 
       return reply.status(200).send({
         success: true,

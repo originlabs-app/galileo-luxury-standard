@@ -19,6 +19,8 @@ import authRoutes from "./routes/auth/index.js";
 import productRoutes from "./routes/products/index.js";
 import resolverRoutes from "./routes/resolver/index.js";
 import auditRoutes from "./routes/audit/index.js";
+import webhookRoutes from "./routes/webhooks/index.js";
+import { startWorker, stopWorker } from "./services/webhooks/outbox.js";
 
 export async function buildApp() {
   const fastify = Fastify({
@@ -121,6 +123,17 @@ export async function buildApp() {
   await fastify.register(productRoutes);
   await fastify.register(resolverRoutes);
   await fastify.register(auditRoutes);
+  await fastify.register(webhookRoutes);
+
+  // Start the webhook outbox worker (skip in test env)
+  if (config.NODE_ENV !== "test") {
+    fastify.addHook("onReady", () => {
+      startWorker();
+    });
+    fastify.addHook("onClose", () => {
+      stopWorker();
+    });
+  }
 
   return fastify;
 }
