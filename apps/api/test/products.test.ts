@@ -1,11 +1,17 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import { buildApp } from "../src/server.js";
 import type { FastifyInstance } from "fastify";
-import { parseCookies, cleanDb } from "./helpers.js";
+import { parseCookies, cleanDb, nextFixtureId } from "./helpers.js";
+import { hashPassword } from "../src/utils/password.js";
 
 // Valid GTINs (GS1 check digit verified)
 const VALID_GTIN_13 = "4006381333931";
 const VALID_GTIN_13_B = "5901234123457";
+const TEST_PASSWORD = "password123";
+
+function fixtureEmail(localPart: string, fixtureId: string): string {
+  return `${localPart}.${fixtureId}@test.com`;
+}
 
 describe("Product CRUD endpoints", () => {
   let app: FastifyInstance;
@@ -19,6 +25,43 @@ describe("Product CRUD endpoints", () => {
 
   let testBrandId: string;
   let otherBrandId: string;
+  let fixtureId: string;
+  let brandAdminEmail: string;
+  let operatorEmail: string;
+  let viewerEmail: string;
+  let adminEmail: string;
+  let otherBrandAdminEmail: string;
+  let noBrandCreateEmail: string;
+  let noBrandStatsEmail: string;
+
+  async function createFixtureUser(params: {
+    email: string;
+    role: "ADMIN" | "BRAND_ADMIN" | "OPERATOR" | "VIEWER";
+    brandId?: string | null;
+  }) {
+    return app.prisma.user.create({
+      data: {
+        email: params.email,
+        passwordHash: await hashPassword(TEST_PASSWORD),
+        role: params.role,
+        brandId: params.brandId ?? null,
+      },
+    });
+  }
+
+  async function loginAs(email: string) {
+    const loginRes = await app.inject({
+      method: "POST",
+      url: "/auth/login",
+      payload: {
+        email,
+        password: TEST_PASSWORD,
+      },
+    });
+    expect(loginRes.statusCode).toBe(200);
+    const cookies = parseCookies(loginRes);
+    return `galileo_at=${cookies.galileo_at}`;
+  }
 
   beforeAll(async () => {
     app = await buildApp();
@@ -31,13 +74,23 @@ describe("Product CRUD endpoints", () => {
 
   beforeEach(async () => {
     await cleanDb(app.prisma);
+    fixtureId = nextFixtureId("products");
+    brandAdminEmail = fixtureEmail("brand-admin", fixtureId);
+    operatorEmail = fixtureEmail("operator", fixtureId);
+    viewerEmail = fixtureEmail("viewer", fixtureId);
+    adminEmail = fixtureEmail("admin", fixtureId);
+    otherBrandAdminEmail = fixtureEmail("other-brand-admin", fixtureId);
+    noBrandCreateEmail = fixtureEmail("nobrand-create", fixtureId);
+    noBrandStatsEmail = fixtureEmail("nobrand-stats", fixtureId);
+    const primaryBrandSlug = `test-luxury-brand-${fixtureId}`;
+    const secondaryBrandSlug = `other-brand-${fixtureId}`;
 
     // Create test brand
     const brand = await app.prisma.brand.create({
       data: {
-        name: "Test Luxury Brand",
-        slug: "test-luxury-brand",
-        did: "did:galileo:brand:test-luxury-brand",
+        name: `Test Luxury Brand ${fixtureId}`,
+        slug: primaryBrandSlug,
+        did: `did:galileo:brand:${primaryBrandSlug}`,
       },
     });
     testBrandId = brand.id;
@@ -45,138 +98,46 @@ describe("Product CRUD endpoints", () => {
     // Create another brand
     const otherBrand = await app.prisma.brand.create({
       data: {
-        name: "Other Brand",
-        slug: "other-brand",
-        did: "did:galileo:brand:other-brand",
+        name: `Other Brand ${fixtureId}`,
+        slug: secondaryBrandSlug,
+        did: `did:galileo:brand:${secondaryBrandSlug}`,
       },
     });
     otherBrandId = otherBrand.id;
 
-    // Register BRAND_ADMIN user (with brand)
-    const brandAdminRes = await app.inject({
-      method: "POST",
-      url: "/auth/register",
-      payload: {
-        email: "brand-admin@test.com",
-        password: "password123",
-      },
+    await createFixtureUser({
+      email: brandAdminEmail,
+      role: "BRAND_ADMIN",
+      brandId: testBrandId,
     });
-    const brandAdminUser = brandAdminRes.json().data.user;
-    await app.prisma.user.update({
-      where: { id: brandAdminUser.id },
-      data: { role: "BRAND_ADMIN", brandId: testBrandId },
-    });
-    // Re-login to get updated token with role+brand
-    const brandAdminLogin = await app.inject({
-      method: "POST",
-      url: "/auth/login",
-      payload: {
-        email: "brand-admin@test.com",
-        password: "password123",
-      },
-    });
-    const brandAdminCookies = parseCookies(brandAdminLogin);
-    brandAdminCookie = `galileo_at=${brandAdminCookies.galileo_at}`;
+    brandAdminCookie = await loginAs(brandAdminEmail);
 
-    // Register OPERATOR user
-    const operatorRes = await app.inject({
-      method: "POST",
-      url: "/auth/register",
-      payload: {
-        email: "operator@test.com",
-        password: "password123",
-      },
+    await createFixtureUser({
+      email: operatorEmail,
+      role: "OPERATOR",
+      brandId: testBrandId,
     });
-    const operatorUser = operatorRes.json().data.user;
-    await app.prisma.user.update({
-      where: { id: operatorUser.id },
-      data: { role: "OPERATOR", brandId: testBrandId },
-    });
-    const operatorLogin = await app.inject({
-      method: "POST",
-      url: "/auth/login",
-      payload: {
-        email: "operator@test.com",
-        password: "password123",
-      },
-    });
-    const operatorCookies = parseCookies(operatorLogin);
-    operatorCookie = `galileo_at=${operatorCookies.galileo_at}`;
+    operatorCookie = await loginAs(operatorEmail);
 
-    // Register VIEWER user
-    const viewerRes = await app.inject({
-      method: "POST",
-      url: "/auth/register",
-      payload: {
-        email: "viewer@test.com",
-        password: "password123",
-      },
+    await createFixtureUser({
+      email: viewerEmail,
+      role: "VIEWER",
+      brandId: testBrandId,
     });
-    const viewerUser = viewerRes.json().data.user;
-    await app.prisma.user.update({
-      where: { id: viewerUser.id },
-      data: { role: "VIEWER", brandId: testBrandId },
-    });
-    const viewerLogin = await app.inject({
-      method: "POST",
-      url: "/auth/login",
-      payload: {
-        email: "viewer@test.com",
-        password: "password123",
-      },
-    });
-    const viewerCookies = parseCookies(viewerLogin);
-    viewerCookie = `galileo_at=${viewerCookies.galileo_at}`;
+    viewerCookie = await loginAs(viewerEmail);
 
-    // Register ADMIN user (no brand — sees all)
-    const adminRes = await app.inject({
-      method: "POST",
-      url: "/auth/register",
-      payload: {
-        email: "admin@test.com",
-        password: "password123",
-      },
+    await createFixtureUser({
+      email: adminEmail,
+      role: "ADMIN",
     });
-    const adminUser = adminRes.json().data.user;
-    await app.prisma.user.update({
-      where: { id: adminUser.id },
-      data: { role: "ADMIN" },
-    });
-    const adminLogin = await app.inject({
-      method: "POST",
-      url: "/auth/login",
-      payload: {
-        email: "admin@test.com",
-        password: "password123",
-      },
-    });
-    const adminCookies = parseCookies(adminLogin);
-    adminCookie = `galileo_at=${adminCookies.galileo_at}`;
+    adminCookie = await loginAs(adminEmail);
 
-    // Register other BRAND_ADMIN (different brand)
-    const otherBrandAdminRes = await app.inject({
-      method: "POST",
-      url: "/auth/register",
-      payload: {
-        email: "other-brand-admin@test.com",
-        password: "password123",
-      },
+    await createFixtureUser({
+      email: otherBrandAdminEmail,
+      role: "BRAND_ADMIN",
+      brandId: otherBrandId,
     });
-    const otherBrandAdminUser = otherBrandAdminRes.json().data.user;
-    await app.prisma.user.update({
-      where: { id: otherBrandAdminUser.id },
-      data: { role: "BRAND_ADMIN", brandId: otherBrandId },
-    });
-    const otherBrandAdminLogin = await app.inject({
-      method: "POST",
-      url: "/auth/login",
-      payload: {
-        email: "other-brand-admin@test.com",
-        password: "password123",
-      },
-    });
-    const otherBrandAdminCookies = parseCookies(otherBrandAdminLogin);
-    otherBrandAdminCookie = `galileo_at=${otherBrandAdminCookies.galileo_at}`;
+    otherBrandAdminCookie = await loginAs(otherBrandAdminEmail);
   });
 
   // ─── POST /products ─────────────────────────────────────────
@@ -246,29 +207,11 @@ describe("Product CRUD endpoints", () => {
     });
 
     it("non-ADMIN without brandId gets 403", async () => {
-      const userRes = await app.inject({
-        method: "POST",
-        url: "/auth/register",
-        payload: {
-          email: "nobrand-create@test.com",
-          password: "password123",
-        },
+      await createFixtureUser({
+        email: noBrandCreateEmail,
+        role: "OPERATOR",
       });
-      const userId = userRes.json().data.user.id;
-      await app.prisma.user.update({
-        where: { id: userId },
-        data: { role: "OPERATOR", brandId: null },
-      });
-      const loginRes = await app.inject({
-        method: "POST",
-        url: "/auth/login",
-        payload: {
-          email: "nobrand-create@test.com",
-          password: "password123",
-        },
-      });
-      const cookies = parseCookies(loginRes);
-      const noBrandCookie = `galileo_at=${cookies.galileo_at}`;
+      const noBrandCookie = await loginAs(noBrandCreateEmail);
 
       const response = await app.inject({
         method: "POST",
@@ -1077,25 +1020,11 @@ describe("Product CRUD endpoints", () => {
     });
 
     it("GET /products/stats denies non-ADMIN without brandId", async () => {
-      // Create a user without a brand
-      await app.inject({
-        method: "POST",
-        url: "/auth/register",
-        payload: {
-          email: "nobrand-stats@test.com",
-          password: "password123",
-        },
+      await createFixtureUser({
+        email: noBrandStatsEmail,
+        role: "OPERATOR",
       });
-      const loginRes = await app.inject({
-        method: "POST",
-        url: "/auth/login",
-        payload: {
-          email: "nobrand-stats@test.com",
-          password: "password123",
-        },
-      });
-      const cookies = parseCookies(loginRes);
-      const noBrandCookie = `galileo_at=${cookies.galileo_at}`;
+      const noBrandCookie = await loginAs(noBrandStatsEmail);
 
       const response = await app.inject({
         method: "GET",

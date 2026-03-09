@@ -30,3 +30,10 @@ export async function cleanDb(prisma: {
     `TRUNCATE TABLE "AuditLog", "ProductEvent", "ProductPassport", "Product", "User", "Brand" CASCADE`,
   );
 }
+
+let fixtureSequence = 0;
+
+export function nextFixtureId(scope: string): string {
+  fixtureSequence += 1;
+  return `${scope}-${String(fixtureSequence).padStart(4, "0")}`;
+}
