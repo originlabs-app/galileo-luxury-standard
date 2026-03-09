@@ -237,8 +237,8 @@ The roadmap is organized in **6 sprints** mapping to the detailed phases below.
 ```
 Sprint 1 (Week 1-2)    Foundations         → Phase 0 + Phase 2 setup + Phase 3 shell          ✅
 Sprint 2 (Week 3-4)    Product & Passport  → Mock mint, GS1 resolver, QR, 186 tests + 2 e2e   ✅
-Sprint 3 (Week 5-6)    Real Chain & Scan   → Base Sepolia deploy, scanner PWA, lifecycle events
-Sprint 4 (Week 7-8)    Stabilisation       → Security, multi-tenant, GDPR, prod deploy
+Sprint 3 (Week 5-6)    Real Chain & Scan   → Scanner PWA ✅, real chain deploy ⚠️ (blocked: RPC key)
+Sprint 4 (Week 7-8)    Stabilisation       → Security ✅, GDPR ✅, audit ✅, multi-tenant ⚠️ (RLS 🔒), deploy configs ✅
   ── POST-PILOT GATE ──
 Sprint 5 (Week 9-12)   T1/LEOX            → Phase 6 (only after KPI validation)
 Sprint 6 (Week 13-16)  Open Source         → DX, docs, SDK, Docker, community (parallel w/ S5)
@@ -278,48 +278,31 @@ Sprint 6 (Week 13-16)  Open Source         → DX, docs, SDK, Docker, community 
 - [ ] Photo/certificate upload → R2 + local CID computation (deferred to Sprint 3)
 - [ ] Gas benchmarks documented (deferred — mock mode, no real chain)
 
-**Delivered:** 186 unit tests + 2 Playwright e2e tests passing. 8 luxury categories aligned across API/dashboard/shared. Auth via httpOnly cookies with CSRF header protection. AuthProvider Context for single /auth/me fetch. SSR-safe AuthGuard. Optimistic concurrency control on mint. GS1 Digital Link resolver with 14-digit GTIN padding, check digit validation, and conformant JSON-LD (@type=IndividualProduct, custom galileo/gs1 namespaces). CI with pnpm cache, frozen-lockfile, and E2E tests. Portable init.sh and services.yaml.
+**Delivered:** 186 unit tests + 2 Playwright e2e tests passing (grown to 372 + 9 specs by Sprint #10). 8 luxury categories aligned across API/dashboard/shared. Auth via httpOnly cookies with CSRF header protection. AuthProvider Context for single /auth/me fetch. SSR-safe AuthGuard. Optimistic concurrency control on mint. GS1 Digital Link resolver with 14-digit GTIN padding, check digit validation, and conformant JSON-LD (@type=IndividualProduct, custom galileo/gs1 namespaces). CI with pnpm cache, frozen-lockfile, and E2E tests. Portable init.sh and services.yaml.
 
 **Exit:** Brand creates product → mints mock passport → QR resolves to DPP JSON-LD. Security debt from Sprint 1 + 2 audits fully cleared (3 rounds: Sprint 1 hardening, Sprint 2 hardening, Sprint 2 hardening round 2). Real Sepolia deployment deferred to Sprint 3. ✅
 
-## Immediate Execution Focus (next 1-2 weeks)
+## Immediate Execution Focus
 
-The priority is **not** to advance every roadmap lane in parallel.
-The immediate objective is to close the shortest path to a credible pilot:
+The project has reached **steady state** for autonomous non-blocked work (as of Sprint #10).
 
-**create product → real mint on Base Sepolia → scan QR → verify DPP**
+### Completed pilot path (Sprints 1-10)
+- [x] Create product with GTIN validation and DID generation
+- [x] Mock mint with optimistic concurrency (real chain blocked on RPC key)
+- [x] Scan QR and resolve DPP via GS1 Digital Link
+- [x] Verify product authenticity (public endpoint)
+- [x] Transfer with 5-module compliance check
+- [x] Scanner PWA with QR scanning, material composition, deep links
+- [x] Dashboard: full product management, batch operations, wallet connection
+- [x] Security: SIWE, Smart Wallet, nonce-protected wallet linking, GDPR, audit trail
+- [x] Observability: Sentry, Vercel Analytics, structured logging, health checks
+- [x] Deployment: Vercel configs, API Dockerfile, DPIA scaffold
 
-Everything else stays secondary until this path is stable and demonstrable.
-
-### Immediate priorities
-
-1. **Real chain deployment on Base Sepolia**
-   - deploy and verify contracts
-   - record deployment addresses
-   - configure authenticated RPC
-2. **Replace mock mint with real mint**
-   - wire API to deployed contracts
-   - persist real tx and token data
-   - verify identity registry flow
-3. **Deliver scanner PWA minimum**
-   - scan QR
-   - resolve product
-   - render verification result cleanly
-4. **Prove the pilot with E2E**
-   - create → mint → scan → verify
-5. **Validate every important PR before merge**
-   - local checks
-   - GitHub checks
-   - E2E when available
-   - explicit verdict: mergeable / not-mergeable / uncertain
-
-### Merge discipline from now on
-
-For important GalileoLuxury PRs, merge should happen only after:
-- local review worktree validation
-- GitHub checks review
-- explicit statement of what was tested
-- explicit note when E2E was not run
+### Blocked — awaiting operator input
+1. **RPC key** — unlocks Sprint #6 (real chain deployment on Base Sepolia)
+2. **DB migration approval** — unlocks REPAIRED/CPO_CERTIFIED events, MFA, RLS
+3. **Hosting accounts** — unlocks actual Vercel + API deployment
+4. **Contract deployment approval** — unlocks Base mainnet
 
 ### Sprint 3 — Scanner, Real Chain & Verification (Week 5-6)
 
@@ -348,7 +331,7 @@ For important GalileoLuxury PRs, merge should happen only after:
 
 - [x] Integrate wagmi + RainbowKit in dashboard for wallet connection (PR #15)
 - [x] Implement `POST /auth/link-wallet` API endpoint with EIP-191 signature verification (PR #21)
-- [ ] Smart Wallet Coinbase support (passkey, gasless) with ERC-1271 verification
+- [x] Smart Wallet Coinbase support (passkey, gasless) with ERC-1271 verification (Sprint #9, 081ee0e/ce70f02)
 - [ ] Mint flow: review product data → wallet popup → sign tx → confirmation
 
 #### 3.4 Scanner PWA (P0)
@@ -358,9 +341,9 @@ For important GalileoLuxury PRs, merge should happen only after:
 - [x] Security hardening: XSS fix, JSON.parse safety, no phantom API call
 - [x] QR scanning: `getUserMedia` + `barcode-detector` (ZXing WASM ponyfill) — `/scan` route (PR #17)
 - [x] Public verification page: provenance timeline in scanner + resolver API (PR #22)
-- [ ] Material composition display
+- [x] Material composition display (Sprint #2, f91652f)
 - [x] Service worker for offline cache of previously scanned products
-- [ ] Deep link: scanning QR goes directly to product page
+- [x] Deep link: scanning QR goes directly to product page (Sprint #2, fdcefe1)
 
 #### 3.5 Lifecycle Events & Transfers (P1)
 
@@ -371,9 +354,9 @@ For important GalileoLuxury PRs, merge should happen only after:
 - [x] Verify endpoint: `POST /products/:id/verify` — public, records VERIFIED event with optional auth
 - [ ] Remaining events: `OWNERSHIP_CHANGED`, `REPAIRED`, `CPO_CERTIFIED`
 - [ ] Event logging (append-only, off-chain + on-chain anchoring)
-- [ ] Transfer flow with compliance check (5 modules: jurisdiction, sanctions, brand auth, CPO, service center)
+- [x] Transfer flow with compliance check (5 modules: jurisdiction, sanctions, brand auth, CPO, service center) (Sprint #7, 72746f2)
 - [ ] CPO certification flow
-- [ ] Webhook system for real-time notifications (mint, transfer, CPO) — enables CRM/ERP integration
+- [x] Webhook system for real-time notifications (mint, transfer, CPO) — enables CRM/ERP integration (Sprint #7, 3b805f1)
 
 #### 3.6 JSON-LD Compliance Fixes (P1)
 
@@ -391,8 +374,8 @@ For important GalileoLuxury PRs, merge should happen only after:
 
 #### 3.7 File Upload (P1)
 
-- [ ] Photo/certificate upload → Cloudflare R2 + local CID computation (CIDv1)
-- [ ] Dashboard: photo upload UI in product create/edit form
+- [x] Photo/certificate upload → Cloudflare R2 + local CID computation (CIDv1) (Sprint #1, 9600650)
+- [x] Dashboard: photo upload UI in product create/edit form (Sprint #5, e17b6e5)
 
 #### 3.8 E2E Tests (P0)
 
@@ -407,51 +390,51 @@ For important GalileoLuxury PRs, merge should happen only after:
 #### 4.1 Security Hardening (P0)
 
 - [x] Rate limiting on all endpoints (`@fastify/rate-limit` — 5/min auth, 60/min resolver, 100/min default)
-- [ ] Input validation audit against OWASP top 10
+- [x] Input validation audit against OWASP top 10 (Sprint #1, 75d4038)
 - [x] Security headers via `@fastify/helmet` (CSP, HSTS, X-Frame-Options, CORP, COOP, referrer-policy)
-- [ ] Consider `__Host-` cookie prefix for production (`__Host-galileo_at`)
-- [ ] Cookie signing via `@fastify/cookie` secret (defense in depth on top of JWT signature)
+- [x] Consider `__Host-` cookie prefix for production (`__Host-galileo_at`) (Sprint #1, 61ebf4e)
+- [x] Cookie signing via `@fastify/cookie` secret (defense in depth on top of JWT signature) (Sprint #1, 61ebf4e)
 - [ ] Log warning when `secure: false` in development mode
 
 #### 4.2 Multi-Tenant Isolation (P0)
 
 - [ ] PostgreSQL Row-Level Security (RLS) or schema-per-brand
 - [ ] Currently brandId scoping via RBAC — needs database-level enforcement
-- [ ] Batch operations: CSV import of products, batch mint via factory (critical for brand onboarding)
+- [x] Batch operations: CSV import of products, batch mint via factory (critical for brand onboarding) (Sprint #8, 25aa114/ccc86e8)
 
 #### 4.3 GDPR Compliance (P0)
 
-- [ ] `DELETE /users/:id/data` — GDPR erasure (Art. 17): delete from PostgreSQL + R2, CID becomes orphan
-- [ ] `GET /users/:id/data` — GDPR data export (Art. 15)
-- [ ] Audit trail: who did what, when (append-only log)
+- [x] `DELETE /users/:id/data` — GDPR erasure (Art. 17): delete from PostgreSQL + R2, CID becomes orphan (Sprint #3, 22eb6c4, implemented as DELETE /auth/me/data)
+- [x] `GET /users/:id/data` — GDPR data export (Art. 15) (Sprint #3, 8532fc3, implemented as GET /auth/me/data)
+- [x] Audit trail: who did what, when (append-only log) (Sprint #4, 75e15ca)
 - [ ] Human review endpoint for compliance rejections (GDPR Art. 22)
-- [ ] DPIA draft (required before mainnet per EDPB Guidelines 02/2025)
+- [x] DPIA draft (required before mainnet per EDPB Guidelines 02/2025) (Sprint #10, 602b60f)
 
 #### 4.4 Monitoring & Observability (P1)
 
-- [ ] Sentry integration (error tracking)
-- [ ] Vercel Analytics (frontend)
-- [ ] Health check endpoints with dependency status (DB, chain RPC)
+- [x] Sentry integration (error tracking) (Sprint #4, 78f3042)
+- [x] Vercel Analytics (frontend) (Sprint #9, 178035d)
+- [x] Health check endpoints with dependency status (DB, chain RPC) (Sprint #2, 25afe6c)
 - [ ] Uptime monitoring
-- [ ] Structured logging (no PII)
+- [x] Structured logging (no PII) (Sprint #2, 0749206)
 
 #### 4.5 Authentication (P1)
 
 - [ ] MFA: TOTP + passkey (enterprise-grade security)
-- [ ] SIWE (EIP-4361) for wallet login with ERC-1271 smart wallet verification
+- [x] SIWE (EIP-4361) for wallet login with ERC-1271 smart wallet verification (Sprint #8/9, d590d24/081ee0e)
 
 #### 4.6 API & Documentation (P1)
 
 - [x] API documentation auto-generated from Fastify schemas (OpenAPI/Swagger) — schema metadata on all routes
-- [ ] Publish Swagger at `/docs` in production (currently guarded)
+- [x] Publish Swagger at `/docs` in production (currently guarded) (Sprint #3, 1ddbea6)
 
 #### 4.8 Test Stability (P1)
 
 > Known flaky tests — `beforeEach` DB cleanup hooks timeout (10s) under concurrent test execution. Root cause: shared PostgreSQL database between parallel test files causes lock contention during `deleteMany` cascades.
 
-- [ ] Fix `mint.test.ts` — all 10 tests timeout when run in full suite (pass in isolation)
-- [ ] Fix `products.test.ts` — intermittent timeouts on `beforeEach` cleanup hooks
-- [ ] Fix `recall.test.ts` — "returns 409 for already RECALLED" intermittent timeout
+- [x] Fix `mint.test.ts` — all 10 tests timeout when run in full suite (pass in isolation) (Sprint #1, 3ac8bf6)
+- [x] Fix `products.test.ts` — intermittent timeouts on `beforeEach` cleanup hooks (Sprint #1, verified)
+- [x] Fix `recall.test.ts` — "returns 409 for already RECALLED" intermittent timeout (Sprint #1, verified)
 - [ ] Consider: per-file test database isolation (schema-per-suite or `--no-file-parallelism`)
 - [ ] Consider: increase `hookTimeout` in vitest config as short-term mitigation
 

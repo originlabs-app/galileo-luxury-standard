@@ -15,17 +15,25 @@
 
 The Galileo Protocol provides specifications for Digital Product Passports, decentralized identity, and compliant token transfers.
 
-### Key Features (Sprint 1, 2 & Hardening)
+### Key Features
 
 - **Privacy-First Architecture** — No personal data on-chain (GDPR compliant)
 - **Digital Product Passports** — ESPR 2024/1781 ready schemas
 - **Compliant Transfers** — ERC-3643 token standard with modular compliance
-- **Authentication & RBAC** — httpOnly cookie auth, UserPublic/UserInternal roles, CSRF header protection (`X-Galileo-Client`)
+- **Authentication & RBAC** — httpOnly cookie auth, UserPublic/UserInternal roles, CSRF header protection (`X-Galileo-Client`), SIWE wallet login, Smart Wallet (ERC-1271)
 - **Product Management** — CRUD operations with GTIN validation, DID generation (`did:galileo`), Dashboard product pages (list, create, detail)
-- **Blockchain Integration** — Mock minting with synthetic on-chain data via viem chain client, optimistic concurrency control (updateMany WHERE status=DRAFT)
+- **Blockchain Integration** — Mock minting (real chain deployment pending RPC key) with synthetic on-chain data via viem chain client, optimistic concurrency control (updateMany WHERE status=DRAFT)
 - **GS1 Conformity** — Digital Link 1.6.0 resolver with 14-digit GTIN padding, check digit validation, JSON-LD with custom `galileo`/`gs1` context namespaces
 - **Security Hardening** — Scoped content-type parser, brandId null guards, validation bounds (name 255, serial 100, desc 2000, brandName 255), portable test DB (`DATABASE_URL_TEST`), SSR-safe refresh token handling, AuthProvider Context (single /auth/me fetch), CSRF on POST/PATCH/DELETE/PUT, E2E in CI with pnpm cache
 - **Shared Validation** — Robust URL encoding, DID GTIN check digit fixes, `padGtin14()` normalization, 8 luxury categories aligned across API/dashboard/shared
+- **GDPR Compliance** — Data export (Art. 15) and erasure (Art. 17) endpoints, PII-free structured logging, DPIA scaffold
+- **Audit Trail** — Append-only audit log with CSV/JSON export, actor sanitization on user deletion
+- **Wallet Authentication** — SIWE (EIP-4361) login, ERC-1271 Smart Wallet support (Coinbase), nonce-protected wallet linking
+- **Batch Operations** — CSV import (up to 500 products) and batch mint (up to 100), with row-level validation and error reporting
+- **Transfer Compliance** — 5-module compliance check (jurisdiction, sanctions, brand auth, CPO, service center)
+- **Webhook System** — Outbox pattern with HMAC-SHA256 signing and exponential backoff retry
+- **Observability** — Sentry error tracking, Vercel Analytics, structured Pino logging with PII redaction
+- **Deployment Ready** — Vercel configs for frontend apps, multi-stage Dockerfile for API, HEALTHCHECK directive
 
 ---
 
@@ -34,6 +42,7 @@ The Galileo Protocol provides specifications for Digital Product Passports, dece
 **Turborepo** monorepo using **pnpm** (exact semver pinned):
 - **API**: Fastify 5 server, Prisma 7, PostgreSQL
 - **Dashboard**: Next.js app, shadcn/ui, Playwright e2e tests
+- **Scanner**: Next.js PWA with QR scanning (barcode-detector), material composition display, GS1 deep links
 - **Shared**: Utilities for GTIN validation, URL encoding, DID generation
 
 ---
@@ -75,27 +84,28 @@ The Galileo Protocol provides specifications for Digital Product Passports, dece
    pnpm dev
    ```
 
-### Dashboard wallet MVP
+### Wallet Integration
 
-- The dashboard now includes a Base Sepolia wallet connection entry in the authenticated header.
-- The MVP currently supports injected browser wallets (for example MetaMask or Rabby) via wagmi.
-- No additional dashboard env vars are required for this first connection layer.
+- **Browser wallets**: MetaMask, Rabby, and other injected wallets via wagmi
+- **Smart Wallets**: Coinbase Smart Wallet with passkey support (ERC-1271 verification)
+- **SIWE Login**: Sign-In With Ethereum for wallet-only authentication
+- **Wallet Linking**: Nonce-protected EIP-191 signature flow for linking wallet to existing account
 
 ---
 
 ## Testing
 
-**186 unit tests + 2 Playwright e2e tests.** Test database (`galileo_test`) is isolated via `DATABASE_URL_TEST`.
+**372 unit tests + 9 Playwright e2e specs.** Test database (`galileo_test`) is isolated via `DATABASE_URL_TEST`.
 
 | Suite | Tests | Scope |
 |-------|-------|-------|
-| @galileo/shared | 63 | GTIN validation, DID generation, auth schemas, user types |
-| @galileo/api | 123 | Auth (32), Products (27), Security (16), Mint (10), Resolver (17), CSRF (18), Health (3) |
-| Playwright e2e | 2 | Auth setup + product lifecycle (create→DRAFT→mint→ACTIVE→QR) |
+| @galileo/shared | 69 | GTIN validation, DID generation, auth schemas, user types, wallet validation |
+| @galileo/api | 303 | Auth (32), Products (27), Security (24), Mint (10), Resolver/QR (17), CSRF (18), Health (6), Logging (3), GDPR (12), Upload (10), Recall (10), Transfer, Verify, Link-Wallet, Sentry, Webhooks, Batch-Import, Batch-Mint, SIWE, Audit, Audit-Export |
+| Playwright e2e | 9 specs | Auth, product lifecycle, dashboard home, product filters, product upload, transfer compliance, audit export, batch import, SIWE + wallet auth |
 
 ```bash
-pnpm test              # Unit tests (186)
-pnpm test:e2e          # Playwright e2e (2)
+pnpm test              # Unit tests (372)
+pnpm --filter dashboard exec playwright test  # Playwright e2e (9 specs)
 pnpm turbo typecheck   # TypeScript validation
 pnpm turbo lint        # ESLint
 pnpm turbo build       # Full build
@@ -105,23 +115,44 @@ pnpm turbo build       # Full build
 
 ## API Endpoints Overview
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET/POST/PATCH | `/products` | Product CRUD with GTIN validation, RBAC, pagination |
-| POST | `/products/:id/mint` | Mock minting with optimistic concurrency control |
-| GET | `/01/:gtin/21/:serial` | GS1 Digital Link resolver (JSON-LD, 13/14-digit GTIN) |
-| POST | `/auth/register` | Create account with brand |
-| POST | `/auth/login` | Login (sets httpOnly cookies) |
-| POST | `/auth/refresh` | Refresh access token |
-| GET | `/auth/me` | Current user info |
-| POST | `/auth/logout` | Logout (clears cookies) |
-| GET | `/products/:id/qr` | QR code generation (PNG) |
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | `/auth/register` | public | Create account (+ optional brand) |
+| POST | `/auth/login` | public | Login (sets httpOnly cookies) |
+| POST | `/auth/logout` | authenticated | Clear cookies |
+| POST | `/auth/refresh` | cookie | Refresh access token |
+| GET | `/auth/me` | authenticated | Current user info + wallet address |
+| POST | `/auth/link-wallet` | authenticated | Link wallet via EIP-191 signature |
+| GET | `/auth/me/data` | authenticated | GDPR data export (Art. 15) |
+| DELETE | `/auth/me/data` | authenticated + CSRF | GDPR erasure (Art. 17) |
+| GET | `/auth/nonce` | authenticated | Generate nonce for wallet-link signing |
+| GET | `/auth/siwe/nonce` | public | Generate SIWE nonce |
+| POST | `/auth/siwe/verify` | public | Verify SIWE signature, issue session |
+| GET | `/health` | public | Health check (DB + chain status) |
+| POST | `/products` | BRAND_ADMIN+ | Create product |
+| GET | `/products` | authenticated | List products (brand-scoped, filterable) |
+| GET | `/products/:id` | authenticated | Product detail |
+| PATCH | `/products/:id` | BRAND_ADMIN+ | Update DRAFT product |
+| POST | `/products/:id/mint` | BRAND_ADMIN+ | Mock mint (DRAFT -> ACTIVE) |
+| POST | `/products/:id/recall` | BRAND_ADMIN+ | Recall product (ACTIVE -> RECALLED) |
+| POST | `/products/:id/transfer` | BRAND_ADMIN+ | Transfer to wallet (with compliance check) |
+| POST | `/products/:id/verify` | public | Record verification event |
+| POST | `/products/:id/upload` | BRAND_ADMIN+ | Upload product image (multipart) |
+| GET | `/products/:id/qr` | authenticated | QR code (PNG) |
+| GET | `/products/stats` | authenticated | Product statistics |
+| POST | `/products/batch-import` | BRAND_ADMIN+ | CSV import (max 500 rows) |
+| POST | `/products/batch-mint` | BRAND_ADMIN+ | Batch mint DRAFT products (max 100) |
+| GET | `/01/:gtin/21/:serial` | public | GS1 Digital Link resolver (JSON-LD) |
+| GET | `/audit-log` | ADMIN | Audit log entries (paginated) |
+| GET | `/audit-log/export` | ADMIN | Export audit log (CSV/JSON) |
+| POST | `/webhooks` | ADMIN | Register webhook subscription |
+| GET | `/webhooks` | ADMIN | List webhook subscriptions |
 
 ---
 
 ## Security
 
-Three independent security audits completed (Sprint 1 + Sprint 2 hardening rounds):
+Security hardened across 10 sprints of development:
 
 - **Authentication:** httpOnly cookies (SameSite=Lax), SHA-256 hashed refresh tokens, timing-safe login, CSRF header (`X-Galileo-Client`) on all mutating requests (POST/PATCH/DELETE/PUT)
 - **Authorization:** RBAC with brandId scoping on all product routes, null-brandId guard (403)
@@ -130,6 +161,9 @@ Three independent security audits completed (Sprint 1 + Sprint 2 hardening round
 - **Concurrency:** Optimistic concurrency control on mint (updateMany WHERE status=DRAFT, atomic 409 on race)
 - **CI/CD:** pnpm cache + frozen-lockfile, Playwright E2E in CI, production API build for E2E, portable paths
 - **GS1 Conformity:** GTIN check digit validation, 14-digit padding normalization, JSON-LD with IndividualProduct type and custom galileo/gs1 context
+- **Cookie Hardening:** `__Host-galileo_at` (access) + `__Secure-galileo_rt` (refresh) prefixes in production, signed cookies via `@fastify/cookie`
+- **Wallet Security:** Nonce-protected wallet linking (5-min TTL), SIWE with one-time nonce, ERC-1271 Smart Wallet verification
+- **Compliance:** Transfer compliance check (5 modules), GDPR Art. 15/17 endpoints, audit trail with PII sanitization
 
 See [SECURITY.md](SECURITY.md) for vulnerability reporting.
 
@@ -141,7 +175,7 @@ See [SECURITY.md](SECURITY.md) for vulnerability reporting.
 ├── apps/
 │   ├── api/                   # Fastify 5 API server
 │   ├── dashboard/             # Next.js B2B dashboard
-│   └── scanner/               # Next.js scanner shell (Coming Soon)
+│   └── scanner/               # Next.js scanner PWA (QR scanning, GS1 deep links)
 ├── packages/
 │   └── shared/                # @galileo/shared utilities
 ├── contracts/                 # Solidity interfaces
