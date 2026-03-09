@@ -1,4 +1,5 @@
 import type { FastifyInstance } from "fastify";
+import { ensureSameWorkspaceBrand } from "../../utils/workspace.js";
 
 export default async function getProductRoute(fastify: FastifyInstance) {
   fastify.get<{ Params: { id: string } }>(
@@ -22,17 +23,6 @@ export default async function getProductRoute(fastify: FastifyInstance) {
       const { id } = request.params;
       const user = request.user;
 
-      // brandId null guard: non-ADMIN users without a brandId cannot access product routes
-      if (user.role !== "ADMIN" && !user.brandId) {
-        return reply.status(403).send({
-          success: false,
-          error: {
-            code: "FORBIDDEN",
-            message: "User must belong to a brand",
-          },
-        });
-      }
-
       const product = await fastify.prisma.product.findUnique({
         where: { id },
         include: {
@@ -53,15 +43,8 @@ export default async function getProductRoute(fastify: FastifyInstance) {
         });
       }
 
-      // Brand scoping: non-ADMIN users can only see their own brand's products
-      if (user.role !== "ADMIN" && product.brandId !== user.brandId) {
-        return reply.status(403).send({
-          success: false,
-          error: {
-            code: "FORBIDDEN",
-            message: "Access denied",
-          },
-        });
+      if (!ensureSameWorkspaceBrand(reply, user, product.brandId)) {
+        return;
       }
 
       return reply.status(200).send({

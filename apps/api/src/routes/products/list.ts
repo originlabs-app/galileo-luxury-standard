@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { ProductStatus } from "@galileo/shared";
+import { buildWorkspaceBrandFilter } from "../../utils/workspace.js";
 
 const listQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
@@ -62,21 +63,14 @@ export default async function listProductsRoute(fastify: FastifyInstance) {
 
       const { page, limit, status, category } = parsed.data;
       const user = request.user;
+      const where: Record<string, unknown> | null = buildWorkspaceBrandFilter(
+        reply,
+        user,
+      );
 
-      // brandId null guard: non-ADMIN users without a brandId cannot access product routes
-      if (user.role !== "ADMIN" && !user.brandId) {
-        return reply.status(403).send({
-          success: false,
-          error: {
-            code: "FORBIDDEN",
-            message: "User must belong to a brand",
-          },
-        });
+      if (!where) {
+        return;
       }
-
-      // Brand scoping: ADMIN sees all, others see only their brand
-      const where: Record<string, unknown> =
-        user.role === "ADMIN" ? {} : { brandId: user.brandId as string };
 
       // Apply optional filters
       if (status) where.status = status;

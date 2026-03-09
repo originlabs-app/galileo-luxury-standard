@@ -239,6 +239,16 @@ describe("Security Hardening", () => {
       expect(response.statusCode).toBe(403);
     });
 
+    it("returns 403 on GET /products/stats when non-ADMIN user has null brandId", async () => {
+      const response = await app.inject({
+        method: "GET",
+        url: "/products/stats",
+        headers: { cookie: nullBrandUserCookie },
+      });
+      expect(response.statusCode).toBe(403);
+      expect(response.json().error.code).toBe("FORBIDDEN");
+    });
+
     it("returns 403 on PATCH /products/:id when non-ADMIN user has null brandId", async () => {
       const createRes = await app.inject({
         method: "POST",

@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { EventType } from "@galileo/shared";
+import { buildWorkspaceBrandFilter } from "../../utils/workspace.js";
 
 export default async function statsProductRoute(fastify: FastifyInstance) {
   fastify.get(
@@ -16,21 +17,12 @@ export default async function statsProductRoute(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const user = request.user;
+      const brandFilter: Record<string, unknown> | null =
+        buildWorkspaceBrandFilter(reply, user);
 
-      // brandId null guard: non-ADMIN users without a brandId cannot access
-      if (user.role !== "ADMIN" && !user.brandId) {
-        return reply.status(403).send({
-          success: false,
-          error: {
-            code: "FORBIDDEN",
-            message: "User must belong to a brand",
-          },
-        });
+      if (!brandFilter) {
+        return;
       }
-
-      // Brand scoping: ADMIN sees all, others see only their brand
-      const brandFilter: Record<string, unknown> =
-        user.role === "ADMIN" ? {} : { brandId: user.brandId as string };
 
       // Run all queries in parallel for performance
       const [statusCounts, verificationCount, recentEvents] = await Promise.all(
