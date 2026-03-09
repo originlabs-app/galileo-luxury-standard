@@ -15,6 +15,7 @@ type ConnectorType = "injected" | "coinbase";
 
 declare global {
   interface Window {
+    galileoSignSiweMessage: (message: string) => Promise<string> | string;
     __GALILEO_E2E_SIWE__?: {
       connect: (connector: ConnectorType) => Promise<Address> | Address;
       signMessage: (message: string) => Promise<string> | string;
