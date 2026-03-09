@@ -15,6 +15,7 @@ GDPR compliance, multi-tenant data isolation, file upload (R2 + CID), and audit 
 - [x] `DELETE /auth/me/data` — GDPR erasure (Art. 17) (Sprint #3, 22eb6c4)
 - [x] `GET /auth/me/data` — GDPR data export (Art. 15) (Sprint #3, 8532fc3)
 - [x] Audit trail: who did what, when (append-only log) (Sprint #4, 75e15ca)
+- [x] Audit trail export (CSV/JSON) (Sprint #7, d6aac65)
 - [ ] Human review endpoint for compliance rejections (GDPR Art. 22)
 - [ ] DPIA draft (required before mainnet per EDPB Guidelines 02/2025)
 - [ ] 🔒 PostgreSQL Row-Level Security (RLS) or schema-per-brand

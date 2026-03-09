@@ -4,9 +4,9 @@
 > Created by the Researcher from the BACKLOG. Each task includes a brief: files to modify, approach, patterns, edge cases.
 > Archived when all tasks are validated or deferred.
 
-## Sprint #7 -- Compliance & Event Delivery
+## Sprint #8 -- Batch Operations & Wallet Auth
 
-**Goal**: Add compliance checks to transfers, build the webhook delivery system, harden wallet-link security, and enable audit trail export. These are non-blocked P1 tasks pulled forward while Sprint #6 (Real Chain Unblock) waits for the RPC key.
+**Goal**: Add batch CSV import/mint for brand onboarding at scale, and implement SIWE (Sign-In With Ethereum) wallet login. These are the highest-priority non-blocked P1 tasks. Sprint #6 (Real Chain Unblock) remains BLOCKED on RPC key. RLS (🔒) skipped — needs operator approval.
 **Started**: 2026-03-09
 **Status**: active
 
@@ -14,11 +14,11 @@
 
 | # | Task | Epic | Status | Verify | Commit |
 |---|------|------|--------|--------|--------|
-| T7.1 | Transfer compliance check (5 modules) | EPIC-002 | validated | Transfer blocked when compliance fails, with reason. Transfer succeeds when all checks pass. | 72746f2 |
-| T7.2 | Webhook system (outbox + retry) | EPIC-002 | validated | Webhook registered, events delivered reliably, failed deliveries retried with exponential backoff. | 3b805f1 |
-| T7.3 | Audit trail export (CSV/JSON) | EPIC-006 | validated | ADMIN exports audit data as CSV or JSON. BRAND_ADMIN sees only own brand. Date range filter works. | d6aac65 |
-| T7.4 | Wallet-link: add nonce + expiry | EPIC-005 | validated | Nonce endpoint returns unique nonce, signed message includes nonce + timestamp, old/replayed signatures rejected. | 7e0eb06 |
-| T7.5 | E2E Playwright: compliance, webhooks, audit export, wallet nonce | EPIC-007 | validated | Automated Playwright specs covering Sprint #7 features. Run with `pnpm --filter dashboard exec playwright test`. | 60fb11e |
+| T8.1 | Batch CSV import endpoint | EPIC-006 | todo | Upload CSV with 100 products, all created with correct GTIN validation. Errors reported per row. | |
+| T8.2 | Batch mint endpoint | EPIC-006 | todo | POST /products/batch-mint with array of product IDs, all minted. Partial failure handled gracefully. | |
+| T8.3 | Dashboard: CSV import UI | EPIC-006 | todo | Upload button, file picker, progress feedback, error summary displayed. Works on desktop and mobile. | |
+| T8.4 | SIWE wallet login (EIP-4361) | EPIC-005 | todo | User can login with wallet signature. Nonce endpoint, SIWE message format, session created on success. | |
+| T8.5 | E2E Playwright: batch import, batch mint, SIWE login | EPIC-007 | todo | Automated Playwright specs covering Sprint #8 features. Run with `pnpm --filter dashboard exec playwright test`. | |
 
 ### Status values
 - `todo` -- Not started
@@ -37,295 +37,7 @@
 
 ## Task Briefs
 
-### Brief T7.1: Transfer Compliance Check (5 Modules)
-
-**Type**: backend
-**Priority**: P1
-**Epic**: EPIC-002-product-lifecycle
-**Operator approval**: not required
-
-**Files to modify**:
-- `apps/api/src/services/compliance/` -- NEW directory: compliance module system
-- `apps/api/src/services/compliance/index.ts` -- NEW: compliance runner (orchestrates all modules)
-- `apps/api/src/services/compliance/jurisdiction.ts` -- NEW: jurisdiction check module
-- `apps/api/src/services/compliance/sanctions.ts` -- NEW: sanctions list check module
-- `apps/api/src/services/compliance/brand-auth.ts` -- NEW: brand authorization check module
-- `apps/api/src/services/compliance/cpo.ts` -- NEW: CPO eligibility check module (stub for now)
-- `apps/api/src/services/compliance/service-center.ts` -- NEW: authorized service center check module (stub for now)
-- `apps/api/src/routes/products/transfer.ts` -- integrate compliance check before transfer
-- `apps/api/test/transfer.test.ts` -- extend with compliance tests
-
-**Approach**:
-
-Add a compliance check pipeline that runs before every product transfer. The pipeline consists of 5 modules executed sequentially. If any module fails, the transfer is blocked with a detailed rejection reason.
-
-**Step 1: Create the compliance module interface and runner**
-
-Create `apps/api/src/services/compliance/index.ts`:
-
-```typescript
-export interface ComplianceContext {
-  productId: string;
-  productStatus: string;
-  productBrandId: string;
-  fromAddress: string | null;
-  toAddress: string;
-  userId: string;
-  userRole: string;
-  userBrandId: string | null;
-}
-
-export interface ComplianceResult {
-  passed: boolean;
-  module: string;
-  reason?: string;
-}
-
-export type ComplianceModule = (
-  ctx: ComplianceContext,
-) => Promise<ComplianceResult>;
-
-export async function runComplianceChecks(
-  ctx: ComplianceContext,
-  modules: ComplianceModule[],
-): Promise<{ passed: boolean; results: ComplianceResult[] }> {
-  const results: ComplianceResult[] = [];
-  for (const mod of modules) {
-    const result = await mod(ctx);
-    results.push(result);
-    if (!result.passed) {
-      return { passed: false, results };
-    }
-  }
-  return { passed: true, results };
-}
-```
-
-**Step 2: Implement the 5 compliance modules**
-
-1. **jurisdiction.ts**: Check that the destination address is not in a blocked jurisdiction. For MVP, maintain a configurable blocklist of address prefixes or always pass (no jurisdiction data available yet). Return `{ passed: true, module: "jurisdiction" }` for now, with a TODO for real jurisdiction lookup.
-
-2. **sanctions.ts**: Check destination address against a sanctions list. For MVP, maintain a static blocklist Set. If `toAddress` is in the set, reject. Initially the set is empty -- no addresses are sanctioned. Structure allows easy extension with OFAC/EU sanctions API later.
-
-3. **brand-auth.ts**: Verify that the transferring user's brand authorizes transfers to the destination. For MVP: brand admins of the product's brand can always transfer. Cross-brand transfers (user.brandId !== product.brandId) are rejected unless user is ADMIN.
-
-4. **cpo.ts**: Check CPO (Certified Pre-Owned) eligibility. For MVP: stub that always passes. Will be activated when REPAIRED/CPO_CERTIFIED event types are added (Sprint #7 locked task).
-
-5. **service-center.ts**: Verify the transfer is initiated from an authorized service center. For MVP: stub that always passes. Will be activated when service center registry is built.
-
-**Step 3: Integrate into transfer.ts**
-
-In `apps/api/src/routes/products/transfer.ts`, after fetching the product and before the optimistic update:
-
-```typescript
-import { runComplianceChecks, type ComplianceContext } from "../../services/compliance/index.js";
-import { jurisdictionCheck } from "../../services/compliance/jurisdiction.js";
-import { sanctionsCheck } from "../../services/compliance/sanctions.js";
-import { brandAuthCheck } from "../../services/compliance/brand-auth.js";
-import { cpoCheck } from "../../services/compliance/cpo.js";
-import { serviceCenterCheck } from "../../services/compliance/service-center.js";
-
-// Inside the transaction, after fetching product and before updateMany:
-const complianceCtx: ComplianceContext = {
-  productId: product.id,
-  productStatus: product.status,
-  productBrandId: product.brandId,
-  fromAddress: product.walletAddress ?? null,
-  toAddress: checksumToAddress,
-  userId: user.sub,
-  userRole: user.role,
-  userBrandId: user.brandId ?? null,
-};
-
-const compliance = await runComplianceChecks(complianceCtx, [
-  jurisdictionCheck,
-  sanctionsCheck,
-  brandAuthCheck,
-  cpoCheck,
-  serviceCenterCheck,
-]);
-
-if (!compliance.passed) {
-  const failed = compliance.results.find((r) => !r.passed);
-  throw new RouteError(
-    403,
-    "COMPLIANCE_REJECTED",
-    `Transfer blocked by compliance: ${failed?.module} — ${failed?.reason}`,
-  );
-}
-```
-
-**Step 4: Add compliance rejection data to the response**
-
-When compliance fails, the 403 response includes the module name and reason so the caller (dashboard or API consumer) can display a meaningful error.
-
-**Patterns to follow**:
-- RouteError for compliance rejection (standard error pattern)
-- Brand scoping: ADMIN bypasses brand-auth check (R31)
-- No body/response JSON schema changes needed (R01)
-- Sequential module execution (fail fast on first rejection)
-- Each module is a pure async function -- easy to test in isolation
-- Enums from @galileo/shared (R09)
-
-**Edge cases**:
-- Product with no walletAddress (first transfer): `fromAddress` is null -- compliance modules must handle null fromAddress
-- ADMIN user transferring cross-brand: brand-auth module passes for ADMIN role
-- Empty sanctions list: all transfers pass sanctions check (expected for MVP)
-- Concurrent compliance + transfer: compliance runs inside the transaction, so optimistic concurrency still protects
-- Multiple modules fail: only the first failure is reported (fail-fast)
-
-**Tests** (~12 tests):
-- Transfer succeeds when all compliance modules pass
-- Transfer blocked (403 COMPLIANCE_REJECTED) when sanctions check fails
-- Transfer blocked when brand-auth fails (cross-brand non-ADMIN)
-- ADMIN can transfer cross-brand (brand-auth passes)
-- Compliance context correctly built from product + user
-- Each module tested in isolation with mock context
-- Null fromAddress handled correctly
-- Existing transfer tests still pass (regression)
-
-**Verify**: Transfer a product -- succeeds when compliance passes. Add a sanctioned address -- transfer to that address returns 403 with `COMPLIANCE_REJECTED` and module name. Cross-brand transfer by non-ADMIN returns 403.
-
----
-
-### Brief T7.2: Webhook System (Outbox + Retry)
-
-**Type**: backend
-**Priority**: P1
-**Epic**: EPIC-002-product-lifecycle
-**Operator approval**: not required (no schema migration -- uses existing JSON field pattern)
-
-**Files to modify**:
-- `apps/api/src/services/webhooks/` -- NEW directory: webhook system
-- `apps/api/src/services/webhooks/outbox.ts` -- NEW: outbox pattern for reliable delivery
-- `apps/api/src/services/webhooks/delivery.ts` -- NEW: HTTP delivery with retry logic
-- `apps/api/src/services/webhooks/types.ts` -- NEW: webhook types and interfaces
-- `apps/api/src/routes/webhooks/` -- NEW directory: webhook management routes
-- `apps/api/src/routes/webhooks/index.ts` -- NEW: CRUD routes for webhook subscriptions
-- `apps/api/src/server.ts` -- register webhook routes
-- `apps/api/test/webhooks.test.ts` -- NEW: webhook tests
-
-**Approach**:
-
-Implement a webhook system using the outbox pattern for reliable event delivery. Instead of direct HTTP callbacks from route handlers (which fail silently if the destination is down), we write webhook events to an outbox table and process them with a background worker.
-
-**Important design decision**: We need a table for webhook subscriptions and outbox entries. Since the 🔒 DB migration task is blocked, we use an **in-memory approach for MVP** with a JSON config file for subscriptions and an in-memory outbox queue. This avoids needing a DB migration while proving the delivery mechanism works. When the DB migration is unblocked, we can move subscriptions and outbox to proper tables.
-
-**Step 1: Create webhook types**
-
-`apps/api/src/services/webhooks/types.ts`:
-
-```typescript
-export interface WebhookSubscription {
-  id: string;
-  brandId: string;
-  url: string;
-  secret: string; // HMAC-SHA256 signing secret
-  events: string[]; // e.g. ["MINTED", "TRANSFERRED", "RECALLED"]
-  active: boolean;
-  createdAt: string;
-}
-
-export interface WebhookEvent {
-  id: string;
-  subscriptionId: string;
-  eventType: string;
-  payload: Record<string, unknown>;
-  attempts: number;
-  maxAttempts: number;
-  nextAttemptAt: Date;
-  status: "pending" | "delivered" | "failed";
-  lastError?: string;
-  createdAt: Date;
-}
-```
-
-**Step 2: Create outbox service**
-
-`apps/api/src/services/webhooks/outbox.ts`:
-
-The outbox maintains an in-memory queue of pending webhook events. When a product event occurs (MINTED, TRANSFERRED, RECALLED, VERIFIED), the outbox creates entries for all matching subscriptions.
-
-Key methods:
-- `enqueue(eventType, productId, data)` -- creates outbox entries for matching subscriptions
-- `processNext()` -- picks the next due entry and attempts delivery
-- `startWorker(intervalMs)` -- starts a setInterval loop processing the queue
-- `stopWorker()` -- cleans up the interval
-
-**Step 3: Create delivery service**
-
-`apps/api/src/services/webhooks/delivery.ts`:
-
-HTTP delivery with HMAC-SHA256 signature:
-- POST to subscription URL
-- Body: JSON payload with event type, product data, timestamp
-- Header `X-Galileo-Signature`: HMAC-SHA256 of body using subscription secret
-- Header `X-Galileo-Event`: event type string
-- Timeout: 10s
-- On success (2xx): mark entry as delivered
-- On failure: increment attempts, schedule retry with exponential backoff (1min, 5min, 25min, 2h, 10h)
-- Max 5 attempts -- after that, mark as failed
-
-**Step 4: Create webhook management routes**
-
-`apps/api/src/routes/webhooks/index.ts`:
-
-| Method | Route | Auth | Description |
-|--------|-------|------|-------------|
-| POST | /webhooks | BRAND_ADMIN, ADMIN | Create subscription |
-| GET | /webhooks | BRAND_ADMIN, ADMIN | List subscriptions (brand-scoped) |
-| DELETE | /webhooks/:id | BRAND_ADMIN, ADMIN | Delete subscription |
-
-Subscriptions are stored in-memory (Map) for MVP. Brand-scoped: BRAND_ADMIN sees only their brand's subscriptions. ADMIN sees all.
-
-**Step 5: Wire into product event flow**
-
-After product events are created (in transfer.ts, mint.ts, recall.ts, verify.ts), call `webhookOutbox.enqueue(eventType, productId, eventData)`. This is a non-blocking fire-and-forget call (R29 -- cross-cutting hooks fail silently).
-
-**Step 6: Register in server.ts**
-
-Register webhook routes and start the outbox worker on app ready.
-
-**Patterns to follow**:
-- Brand scoping: BRAND_ADMIN sees only their brand (R31)
-- Cross-cutting hooks fail silently (R29)
-- CSRF on mutations (POST, DELETE)
-- No body/response JSON schema (R01)
-- requireRole middleware for auth
-- HMAC-SHA256 for webhook signature (industry standard)
-- Exponential backoff for retries (1, 5, 25, 120, 600 minutes)
-
-**Edge cases**:
-- No subscriptions matching event: enqueue is a no-op
-- Subscription URL unreachable: retry with backoff, max 5 attempts
-- Large payload: limit event payload to essential fields (id, type, product summary)
-- Server restart: in-memory outbox is lost -- acceptable for MVP (document as known limitation)
-- Concurrent delivery: single worker, no concurrency issues
-- Invalid subscription URL: validate URL format on creation
-- HMAC verification: document how consumers verify the signature
-
-**Tests** (~15 tests):
-- POST /webhooks creates subscription (201)
-- POST /webhooks validates URL format (400)
-- GET /webhooks lists brand-scoped subscriptions
-- DELETE /webhooks/:id removes subscription
-- ADMIN sees all subscriptions
-- BRAND_ADMIN cannot see other brand's subscriptions
-- Unauthenticated request returns 401
-- Outbox enqueue creates entries for matching subscriptions
-- Outbox enqueue skips inactive subscriptions
-- Outbox enqueue skips subscriptions not matching event type
-- Delivery sends correct payload with HMAC signature
-- Delivery retries on failure with exponential backoff
-- Delivery marks as failed after max attempts
-- Delivery marks as delivered on 2xx response
-- Webhook fires after product transfer
-
-**Verify**: Create a webhook subscription for TRANSFERRED events. Transfer a product. Verify the webhook delivery attempt occurs with correct payload and HMAC signature. Test retry by pointing to an invalid URL -- verify retries happen with backoff. Verify BRAND_ADMIN can only see own subscriptions.
-
----
-
-### Brief T7.3: Audit Trail Export (CSV/JSON)
+### Brief T8.1: Batch CSV Import Endpoint
 
 **Type**: backend
 **Priority**: P1
@@ -333,188 +45,204 @@ Register webhook routes and start the outbox worker on app ready.
 **Operator approval**: not required
 
 **Files to modify**:
-- `apps/api/src/routes/audit/export.ts` -- NEW: export route handler
-- `apps/api/src/routes/audit/index.ts` -- register export route alongside existing list route
-- `apps/api/test/audit-export.test.ts` -- NEW: export tests
+- `apps/api/src/routes/products/batch-import.ts` -- NEW: CSV import route handler
+- `apps/api/src/routes/products/index.ts` -- register batch-import route
+- `packages/shared/src/validation/gtin.ts` -- reuse existing GTIN validation
+- `apps/api/test/batch-import.test.ts` -- NEW: batch import tests
 
 **Approach**:
 
-Add a `GET /audit-log/export` endpoint that returns audit trail data as CSV or JSON. The format is selected via `Accept` header or `?format=csv|json` query param. Supports date range filtering, resource filtering, and brand scoping for non-ADMIN users.
+Add a `POST /products/batch-import` endpoint that accepts a CSV file (multipart/form-data) and creates products in bulk. Each row is validated independently — invalid rows are skipped and reported in the response.
 
-**Step 1: Create `apps/api/src/routes/audit/export.ts`**
+**Step 1: Define CSV format**
 
-```typescript
-import type { FastifyInstance } from "fastify";
-import { z } from "zod";
-import { requireRole } from "../../middleware/rbac.js";
+Expected CSV columns: `name,gtin,serialNumber,category,description,materials`. First row is header. GTIN is validated using existing `validateGtin` from @galileo/shared. Category must match existing enum values.
 
-const exportQuerySchema = z.object({
-  format: z.enum(["csv", "json"]).default("json"),
-  from: z.string().datetime().optional(), // ISO 8601 start date
-  to: z.string().datetime().optional(),   // ISO 8601 end date
-  resource: z.string().optional(),
-  actor: z.string().optional(),
-});
+**Step 2: Create `apps/api/src/routes/products/batch-import.ts`**
 
-export default async function auditExportRoute(fastify: FastifyInstance) {
-  fastify.get(
-    "/audit-log/export",
-    {
-      onRequest: [fastify.authenticate, requireRole("ADMIN", "BRAND_ADMIN")],
-      schema: {
-        description:
-          "Export audit log entries as CSV or JSON. " +
-          "ADMIN sees all entries. BRAND_ADMIN sees only their brand's entries " +
-          "(filtered by actor being a user of their brand).",
-        tags: ["Audit"],
-        security: [{ cookieAuth: [] }],
-        querystring: {
-          type: "object",
-          properties: {
-            format: { type: "string", enum: ["csv", "json"], default: "json" },
-            from: { type: "string", format: "date-time" },
-            to: { type: "string", format: "date-time" },
-            resource: { type: "string" },
-            actor: { type: "string" },
-          },
-        },
-      },
-    },
-    async (request, reply) => {
-      const parsed = exportQuerySchema.safeParse(request.query);
-      if (!parsed.success) {
-        return reply.status(400).send({
-          success: false,
-          error: {
-            code: "VALIDATION_ERROR",
-            message: "Invalid query parameters",
-            details: parsed.error.flatten().fieldErrors,
-          },
-        });
-      }
+- Accept multipart file upload (reuse existing @fastify/multipart setup from file upload)
+- Parse CSV content (use a lightweight CSV parser — split by newlines and commas with quote handling, or use `csv-parse/sync` if already available)
+- For each row: validate GTIN, validate required fields, create product via Prisma
+- Wrap in a transaction: all-or-nothing by default, with `?partial=true` query param for partial success mode
+- Return summary: `{ created: number, errors: Array<{ row: number, field: string, message: string }> }`
 
-      const { format, from, to, resource, actor } = parsed.data;
-      const user = request.user;
+**Step 3: Auth and scoping**
 
-      // Build where clause
-      const where: Record<string, unknown> = {};
-      if (resource) where.resource = resource;
-      if (actor) where.actor = actor;
-      if (from || to) {
-        where.createdAt = {};
-        if (from) (where.createdAt as Record<string, unknown>).gte = new Date(from);
-        if (to) (where.createdAt as Record<string, unknown>).lte = new Date(to);
-      }
+- Requires ADMIN or BRAND_ADMIN role
+- BRAND_ADMIN: all products created under their brand
+- ADMIN: must specify brandId in CSV or query param
 
-      // Brand scoping for BRAND_ADMIN: filter by actors belonging to their brand
-      if (user.role === "BRAND_ADMIN" && user.brandId) {
-        const brandUsers = await fastify.prisma.user.findMany({
-          where: { brandId: user.brandId },
-          select: { id: true },
-        });
-        const brandUserIds = brandUsers.map((u: { id: string }) => u.id);
-        where.actor = { in: brandUserIds };
-      }
+**Step 4: Limits**
 
-      const entries = await fastify.prisma.auditLog.findMany({
-        where,
-        orderBy: { createdAt: "desc" },
-        take: 10000, // Safety limit
-      });
-
-      if (format === "csv") {
-        const header = "id,actor,action,resource,resourceId,ip,createdAt";
-        const rows = entries.map(
-          (e: { id: string; actor: string | null; action: string; resource: string; resourceId: string | null; ip: string | null; createdAt: Date }) =>
-            [
-              e.id,
-              e.actor ?? "",
-              e.action,
-              e.resource,
-              e.resourceId ?? "",
-              e.ip ?? "",
-              e.createdAt.toISOString(),
-            ]
-              .map((v) => `"${String(v).replace(/"/g, '""')}"`)
-              .join(","),
-        );
-        const csv = [header, ...rows].join("\n");
-        return reply
-          .header("Content-Type", "text/csv; charset=utf-8")
-          .header(
-            "Content-Disposition",
-            `attachment; filename="audit-log-${new Date().toISOString().slice(0, 10)}.csv"`,
-          )
-          .send(csv);
-      }
-
-      // JSON format
-      return reply
-        .header("Content-Type", "application/json; charset=utf-8")
-        .header(
-          "Content-Disposition",
-          `attachment; filename="audit-log-${new Date().toISOString().slice(0, 10)}.json"`,
-        )
-        .send({
-          success: true,
-          data: { entries, exportedAt: new Date().toISOString(), count: entries.length },
-        });
-    },
-  );
-}
-```
-
-**Step 2: Update `apps/api/src/routes/audit/index.ts`**
-
-The current audit/index.ts is a single file with the list route. Refactor to register the export route alongside it.
-
-Current structure: `auditRoutes` function registers `GET /audit-log` directly.
-New structure: keep existing route, add import and register of the export route.
-
-Note: The export route is `GET /audit-log/export`, not a sub-path of the existing route. Both are registered in the same plugin. Register the export route BEFORE the list route to avoid Fastify route matching ambiguity (more specific path first).
-
-```typescript
-import auditExportRoute from "./export.js";
-
-// Inside auditRoutes:
-await fastify.register(auditExportRoute);
-// ... existing GET /audit-log route ...
-```
+- Max 500 rows per upload (safety limit)
+- Max file size: 1MB
+- Duplicate GTIN+serial within the CSV: reject the duplicate row
 
 **Patterns to follow**:
-- requireRole for ADMIN + BRAND_ADMIN access (existing audit pattern)
-- Zod validation for query params (existing audit pattern)
-- Brand scoping for BRAND_ADMIN (R31) -- filter by brand's user IDs
-- No body/response JSON schema (R01)
-- CSV escaping: double-quote wrapping with escaped internal quotes
-- Content-Disposition header for file download
-- Safety limit (10000) to prevent OOM on large audit logs
+- requireRole middleware for ADMIN + BRAND_ADMIN (existing pattern)
+- CSRF header on mutation (R01)
+- Brand scoping (R31)
+- Zod validation per row
+- Multipart file upload (existing pattern from image upload)
+- Transaction for atomicity (default) or partial mode
 
 **Edge cases**:
-- No entries matching filter: CSV returns header-only, JSON returns empty array
-- Very large audit log: 10000 entry limit prevents OOM -- document this limitation
-- BRAND_ADMIN with no brand users: returns empty result
-- Date range: `from` and `to` are both optional, can be used independently
-- CSV special characters: commas, newlines, quotes in field values -- escaped with RFC 4180 double-quoting
-- Metadata JSON field: excluded from CSV for simplicity (only flat fields exported)
+- Empty CSV (header only): return `{ created: 0, errors: [] }`
+- All rows invalid: return 0 created with all errors
+- Duplicate GTIN+serial in CSV: report error on duplicate row
+- Duplicate GTIN+serial vs existing DB: report conflict error per row
+- Malformed CSV (missing columns, extra columns): report parse error
+- BOM (byte order mark) in UTF-8 CSV: strip BOM before parsing
+- BRAND_ADMIN uploading for another brand: 403
 
-**Tests** (~10 tests):
-- GET /audit-log/export returns JSON by default (200)
-- GET /audit-log/export?format=csv returns CSV with correct Content-Type and Content-Disposition
-- Date range filter: `from` and `to` limit results
-- Resource filter works
-- ADMIN sees all entries
-- BRAND_ADMIN sees only their brand's entries
+**Tests** (~12 tests):
+- Upload valid CSV with 5 products — all created (201)
+- Upload CSV with invalid GTIN — row error reported, others created (partial mode)
+- Upload CSV with duplicate GTIN+serial — error on duplicate
+- Empty CSV returns 0 created
+- Exceeding 500 rows returns 400
+- BRAND_ADMIN can import for own brand
+- BRAND_ADMIN cannot import for other brand (403)
 - VIEWER role returns 403
 - Unauthenticated returns 401
-- Empty result: JSON has empty entries array, CSV has only header
-- CSV escapes special characters correctly
+- Malformed CSV returns 400 with parse error
+- Transaction mode: one invalid row rolls back all (default)
+- Partial mode: valid rows created, invalid rows reported
 
-**Verify**: Create audit entries via product operations. Export as JSON -- verify entries match. Export as CSV -- verify downloadable file with correct format. Test as BRAND_ADMIN -- verify only brand-scoped entries. Test date range -- verify filtering works.
+**Verify**: Upload a CSV with 10 valid products — all created. Upload CSV with 2 invalid rows — errors reported per row. Check products exist in DB. Verify BRAND_ADMIN scoping.
 
 ---
 
-### Brief T7.4: Wallet-Link: Add Nonce + Expiry
+### Brief T8.2: Batch Mint Endpoint
+
+**Type**: backend
+**Priority**: P1
+**Epic**: EPIC-006-data-compliance
+**Operator approval**: not required
+
+**Files to modify**:
+- `apps/api/src/routes/products/batch-mint.ts` -- NEW: batch mint route handler
+- `apps/api/src/routes/products/index.ts` -- register batch-mint route
+- `apps/api/test/batch-mint.test.ts` -- NEW: batch mint tests
+
+**Approach**:
+
+Add a `POST /products/batch-mint` endpoint that accepts an array of product IDs and mints them all. Uses the existing mint logic (mock mint for now) applied to each product.
+
+**Step 1: Create `apps/api/src/routes/products/batch-mint.ts`**
+
+```typescript
+const batchMintBodySchema = z.object({
+  productIds: z.array(z.string().uuid()).min(1).max(100),
+});
+```
+
+- Validate all product IDs exist and are in DRAFT status
+- For each product: run the existing mint flow (DID generation, mock on-chain data, status update to ACTIVE)
+- Wrap in a transaction for atomicity
+- Return summary: `{ minted: number, errors: Array<{ productId: string, message: string }> }`
+
+**Step 2: Auth and scoping**
+
+- Requires ADMIN or BRAND_ADMIN
+- BRAND_ADMIN: can only mint products belonging to their brand
+- Pre-check: verify all products belong to user's brand before starting
+
+**Step 3: Concurrency**
+
+- Use optimistic concurrency (existing pattern from single mint) per product
+- If a product was already minted between validation and execution, report it in errors
+
+**Patterns to follow**:
+- Reuse existing mint logic from `apps/api/src/routes/products/mint.ts`
+- requireRole middleware
+- CSRF header
+- Brand scoping (R31)
+- Optimistic concurrency (existing mint pattern)
+- Webhook outbox enqueue for each minted product (T7.2 integration)
+
+**Edge cases**:
+- Empty array: rejected by `.min(1)` validation
+- Mix of valid and invalid products: report per-product errors
+- Product already ACTIVE: skip with error "already minted"
+- Product in RECALLED status: skip with error "cannot mint recalled product"
+- Cross-brand products for BRAND_ADMIN: 403
+- Concurrent batch mints: optimistic concurrency handles race conditions
+- Very large batch: capped at 100 products per request
+
+**Tests** (~10 tests):
+- Batch mint 3 DRAFT products — all become ACTIVE (200)
+- Batch mint with non-existent product ID — error reported
+- Batch mint product already ACTIVE — error "already minted"
+- Batch mint RECALLED product — error reported
+- BRAND_ADMIN can only mint own brand's products
+- Cross-brand product in batch — 403
+- Empty productIds array — 400 validation error
+- Over 100 products — 400 validation error
+- Webhook events fired for each minted product
+- Unauthenticated returns 401
+
+**Verify**: Create 5 products via CSV import (T8.1). Batch mint all 5 — all become ACTIVE. Verify DID and mock on-chain data generated for each. Verify webhook events fired.
+
+---
+
+### Brief T8.3: Dashboard CSV Import UI
+
+**Type**: UI
+**Priority**: P1
+**Epic**: EPIC-006-data-compliance
+**Operator approval**: not required
+
+**Files to modify**:
+- `apps/dashboard/src/components/batch-import-dialog.tsx` -- NEW: CSV import dialog component
+- `apps/dashboard/src/app/products/page.tsx` -- add import button to product list page
+- `apps/dashboard/src/lib/api.ts` -- add batch import API call
+
+**Approach**:
+
+Add a "Import CSV" button to the product list page that opens a dialog with file upload, preview, and progress feedback.
+
+**Step 1: Create `batch-import-dialog.tsx`**
+
+Dialog component with:
+- File input accepting `.csv` files only
+- Preview of first 5 rows after file selection (parsed client-side)
+- "Import" button to submit to `POST /products/batch-import`
+- Progress state: idle → uploading → success/error
+- Error summary: table showing row number, field, and error message
+- Success summary: "X products created successfully"
+
+**Step 2: Integrate in product list page**
+
+Add an "Import CSV" button next to the existing "Add Product" button. Only visible for ADMIN and BRAND_ADMIN roles.
+
+**Step 3: API integration**
+
+Add `batchImport(file: File)` function to `api.ts` that sends the file as multipart/form-data with CSRF header.
+
+**Patterns to follow**:
+- shadcn/ui Dialog, Button, Table components
+- TanStack Query for mutation (useMutation)
+- CSRF header on mutation (X-Galileo-Client)
+- Role-based UI visibility (existing pattern)
+- File upload pattern from existing image upload component
+- Toast notifications for success/error (existing pattern)
+
+**Edge cases**:
+- Large file: show loading spinner during upload
+- Network error: show retry option
+- All rows failed: show full error table
+- User cancels dialog mid-upload: mutation cancelled
+- Non-CSV file selected: validate file extension client-side
+- Empty file: show "No data found" message
+
+**Tests**: Covered by T8.5 E2E specs.
+
+**Verify**: Click "Import CSV" on product list. Select a valid CSV. Preview shows first rows. Click Import. Products appear in list. Select CSV with errors. Error summary displayed. Works on desktop and mobile.
+
+---
+
+### Brief T8.4: SIWE Wallet Login (EIP-4361)
 
 **Type**: security
 **Priority**: P1
@@ -522,227 +250,150 @@ await fastify.register(auditExportRoute);
 **Operator approval**: not required
 
 **Files to modify**:
-- `packages/shared/src/validation/wallet.ts` -- update `buildLinkWalletMessage` to include nonce + timestamp
-- `apps/api/src/routes/auth/nonce.ts` -- NEW: GET /auth/nonce endpoint
-- `apps/api/src/routes/auth/link-wallet.ts` -- validate nonce + expiry in signed message
-- `apps/api/src/routes/auth/index.ts` -- register nonce route
-- `apps/api/test/link-wallet.test.ts` -- extend with nonce/expiry tests
-- `apps/dashboard/src/components/wallet-connection.tsx` -- update to fetch nonce before signing
+- `apps/api/src/routes/auth/siwe.ts` -- NEW: SIWE login route (nonce + verify)
+- `apps/api/src/routes/auth/index.ts` -- register SIWE routes
+- `apps/api/src/services/siwe.ts` -- NEW: SIWE message builder and verifier
+- `packages/shared/src/validation/wallet.ts` -- add SIWE message types
+- `apps/dashboard/src/components/siwe-login.tsx` -- NEW: SIWE login button component
+- `apps/dashboard/src/app/login/page.tsx` -- add SIWE login option
+- `apps/api/test/siwe.test.ts` -- NEW: SIWE tests
 
 **Approach**:
 
-The current wallet-link flow uses a static message (`"Link wallet to Galileo: {email}"`) with no nonce or expiry. This is vulnerable to replay attacks: an attacker who captures a signed message can reuse it indefinitely. Fix: add a server-generated nonce and a timestamp to the message, then validate both server-side.
+Implement Sign-In With Ethereum (EIP-4361) as an alternative login method. Users with a linked wallet can authenticate by signing a SIWE message instead of using email/password.
 
-**Step 1: Create GET /auth/nonce endpoint**
+**Step 1: Install siwe dependency**
 
-`apps/api/src/routes/auth/nonce.ts`:
-
-```typescript
-import type { FastifyInstance } from "fastify";
-import { randomUUID } from "node:crypto";
-
-// In-memory nonce store (Map<nonce, { userId, expiresAt }>)
-// For MVP: in-memory. For production: store in Redis or DB.
-const nonceStore = new Map<string, { userId: string; expiresAt: number }>();
-
-const NONCE_TTL_MS = 5 * 60 * 1000; // 5 minutes
-
-export function createNonce(userId: string): string {
-  // Clean expired nonces (lazy cleanup)
-  const now = Date.now();
-  for (const [key, val] of nonceStore) {
-    if (val.expiresAt < now) nonceStore.delete(key);
-  }
-
-  const nonce = randomUUID();
-  nonceStore.set(nonce, { userId, expiresAt: now + NONCE_TTL_MS });
-  return nonce;
-}
-
-export function consumeNonce(nonce: string, userId: string): boolean {
-  const entry = nonceStore.get(nonce);
-  if (!entry) return false;
-  if (entry.userId !== userId) return false;
-  if (entry.expiresAt < Date.now()) {
-    nonceStore.delete(nonce);
-    return false;
-  }
-  nonceStore.delete(nonce); // One-time use
-  return true;
-}
-
-// Exported for testing
-export function _clearNonceStore(): void {
-  nonceStore.clear();
-}
-
-export default async function nonceRoute(fastify: FastifyInstance) {
-  fastify.get(
-    "/auth/nonce",
-    {
-      onRequest: [fastify.authenticate],
-      schema: {
-        description:
-          "Generate a one-time nonce for wallet-link message signing. " +
-          "Nonce expires after 5 minutes.",
-        tags: ["Auth"],
-        security: [{ cookieAuth: [] }],
-      },
-    },
-    async (request, reply) => {
-      const nonce = createNonce(request.user.sub);
-      return reply.status(200).send({
-        success: true,
-        data: { nonce },
-      });
-    },
-  );
-}
+```bash
+pnpm --filter api add siwe
 ```
 
-**Step 2: Update `packages/shared/src/validation/wallet.ts`**
+The `siwe` package handles message creation and verification per EIP-4361 spec.
 
-Update `buildLinkWalletMessage` to include nonce and timestamp:
+**Step 2: Create SIWE service (`apps/api/src/services/siwe.ts`)**
 
 ```typescript
-export const LINK_WALLET_MESSAGE_PREFIX = "Link wallet to Galileo:";
+import { SiweMessage } from "siwe";
 
-/** Build the signed message for wallet linking (v2: with nonce + timestamp). */
-export function buildLinkWalletMessage(
-  email: string,
-  nonce?: string,
-  timestamp?: number,
-): string {
-  if (nonce && timestamp) {
-    return `${LINK_WALLET_MESSAGE_PREFIX} ${email}\nNonce: ${nonce}\nTimestamp: ${timestamp}`;
-  }
-  // Legacy fallback (for backward compatibility during migration)
-  return `${LINK_WALLET_MESSAGE_PREFIX} ${email}`;
+export function createSiweMessage(params: {
+  address: string;
+  nonce: string;
+  chainId: number;
+  domain: string;
+  uri: string;
+  statement?: string;
+}): string {
+  const message = new SiweMessage({
+    domain: params.domain,
+    address: params.address,
+    statement: params.statement ?? "Sign in to Galileo Protocol",
+    uri: params.uri,
+    version: "1",
+    chainId: params.chainId,
+    nonce: params.nonce,
+  });
+  return message.prepareMessage();
 }
 
-/** Parse nonce and timestamp from a signed message. Returns null if not present. */
-export function parseLinkWalletMessage(
+export async function verifySiweMessage(
   message: string,
-): { email: string; nonce: string; timestamp: number } | null {
-  const lines = message.split("\n");
-  if (lines.length < 3) return null;
-  const emailMatch = lines[0].match(
-    /^Link wallet to Galileo:\s+(.+)$/,
-  );
-  const nonceMatch = lines[1]?.match(/^Nonce:\s+(.+)$/);
-  const timestampMatch = lines[2]?.match(/^Timestamp:\s+(\d+)$/);
-  if (!emailMatch || !nonceMatch || !timestampMatch) return null;
-  return {
-    email: emailMatch[1],
-    nonce: nonceMatch[1],
-    timestamp: Number(timestampMatch[1]),
-  };
+  signature: string,
+  nonce: string,
+): Promise<{ address: string; chainId: number } | null> {
+  try {
+    const siweMessage = new SiweMessage(message);
+    const result = await siweMessage.verify({ signature, nonce });
+    if (!result.success) return null;
+    return {
+      address: result.data.address,
+      chainId: result.data.chainId,
+    };
+  } catch {
+    return null;
+  }
 }
 ```
 
-**Step 3: Update link-wallet.ts**
+**Step 3: Create SIWE routes (`apps/api/src/routes/auth/siwe.ts`)**
 
-In the link-wallet route, after signature verification, parse the message for nonce + timestamp:
+Two endpoints:
+
+1. `GET /auth/siwe/nonce` — Generate a nonce for SIWE signing (reuse nonce pattern from T7.4, but without requiring auth — this is for login). Store nonce in memory with TTL.
+
+2. `POST /auth/siwe/verify` — Accept `{ message, signature }`. Verify SIWE message against nonce. Look up user by wallet address (`walletAddress` field on User). If found, issue session cookie (same as existing login flow). If no user linked to that wallet, return 404 with clear message.
 
 ```typescript
-import { parseLinkWalletMessage, buildLinkWalletMessage } from "@galileo/shared";
-import { consumeNonce } from "./nonce.js";
-
-// After signature verification succeeds:
-const parsed = parseLinkWalletMessage(message);
-if (!parsed) {
-  // Legacy message format (no nonce) -- reject
-  return reply.status(400).send({
-    success: false,
-    error: {
-      code: "VALIDATION_ERROR",
-      message: "Message must include nonce and timestamp. Use GET /auth/nonce first.",
-    },
-  });
+// POST /auth/siwe/verify
+const body = siweVerifySchema.parse(request.body);
+const verified = await verifySiweMessage(body.message, body.signature, expectedNonce);
+if (!verified) {
+  return reply.status(401).send({ success: false, error: { code: "INVALID_SIGNATURE", message: "SIWE verification failed" } });
 }
 
-// Verify email matches
-if (parsed.email !== currentUser.email) {
-  return reply.status(400).send({
-    success: false,
-    error: {
-      code: "VALIDATION_ERROR",
-      message: "Signed message does not match your account",
-    },
-  });
+const user = await fastify.prisma.user.findFirst({
+  where: { walletAddress: getAddress(verified.address) },
+});
+if (!user) {
+  return reply.status(404).send({ success: false, error: { code: "WALLET_NOT_LINKED", message: "No account linked to this wallet. Login with email first and link your wallet." } });
 }
 
-// Verify timestamp (5-minute expiry)
-const MESSAGE_EXPIRY_MS = 5 * 60 * 1000;
-if (Date.now() - parsed.timestamp > MESSAGE_EXPIRY_MS) {
-  return reply.status(400).send({
-    success: false,
-    error: {
-      code: "EXPIRED",
-      message: "Signed message has expired. Request a new nonce.",
-    },
-  });
-}
-
-// Consume nonce (one-time use)
-if (!consumeNonce(parsed.nonce, sub)) {
-  return reply.status(400).send({
-    success: false,
-    error: {
-      code: "INVALID_NONCE",
-      message: "Nonce is invalid or has already been used.",
-    },
-  });
-}
+// Issue session cookie (reuse existing session creation logic)
+const token = signJwt({ sub: user.id, role: user.role, brandId: user.brandId });
+setCookie(reply, token);
+return reply.send({ success: true, data: { user: { id: user.id, email: user.email, role: user.role } } });
 ```
 
-**Step 4: Register nonce route in auth/index.ts**
+**Step 4: Dashboard SIWE login component**
 
-Add import and register of `nonceRoute`.
+Create `siwe-login.tsx`:
+- "Sign in with Wallet" button on login page
+- Connect wallet via wagmi (existing setup)
+- Fetch nonce from `GET /auth/siwe/nonce`
+- Build SIWE message and request signature via wagmi `signMessage`
+- Submit to `POST /auth/siwe/verify`
+- On success: redirect to dashboard
+- On 404 (wallet not linked): show message directing user to email login + wallet link
 
-**Step 5: Update dashboard wallet-connection.tsx**
+**Step 5: Add to login page**
 
-Update the wallet link flow in the dashboard to:
-1. `GET /auth/nonce` to obtain a nonce
-2. Build message with `buildLinkWalletMessage(email, nonce, Date.now())`
-3. Sign the message
-4. `POST /auth/link-wallet` with address, signature, message
+Add SIWE login button below the existing email/password form with a divider ("or").
 
 **Patterns to follow**:
-- In-memory nonce store for MVP (R12 -- optional in dev/test)
-- One-time use nonces (consumed on successful link)
-- 5-minute TTL for nonces and message timestamps
-- Lazy cleanup of expired nonces
+- Nonce pattern from T7.4 (in-memory store, TTL, one-time use)
+- Session cookie creation (reuse from existing login route)
+- wagmi for wallet interactions (existing in dashboard)
+- Checksum address comparison with `getAddress` from viem
 - No body/response JSON schema (R01)
-- Authentication required for nonce endpoint (prevent nonce farming)
-- Shared message builder in @galileo/shared (keeps wallet.ts as single source of truth)
+- CSRF header not needed on login (no session yet)
 
 **Edge cases**:
-- Replayed signature: nonce consumed on first use, second attempt fails with INVALID_NONCE
-- Expired message: timestamp check rejects messages older than 5 minutes
-- Expired nonce: nonce TTL is 5 minutes, same as message expiry
-- Wrong user's nonce: nonce is bound to userId, cross-user replay blocked
-- Server restart: in-memory nonce store is cleared -- all pending nonces invalidated (user must request new one)
-- Race condition: two concurrent link-wallet requests with same nonce -- Map.delete is sync, first wins
-- Legacy message format: rejected with clear error message directing user to use nonce endpoint
+- Wallet not linked to any account: 404 with clear guidance
+- Expired nonce: 401 with "nonce expired"
+- Replayed signature: nonce consumed on first use
+- Wrong chain: SIWE message includes chainId, mismatch rejected
+- User with multiple wallets: findFirst by walletAddress (currently one wallet per user)
+- User account disabled/deleted: check user status before issuing session
+- ERC-1271 smart wallet: the `siwe` package supports ERC-1271 verification (Smart Wallet Coinbase compatibility for free)
 
-**Tests** (~10 tests):
-- GET /auth/nonce returns 200 with nonce string
-- GET /auth/nonce requires authentication (401)
-- Link-wallet with valid nonce + timestamp succeeds (200)
-- Link-wallet with legacy message (no nonce) returns 400
-- Link-wallet with expired timestamp returns 400 EXPIRED
-- Link-wallet with invalid nonce returns 400 INVALID_NONCE
-- Link-wallet with replayed nonce (second attempt) returns 400 INVALID_NONCE
-- Link-wallet with wrong user's nonce returns 400 INVALID_NONCE
-- Nonce expires after 5 minutes (mock Date.now)
-- Existing tests updated to use nonce flow
+**Tests** (~12 tests):
+- GET /auth/siwe/nonce returns 200 with nonce string
+- POST /auth/siwe/verify with valid signature — 200 with session cookie
+- POST /auth/siwe/verify with invalid signature — 401
+- POST /auth/siwe/verify with expired nonce — 401
+- POST /auth/siwe/verify with replayed nonce — 401
+- POST /auth/siwe/verify with wallet not linked — 404
+- Session cookie set correctly after SIWE login
+- User can access protected routes after SIWE login
+- SIWE message includes correct domain and chainId
+- Nonce is consumed after use (one-time)
+- Wrong chainId in message — rejected
+- Checksum address comparison works
 
-**Verify**: Request a nonce. Build message with nonce + timestamp. Sign and submit -- succeeds. Try to replay the same signature -- fails with INVALID_NONCE. Wait 5+ minutes (or mock time) -- fails with EXPIRED. Try old-format message without nonce -- fails with clear error.
+**Verify**: Connect wallet in dashboard. Click "Sign in with Wallet". Sign the SIWE message. Session created, redirected to dashboard. Try with unlinked wallet — shows "link wallet first" message. Try replaying signature — rejected.
 
 ---
 
-### Brief T7.5: E2E Playwright -- Compliance, Webhooks, Audit Export, Wallet Nonce
+### Brief T8.5: E2E Playwright -- Batch Import, Batch Mint, SIWE Login
 
 **Type**: testing
 **Priority**: P2
@@ -750,54 +401,52 @@ Update the wallet link flow in the dashboard to:
 **Operator approval**: not required
 
 **Files to modify**:
-- `apps/dashboard/e2e/transfer-compliance.spec.ts` -- NEW: E2E tests for transfer compliance
-- `apps/dashboard/e2e/audit-export.spec.ts` -- NEW: E2E tests for audit export
-- `apps/api/test/webhooks.test.ts` -- covered in T7.2 (Vitest unit tests, not Playwright)
+- `apps/dashboard/e2e/batch-import.spec.ts` -- NEW: E2E tests for CSV import + batch mint
+- `apps/dashboard/e2e/siwe-login.spec.ts` -- NEW: E2E tests for SIWE wallet login
+- `apps/api/test/batch-import.test.ts` -- covered in T8.1 (Vitest)
+- `apps/api/test/batch-mint.test.ts` -- covered in T8.2 (Vitest)
+- `apps/api/test/siwe.test.ts` -- covered in T8.4 (Vitest)
 
 **Approach**:
 
-Write Playwright E2E specs for the Sprint #7 features that have dashboard UI impact. Not all features have browser-testable UI -- webhooks and wallet-link nonce are primarily API-level and are better covered by Vitest unit/integration tests (T7.2 and T7.4).
+Write Playwright E2E specs for Sprint #8 dashboard features.
 
-Focus E2E on:
-1. **Transfer compliance**: Transfer a product via dashboard -- verify the transfer succeeds. Verify the compliance rejection error appears in the UI if compliance fails (requires a sanctioned address in test setup).
-2. **Audit export**: Navigate to dashboard audit page (if it exists) or use API directly via Playwright request context. Verify CSV and JSON exports download correctly.
-
-**Spec 1: `transfer-compliance.spec.ts`**
+**Spec 1: `batch-import.spec.ts`**
 
 ```
-describe("Transfer with Compliance")
-  - create product → mint → transfer to valid address → succeeds
-  - transfer shows compliance rejection error for blocked address (if sanctions list populated in test)
-  - transfer error message includes the module name that rejected
+describe("Batch CSV Import & Mint")
+  - navigate to product list → click "Import CSV" → upload valid CSV → products created
+  - upload CSV with invalid rows → error summary shown
+  - select imported products → batch mint → all become ACTIVE
+  - verify minted products show DID and status ACTIVE in list
 ```
 
-Setup: reuse auth state. Create and mint a product via dashboard, then use the transfer flow.
+Setup: create a test CSV file with known valid and invalid rows. Use auth state for BRAND_ADMIN.
 
-**Spec 2: `audit-export.spec.ts`**
+**Spec 2: `siwe-login.spec.ts`**
 
 ```
-describe("Audit Trail Export")
-  - export as JSON via API request → returns entries with correct structure
-  - export as CSV via API request → returns file with header and rows
-  - date range filter limits export results
-  - ADMIN can export all entries
+describe("SIWE Wallet Login")
+  - login page shows "Sign in with Wallet" button
+  - SIWE login flow: connect wallet → sign message → redirected to dashboard
+  - unlinked wallet shows error message
 ```
 
-Setup: perform several operations (create, mint, transfer) to generate audit entries, then test the export endpoint via Playwright's `request` API context.
+Note: SIWE E2E requires mocking wallet interactions. Use Playwright's route interception to mock the wallet provider, or test the API flow directly via `request` context with pre-signed messages.
 
 **Patterns to follow**:
-- Auth: use `storageState: "playwright/.auth/user.json"`
+- Auth: use `storageState` for authenticated tests
+- File upload: use Playwright's `setInputFiles` for CSV upload
 - Selectors: prefer `getByRole`, `getByText`, `getByLabel`
-- Waits: use `expect(locator).toBeVisible({ timeout })` not arbitrary sleeps
-- API testing: use `request.newContext()` for direct API calls in Playwright
-- Isolation: each spec creates its own test data
+- Waits: use `expect(locator).toBeVisible({ timeout })` not sleeps
+- API testing: use `request.newContext()` for direct API calls
 
 **Edge cases**:
-- Transfer compliance error may be displayed differently depending on dashboard implementation
-- Audit export download: use Playwright's download handling (`page.waitForEvent("download")`) for CSV
-- ADMIN auth setup: may need a separate auth state file for ADMIN tests
+- CSV upload dialog may vary by browser — use Playwright's file chooser API
+- SIWE wallet mock: may need custom page.evaluate to inject mock provider
+- Batch mint button state: disabled when no products selected
 
-**Verify**: `pnpm --filter dashboard exec playwright test` runs all specs including new ones. All pass. Transfer compliance rejection is visible in dashboard. Audit export downloads correctly.
+**Verify**: `pnpm --filter dashboard exec playwright test` runs all specs including new ones. All pass.
 
 ## Notes
 
@@ -805,9 +454,9 @@ Setup: perform several operations (create, mint, transfer) to generate audit ent
 <!-- Operator approvals: "Approved: T{N}.{M} — {reason}" -->
 <!-- Blocked reasons: "Blocked: T{N}.{M} — {reason}" -->
 
-Sprint #6 (Real Chain Unblock) remains BLOCKED on RPC key. Sprint #7 pulls forward non-blocked P1 tasks from Sprint #7 (lifecycle/compliance) and Sprint #8/9 (audit export, wallet security).
+Sprint #6 (Real Chain Unblock) remains BLOCKED on RPC key. Sprint #8 pulls forward non-blocked P1 tasks: batch operations (EPIC-006) and SIWE wallet login (EPIC-005).
 
-The 🔒 DB migration task (add REPAIRED, CPO_CERTIFIED event types) is NOT included. Lifecycle endpoints and CPO certification flow depend on that migration and will be in a future sprint after operator approval.
+🔒 PostgreSQL RLS is NOT included — requires operator approval. Smart Wallet Coinbase (ERC-1271) gets partial coverage through the `siwe` package in T8.4, which supports ERC-1271 verification natively.
 
 ## Archive
 

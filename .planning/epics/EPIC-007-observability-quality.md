@@ -18,6 +18,7 @@ Test stability, error tracking, monitoring, and structured logging. Ensures the 
 - [ ] Uptime monitoring
 - [x] Structured logging (no PII) (Sprint #2, 0749206)
 - [x] E2E Playwright: dashboard stats, filters, upload (Sprint #5, 6f1b932)
+- [x] E2E Playwright: compliance, webhooks, audit export (Sprint #7, 60fb11e)
 
 ## Acceptance Criteria
 

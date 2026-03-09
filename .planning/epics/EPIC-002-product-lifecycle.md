@@ -21,8 +21,8 @@ Complete product lifecycle management: CRUD, mock/real mint, transfer, recall, v
 - [x] Lifecycle events: CREATED, UPDATED, MINTED, TRANSFERRED, RECALLED, VERIFIED
 - [ ] Remaining events: OWNERSHIP_CHANGED, REPAIRED, CPO_CERTIFIED
 - [ ] CPO certification flow
-- [ ] Transfer flow with compliance check (5 modules)
-- [ ] Webhook system for real-time notifications (mint, transfer, CPO)
+- [x] Transfer flow with compliance check (5 modules) (Sprint #7, 72746f2)
+- [x] Webhook system for real-time notifications (mint, transfer, CPO) (Sprint #7, 3b805f1)
 - [ ] Event logging: append-only, off-chain + on-chain anchoring
 - [x] Product list filtering by status and category (Sprint #4, ff33ff6)
 - [x] Dashboard stats API endpoint (GET /products/stats) (Sprint #5, 78bbd38)
