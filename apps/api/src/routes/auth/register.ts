@@ -3,11 +3,9 @@ import { z } from "zod";
 import { emailSchema, passwordSchema } from "@galileo/shared";
 import { hashPassword } from "../../utils/password.js";
 import { generateTokenPair } from "../../utils/tokens.js";
-import { toSlug } from "../../utils/slug.js";
 import { hashToken } from "../../utils/token-hash.js";
 import { setAuthCookies } from "../../utils/cookies.js";
 import { errorResponseSchema } from "../../utils/schemas.js";
-import { isPrismaUniqueViolation } from "../../utils/prisma-errors.js";
 
 const registerBody = z
   .object({
@@ -26,7 +24,7 @@ export default async function registerRoute(fastify: FastifyInstance) {
     "/auth/register",
     {
       schema: {
-        description: "Register a new user",
+        description: "Register a new user for the single-brand pilot",
         tags: ["Auth"],
         body: {
           type: "object",
@@ -36,7 +34,11 @@ export default async function registerRoute(fastify: FastifyInstance) {
               type: "string",
               description: "Password (min 8 characters)",
             },
-            brandName: { type: "string", description: "Optional brand name" },
+            brandName: {
+              type: "string",
+              description:
+                "Optional brand name hint. Public registration does not create brands during the pilot.",
+            },
           },
         },
         response: {
@@ -99,61 +101,20 @@ export default async function registerRoute(fastify: FastifyInstance) {
 
       const passwordHash = await hashPassword(password);
 
-      let user;
-
       if (brandName) {
-        const slug = toSlug(brandName);
-        const did = `did:galileo:brand:${slug}`;
-
-        // Create brand and user in a transaction
-        try {
-          const result = await fastify.prisma.$transaction(
-            async (tx: import("../../plugins/prisma.js").TxClient) => {
-              const brand = await tx.brand.create({
-                data: {
-                  name: brandName,
-                  slug,
-                  did,
-                },
-              });
-
-              const newUser = await tx.user.create({
-                data: {
-                  email,
-                  passwordHash,
-                  role: "BRAND_ADMIN",
-                  brandId: brand.id,
-                },
-              });
-
-              return newUser;
-            },
-          );
-
-          user = result;
-        } catch (error: unknown) {
-          // Handle unique constraint violation (slug or DID collision)
-          if (isPrismaUniqueViolation(error)) {
-            return reply.status(409).send({
-              success: false,
-              error: {
-                code: "CONFLICT",
-                message:
-                  "A brand with this name already exists. Please choose a different name.",
-              },
-            });
-          }
-          throw error;
-        }
-      } else {
-        user = await fastify.prisma.user.create({
-          data: {
-            email,
-            passwordHash,
-            role: "VIEWER",
-          },
-        });
+        fastify.log.info(
+          { email, requestedBrandName: brandName },
+          "Ignoring brandName during pilot registration",
+        );
       }
+
+      const user = await fastify.prisma.user.create({
+        data: {
+          email,
+          passwordHash,
+          role: "VIEWER",
+        },
+      });
 
       const tokens = generateTokenPair(fastify, {
         sub: user.id,

@@ -102,7 +102,7 @@ describe("Auth endpoints", () => {
       expect(rtHeader!).toContain("Path=/auth/refresh");
     });
 
-    it("creates user with brand when brandName is provided", async () => {
+    it("keeps pilot registration unassigned when brandName is provided", async () => {
       const response = await app.inject({
         method: "POST",
         url: "/auth/register",
@@ -116,17 +116,15 @@ describe("Auth endpoints", () => {
       expect(response.statusCode).toBe(201);
       const body = response.json();
       expect(body.success).toBe(true);
-      expect(body.data.user.role).toBe("BRAND_ADMIN");
-      expect(body.data.user.brandId).toBeDefined();
-      expect(body.data.user.brandId).not.toBeNull();
+      expect(body.data.user.email).toBe("brand@test.com");
+      expect(body.data.user.role).toBe("VIEWER");
+      expect(body.data.user.brandId).toBeNull();
 
-      // Verify brand was created with correct DID
+      // Public signup must not provision a pilot brand or workspace.
       const brand = await app.prisma.brand.findUnique({
         where: { slug: "acme-luxury" },
       });
-      expect(brand).not.toBeNull();
-      expect(brand!.did).toBe("did:galileo:brand:acme-luxury");
-      expect(brand!.name).toBe("Acme Luxury");
+      expect(brand).toBeNull();
     });
 
     it("returns 409 for duplicate email", async () => {
