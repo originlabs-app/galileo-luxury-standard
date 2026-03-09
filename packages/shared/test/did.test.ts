@@ -4,6 +4,13 @@ import {
   generateDigitalLinkUrl,
   validateDid,
 } from "../src/validation/did.js";
+import {
+  canonicalizeProductIdentity,
+  productIdentitySchema,
+  productSerialSchema,
+  validateProductIdentity,
+  validateProductSerial,
+} from "../src/validation/product-identity.js";
 
 describe("DID generation", () => {
   it("generates correct DID format with 14-digit padded GTIN", () => {
@@ -38,33 +45,33 @@ describe("GS1 Digital Link URL generation", () => {
     );
   });
 
-  it("URL-encodes serial with hash (#)", () => {
-    expect(generateDigitalLinkUrl("0012345678905", "SN#1")).toBe(
-      "https://id.galileoprotocol.io/01/00012345678905/21/SN%231",
+  it("rejects serial with hash (#)", () => {
+    expect(() => generateDigitalLinkUrl("0012345678905", "SN#1")).toThrow(
+      /Serial number/i,
     );
   });
 
-  it("URL-encodes serial with question mark (?)", () => {
-    expect(generateDigitalLinkUrl("0012345678905", "SN?1")).toBe(
-      "https://id.galileoprotocol.io/01/00012345678905/21/SN%3F1",
+  it("rejects serial with question mark (?)", () => {
+    expect(() => generateDigitalLinkUrl("0012345678905", "SN?1")).toThrow(
+      /Serial number/i,
     );
   });
 
-  it("URL-encodes serial with slash (/)", () => {
-    expect(generateDigitalLinkUrl("0012345678905", "SN/1")).toBe(
-      "https://id.galileoprotocol.io/01/00012345678905/21/SN%2F1",
+  it("rejects serial with slash (/)", () => {
+    expect(() => generateDigitalLinkUrl("0012345678905", "SN/1")).toThrow(
+      /Serial number/i,
     );
   });
 
-  it("URL-encodes serial with space", () => {
-    expect(generateDigitalLinkUrl("0012345678905", "SN 1")).toBe(
-      "https://id.galileoprotocol.io/01/00012345678905/21/SN%201",
+  it("rejects serial with space", () => {
+    expect(() => generateDigitalLinkUrl("0012345678905", "SN 1")).toThrow(
+      /Serial number/i,
     );
   });
 
-  it("URL-encodes serial with multiple special chars", () => {
-    expect(generateDigitalLinkUrl("0012345678905", "SN#1/2")).toBe(
-      "https://id.galileoprotocol.io/01/00012345678905/21/SN%231%2F2",
+  it("rejects serial with multiple special chars", () => {
+    expect(() => generateDigitalLinkUrl("0012345678905", "SN#1/2")).toThrow(
+      /Serial number/i,
     );
   });
 
@@ -72,6 +79,54 @@ describe("GS1 Digital Link URL generation", () => {
     expect(generateDigitalLinkUrl("0012345678905", "SN-001")).toBe(
       "https://id.galileoprotocol.io/01/00012345678905/21/SN-001",
     );
+  });
+});
+
+describe("Product identity validation", () => {
+  it("accepts the same GTIN and serial pair used by DID generation", () => {
+    expect(
+      validateProductIdentity({
+        gtin: "4006381333931",
+        serialNumber: "SN-001.v2",
+      }),
+    ).toBe(true);
+  });
+
+  it("rejects serials outside the Galileo DID character set", () => {
+    expect(validateProductSerial("SN/001")).toBe(false);
+    expect(validateProductSerial("SN 001")).toBe(false);
+    expect(validateProductSerial("SN#001")).toBe(false);
+  });
+
+  it("exposes serial schema errors before DID helpers are called", () => {
+    const result = productSerialSchema.safeParse("SN/001");
+
+    expect(result.success).toBe(false);
+    expect(result.error.issues[0]?.message).toContain(
+      "letters, numbers, hyphens, and periods",
+    );
+  });
+
+  it("pads valid GTINs to canonical GTIN-14 form", () => {
+    expect(
+      canonicalizeProductIdentity({
+        gtin: "4006381333931",
+        serialNumber: "SN-001",
+      }),
+    ).toEqual({
+      gtin: "04006381333931",
+      serialNumber: "SN-001",
+    });
+  });
+
+  it("keeps the shared schema aligned with DID validation requirements", () => {
+    const result = productIdentitySchema.safeParse({
+      gtin: "4006381333931",
+      serialNumber: "123456789012345678901",
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error.issues[0]?.path).toEqual(["serialNumber"]);
   });
 });
 

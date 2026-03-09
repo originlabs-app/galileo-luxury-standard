@@ -7,9 +7,12 @@
  * @module validation/did
  */
 
-import { validateGtin, padGtin14 } from "./gtin.js";
+import {
+  canonicalizeProductIdentity,
+  productIdentitySchema,
+} from "./product-identity.js";
 
-const DID_REGEX = /^did:galileo:01:(\d{13,14}):21:([A-Za-z0-9\-.]{1,20})$/;
+const DID_REGEX = /^did:galileo:01:(\d{13,14}):21:([^:]+)$/;
 
 /**
  * Generates a Galileo DID from a GTIN and serial number.
@@ -20,7 +23,12 @@ const DID_REGEX = /^did:galileo:01:(\d{13,14}):21:([A-Za-z0-9\-.]{1,20})$/;
  * @returns The DID string in format `did:galileo:01:{gtin14}:21:{serial}`.
  */
 export function generateDid(gtin: string, serial: string): string {
-  return `did:galileo:01:${padGtin14(gtin)}:21:${serial}`;
+  const identity = canonicalizeProductIdentity({
+    gtin,
+    serialNumber: serial,
+  });
+
+  return `did:galileo:01:${identity.gtin}:21:${identity.serialNumber}`;
 }
 
 /**
@@ -33,7 +41,12 @@ export function generateDid(gtin: string, serial: string): string {
  * @returns The URL string in format `https://id.galileoprotocol.io/01/{gtin14}/21/{encodedSerial}`.
  */
 export function generateDigitalLinkUrl(gtin: string, serial: string): string {
-  return `https://id.galileoprotocol.io/01/${padGtin14(gtin)}/21/${encodeURIComponent(serial)}`;
+  const identity = canonicalizeProductIdentity({
+    gtin,
+    serialNumber: serial,
+  });
+
+  return `https://id.galileoprotocol.io/01/${identity.gtin}/21/${encodeURIComponent(identity.serialNumber)}`;
 }
 
 /**
@@ -48,8 +61,10 @@ export function generateDigitalLinkUrl(gtin: string, serial: string): string {
  */
 export function validateDid(did: string): boolean {
   const match = DID_REGEX.exec(did);
-  if (!match || !match[1]) return false;
+  if (!match || !match[1] || !match[2]) return false;
 
-  const gtin = match[1];
-  return validateGtin(gtin);
+  return productIdentitySchema.safeParse({
+    gtin: match[1],
+    serialNumber: match[2],
+  }).success;
 }

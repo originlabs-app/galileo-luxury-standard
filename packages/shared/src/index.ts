@@ -52,6 +52,16 @@ export {
   padGtin14,
 } from "./validation/gtin.js";
 export {
+  PRODUCT_SERIAL_REGEX,
+  canonicalizeProductIdentity,
+  parseProductIdentityInput,
+  productGtinSchema,
+  productIdentitySchema,
+  productSerialSchema,
+  validateProductIdentity,
+  validateProductSerial,
+} from "./validation/product-identity.js";
+export {
   generateDid,
   generateDigitalLinkUrl,
   validateDid,
