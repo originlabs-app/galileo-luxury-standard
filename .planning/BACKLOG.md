@@ -204,10 +204,9 @@ feature · improvement · UI · backend · security · performance · observabil
 
 ### P2 -- Medium
 
-- [ ] `EPIC-007` Doc-roadmap drift audit: update README.md and ROADMAP.md — Sprint #11 T11.1
+- [x] `EPIC-007` Doc-roadmap drift audit: update README.md and ROADMAP.md — Sprint #11 T11.1, 5f35bdb
   - **Context**: Both files frozen at Sprint #2 state. Test counts, API endpoints, feature list, sprint checkboxes all stale. Audit 5.
   - **Type**: documentation
-  - **Verify**: README test counts match actual (372 unit + 9 e2e specs). ROADMAP checkboxes updated for Sprints 3-10 completed work.
 
 ---
 
@@ -219,7 +218,7 @@ feature · improvement · UI · backend · security · performance · observabil
 - [ ] **Audit 2: Multi-tenant / data isolation** — all routes, Prisma queries, exports, audit-log, upload, QR. Run before Sprint #8.
 - [x] **Audit 3: Auth-wallet security** — covered by Sprint #7 (nonce), Sprint #8 (SIWE), Sprint #9 (ERC-1271/Smart Wallet)
 - [x] **Audit 4: Event model / operational analytics** — covered by Sprint #4 (audit trail), Sprint #5 (stats), Sprint #7 (compliance/webhooks)
-- [ ] **Audit 5: Doc-roadmap drift** — Sentry/audit/filtering validated in code but ROADMAP.md/README.md lag behind. Mini sprint for hygiene. → **Promoted to Sprint #11 T11.1**
+- [x] **Audit 5: Doc-roadmap drift** — Completed in Sprint #11 T11.1, 5f35bdb
 
 ---
 

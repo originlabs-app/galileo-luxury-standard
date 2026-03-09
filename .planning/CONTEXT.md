@@ -6,7 +6,7 @@
 
 ## Last Updated
 
-2026-03-09 -- updated after Sprint #8 code implementation (batch import, batch mint, SIWE)
+2026-03-10 -- updated after Sprint #11 (doc-roadmap drift audit). DELETE /webhooks/:id added to API table, test counts corrected, Smart Wallet marked resolved.
 
 ## Tech Stack
 
@@ -89,7 +89,7 @@ galileo-protocol/
 |   |   +-- src/
 |   |       +-- app/
 |   |       |   +-- dashboard/
-|   |       |   |   +-- page.tsx             # Home: stat cards (hardcoded 0s) + empty activity feed
+|   |       |   |   +-- page.tsx             # Home: live stat cards + activity feed (Sprint #5)
 |   |       |   |   +-- products/
 |   |       |   |       +-- page.tsx         # Product list table with pagination
 |   |       |   |       +-- new/page.tsx     # Create product form
@@ -180,10 +180,12 @@ Key relations: User -> Brand (many-to-one), Product -> Brand (many-to-one), Prod
 | GET | /auth/nonce | authenticated | Generate nonce for wallet-link signing |
 | GET | /auth/siwe/nonce | public | Generate nonce for SIWE login signing |
 | POST | /auth/siwe/verify | public | Verify SIWE signature, issue session |
+| GET | /products/stats | authenticated | Product statistics (brand-scoped) |
 | POST | /products/batch-import | BRAND_ADMIN, ADMIN | CSV import (multipart, max 500 rows) |
 | POST | /products/batch-mint | BRAND_ADMIN, ADMIN | Batch mint DRAFT products (max 100) |
 | POST | /webhooks | ADMIN | Register webhook subscription |
 | GET | /webhooks | ADMIN | List webhook subscriptions |
+| DELETE | /webhooks/:id | ADMIN | Delete webhook subscription |
 
 ## Patterns & Conventions
 
@@ -212,7 +214,7 @@ Key relations: User -> Brand (many-to-one), Product -> Brand (many-to-one), Prod
 - Dashboard data fetching: `api<T>(path)` wrapper with auto-refresh, CSRF headers, 401 retry
 - Dashboard pages are "use client" components using useState/useEffect for data loading
 - Dashboard product list: fetchProducts callback with page state, pagination from API response
-- Dashboard home: stat cards with hardcoded 0 values, empty activity feed placeholder
+- Dashboard home: live stat cards from GET /products/stats, activity feed with relative timestamps (Sprint #5)
 - Shared categories: CATEGORIES array in @galileo/shared/constants/categories (Title Case strings)
 - Available shadcn components: badge, button, card, dialog, input, label, select, table, textarea
 - SIWE login: nonce-based, viem verifyMessage, wallet lookup by checksumAddress
@@ -223,8 +225,8 @@ Key relations: User -> Brand (many-to-one), Product -> Brand (many-to-one), Prod
 
 ## Test Architecture
 
-- **Vitest**: 369 total -- 300 API tests across 21 files + 69 shared tests
-- **Playwright**: 9 e2e specs (auth, product lifecycle, dashboard-home, product-filters, product-upload, transfer-compliance, audit-export, batch-import, siwe-login)
+- **Vitest**: 372 total -- 303 API tests across 21 files + 69 shared tests
+- **Playwright**: 10 e2e specs (auth, product lifecycle, dashboard-home, product-filters, product-upload, transfer-compliance, audit-export, batch-import, siwe-login, wallet-auth)
 - **Test DB**: `galileo_test` via `DATABASE_URL_TEST`
 - **Global setup**: `test/global-setup.ts` -- pushes schema, truncates on teardown
 - **File parallelism**: disabled (`fileParallelism: false` in vitest.config.ts)
@@ -239,7 +241,7 @@ Key relations: User -> Brand (many-to-one), Product -> Brand (many-to-one), Prod
 4. ~~**createProductBody lacks `.strict()`**~~ RESOLVED: `.strict()` on all body schemas
 5. ~~**No file upload**~~ RESOLVED: POST /products/:id/upload with R2 storage + CIDv1
 6. **Blockchain blocked** (P0): real chain deploy needs RPC key
-7. **Smart Wallet pending** (P1): ERC-1271 verification not implemented
+7. ~~**Smart Wallet pending**~~ RESOLVED: ERC-1271 verification via publicClient.verifyMessage(), Coinbase Smart Wallet connector (Sprint #9, 081ee0e/ce70f02)
 8. ~~**No GDPR endpoints**~~ RESOLVED: GET /auth/me/data (export) + DELETE /auth/me/data (erasure) implemented in Sprint #3
 9. **No multi-tenant isolation** (P2): app-level RBAC only, no database-level RLS
 10. ~~**No error tracking**~~ RESOLVED: Sentry plugin with graceful no-op when SENTRY_DSN not set
