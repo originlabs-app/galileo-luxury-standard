@@ -43,7 +43,7 @@ Become the **neutral, interoperable standard** combining GS1 Digital Link + W3C 
 - SDK / Docker / sandbox for third-party adoption (V2)
 - Real chain deployment (blocked on RPC key)
 - Smart Wallet (started, not complete)
-- File upload for product images (not started)
+- Dashboard UI for file upload (API endpoint complete, Sprint #1 9600650)
 
 ## Long-Term Vision
 

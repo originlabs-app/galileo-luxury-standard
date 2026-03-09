@@ -60,8 +60,8 @@ EPICs (functional bricks, in epics/)
 
 ### P2 -- Medium
 
-- [x] `EPIC-007` Health check with dependency status -- DONE (Sprint #2, 25afe6c, pending validation)
-- [x] `EPIC-007` Structured logging (no PII) -- DONE (Sprint #2, 0749206, pending validation)
+- [x] `EPIC-007` Health check with dependency status -- DONE (Sprint #2, 25afe6c)
+- [x] `EPIC-007` Structured logging (no PII) -- DONE (Sprint #2, 0749206)
 
 - [ ] `EPIC-007` Sentry integration -- [source: ROADMAP 4.4]
   - **Context**: Error tracking for API and frontend
