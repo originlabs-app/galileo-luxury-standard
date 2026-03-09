@@ -65,21 +65,14 @@ describe("POST /products/batch-mint", () => {
     });
     otherBrandId = otherBrand.id;
 
-    // BRAND_ADMIN
+    // BRAND_ADMIN — register WITHOUT brandName (no phantom brand)
     await app.inject({
       method: "POST",
       url: "/auth/register",
-      payload: {
-        email: "ba@test.com",
-        password: "Password123!",
-        brandName: "BA Brand",
-      },
-    });
-    const baUser = await app.prisma.user.findUnique({
-      where: { email: "ba@test.com" },
+      payload: { email: "ba@test.com", password: "Password123!" },
     });
     await app.prisma.user.update({
-      where: { id: baUser!.id },
+      where: { email: "ba@test.com" },
       data: { brandId: testBrandId, role: "BRAND_ADMIN" },
     });
     const baLogin = await app.inject({
@@ -89,15 +82,11 @@ describe("POST /products/batch-mint", () => {
     });
     brandAdminCookie = `galileo_at=${parseCookies(baLogin).galileo_at}`;
 
-    // ADMIN
+    // ADMIN — register WITHOUT brandName
     await app.inject({
       method: "POST",
       url: "/auth/register",
-      payload: {
-        email: "admin@test.com",
-        password: "Password123!",
-        brandName: "Admin Brand",
-      },
+      payload: { email: "admin@test.com", password: "Password123!" },
     });
     await app.prisma.user.update({
       where: { email: "admin@test.com" },
@@ -110,21 +99,14 @@ describe("POST /products/batch-mint", () => {
     });
     adminCookie = `galileo_at=${parseCookies(adLogin).galileo_at}`;
 
-    // Other BRAND_ADMIN
+    // Other BRAND_ADMIN — register WITHOUT brandName
     await app.inject({
       method: "POST",
       url: "/auth/register",
-      payload: {
-        email: "other-ba@test.com",
-        password: "Password123!",
-        brandName: "Other BA",
-      },
-    });
-    const otherUser = await app.prisma.user.findUnique({
-      where: { email: "other-ba@test.com" },
+      payload: { email: "other-ba@test.com", password: "Password123!" },
     });
     await app.prisma.user.update({
-      where: { id: otherUser!.id },
+      where: { email: "other-ba@test.com" },
       data: { brandId: otherBrandId, role: "BRAND_ADMIN" },
     });
     const otherLogin = await app.inject({
