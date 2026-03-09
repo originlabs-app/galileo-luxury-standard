@@ -44,10 +44,7 @@ test.describe("SIWE Wallet Login", () => {
     await expect(walletBtn).toBeVisible({ timeout: 10_000 });
     await expect(coinbaseBtn).toBeVisible({ timeout: 10_000 });
 
-    // They should be different buttons
-    const walletId = await walletBtn.getAttribute("data-testid");
-    const coinbaseId = await coinbaseBtn.getAttribute("data-testid");
-    // At minimum, verify they are both enabled (not loading)
+    // Verify they are both enabled (not loading)
     await expect(walletBtn).toBeEnabled();
     await expect(coinbaseBtn).toBeEnabled();
   });
