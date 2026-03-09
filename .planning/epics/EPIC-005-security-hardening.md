@@ -18,7 +18,7 @@ Production-grade security: OWASP compliance, cookie hardening, MFA, SIWE wallet 
 - [x] Log warning when `secure: false` in development mode
 - [x] Wallet-link: add nonce + expiry to signed message (Sprint #7, 7e0eb06)
 - [ ] MFA: TOTP + passkey (enterprise-grade security)
-- [ ] SIWE (EIP-4361) for wallet login with ERC-1271 smart wallet verification
+- [x] SIWE (EIP-4361) for wallet login (Sprint #8, d590d24) — ERC-1271 supported natively via `siwe` package
 
 ## Acceptance Criteria
 

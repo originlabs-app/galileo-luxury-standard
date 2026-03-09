@@ -123,7 +123,7 @@ feature · improvement · UI · backend · security · performance · observabil
   - **Context**: Database-level brand isolation. Currently app-level RBAC only. Audit ALL routes and Prisma queries first.
   - **Verify**: Cross-brand data access impossible even with direct SQL
 
-- [ ] `EPIC-006` Batch operations: CSV import, batch mint — [source: ROADMAP 4.2]
+- [x] `EPIC-006` Batch operations: CSV import, batch mint — Sprint #8 T8.1/T8.2/T8.3, 25aa114/ccc86e8/96ba874
   - **Context**: Critical for brand onboarding at scale
   - **Verify**: CSV with 100 products imports and mints successfully
 
@@ -141,7 +141,7 @@ feature · improvement · UI · backend · security · performance · observabil
   - **Context**: Current message is static (`"Link wallet to Galileo: {email}"`). No nonce, no expiry. Replay attack possible. Add server-generated nonce + timestamp, verify both.
   - **Verify**: Message includes nonce + expiry, old signatures rejected, replay blocked
 
-- [ ] `EPIC-005` SIWE (EIP-4361) for wallet login — [source: ROADMAP 4.5]
+- [x] `EPIC-005` SIWE (EIP-4361) for wallet login — Sprint #8 T8.4, d590d24
   - **Context**: Sign-In With Ethereum. Requires nonce endpoint, SIWE message format, ERC-1271 verification.
   - **Verify**: Users can login with wallet signature
 

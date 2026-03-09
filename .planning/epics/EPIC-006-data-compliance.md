@@ -19,7 +19,7 @@ GDPR compliance, multi-tenant data isolation, file upload (R2 + CID), and audit 
 - [ ] Human review endpoint for compliance rejections (GDPR Art. 22)
 - [ ] DPIA draft (required before mainnet per EDPB Guidelines 02/2025)
 - [ ] 🔒 PostgreSQL Row-Level Security (RLS) or schema-per-brand
-- [ ] Batch operations: CSV import of products, batch mint
+- [x] Batch operations: CSV import of products, batch mint (Sprint #8, 25aa114/ccc86e8/96ba874)
 
 ## Acceptance Criteria
 
