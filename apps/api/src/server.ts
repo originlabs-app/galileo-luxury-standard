@@ -60,8 +60,8 @@ export async function buildApp() {
     },
   });
 
-  // Register Swagger only in non-production environments
-  if (config.NODE_ENV !== "production") {
+  // Register Swagger when enabled (configurable via ENABLE_SWAGGER env var)
+  if (config.ENABLE_SWAGGER) {
     await fastify.register(fastifySwagger, {
       openapi: {
         openapi: "3.0.0",
