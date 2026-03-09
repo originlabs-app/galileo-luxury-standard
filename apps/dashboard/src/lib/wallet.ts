@@ -1,6 +1,6 @@
 import { createConfig, http } from "wagmi";
 import { baseSepolia } from "wagmi/chains";
-import { injected } from "wagmi/connectors";
+import { injected, coinbaseWallet } from "wagmi/connectors";
 
 export const walletChain = baseSepolia;
 
@@ -9,6 +9,10 @@ export const walletConfig = createConfig({
   connectors: [
     injected({
       shimDisconnect: true,
+    }),
+    coinbaseWallet({
+      appName: "Galileo Protocol",
+      preference: "all", // Support both EOA (Coinbase Wallet) and Smart Wallet
     }),
   ],
   ssr: true,

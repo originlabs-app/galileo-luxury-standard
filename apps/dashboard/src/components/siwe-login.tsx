@@ -4,11 +4,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Wallet } from "lucide-react";
 import { useAccount, useConnect, useSignMessage } from "wagmi";
-import { injected } from "wagmi/connectors";
+import { injected, coinbaseWallet } from "wagmi/connectors";
 import { API_URL } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 
 type SiweState = "idle" | "connecting" | "signing" | "verifying" | "error";
+type ConnectorType = "injected" | "coinbase";
 
 function buildSiweMessage(params: {
   domain: string;
@@ -39,17 +40,25 @@ export function SiweLogin() {
   const { signMessageAsync } = useSignMessage();
 
   const [state, setState] = useState<SiweState>("idle");
+  const [activeConnector, setActiveConnector] = useState<ConnectorType | null>(
+    null,
+  );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  async function handleSiweLogin() {
+  async function handleSiweLogin(connectorType: ConnectorType) {
     setState("connecting");
+    setActiveConnector(connectorType);
     setErrorMessage(null);
 
     try {
-      // Step 1: Connect wallet if not connected
+      // Step 1: Connect wallet with selected connector
       let walletAddress = address;
       if (!isConnected || !walletAddress) {
-        const result = await connectAsync({ connector: injected() });
+        const connector =
+          connectorType === "coinbase"
+            ? coinbaseWallet({ appName: "Galileo Protocol", preference: "all" })
+            : injected();
+        const result = await connectAsync({ connector });
         walletAddress = result.accounts[0];
       }
 
@@ -105,6 +114,7 @@ export function SiweLogin() {
       router.push("/dashboard");
     } catch (err) {
       setState("error");
+      setActiveConnector(null);
       setErrorMessage(
         err instanceof Error ? err.message : "Wallet login failed",
       );
@@ -113,13 +123,17 @@ export function SiweLogin() {
 
   const isLoading =
     state === "connecting" || state === "signing" || state === "verifying";
-  const buttonLabel = {
-    idle: "Sign in with Wallet",
-    connecting: "Connecting wallet...",
-    signing: "Sign the message...",
-    verifying: "Verifying...",
-    error: "Sign in with Wallet",
-  }[state];
+
+  function getButtonLabel(
+    connectorType: ConnectorType,
+    defaultLabel: string,
+  ): string {
+    if (activeConnector !== connectorType) return defaultLabel;
+    if (state === "connecting") return "Connecting wallet...";
+    if (state === "signing") return "Sign the message...";
+    if (state === "verifying") return "Verifying...";
+    return defaultLabel;
+  }
 
   return (
     <div className="flex flex-col gap-2">
@@ -129,10 +143,28 @@ export function SiweLogin() {
         className="w-full"
         size="lg"
         disabled={isLoading}
-        onClick={handleSiweLogin}
+        onClick={() => handleSiweLogin("injected")}
       >
         <Wallet className="mr-2 size-4" />
-        {buttonLabel}
+        {getButtonLabel("injected", "Sign in with Wallet")}
+      </Button>
+      <Button
+        type="button"
+        variant="outline"
+        className="w-full"
+        size="lg"
+        disabled={isLoading}
+        onClick={() => handleSiweLogin("coinbase")}
+      >
+        <svg
+          className="mr-2 size-4"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c3.86 0 7 3.14 7 7s-3.14 7-7 7-7-3.14-7-7 3.14-7 7-7zm-2.5 4.5a1 1 0 100 2h5a1 1 0 100-2h-5zm0 3a1 1 0 100 2h5a1 1 0 100-2h-5z" />
+        </svg>
+        {getButtonLabel("coinbase", "Sign in with Coinbase")}
       </Button>
       {errorMessage && (
         <p className="text-center text-sm text-destructive">{errorMessage}</p>
