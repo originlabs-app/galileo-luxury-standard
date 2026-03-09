@@ -46,8 +46,8 @@ created: 2026-03-09
 | 01-03-02 | 03 | 2 | AUTH-03 | e2e | `pnpm --filter @galileo/dashboard exec playwright test e2e/dashboard-home.spec.ts` | ✅ | ⬜ pending |
 | 01-04-01 | 04 | 1 | PROD-03 | shared | `pnpm --filter @galileo/shared exec vitest run test/did.test.ts` | ✅ | ⬜ pending |
 | 01-04-02 | 04 | 1 | PROD-01 | api | `pnpm --filter @galileo/api exec vitest run test/products.test.ts -t "creates product with valid GTIN and returns 201 with auto-generated DID and Digital Link|returns 400 for invalid GTIN check digit"` | ✅ | ⬜ pending |
-| 01-05-01 | 05 | 3 | PROD-03 | e2e | `pnpm --filter @galileo/dashboard exec playwright test e2e/product-lifecycle.spec.ts` | ✅ | ⬜ pending |
-| 01-05-02 | 05 | 3 | PROD-01 | e2e | `pnpm --filter @galileo/dashboard exec playwright test e2e/product-lifecycle.spec.ts` | ✅ | ⬜ pending |
+| 01-05-01 | 05 | 3 | PROD-03 | e2e | `pnpm --filter @galileo/dashboard exec playwright test e2e/product-lifecycle.spec.ts` | ✅ | ✅ green |
+| 01-05-02 | 05 | 3 | PROD-01 | e2e | `pnpm --filter @galileo/dashboard exec playwright test e2e/product-lifecycle.spec.ts` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -80,5 +80,6 @@ created: 2026-03-09
 ## Execution Tracking
 
 - 2026-03-09: Plan `01-03` now renders separate "Blocking access issues" and "Operational hints" sections on `/dashboard/setup`; manual UX review remains pending against the checklist above.
+- 2026-03-09: Plan `01-05` now redirects successful product creation to `/dashboard/products/[id]/identity`, exposes copy-friendly GTIN, serial, DID, and GS1 Digital Link values, and keeps the broader product surfaces focused on immutable identity plus editable metadata. Automated verification passed via `pnpm --filter @galileo/dashboard exec playwright test e2e/product-lifecycle.spec.ts`; manual usefulness review remains pending against the checklist above.
 
 **Approval:** pending

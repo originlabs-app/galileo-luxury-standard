@@ -10,7 +10,7 @@ This roadmap converts the existing simulated brownfield MVP into a live single-b
 - Integer phases (1, 2, 3): Planned milestone work
 - Decimal phases (2.1, 2.2): Urgent insertions if required later
 
-- [ ] **Phase 1: Single-Brand Workspace & Identity Baseline** - Lock pilot access control and persistent product identity prerequisites
+- [x] **Phase 1: Single-Brand Workspace & Identity Baseline** - Lock pilot access control and persistent product identity prerequisites
 - [ ] **Phase 2: Pilot Catalog Authoring & Import** - Make passport authoring and batch catalog ingestion usable for the pilot team
 - [ ] **Phase 3: Base Sepolia Deployment & Live Minting** - Replace simulated issuance with a canonical live chain environment and real mint evidence
 - [ ] **Phase 4: Transfer Compliance & Lifecycle Evidence** - Complete auditable post-mint lifecycle flows for pilot demos
@@ -28,14 +28,14 @@ This roadmap converts the existing simulated brownfield MVP into a live single-b
   2. The operator session survives dashboard refresh and navigation without exposing credentials to client-side scripts.
   3. Unauthorized users or roles cannot access data or actions outside the single pilot brand workspace.
   4. An operator can create a product with validated GTIN and serial data and immediately receive its persistent GS1 Digital Link URL and Galileo DID.
-**Plans**: 4 / 5 complete
+**Plans**: 5 / 5 complete
 
 Plans:
 - [x] 01-01: Auth and session foundation
 - [x] 01-02: Server-enforced product workspace scoping
 - [x] 01-03: Setup-check-first flow and mono-brand shell
 - [x] 01-04: Product identity validation
-- [ ] 01-05: Planned
+- [x] 01-05: Product identity checkpoint
 
 ### Phase 2: Pilot Catalog Authoring & Import
 **Goal**: Make the pilot catalog operable at demo scale by supporting batch ingestion plus full passport metadata and media authoring for public verification.
@@ -112,7 +112,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Single-Brand Workspace & Identity Baseline | 4 / 5 | In Progress | 2026-03-09 |
+| 1. Single-Brand Workspace & Identity Baseline | 5 / 5 | Complete | 2026-03-09 |
 | 2. Pilot Catalog Authoring & Import | TBD | Not started | - |
 | 3. Base Sepolia Deployment & Live Minting | TBD | Not started | - |
 | 4. Transfer Compliance & Lifecycle Evidence | TBD | Not started | - |
@@ -121,4 +121,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 ---
 *Roadmap created: 2026-03-09*
-*Next step: execute 01-05 or review Phase 1 progress*
+*Next step: plan Phase 2 or review Phase 1 verification results*
