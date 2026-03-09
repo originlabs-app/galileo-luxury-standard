@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { requireRole } from "../../middleware/rbac.js";
+import { ensureSameWorkspaceBrand } from "../../utils/workspace.js";
 
 const PRODUCT_CATEGORIES = [
   "Leather Goods",
@@ -64,17 +65,6 @@ export default async function updateProductRoute(fastify: FastifyInstance) {
       const { id } = request.params;
       const user = request.user;
 
-      // brandId null guard: non-ADMIN users without a brandId cannot access product routes
-      if (user.role !== "ADMIN" && !user.brandId) {
-        return reply.status(403).send({
-          success: false,
-          error: {
-            code: "FORBIDDEN",
-            message: "User must belong to a brand",
-          },
-        });
-      }
-
       // Validate body — reject any fields beyond name/description/category
       const parsed = updateProductBody.safeParse(request.body);
       if (!parsed.success) {
@@ -117,15 +107,8 @@ export default async function updateProductRoute(fastify: FastifyInstance) {
         });
       }
 
-      // Brand scoping
-      if (user.role !== "ADMIN" && product.brandId !== user.brandId) {
-        return reply.status(403).send({
-          success: false,
-          error: {
-            code: "FORBIDDEN",
-            message: "Access denied",
-          },
-        });
+      if (!ensureSameWorkspaceBrand(reply, user, product.brandId)) {
+        return;
       }
 
       // Only DRAFT products can be updated

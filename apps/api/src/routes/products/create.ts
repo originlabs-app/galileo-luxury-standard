@@ -7,6 +7,7 @@ import {
 } from "@galileo/shared";
 import { requireRole } from "../../middleware/rbac.js";
 import { isPrismaUniqueViolation } from "../../utils/prisma-errors.js";
+import { resolveWorkspaceMutationBrandId } from "../../utils/workspace.js";
 
 const PRODUCT_CATEGORIES = [
   "Leather Goods",
@@ -88,34 +89,17 @@ export default async function createProductRoute(fastify: FastifyInstance) {
       } = parsed.data;
 
       const user = request.user;
+      const brandId = resolveWorkspaceMutationBrandId(
+        reply,
+        user,
+        bodyBrandId,
+        {
+          membershipMessage: "User must belong to a brand to create products",
+        },
+      );
 
-      // brandId null guard: non-ADMIN users without a brandId cannot access product routes
-      if (user.role !== "ADMIN" && !user.brandId) {
-        return reply.status(403).send({
-          success: false,
-          error: {
-            code: "FORBIDDEN",
-            message: "User must belong to a brand to create products",
-          },
-        });
-      }
-
-      // Determine brandId: ADMIN must supply brandId in body, non-ADMIN uses their own
-      let brandId: string;
-      if (user.role === "ADMIN") {
-        if (!bodyBrandId) {
-          return reply.status(400).send({
-            success: false,
-            error: {
-              code: "VALIDATION_ERROR",
-              message: "ADMIN must provide brandId in request body",
-            },
-          });
-        }
-        brandId = bodyBrandId;
-      } else {
-        // Non-ADMIN: ignore body.brandId, always use user's brandId
-        brandId = user.brandId as string;
+      if (!brandId) {
+        return;
       }
 
       // Generate DID and Digital Link

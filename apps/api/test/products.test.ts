@@ -245,6 +245,66 @@ describe("Product CRUD endpoints", () => {
       expect(body.data.product.brandId).toBe(testBrandId);
     });
 
+    it("non-ADMIN without brandId gets 403", async () => {
+      const userRes = await app.inject({
+        method: "POST",
+        url: "/auth/register",
+        payload: {
+          email: "nobrand-create@test.com",
+          password: "password123",
+        },
+      });
+      const userId = userRes.json().data.user.id;
+      await app.prisma.user.update({
+        where: { id: userId },
+        data: { role: "OPERATOR", brandId: null },
+      });
+      const loginRes = await app.inject({
+        method: "POST",
+        url: "/auth/login",
+        payload: {
+          email: "nobrand-create@test.com",
+          password: "password123",
+        },
+      });
+      const cookies = parseCookies(loginRes);
+      const noBrandCookie = `galileo_at=${cookies.galileo_at}`;
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/products",
+        headers: { cookie: noBrandCookie, "x-galileo-client": "1" },
+        payload: {
+          gtin: VALID_GTIN_13,
+          serialNumber: "SN-NOBRAND",
+          name: "Blocked Product",
+          category: "Watches",
+          brandId: otherBrandId,
+        },
+      });
+
+      expect(response.statusCode).toBe(403);
+      expect(response.json().error.code).toBe("FORBIDDEN");
+    });
+
+    it("ignores body brandId for non-ADMIN users and keeps the assigned workspace", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/products",
+        headers: { cookie: operatorCookie, "x-galileo-client": "1" },
+        payload: {
+          gtin: VALID_GTIN_13,
+          serialNumber: "SN-OP-BOUNDARY",
+          name: "Operator Workspace Product",
+          category: "Jewelry",
+          brandId: otherBrandId,
+        },
+      });
+
+      expect(response.statusCode).toBe(201);
+      expect(response.json().data.product.brandId).toBe(testBrandId);
+    });
+
     it("returns 400 for invalid GTIN check digit", async () => {
       const response = await app.inject({
         method: "POST",
@@ -1016,7 +1076,7 @@ describe("Product CRUD endpoints", () => {
       expect(adminBody.data.byStatus.DRAFT).toBe(2);
     });
 
-    it("non-ADMIN without brandId gets 403", async () => {
+    it("GET /products/stats denies non-ADMIN without brandId", async () => {
       // Create a user without a brand
       await app.inject({
         method: "POST",
