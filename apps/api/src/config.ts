@@ -16,6 +16,7 @@ const envSchema = z.object({
   R2_SECRET_ACCESS_KEY: z.string().optional(),
   R2_BUCKET_NAME: z.string().optional(),
   R2_PUBLIC_URL: z.string().url().optional(),
+  SENTRY_DSN: z.string().url().optional(),
   ENABLE_SWAGGER: z
     .enum(["true", "false"])
     .default("true")

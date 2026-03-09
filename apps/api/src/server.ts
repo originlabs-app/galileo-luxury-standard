@@ -11,6 +11,7 @@ import chainPlugin from "./plugins/chain.js";
 import rateLimitPlugin from "./plugins/rate-limit.js";
 import securityHeadersPlugin from "./plugins/security-headers.js";
 import storagePlugin from "./plugins/storage.js";
+import sentryPlugin from "./plugins/sentry.js";
 import { ACCESS_COOKIE_NAME } from "./utils/cookies.js";
 import healthRoutes from "./routes/health.js";
 import authRoutes from "./routes/auth/index.js";
@@ -109,6 +110,7 @@ export async function buildApp() {
   await fastify.register(prismaPlugin);
   await fastify.register(chainPlugin);
   await fastify.register(storagePlugin);
+  await fastify.register(sentryPlugin);
 
   // Register routes
   await fastify.register(healthRoutes);
