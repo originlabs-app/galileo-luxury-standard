@@ -19,6 +19,8 @@ Production-grade security: OWASP compliance, cookie hardening, MFA, SIWE wallet 
 - [x] Wallet-link: add nonce + expiry to signed message (Sprint #7, 7e0eb06)
 - [ ] MFA: TOTP + passkey (enterprise-grade security)
 - [x] SIWE (EIP-4361) for wallet login (Sprint #8, d590d24) — ERC-1271 supported natively via `siwe` package
+- [x] ERC-1271 Smart Wallet verification — publicClient.verifyMessage for EOA + Smart Wallet (Sprint #9, 081ee0e)
+- [x] Coinbase Smart Wallet connector — wagmi coinbaseWallet connector in dashboard (Sprint #9, ce70f02)
 
 ## Acceptance Criteria
 

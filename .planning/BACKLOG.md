@@ -57,6 +57,17 @@ feature · improvement · UI · backend · security · performance · observabil
 
 ---
 
+## P0 — Fix Pre-Existing Test Failures
+
+### P0 -- Critical
+
+- [ ] `EPIC-007` Fix FK constraint violations in batch-mint.test.ts and batch-import.test.ts
+  - **Context**: 10 tests fail (7 batch-mint + 3 batch-import) due to `User_brandId_fkey` FK constraint violations in `beforeEach` setup when creating `otherBrand`/`otherUser`. Root cause: test isolation issue in seed ordering — NOT caused by any sprint code. Pre-dates Sprint #9. See pitfalls.md "FK constraint violations" entry.
+  - **Type**: testing
+  - **Verify**: All 372+ tests pass consistently with zero FK violations. `pnpm test` green on full suite.
+
+---
+
 ## Sprint #6 — Real Chain Unblock
 
 > BLOCKED on RPC key. When operator provides the key, this sprint unlocks.
@@ -145,7 +156,7 @@ feature · improvement · UI · backend · security · performance · observabil
   - **Context**: Sign-In With Ethereum. Requires nonce endpoint, SIWE message format, ERC-1271 verification.
   - **Verify**: Users can login with wallet signature
 
-- [ ] `EPIC-005` Smart Wallet Coinbase support (ERC-1271) — [source: ROADMAP 3.3] — **Sprint #9 T9.1/T9.2**
+- [x] `EPIC-005` Smart Wallet Coinbase support (ERC-1271) — Sprint #9 T9.1/T9.2, 081ee0e/ce70f02
   - **Context**: ERC-1271 verification, passkey, gasless. Requires Smart Wallet SDK integration.
   - **Verify**: Smart Wallet users can connect and sign transactions
 
@@ -153,7 +164,7 @@ feature · improvement · UI · backend · security · performance · observabil
   - **Context**: Enterprise-grade MFA for brand admin users. Requires DB migration (totpSecret, totpEnabled fields on User).
   - **Verify**: TOTP enrollment and verification flow works
 
-- [ ] `EPIC-007` E2E Playwright: wallet link (with nonce) + SIWE login + Smart Wallet — **Sprint #9 T9.4**
+- [x] `EPIC-007` E2E Playwright: wallet link (with nonce) + SIWE login + Smart Wallet — Sprint #9 T9.4, 80b630a
   - **Context**: Auth/wallet E2E coverage. Mock wallet interactions with Playwright. MFA tests deferred until MFA is implemented.
   - **Verify**: E2E covers wallet link, SIWE login, Smart Wallet connector presence
 
@@ -175,7 +186,7 @@ feature · improvement · UI · backend · security · performance · observabil
   - **Context**: Only after testnet E2E passes
   - **Verify**: Contracts deployed, verified, ownership transferred to multisig
 
-- [ ] `EPIC-007` Vercel Analytics — [source: ROADMAP 4.4] — **Sprint #9 T9.3**
+- [x] `EPIC-007` Vercel Analytics — Sprint #9 T9.3, 178035d
   - **Context**: Frontend analytics for dashboard and scanner
   - **Verify**: Analytics dashboard shows page views
 
