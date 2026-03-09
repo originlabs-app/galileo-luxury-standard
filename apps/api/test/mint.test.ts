@@ -349,10 +349,11 @@ describe("POST /products/:id/mint", () => {
 
   // ── 8. Chain disabled startup — chainEnabled is false ──────
 
-  it("chain plugin sets chainEnabled=false when no DEPLOYER_PRIVATE_KEY", () => {
+  it("chain plugin sets chainEnabled=false when no DEPLOYER_PRIVATE_KEY but publicClient is available", () => {
     expect(app.chain).toBeDefined();
     expect(app.chain.chainEnabled).toBe(false);
-    expect(app.chain.publicClient).toBeUndefined();
+    // publicClient is always available (needed for ERC-1271 verification)
+    expect(app.chain.publicClient).toBeDefined();
     expect(app.chain.walletClient).toBeUndefined();
   });
 
