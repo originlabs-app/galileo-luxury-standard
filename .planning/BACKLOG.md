@@ -61,7 +61,7 @@ feature · improvement · UI · backend · security · performance · observabil
 
 ### P0 -- Critical
 
-- [ ] `EPIC-007` Fix FK constraint violations in batch-mint.test.ts and batch-import.test.ts
+- [ ] `EPIC-007` Fix FK constraint violations in batch-mint.test.ts and batch-import.test.ts — **Sprint #10 T10.1**
   - **Context**: 10 tests fail (7 batch-mint + 3 batch-import) due to `User_brandId_fkey` FK constraint violations in `beforeEach` setup when creating `otherBrand`/`otherUser`. Root cause: test isolation issue in seed ordering — NOT caused by any sprint code. Pre-dates Sprint #9. See pitfalls.md "FK constraint violations" entry.
   - **Type**: testing
   - **Verify**: All 372+ tests pass consistently with zero FK violations. `pnpm test` green on full suite.
@@ -144,7 +144,7 @@ feature · improvement · UI · backend · security · performance · observabil
 
 ---
 
-## Sprint #9 — Auth & Wallet Hardening
+## Sprint #9 — Auth & Wallet Hardening (done)
 
 ### P1 -- Security
 
@@ -170,17 +170,17 @@ feature · improvement · UI · backend · security · performance · observabil
 
 ---
 
-## Sprint #10+ — Production & Infrastructure
+## Sprint #10 — Test Stability & Deployment Readiness
 
 ### P2 -- Medium
 
-- [ ] `EPIC-008` Deploy frontend to Vercel — [source: ROADMAP 4.7]
-  - **Context**: Dashboard + scanner + website
-  - **Verify**: All three apps live on Vercel
+- [ ] `EPIC-008` Deploy frontend to Vercel (config prep) — **Sprint #10 T10.2**
+  - **Context**: Vercel deployment configs for dashboard + scanner (vercel.json, security headers, PWA headers)
+  - **Verify**: vercel.json present for both apps, `pnpm turbo build` passes
 
-- [ ] `EPIC-008` Deploy API to dedicated host — [source: ROADMAP 4.7]
-  - **Context**: Railway, Render, or VPS
-  - **Verify**: API accessible at production URL
+- [ ] `EPIC-008` Deploy API to dedicated host (Dockerfile) — **Sprint #10 T10.3**
+  - **Context**: Multi-stage Dockerfile for containerized API deployment
+  - **Verify**: `docker build` succeeds, container starts and `/health` responds
 
 - [ ] 🔒 `EPIC-008` Deploy contracts to Base mainnet — [source: ROADMAP 4.7]
   - **Context**: Only after testnet E2E passes
@@ -194,9 +194,9 @@ feature · improvement · UI · backend · security · performance · observabil
   - **Context**: External monitoring for API and frontend
   - **Verify**: Alerts configured for downtime
 
-- [ ] `EPIC-006` DPIA draft — [source: ROADMAP 4.3]
-  - **Context**: Required before mainnet per EDPB Guidelines 02/2025
-  - **Verify**: DPIA document completed and reviewed
+- [ ] `EPIC-006` DPIA draft — **Sprint #10 T10.4**
+  - **Context**: Required before mainnet per EDPB Guidelines 02/2025. Scaffold with EDPB structure + current architecture details.
+  - **Verify**: DPIA document with all required sections, accurate technical content, TODO markers for DPO review
 
 ---
 

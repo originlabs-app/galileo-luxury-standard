@@ -4,20 +4,20 @@
 > Created by the Researcher from the BACKLOG. Each task includes a brief: files to modify, approach, patterns, edge cases.
 > Archived when all tasks are validated or deferred.
 
-## Sprint #9 — Smart Wallet & Observability
+## Sprint #10 — Test Stability & Deployment Readiness
 
-**Goal**: Add ERC-1271 Smart Wallet support for Coinbase Smart Wallet users (both SIWE login and wallet-link), integrate Vercel Analytics for frontend observability, and cover the new auth flows with E2E tests. MFA (🔒) deferred — requires DB migration for TOTP secret storage.
-**Started**: 2026-03-09
+**Goal**: Fix the P0 FK constraint test flakiness (10 failing tests in batch-mint/batch-import), prepare Vercel deployment configs for frontend apps, create an API Dockerfile for containerized deployment, and draft the DPIA document required before mainnet.
+**Started**: 2026-03-10
 **Status**: active
 
 ## Tasks
 
 | ID | Task | Epic | Status | Verify | Commit |
 |------|------|------|--------|--------|--------|
-| T9.1 | ERC-1271 Smart Wallet verification (API) | EPIC-005 | validated | Smart Wallet (contract) signatures verified in SIWE login and wallet-link. EOA signatures still work. | 081ee0e |
-| T9.2 | Coinbase Smart Wallet connector (dashboard) | EPIC-005 | validated | Dashboard wagmi config includes Coinbase Smart Wallet connector. Users can connect with Coinbase Smart Wallet, sign SIWE messages, and link wallet. | ce70f02 |
-| T9.3 | Vercel Analytics integration | EPIC-007 | validated | `@vercel/analytics` active in dashboard and scanner. Page views tracked. No impact on performance or bundle size > 5KB. | 178035d |
-| T9.4 | E2E Playwright: Smart Wallet + wallet auth flows | EPIC-007 | validated | Playwright specs cover wallet-link with nonce, SIWE login with EOA, and Smart Wallet connector presence. All pass. | 80b630a |
+| T10.1 | Fix FK constraint violations in batch-mint/batch-import tests | EPIC-007 | todo | All 372+ tests pass consistently with zero FK violations. `pnpm test` green on full suite, 3 consecutive runs. | |
+| T10.2 | Vercel deployment config for dashboard + scanner | EPIC-008 | todo | `vercel.json` present for dashboard and scanner. `pnpm turbo build` passes. Vercel CLI `vercel build` (dry-run) succeeds if available. | |
+| T10.3 | API Dockerfile for containerized deployment | EPIC-008 | todo | `docker build -t galileo-api apps/api` succeeds. Container starts and responds to `/health`. Image size < 500MB. | |
+| T10.4 | DPIA scaffold document | EPIC-006 | todo | DPIA document exists at `specifications/dpia/galileo-dpia.md` with all required EDPB sections. Content is accurate for current architecture. | |
 
 ### Status values
 - `todo` — Not started
@@ -36,344 +36,382 @@
 
 ## Task Briefs
 
-### T9.1 — ERC-1271 Smart Wallet Verification (API)
+### T10.1 — Fix FK Constraint Violations in Batch Tests
 
-**Type**: security
-**Priority**: P1
-**Epic**: EPIC-005-security-hardening
+**Type**: testing
+**Priority**: P0
+**Epic**: EPIC-007-observability-quality
 **Operator approval**: not required
 
 **Files to modify**:
-- `apps/api/src/plugins/chain.ts` — always create publicClient (even without DEPLOYER_PRIVATE_KEY)
-- `apps/api/src/routes/auth/siwe.ts` — use publicClient.verifyMessage for ERC-1271 support
-- `apps/api/src/routes/auth/link-wallet.ts` — use publicClient.verifyMessage for ERC-1271 support
-- `apps/api/test/siwe.test.ts` — add ERC-1271 test cases
-- `apps/api/test/link-wallet.test.ts` — add ERC-1271 test cases
+- `apps/api/test/batch-mint.test.ts` — fix `beforeEach` user seeding pattern
+- `apps/api/test/batch-import.test.ts` — fix `beforeEach` user seeding pattern
+
+**Root cause analysis**:
+
+Both `batch-mint.test.ts` and `batch-import.test.ts` register users WITH `brandName` in `beforeEach`:
+```typescript
+await app.inject({
+  method: "POST",
+  url: "/auth/register",
+  payload: { email: "ba@test.com", password: "Password123!", brandName: "BA Brand" },
+});
+```
+
+When `brandName` is provided, `/auth/register` creates a NEW brand ("BA Brand") + user in a Prisma transaction. Then the test reassigns `brandId` to the manually-created `testBrandId`. This creates phantom brands ("BA Brand", "Admin Brand", "Other BA") that are never cleaned up within the test, and the `user.update({ brandId })` races with the `cleanDb()` TRUNCATE from the next beforeEach.
+
+The working test files (e.g., `products.test.ts`, `auth.test.ts`) register WITHOUT `brandName`, which creates a VIEWER user with no brand. Then they update role + brandId explicitly. This is the stable pattern.
 
 **Approach**:
 
-The current SIWE and wallet-link routes use `viem.verifyMessage()` (standalone import) which only does `ecrecover` — EOA verification. Smart Wallets (Coinbase Smart Wallet, Safe, etc.) use ERC-1271: their signatures are verified by calling `isValidSignature(bytes32, bytes)` on the wallet contract. viem's `publicClient.verifyMessage()` automatically handles both: it tries ecrecover first, then falls back to ERC-1271 on-chain verification.
+Align batch test files with the stable pattern used in `products.test.ts`:
 
-**Step 1: Modify chain plugin to always provide publicClient**
+1. Register WITHOUT `brandName` — creates VIEWER user, no phantom brand
+2. Update user role + brandId explicitly
+3. Re-login to get updated JWT token
 
-Currently, `chain.ts` only creates `publicClient` when `DEPLOYER_PRIVATE_KEY` is set. For ERC-1271 verification, we only need a publicClient (read-only RPC access, no private key). Restructure so that:
-- `publicClient` is ALWAYS created (Base Sepolia with default public RPC)
-- `walletClient` is only created when DEPLOYER_PRIVATE_KEY is present
-- `chainEnabled` reflects whether the walletClient is available (for minting)
-
+**Before** (flaky):
 ```typescript
-// Always create a publicClient for read-only operations (ERC-1271 verification)
-const publicClient = createPublicClient({
-  chain: baseSepolia,
-  transport: http(),
+// Creates phantom brand "BA Brand" + user linked to it
+await app.inject({
+  method: "POST",
+  url: "/auth/register",
+  payload: { email: "ba@test.com", password: "Password123!", brandName: "BA Brand" },
 });
-
-fastify.decorate("chain", {
-  chainEnabled: !!deployerKey,
-  publicClient, // Always available
-  walletClient, // Only when DEPLOYER_PRIVATE_KEY is set
+const baUser = await app.prisma.user.findUnique({ where: { email: "ba@test.com" } });
+await app.prisma.user.update({
+  where: { id: baUser!.id },
+  data: { brandId: testBrandId, role: "BRAND_ADMIN" },
 });
 ```
 
-**Step 2: Update SIWE verify route**
-
-In `siwe.ts`, replace standalone `verifyMessage` import with `fastify.chain.publicClient.verifyMessage()`:
-
+**After** (stable):
 ```typescript
-// Before (EOA only):
-const { verifyMessage } = await import("viem");
-isValid = await verifyMessage({ address, message, signature });
-
-// After (EOA + ERC-1271):
-isValid = await fastify.chain.publicClient.verifyMessage({
-  address: checksumAddress,
-  message,
-  signature: signature as `0x${string}`,
+// Creates VIEWER user, no phantom brand
+await app.inject({
+  method: "POST",
+  url: "/auth/register",
+  payload: { email: "ba@test.com", password: "Password123!" },
+});
+await app.prisma.user.update({
+  where: { email: "ba@test.com" },
+  data: { brandId: testBrandId, role: "BRAND_ADMIN" },
 });
 ```
 
-The `publicClient.verifyMessage()` from viem:
-1. First tries `ecrecover` (EOA) — no RPC call
-2. If that fails, checks if address is a contract via `eth_getCode`
-3. If contract, calls `isValidSignature(hash, signature)` via `eth_call`
-4. Returns true only if the contract returns the ERC-1271 magic value (`0x1626ba7e`)
+Apply this change to ALL user registrations in both test files:
+- `batch-mint.test.ts`: 3 users (ba@test.com, admin@test.com, other-ba@test.com)
+- `batch-import.test.ts`: 4 users (ba@test.com, admin@test.com, viewer@test.com, other-ba@test.com)
 
-**Step 3: Update link-wallet route**
+For `admin@test.com`: register without brandName, then update to ADMIN role. The admin user does NOT need a brandId.
 
-Same change in `link-wallet.ts` — replace standalone `verifyMessage` with `fastify.chain.publicClient.verifyMessage()`.
+For `viewer@test.com` (batch-import only): register without brandName, then update to VIEWER. Already the default role, so only need to re-login for consistent token.
 
-**Step 4: Update type declarations**
+**Patterns to follow**:
+- `products.test.ts` beforeEach pattern (canonical, 27 tests pass reliably)
+- R16: cleanDb() + re-seed parent rows in beforeEach
+- R06: vi.mock() before imports (already correct in both files)
+- Update `where` in user.update to use `email` instead of `id` — avoids the extra `findUnique` call
 
-Update the `FastifyInstance` augmentation in `chain.ts` to make `publicClient` non-optional:
+**Edge cases**:
+- Admin user without brand: `admin@test.com` should NOT have a brandId (ADMIN sees all brands). Remove `brandName: "Admin Brand"` from register.
+- Token refresh after role update: must re-login after `user.update({ role })` because the JWT is generated at registration time with the old role.
+- `otherBrandAdminCookie`: must be linked to `otherBrandId`, not `testBrandId`
 
-```typescript
-declare module "fastify" {
-  interface FastifyInstance {
-    chain: {
-      chainEnabled: boolean;
-      publicClient: PublicClient; // Always available
-      walletClient?: WalletClient; // Only with deployer key
-    };
-  }
+**Tests**: No new tests. Fix makes existing 10 tests (7 batch-mint + 3 batch-import) pass reliably.
+
+**Verify**: Run `pnpm test` 3 times consecutively. All runs must be green with 0 FK violations. The batch-mint and batch-import test files should each complete without errors.
+
+---
+
+### T10.2 — Vercel Deployment Config for Dashboard + Scanner
+
+**Type**: infrastructure
+**Priority**: P2
+**Epic**: EPIC-008-production-deploy
+**Operator approval**: not required
+
+**Files to create**:
+- `apps/dashboard/vercel.json` — Vercel project config for dashboard
+- `apps/scanner/vercel.json` — Vercel project config for scanner
+
+**Approach**:
+
+Both dashboard and scanner are Next.js 16 apps in a pnpm monorepo. Vercel natively supports this setup. The key configuration items are:
+
+1. **Root directory**: Vercel needs to know which app directory to build (set in project settings, not vercel.json)
+2. **Build command**: `cd ../.. && pnpm turbo build --filter=@galileo/dashboard` (respects workspace deps)
+3. **Install command**: `pnpm install` (at monorepo root)
+4. **Output directory**: `.next` (default for Next.js)
+5. **Security headers**: same pattern as `website/vercel.json`
+6. **Environment variables**: `NEXT_PUBLIC_API_URL` for API base URL
+
+**Step 1: Create `apps/dashboard/vercel.json`**
+
+```json
+{
+  "buildCommand": "cd ../.. && pnpm turbo build --filter=@galileo/dashboard",
+  "installCommand": "pnpm install",
+  "framework": "nextjs",
+  "headers": [
+    {
+      "source": "/_next/static/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
+      ]
+    }
+  ]
 }
 ```
 
-**Step 5: Handle test environment**
+**Step 2: Create `apps/scanner/vercel.json`**
 
-In tests, `chain` plugin is sometimes mocked. Ensure the mock includes a `publicClient` with a `verifyMessage` method. For SIWE and link-wallet tests that mock viem:
-- Update the mock to provide `publicClient.verifyMessage` instead of standalone `verifyMessage`
-- Keep the same test patterns (vi.mock before imports)
+Same structure but for scanner. Scanner also needs PWA-related headers:
+
+```json
+{
+  "buildCommand": "cd ../.. && pnpm turbo build --filter=@galileo/scanner",
+  "installCommand": "pnpm install",
+  "framework": "nextjs",
+  "headers": [
+    {
+      "source": "/_next/static/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/sw.js",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache" },
+        { "key": "Service-Worker-Allowed", "value": "/" }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(self), microphone=(), geolocation=()" }
+      ]
+    }
+  ]
+}
+```
+
+Note: scanner's `Permissions-Policy` allows `camera=(self)` because the QR scanner needs camera access.
+
+**Step 3: Verify build**
+
+Run `pnpm turbo build` to ensure both apps build successfully. The vercel.json files should not affect local builds.
 
 **Patterns to follow**:
-- Plugin architecture: fp() plugins decorate fastify instance (chain.ts)
-- viem publicClient for read-only chain operations
-- Mock decorators pattern for isolated route tests (R17)
-- vi.mock() before imports (R06)
-- No body/response schema changes (R01)
+- `website/vercel.json` as reference
+- Security headers matching @fastify/helmet config
+- No environment variable secrets in vercel.json (use Vercel project settings)
 
 **Edge cases**:
-- Smart Wallet on a chain not supported by our RPC: publicClient is configured for Base Sepolia only. Smart Wallets on other chains will fail ERC-1271 verification (expected — we only support Base Sepolia)
-- EOA fallback: ecrecover is tried first, so existing EOA flows are unaffected. No RPC call needed for EOA signatures.
-- RPC unavailable: if the public RPC is down, ERC-1271 verification fails (ecrecover still works for EOA). The error is caught and returns 401.
-- publicClient in test env: tests can mock `fastify.chain.publicClient.verifyMessage` to control verification results
-- Smart Wallet not deployed yet: if the contract doesn't exist at the address, `eth_getCode` returns empty, verification fails — correct behavior
+- Monorepo detection: Vercel auto-detects pnpm workspaces. The `buildCommand` with `--filter` ensures only the target app builds.
+- `@galileo/shared` workspace dependency: Turbo's `dependsOn: ["^build"]` ensures shared is built first
+- PWA service worker caching: `sw.js` must NOT be cached by CDN — use `no-cache` header
+- `NEXT_PUBLIC_API_URL`: must be set in Vercel project env vars (not in vercel.json)
+- `@vercel/analytics`: already installed, auto-activates on Vercel deployment
 
-**Tests** (~8 tests across siwe.test.ts and link-wallet.test.ts):
-- SIWE verify with EOA signature still works (regression)
-- SIWE verify with Smart Wallet signature (mock publicClient returns true)
-- SIWE verify with invalid Smart Wallet signature (mock returns false) — 401
-- Link-wallet with EOA signature still works (regression)
-- Link-wallet with Smart Wallet signature (mock publicClient returns true)
-- Link-wallet with Smart Wallet signature invalid (mock returns false) — 400
-- publicClient.verifyMessage called with correct params
-- RPC error during ERC-1271 check — returns 401 gracefully
+**Tests**: No tests needed. Verify `pnpm turbo build` passes.
 
-**Verify**: Deploy a test with mocked publicClient. EOA signatures work as before. Smart Wallet signatures verified via publicClient.verifyMessage. Invalid signatures rejected. RPC errors handled gracefully.
+**Verify**: Both `vercel.json` files present. `pnpm turbo build` succeeds. Security headers configured. PWA service worker headers correct for scanner.
 
 ---
 
-### T9.2 — Coinbase Smart Wallet Connector (Dashboard)
+### T10.3 — API Dockerfile for Containerized Deployment
 
-**Type**: UI
-**Priority**: P1
-**Epic**: EPIC-005-security-hardening
-**Operator approval**: not required
-
-**Files to modify**:
-- `apps/dashboard/src/lib/wallet.ts` — add Coinbase Smart Wallet connector to wagmi config
-- `apps/dashboard/src/components/siwe-login.tsx` — support Smart Wallet connector selection
-- `apps/dashboard/src/components/wallet-connection.tsx` — support Smart Wallet connector for wallet-link
-
-**Approach**:
-
-Add Coinbase Smart Wallet as a connector option in the wagmi configuration. Coinbase Smart Wallet uses the `coinbaseWallet` connector from wagmi with `preference: 'smartWalletOnly'` for smart wallet, or `preference: 'all'` to support both EOA and Smart Wallet.
-
-**Step 1: Add Coinbase Wallet connector**
-
-In `apps/dashboard/src/lib/wallet.ts`:
-
-```typescript
-import { createConfig, http } from "wagmi";
-import { baseSepolia } from "wagmi/chains";
-import { injected, coinbaseWallet } from "wagmi/connectors";
-
-export const walletConfig = createConfig({
-  chains: [walletChain],
-  connectors: [
-    injected({ shimDisconnect: true }),
-    coinbaseWallet({
-      appName: "Galileo Protocol",
-      preference: "all", // Support both EOA (Coinbase Wallet) and Smart Wallet
-    }),
-  ],
-  ssr: true,
-  transports: {
-    [walletChain.id]: http(),
-  },
-});
-```
-
-The `coinbaseWallet` connector from wagmi v3 natively supports:
-- **EOA**: Traditional Coinbase Wallet (browser extension, mobile)
-- **Smart Wallet**: Coinbase Smart Wallet (passkey-based, gasless)
-
-When `preference: "all"`, the user chooses between EOA and Smart Wallet in the Coinbase Wallet UI. The signature mechanism adapts automatically — Smart Wallet signs via ERC-1271, EOA signs via ecrecover. No code changes needed in the signing flow.
-
-**Step 2: Update SIWE login component**
-
-In `siwe-login.tsx`, update to allow connector selection when multiple connectors are available:
-
-```typescript
-// Instead of always using injected(), let the user choose:
-const { connectors } = useConnect();
-
-// Try Coinbase Wallet first (if available), then injected
-const connector = connectors.find(c => c.id === "coinbaseWalletSDK") ?? connectors[0];
-const result = await connectAsync({ connector });
-```
-
-Alternatively, keep it simple: add a second "Sign in with Coinbase Wallet" button that uses the `coinbaseWallet` connector explicitly.
-
-Recommended approach: **Two buttons** — "Sign in with Wallet" (injected/MetaMask) and "Sign in with Coinbase" (coinbaseWallet). This is clearer UX than a single button with a connector picker.
-
-**Step 3: Update wallet-connection component**
-
-Same pattern for wallet-link: add Coinbase Wallet as a connector option. If the user is already connected via Coinbase Smart Wallet, the link-wallet flow uses the same connector for signing.
-
-**Patterns to follow**:
-- wagmi v3 connectors pattern (existing in wallet.ts)
-- shadcn Button component for UI
-- Lucide icons for wallet brand indicators
-- Keep SSR compatibility (ssr: true in wagmi config)
-- No breaking changes to existing MetaMask/injected flow
-
-**Edge cases**:
-- User has both MetaMask and Coinbase Wallet installed: both buttons visible, user chooses
-- Coinbase Wallet not installed: button still works — Coinbase SDK opens a popup/redirect for wallet creation
-- Smart Wallet passkey: signing uses WebAuthn — transparent to our code (wagmi handles it)
-- Mobile: Coinbase Wallet mobile app opens for signing via WalletConnect or deep link
-- SSR: connector initialization deferred to client (wagmi handles with ssr: true)
-
-**Tests**: Covered by T9.4 E2E specs.
-
-**Verify**: Open login page — two wallet buttons visible (injected + Coinbase). Click "Sign in with Coinbase" — Coinbase Wallet SDK initiates connection. Sign SIWE message via Smart Wallet — session created. Navigate to wallet-link — Coinbase connector available for linking.
-
----
-
-### T9.3 — Vercel Analytics Integration
-
-**Type**: observability
+**Type**: infrastructure
 **Priority**: P2
-**Epic**: EPIC-007-observability-quality
+**Epic**: EPIC-008-production-deploy
 **Operator approval**: not required
 
-**Files to modify**:
-- `apps/dashboard/src/app/layout.tsx` — add Analytics component
-- `apps/dashboard/package.json` — add @vercel/analytics dependency
-- `apps/scanner/src/app/layout.tsx` — add Analytics component
-- `apps/scanner/package.json` — add @vercel/analytics dependency
+**Files to create**:
+- `apps/api/Dockerfile` — multi-stage build for production API
+- `apps/api/.dockerignore` — exclude unnecessary files from build context
+- `.dockerignore` (root) — monorepo-level ignore if needed
 
 **Approach**:
 
-Add Vercel Analytics to both dashboard and scanner apps. Vercel Analytics is a lightweight (~1KB) client-side analytics library that tracks page views automatically. It works on any hosting provider (not just Vercel) in development mode, and provides full analytics on Vercel-hosted apps.
+Create a multi-stage Dockerfile for the API that:
+1. Installs dependencies (pnpm monorepo-aware)
+2. Generates Prisma client
+3. Compiles TypeScript
+4. Produces a minimal production image
 
-**Step 1: Install @vercel/analytics**
+The API is a Fastify + Prisma app that runs as `node dist/main.js`. It needs:
+- Node.js 22 (LTS)
+- Prisma client (generated at build time)
+- `bcrypt` native module (must be built for target platform)
+- Production dependencies only (no devDependencies)
+
+**Step 1: Create `apps/api/Dockerfile`**
+
+```dockerfile
+# Stage 1: Install dependencies
+FROM node:22-slim AS deps
+RUN corepack enable && corepack prepare pnpm@10.30.0 --activate
+WORKDIR /app
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY apps/api/package.json apps/api/
+COPY packages/shared/package.json packages/shared/
+RUN pnpm install --frozen-lockfile --prod=false
+
+# Stage 2: Build
+FROM node:22-slim AS builder
+RUN corepack enable && corepack prepare pnpm@10.30.0 --activate
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
+COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
+COPY . .
+WORKDIR /app/packages/shared
+RUN pnpm build
+WORKDIR /app/apps/api
+RUN pnpm prisma generate && pnpm tsc
+
+# Stage 3: Production
+FROM node:22-slim AS runner
+RUN corepack enable && corepack prepare pnpm@10.30.0 --activate
+RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+ENV NODE_ENV=production
+COPY --from=builder /app/apps/api/dist ./dist
+COPY --from=builder /app/apps/api/prisma ./prisma
+COPY --from=builder /app/apps/api/src/generated ./src/generated
+COPY --from=builder /app/apps/api/node_modules ./node_modules
+COPY --from=builder /app/packages/shared/dist ../packages/shared/dist
+COPY --from=builder /app/packages/shared/package.json ../packages/shared/
+COPY --from=builder /app/apps/api/package.json ./
+EXPOSE 4000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD node -e "fetch('http://localhost:4000/health').then(r=>{if(!r.ok)throw 1}).catch(()=>process.exit(1))"
+CMD ["node", "dist/main.js"]
+```
+
+**Step 2: Create `apps/api/.dockerignore`**
+
+```
+node_modules
+dist
+test
+*.test.ts
+.env*
+coverage
+```
+
+**Step 3: Verify build**
 
 ```bash
-pnpm --filter dashboard add @vercel/analytics
-pnpm --filter scanner add @vercel/analytics
+docker build -f apps/api/Dockerfile -t galileo-api .
+docker run --rm -p 4000:4000 \
+  -e DATABASE_URL=postgresql://... \
+  -e JWT_SECRET=test-secret-that-is-at-least-32-chars \
+  -e JWT_REFRESH_SECRET=test-refresh-secret-that-is-at-least-32-chars \
+  galileo-api
 ```
-
-**Step 2: Add Analytics component to dashboard layout**
-
-In `apps/dashboard/src/app/layout.tsx`:
-
-```typescript
-import { Analytics } from "@vercel/analytics/next";
-
-// In the return, after {children}:
-<Analytics />
-```
-
-The `Analytics` component:
-- Auto-tracks page views (route changes via Next.js router)
-- No configuration needed for basic page view tracking
-- No-op in development (unless `VERCEL_ANALYTICS_ID` is set)
-- ~1KB bundle size impact
-- Respects Do Not Track browser setting
-
-**Step 3: Add Analytics component to scanner layout**
-
-Same pattern in `apps/scanner/src/app/layout.tsx`:
-
-```typescript
-import { Analytics } from "@vercel/analytics/next";
-
-// After {children} and <RegisterSW />:
-<Analytics />
-```
-
-**Step 4: Verify no impact on tests**
-
-The Analytics component renders nothing in non-Vercel environments. It should not affect existing E2E tests or unit tests. Verify by running the full test suite.
 
 **Patterns to follow**:
-- Next.js App Router: component goes in root layout.tsx
-- Import from `@vercel/analytics/next` (not `@vercel/analytics/react`) for App Router
-- No environment variable configuration needed for basic setup
-- Graceful no-op when not deployed on Vercel (R30 pattern — optional integration)
+- Multi-stage builds for small production images
+- `node:22-slim` (not alpine, because bcrypt needs glibc)
+- `openssl` for Prisma engine
+- HEALTHCHECK directive for container orchestrators
+- No secrets in Dockerfile (use env vars at runtime)
 
 **Edge cases**:
-- Not deployed on Vercel yet: Analytics is a no-op, zero impact
-- PWA scanner: Analytics works in PWA mode (it's a standard script)
-- CSP headers: if helmet is configured in production, may need to allow Vercel Analytics script domain (`vitals.vercel-insights.com`). Currently helmet is disabled in test, and production CSP is not yet configured.
-- Ad blockers: some ad blockers block Vercel Analytics. This is expected behavior — analytics should never block the app.
+- `bcrypt` native module: requires glibc (not musl/alpine). Use `node:22-slim` (Debian-based).
+- Prisma engine: requires `openssl` at runtime
+- `@galileo/shared` workspace dependency: must be built and available at runtime
+- `pnpm-lock.yaml` at monorepo root: Dockerfile context must be the monorepo root, not `apps/api/`
+- `.env` files: must NOT be included in the image — use runtime env vars
 
-**Tests**: No specific tests needed — verify existing tests still pass after adding the component. Analytics is a passive observer, not testable in unit/E2E without Vercel deployment.
+**Tests**: No automated tests. Manual verification: `docker build` succeeds, container starts, `/health` responds.
 
-**Verify**: Add Analytics component. Run `pnpm turbo typecheck` — passes. Run `pnpm test` — all 369 tests pass. Run `pnpm turbo build` — builds successfully. In dev mode, Analytics component renders without errors in browser console.
+**Verify**: `docker build -f apps/api/Dockerfile -t galileo-api .` succeeds. Image size < 500MB. Container starts and `/health` responds 200 (when DATABASE_URL is provided).
 
 ---
 
-### T9.4 — E2E Playwright: Smart Wallet + Wallet Auth Flows
+### T10.4 — DPIA Scaffold Document
 
-**Type**: testing
+**Type**: documentation
 **Priority**: P2
-**Epic**: EPIC-007-observability-quality
+**Epic**: EPIC-006-data-compliance
 **Operator approval**: not required
 
-**Files to modify**:
-- `apps/dashboard/e2e/wallet-auth.spec.ts` — NEW: comprehensive wallet auth E2E tests
-- `apps/dashboard/e2e/siwe-login.spec.ts` — extend with Smart Wallet connector test
+**Files to create**:
+- `specifications/dpia/galileo-dpia.md` — Data Protection Impact Assessment scaffold
 
 **Approach**:
 
-Write Playwright E2E specs covering the wallet authentication flows: wallet-link with nonce, SIWE login, and Coinbase Smart Wallet connector availability. Smart Wallet signing cannot be fully E2E tested (requires real wallet interaction), but we can verify the connector is present and the UI flow works up to the signing step.
+Create a DPIA document following the EDPB Guidelines 02/2025 structure. This is a scaffold with accurate content based on the current architecture — the operator/DPO will review and finalize before mainnet deployment.
 
-**Spec 1: `wallet-auth.spec.ts`**
+The DPIA must cover:
+1. **Description of processing**: what personal data, why, how
+2. **Necessity and proportionality**: legal basis, data minimization
+3. **Risks to data subjects**: identify and assess risks
+4. **Measures to mitigate risks**: technical and organizational measures
 
-```
-describe("Wallet Auth Flows")
-  - login page shows "Sign in with Wallet" button (injected)
-  - login page shows "Sign in with Coinbase" button (Smart Wallet)
-  - wallet-link page: nonce fetched before signing
-  - API: GET /auth/siwe/nonce returns valid nonce
-  - API: POST /auth/siwe/verify with valid signature returns session
-  - API: POST /auth/siwe/verify with invalid signature returns 401
-  - API: POST /auth/link-wallet with valid nonce + signature succeeds
-  - API: POST /auth/link-wallet with replayed nonce returns 400
-```
+**Key data processing activities in Galileo Protocol**:
+- User registration: email, passwordHash (bcrypt, never plaintext)
+- Wallet linking: walletAddress (pseudonymous on-chain identifier)
+- Product events: performedBy (userId, nullable for public verify)
+- Audit trail: actor (userId string, no FK — survives user deletion)
+- Session: httpOnly cookies (JWT access + refresh tokens)
+- Analytics: Vercel Analytics (page views, no PII by default)
+- On-chain: zero personal data on-chain (DID, GTIN, serial only)
 
-Testing approach:
-- **UI presence**: verify buttons render with correct labels
-- **API flow**: use Playwright `request` context for direct API calls with pre-signed messages
-- **Nonce lifecycle**: test create → consume → reject-replay via API
-- **Smart Wallet**: verify the Coinbase connector is listed in wagmi config (check for button in UI)
+**Privacy-by-design measures already implemented**:
+- GDPR Art. 15 (data export) and Art. 17 (erasure) endpoints
+- PII redaction in logs (Pino serializers)
+- `__Host-`/`__Secure-` cookie prefixes in production
+- CSRF protection via `X-Galileo-Client` header
+- Rate limiting on all endpoints
+- No personal data on blockchain (privacy-first principle)
+- AuditLog actor anonymization on user deletion
 
-**Spec 2: Extend `siwe-login.spec.ts`**
+**Step 1: Create the DPIA document**
 
-Add test for Coinbase Smart Wallet button presence:
+Follow EDPB standard structure:
+1. Systematic description of processing
+2. Assessment of necessity and proportionality
+3. Assessment of risks to rights and freedoms
+4. Measures to address risks
+5. Involvement of stakeholders
+6. Monitoring and review
 
-```
-- "Sign in with Coinbase" button is visible on login page
-- clicking it opens Coinbase Wallet SDK (mock/intercept the SDK call)
-```
+**Step 2: Populate with current architecture details**
+
+Use CONTEXT.md, schema.prisma, and the privacy measures already implemented. Mark sections that need operator/DPO input with `[TODO: DPO review required]`.
 
 **Patterns to follow**:
-- Auth: use `storageState` for authenticated tests (wallet-link requires auth)
-- API testing: use `request.newContext()` for direct API calls
-- Selectors: prefer `getByRole`, `getByText`
-- Waits: use `expect(locator).toBeVisible({ timeout })` not sleeps
-- Do not test actual wallet signing (requires real wallet extension) — test up to the signing step, mock the rest
+- EDPB Guidelines 02/2025 structure
+- Reference actual code paths (e.g., "PII redaction in `apps/api/src/main.ts` via Pino serializers")
+- Mark uncertain or legal-specific sections for DPO review
+- Use plain language (DPIA may be reviewed by non-technical stakeholders)
 
 **Edge cases**:
-- Coinbase Wallet SDK popup: cannot test real popup in Playwright — verify button exists and click triggers
-- Wallet extensions: Playwright headless mode doesn't have wallet extensions — use API-level tests for signature verification
-- SIWE message format: test the API contract, not the browser signing
+- Wallet addresses: pseudonymous but potentially linkable to identity (EDPB considers them personal data in some contexts). Document this risk.
+- On-chain data immutability: DID and product data on blockchain cannot be deleted. Document that no personal data is stored on-chain.
+- Cross-border transfers: Base Sepolia/mainnet nodes are globally distributed. Document adequacy decisions or SCCs if applicable.
+- Subprocessors: Vercel (analytics, hosting), PostgreSQL provider, R2/S3 storage. List and assess.
 
-**Tests**: ~8 Playwright specs across the two files.
+**Tests**: No automated tests. Document review by operator/DPO.
 
-**Verify**: `pnpm --filter dashboard exec playwright test` runs all specs including new ones. All pass. Login page shows both wallet buttons. API-level wallet auth flows tested comprehensively.
+**Verify**: DPIA document exists at `specifications/dpia/galileo-dpia.md`. All EDPB-required sections present. Technical measures accurately reflect current implementation. TODO markers for sections requiring legal review.
 
 ## Notes
 
@@ -381,11 +419,13 @@ Add test for Coinbase Smart Wallet button presence:
 <!-- Operator approvals: "Approved: T{N}.{M} — {reason}" -->
 <!-- Blocked reasons: "Blocked: T{N}.{M} — {reason}" -->
 
-Sprint #6 (Real Chain Unblock) remains BLOCKED on RPC key. Sprint #9 focuses on Smart Wallet support and observability.
+Sprint #6 (Real Chain Unblock) remains BLOCKED on RPC key. Sprint #10 focuses on test stability and deployment readiness.
 
-🔒 MFA (TOTP + passkey) is NOT included — requires DB migration to add `totpSecret`, `totpEnabled` fields to User model. Deferred to a future sprint after operator approval.
+🔒 MFA (TOTP + passkey) is NOT included — requires DB migration (unchanged from Sprint #9).
 
-🔒 PostgreSQL RLS is NOT included — requires operator approval (unchanged from Sprint #8).
+🔒 PostgreSQL RLS is NOT included — requires operator approval (unchanged from Sprint #9).
+
+🔒 Contract deployment to mainnet is NOT included — requires testnet E2E + operator approval.
 
 ## Archive
 
