@@ -43,13 +43,13 @@ EPICs (functional bricks, in epics/)
 
 ---
 
-## Sprint #5 — Pilot Closeout / Dashboard Ops (active)
+## Sprint #5 — Pilot Closeout / Dashboard Ops (done)
 
-- [ ] `EPIC-002` GET /products/stats endpoint
-- [ ] `EPIC-002` Dashboard home: live stats + recent activity
-- [ ] `EPIC-002` Dashboard product list: filter UI (status + category dropdowns)
-- [ ] `EPIC-006` Dashboard product image upload UI
-- [ ] `EPIC-007` E2E Playwright: dashboard stats, filters, upload
+- [x] `EPIC-002` GET /products/stats endpoint — Sprint #5, 78bbd38
+- [x] `EPIC-002` Dashboard home: live stats + recent activity — Sprint #5, e5770c3
+- [x] `EPIC-002` Dashboard product list: filter UI (status + category dropdowns) — Sprint #5, e8fcc48
+- [x] `EPIC-006` Dashboard product image upload UI — Sprint #5, e17b6e5
+- [x] `EPIC-007` E2E Playwright: dashboard stats, filters, upload — Sprint #5, 6f1b932
 
 ---
 
