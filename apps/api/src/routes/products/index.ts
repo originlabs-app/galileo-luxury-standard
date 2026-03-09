@@ -10,6 +10,7 @@ import qrProductRoute from "./qr.js";
 import verifyProductRoute from "./verify.js";
 import uploadProductImageRoute from "./upload.js";
 import statsProductRoute from "./stats.js";
+import batchImportRoute from "./batch-import.js";
 import { requireCsrfHeader } from "../../middleware/csrf.js";
 
 export default async function productRoutes(fastify: FastifyInstance) {
@@ -27,4 +28,5 @@ export default async function productRoutes(fastify: FastifyInstance) {
   await fastify.register(verifyProductRoute);
   await fastify.register(uploadProductImageRoute);
   await fastify.register(statsProductRoute);
+  await fastify.register(batchImportRoute);
 }
