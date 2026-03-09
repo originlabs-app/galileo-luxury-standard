@@ -6,7 +6,7 @@
 
 ## Last Updated
 
-2026-03-09 -- updated after Sprint #4 archival + Sprint #5 dashboard task analysis
+2026-03-09 -- updated after Sprint #8 code implementation (batch import, batch mint, SIWE)
 
 ## Tech Stack
 
@@ -49,11 +49,16 @@ galileo-protocol/
 |   |   |   |   +-- sentry.ts          # Sentry error tracking (no-op without DSN)
 |   |   |   |   +-- storage.ts         # R2/S3 storage + local fallback
 |   |   |   +-- routes/
-|   |   |   |   +-- audit/             # GET /audit-log (ADMIN only)
-|   |   |   |   +-- auth/              # register, login, logout, refresh, me, link-wallet
+|   |   |   |   +-- audit/             # GET /audit-log (ADMIN only), GET /audit-log/export
+|   |   |   |   +-- auth/              # register, login, logout, refresh, me, link-wallet, nonce, siwe
 |   |   |   |   +-- health.ts          # GET /health
-|   |   |   |   +-- products/          # CRUD, mint, qr, recall, transfer, verify, upload
+|   |   |   |   +-- products/          # CRUD, mint, qr, recall, transfer, verify, upload, batch-import, batch-mint
 |   |   |   |   +-- resolver/          # GS1 Digital Link resolver
+|   |   |   |   +-- webhooks/          # Webhook subscription management
+|   |   |   +-- services/
+|   |   |   |   +-- compliance/        # Transfer compliance modules (jurisdiction, sanctions, brand-auth, cpo, service-center)
+|   |   |   |   +-- webhooks/          # Outbox + delivery (HMAC-SHA256, exponential backoff)
+|   |   |   |   +-- siwe.ts            # SIWE nonce store (create/consume/expire)
 |   |   |   +-- utils/
 |   |   |       +-- cookies.ts         # Cookie helpers (set/clear)
 |   |   |       +-- password.ts        # bcrypt hash/verify
@@ -93,11 +98,14 @@ galileo-protocol/
 |   |       |   +-- register/page.tsx
 |   |       +-- components/
 |   |       |   +-- auth-guard.tsx     # SSR-safe auth guard
+|   |       |   +-- batch-import-dialog.tsx # CSV import dialog (file picker, preview, upload)
 |   |       |   +-- header.tsx
+|   |       |   +-- image-upload.tsx   # Product image upload
 |   |       |   +-- sidebar.tsx
+|   |       |   +-- siwe-login.tsx     # SIWE wallet login button + flow
 |   |       |   +-- wallet-connection.tsx # wagmi wallet link
 |   |       |   +-- providers/wallet-provider.tsx
-|   |       |   +-- ui/               # shadcn: badge, button, card, input, label, select, table, textarea
+|   |       |   +-- ui/               # shadcn: badge, button, card, dialog, input, label, select, table, textarea
 |   |       +-- hooks/use-auth.tsx     # AuthProvider Context (single AuthState type)
 |   |       +-- lib/
 |   |           +-- api.ts            # Fetch wrapper (auto-refresh, CSRF, retry on 401)
@@ -168,6 +176,14 @@ Key relations: User -> Brand (many-to-one), Product -> Brand (many-to-one), Prod
 | POST | /products/:id/verify | public | Record verification event |
 | GET | /01/:gtin/21/:serial | public | GS1 Digital Link resolver (JSON-LD) |
 | GET | /audit-log | ADMIN | List audit log entries (paginated, filterable) |
+| GET | /audit-log/export | ADMIN | Export audit log as CSV or JSON |
+| GET | /auth/nonce | authenticated | Generate nonce for wallet-link signing |
+| GET | /auth/siwe/nonce | public | Generate nonce for SIWE login signing |
+| POST | /auth/siwe/verify | public | Verify SIWE signature, issue session |
+| POST | /products/batch-import | BRAND_ADMIN, ADMIN | CSV import (multipart, max 500 rows) |
+| POST | /products/batch-mint | BRAND_ADMIN, ADMIN | Batch mint DRAFT products (max 100) |
+| POST | /webhooks | ADMIN | Register webhook subscription |
+| GET | /webhooks | ADMIN | List webhook subscriptions |
 
 ## Patterns & Conventions
 
@@ -198,17 +214,22 @@ Key relations: User -> Brand (many-to-one), Product -> Brand (many-to-one), Prod
 - Dashboard product list: fetchProducts callback with page state, pagination from API response
 - Dashboard home: stat cards with hardcoded 0 values, empty activity feed placeholder
 - Shared categories: CATEGORIES array in @galileo/shared/constants/categories (Title Case strings)
-- Available shadcn components: badge, button, card, input, label, select, table, textarea
+- Available shadcn components: badge, button, card, dialog, input, label, select, table, textarea
+- SIWE login: nonce-based, viem verifyMessage, wallet lookup by checksumAddress
+- Batch import: CSV parse with BOM strip, row-level Zod validation, transaction/partial mode
+- Batch mint: optimistic concurrency per product, webhook enqueue per minted product
+- Dashboard batch import dialog: file picker, CSV preview, progress, error summary table
+- Dashboard SIWE login: wagmi connect + signMessage, nonce fetch, verify + redirect
 
 ## Test Architecture
 
-- **Vitest**: 285 total -- 216 API tests across 16 files + 69 shared tests (sentry.test.ts, audit.test.ts added in Sprint #4)
-- **Playwright**: 2 e2e tests (auth + product lifecycle)
+- **Vitest**: 369 total -- 300 API tests across 21 files + 69 shared tests
+- **Playwright**: 9 e2e specs (auth, product lifecycle, dashboard-home, product-filters, product-upload, transfer-compliance, audit-export, batch-import, siwe-login)
 - **Test DB**: `galileo_test` via `DATABASE_URL_TEST`
 - **Global setup**: `test/global-setup.ts` -- pushes schema, truncates on teardown
 - **File parallelism**: disabled (`fileParallelism: false` in vitest.config.ts)
 - **Cleanup**: shared `cleanDb()` helper uses raw SQL TRUNCATE CASCADE (no flaky timeouts)
-- **Mocking**: viem mocked in mint.test.ts (vi.mock before imports)
+- **Mocking**: viem mocked in mint.test.ts, batch-mint.test.ts, batch-import.test.ts, siwe.test.ts (vi.mock before imports)
 
 ## Known Issues & Tech Debt
 
