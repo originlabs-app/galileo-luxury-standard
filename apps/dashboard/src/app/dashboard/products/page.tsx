@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Package, Plus, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { BatchImportDialog } from "@/components/batch-import-dialog";
 import { type ProductStatus } from "@galileo/shared";
 import { api, ApiError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -196,12 +197,19 @@ export default function ProductsPage() {
             Manage your product digital passports
           </p>
         </div>
-        <Button asChild>
-          <Link href="/dashboard/products/new">
-            <Plus className="size-4" />
-            New Product
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <BatchImportDialog
+            onImportComplete={() =>
+              fetchProducts(page, statusFilter, categoryFilter)
+            }
+          />
+          <Button asChild>
+            <Link href="/dashboard/products/new">
+              <Plus className="size-4" />
+              New Product
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
