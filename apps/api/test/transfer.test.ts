@@ -5,6 +5,7 @@ import {
   beforeAll,
   afterAll,
   beforeEach,
+  afterEach,
   vi,
 } from "vitest";
 import type { FastifyInstance } from "fastify";
@@ -28,6 +29,16 @@ vi.mock("viem/chains", () => ({
 }));
 
 import { parseCookies, cleanDb } from "./helpers.js";
+import { sanctionedAddresses } from "../src/services/compliance/sanctions.js";
+import {
+  runComplianceChecks,
+  type ComplianceContext,
+} from "../src/services/compliance/index.js";
+import { jurisdictionCheck } from "../src/services/compliance/jurisdiction.js";
+import { sanctionsCheck } from "../src/services/compliance/sanctions.js";
+import { brandAuthCheck } from "../src/services/compliance/brand-auth.js";
+import { cpoCheck } from "../src/services/compliance/cpo.js";
+import { serviceCenterCheck } from "../src/services/compliance/service-center.js";
 
 const VALID_GTIN_13 = "4006381333931";
 const CSRF = { "x-galileo-client": "test" };
@@ -311,5 +322,186 @@ describe("POST /products/:id/transfer", () => {
     });
 
     expect(res.statusCode).toBe(400);
+  });
+
+  // ─── Compliance integration tests ─────────────────────────────
+
+  describe("Compliance checks", () => {
+    afterEach(() => {
+      sanctionedAddresses.clear();
+    });
+
+    it("returns 403 COMPLIANCE_REJECTED when sanctions check fails", async () => {
+      const productId = await createMintedProduct(brandAdminCookie);
+
+      // Add the destination address to the sanctions list
+      sanctionedAddresses.add(VALID_ETH_CHECKSUM.toLowerCase());
+
+      const res = await app.inject({
+        method: "POST",
+        url: `/products/${productId}/transfer`,
+        headers: { cookie: brandAdminCookie, ...CSRF },
+        payload: { toAddress: VALID_ETH_ADDRESS },
+      });
+
+      expect(res.statusCode).toBe(403);
+      const body = res.json();
+      expect(body.error.code).toBe("COMPLIANCE_REJECTED");
+      expect(body.error.message).toContain("sanctions");
+    });
+
+    it("transfer succeeds when sanctions list is empty (all compliance modules pass)", async () => {
+      const productId = await createMintedProduct(brandAdminCookie);
+
+      const res = await app.inject({
+        method: "POST",
+        url: `/products/${productId}/transfer`,
+        headers: { cookie: brandAdminCookie, ...CSRF },
+        payload: { toAddress: VALID_ETH_ADDRESS },
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.json().success).toBe(true);
+    });
+
+    it("ADMIN can transfer cross-brand products (brand-auth passes for ADMIN)", async () => {
+      const productId = await createMintedProduct(brandAdminCookie);
+
+      const res = await app.inject({
+        method: "POST",
+        url: `/products/${productId}/transfer`,
+        headers: { cookie: adminCookie, ...CSRF },
+        payload: { toAddress: VALID_ETH_ADDRESS },
+      });
+
+      expect(res.statusCode).toBe(200);
+    });
+
+    it("compliance rejection includes the module name in the error message", async () => {
+      const productId = await createMintedProduct(brandAdminCookie);
+
+      sanctionedAddresses.add(VALID_ETH_CHECKSUM.toLowerCase());
+
+      const res = await app.inject({
+        method: "POST",
+        url: `/products/${productId}/transfer`,
+        headers: { cookie: brandAdminCookie, ...CSRF },
+        payload: { toAddress: VALID_ETH_ADDRESS },
+      });
+
+      expect(res.statusCode).toBe(403);
+      expect(res.json().error.message).toContain("sanctions");
+    });
+  });
+});
+
+// ─── Compliance module unit tests ─────────────────────────────
+
+describe("Compliance modules (unit)", () => {
+  const baseCtx: ComplianceContext = {
+    productId: "prod-1",
+    productStatus: "ACTIVE",
+    productBrandId: "brand-1",
+    fromAddress: null,
+    toAddress: "0x1234567890abcdef1234567890abcdef12345678",
+    userId: "user-1",
+    userRole: "BRAND_ADMIN",
+    userBrandId: "brand-1",
+  };
+
+  afterEach(() => {
+    sanctionedAddresses.clear();
+  });
+
+  it("jurisdictionCheck always passes (MVP stub)", async () => {
+    const result = await jurisdictionCheck(baseCtx);
+    expect(result.passed).toBe(true);
+    expect(result.module).toBe("jurisdiction");
+  });
+
+  it("sanctionsCheck passes when toAddress is not sanctioned", async () => {
+    const result = await sanctionsCheck(baseCtx);
+    expect(result.passed).toBe(true);
+    expect(result.module).toBe("sanctions");
+  });
+
+  it("sanctionsCheck fails when toAddress is sanctioned", async () => {
+    sanctionedAddresses.add(baseCtx.toAddress.toLowerCase());
+    const result = await sanctionsCheck(baseCtx);
+    expect(result.passed).toBe(false);
+    expect(result.module).toBe("sanctions");
+    expect(result.reason).toBeDefined();
+  });
+
+  it("brandAuthCheck passes when user brand matches product brand", async () => {
+    const result = await brandAuthCheck(baseCtx);
+    expect(result.passed).toBe(true);
+    expect(result.module).toBe("brand-auth");
+  });
+
+  it("brandAuthCheck fails for cross-brand non-ADMIN", async () => {
+    const ctx = { ...baseCtx, userBrandId: "other-brand" };
+    const result = await brandAuthCheck(ctx);
+    expect(result.passed).toBe(false);
+    expect(result.module).toBe("brand-auth");
+    expect(result.reason).toContain("Cross-brand");
+  });
+
+  it("brandAuthCheck passes for ADMIN regardless of brand", async () => {
+    const ctx = { ...baseCtx, userRole: "ADMIN", userBrandId: null };
+    const result = await brandAuthCheck(ctx);
+    expect(result.passed).toBe(true);
+  });
+
+  it("cpoCheck always passes (MVP stub)", async () => {
+    const result = await cpoCheck(baseCtx);
+    expect(result.passed).toBe(true);
+    expect(result.module).toBe("cpo");
+  });
+
+  it("serviceCenterCheck always passes (MVP stub)", async () => {
+    const result = await serviceCenterCheck(baseCtx);
+    expect(result.passed).toBe(true);
+    expect(result.module).toBe("service-center");
+  });
+
+  it("runComplianceChecks returns passed=true when all modules pass", async () => {
+    const result = await runComplianceChecks(baseCtx, [
+      jurisdictionCheck,
+      sanctionsCheck,
+      brandAuthCheck,
+      cpoCheck,
+      serviceCenterCheck,
+    ]);
+    expect(result.passed).toBe(true);
+    expect(result.results).toHaveLength(5);
+  });
+
+  it("runComplianceChecks fails fast on first rejection", async () => {
+    sanctionedAddresses.add(baseCtx.toAddress.toLowerCase());
+    const result = await runComplianceChecks(baseCtx, [
+      jurisdictionCheck,
+      sanctionsCheck,
+      brandAuthCheck,
+      cpoCheck,
+      serviceCenterCheck,
+    ]);
+    expect(result.passed).toBe(false);
+    // Should stop at sanctions (2nd module) — jurisdiction passed, sanctions failed
+    expect(result.results).toHaveLength(2);
+    expect(result.results[1]!.module).toBe("sanctions");
+    expect(result.results[1]!.passed).toBe(false);
+  });
+
+  it("handles null fromAddress correctly", async () => {
+    const ctx = { ...baseCtx, fromAddress: null };
+    const result = await runComplianceChecks(ctx, [
+      jurisdictionCheck,
+      sanctionsCheck,
+      brandAuthCheck,
+      cpoCheck,
+      serviceCenterCheck,
+    ]);
+    expect(result.passed).toBe(true);
   });
 });

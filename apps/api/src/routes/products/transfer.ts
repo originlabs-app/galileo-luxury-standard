@@ -4,6 +4,15 @@ import { ETHEREUM_ADDRESS_RE, ProductStatus, EventType } from "@galileo/shared";
 import { requireRole } from "../../middleware/rbac.js";
 import { RouteError } from "../../utils/route-error.js";
 import { errorResponseSchema } from "../../utils/schemas.js";
+import {
+  runComplianceChecks,
+  type ComplianceContext,
+} from "../../services/compliance/index.js";
+import { jurisdictionCheck } from "../../services/compliance/jurisdiction.js";
+import { sanctionsCheck } from "../../services/compliance/sanctions.js";
+import { brandAuthCheck } from "../../services/compliance/brand-auth.js";
+import { cpoCheck } from "../../services/compliance/cpo.js";
+import { serviceCenterCheck } from "../../services/compliance/service-center.js";
 
 export default async function transferProductRoute(fastify: FastifyInstance) {
   fastify.post<{
@@ -119,6 +128,35 @@ export default async function transferProductRoute(fastify: FastifyInstance) {
             }
 
             const fromAddress = product.walletAddress ?? null;
+
+            // Run compliance checks before transfer
+            const complianceCtx: ComplianceContext = {
+              productId: product.id,
+              productStatus: product.status,
+              productBrandId: product.brandId,
+              fromAddress,
+              toAddress: checksumToAddress,
+              userId: user.sub,
+              userRole: user.role,
+              userBrandId: user.brandId ?? null,
+            };
+
+            const compliance = await runComplianceChecks(complianceCtx, [
+              jurisdictionCheck,
+              sanctionsCheck,
+              brandAuthCheck,
+              cpoCheck,
+              serviceCenterCheck,
+            ]);
+
+            if (!compliance.passed) {
+              const failed = compliance.results.find((r) => !r.passed);
+              throw new RouteError(
+                403,
+                "COMPLIANCE_REJECTED",
+                `Transfer blocked by compliance: ${failed?.module} — ${failed?.reason}`,
+              );
+            }
 
             // Optimistic concurrency: only update if status is still ACTIVE.
             // If a concurrent request already changed the status, count=0 → 409.
