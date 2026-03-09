@@ -14,11 +14,11 @@
 
 | # | Task | Epic | Status | Verify | Commit |
 |---|------|------|--------|--------|--------|
-| T7.1 | Transfer compliance check (5 modules) | EPIC-002 | done | Transfer blocked when compliance fails, with reason. Transfer succeeds when all checks pass. | 72746f2 |
-| T7.2 | Webhook system (outbox + retry) | EPIC-002 | done | Webhook registered, events delivered reliably, failed deliveries retried with exponential backoff. | 3b805f1 |
-| T7.3 | Audit trail export (CSV/JSON) | EPIC-006 | done | ADMIN exports audit data as CSV or JSON. BRAND_ADMIN sees only own brand. Date range filter works. | d6aac65 |
-| T7.4 | Wallet-link: add nonce + expiry | EPIC-005 | done | Nonce endpoint returns unique nonce, signed message includes nonce + timestamp, old/replayed signatures rejected. | 7e0eb06 |
-| T7.5 | E2E Playwright: compliance, webhooks, audit export, wallet nonce | EPIC-007 | done | Automated Playwright specs covering Sprint #7 features. Run with `pnpm --filter dashboard exec playwright test`. | 60fb11e |
+| T7.1 | Transfer compliance check (5 modules) | EPIC-002 | validated | Transfer blocked when compliance fails, with reason. Transfer succeeds when all checks pass. | 72746f2 |
+| T7.2 | Webhook system (outbox + retry) | EPIC-002 | validated | Webhook registered, events delivered reliably, failed deliveries retried with exponential backoff. | 3b805f1 |
+| T7.3 | Audit trail export (CSV/JSON) | EPIC-006 | validated | ADMIN exports audit data as CSV or JSON. BRAND_ADMIN sees only own brand. Date range filter works. | d6aac65 |
+| T7.4 | Wallet-link: add nonce + expiry | EPIC-005 | validated | Nonce endpoint returns unique nonce, signed message includes nonce + timestamp, old/replayed signatures rejected. | 7e0eb06 |
+| T7.5 | E2E Playwright: compliance, webhooks, audit export, wallet nonce | EPIC-007 | validated | Automated Playwright specs covering Sprint #7 features. Run with `pnpm --filter dashboard exec playwright test`. | 60fb11e |
 
 ### Status values
 - `todo` -- Not started
