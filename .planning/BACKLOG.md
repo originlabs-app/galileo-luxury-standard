@@ -75,21 +75,15 @@ EPICs (functional bricks, in epics/)
   - **Context**: Sign-In With Ethereum, ERC-1271 smart wallet verification
   - **Verify**: Users can login with wallet signature
 
-- [ ] `EPIC-006` GDPR erasure endpoint -- [source: ROADMAP 4.3] -- IN SPRINT #3
-  - **Context**: DELETE /auth/me/data -- delete from PostgreSQL + R2
-  - **Verify**: User data fully erased, CID becomes orphan
+- [x] `EPIC-006` GDPR erasure endpoint -- DONE (Sprint #3, 22eb6c4)
 
-- [ ] `EPIC-006` GDPR data export endpoint -- [source: ROADMAP 4.3] -- IN SPRINT #3
-  - **Context**: GET /auth/me/data -- return all user data as JSON
-  - **Verify**: Returns complete user data package
+- [x] `EPIC-006` GDPR data export endpoint -- DONE (Sprint #3, 8532fc3)
 
 - [ ] `EPIC-006` Audit trail -- [source: ROADMAP 4.3]
   - **Context**: Append-only log of who did what, when
   - **Verify**: All mutations recorded with actor, action, timestamp
 
-- [ ] `EPIC-008` Publish Swagger at /docs in production -- [source: ROADMAP 4.6] -- IN SPRINT #3
-  - **Context**: Currently guarded to non-production only, add ENABLE_SWAGGER env var
-  - **Verify**: /docs accessible in production when ENABLE_SWAGGER=true
+- [x] `EPIC-008` Publish Swagger at /docs in production -- DONE (Sprint #3, 1ddbea6)
 
 - [ ] `EPIC-002` Webhook system -- [source: ROADMAP 3.5]
   - **Context**: Real-time notifications for mint, transfer, CPO events

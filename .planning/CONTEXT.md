@@ -143,6 +143,8 @@ Key relations: User -> Brand (many-to-one), Product -> Brand (many-to-one), Prod
 | POST | /auth/refresh | cookie | Refresh access token |
 | GET | /auth/me | authenticated | Current user info + walletAddress |
 | POST | /auth/link-wallet | authenticated | Link wallet via EIP-191 signature |
+| GET | /auth/me/data | authenticated | GDPR data export (Art. 15) |
+| DELETE | /auth/me/data | authenticated + CSRF | GDPR erasure (Art. 17) |
 | GET | /health | public | Health check |
 | POST | /products | BRAND_ADMIN, OPERATOR, ADMIN | Create product |
 | GET | /products | authenticated | List products (brand-scoped) |
@@ -180,7 +182,7 @@ Key relations: User -> Brand (many-to-one), Product -> Brand (many-to-one), Prod
 
 ## Test Architecture
 
-- **Vitest**: 186 API tests across 13 files (logging.test.ts, health.test.ts extended in Sprint #2)
+- **Vitest**: 198 API tests across 14 files (gdpr.test.ts added in Sprint #3)
 - **Playwright**: 2 e2e tests (auth + product lifecycle)
 - **Test DB**: `galileo_test` via `DATABASE_URL_TEST`
 - **Global setup**: `test/global-setup.ts` -- pushes schema, truncates on teardown
@@ -197,7 +199,7 @@ Key relations: User -> Brand (many-to-one), Product -> Brand (many-to-one), Prod
 5. ~~**No file upload**~~ RESOLVED: POST /products/:id/upload with R2 storage + CIDv1
 6. **Blockchain blocked** (P0): real chain deploy needs RPC key
 7. **Smart Wallet pending** (P1): ERC-1271 verification not implemented
-8. **No GDPR endpoints** (P2): erasure + export not implemented
+8. ~~**No GDPR endpoints**~~ RESOLVED: GET /auth/me/data (export) + DELETE /auth/me/data (erasure) implemented in Sprint #3
 9. **No multi-tenant isolation** (P2): app-level RBAC only, no database-level RLS
 10. **No error tracking** (P2): no Sentry integration
 11. **Register route has response schema** (info): register + login have Fastify response schemas which may strip fields -- inherited from Sprint 1, works because fields are explicitly listed

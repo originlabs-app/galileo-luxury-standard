@@ -14,9 +14,9 @@
 
 | # | Task | Epic | Status | Verify | Commit |
 |---|------|------|--------|--------|--------|
-| 1 | Publish Swagger at /docs in production | EPIC-008 | todo | /docs accessible when ENABLE_SWAGGER=true in production | |
-| 2 | GDPR data export (GET /auth/me/data) | EPIC-006 | todo | Authenticated user gets full JSON export of all their data | |
-| 3 | GDPR erasure (DELETE /auth/me/data) | EPIC-006 | todo | User data deleted from PostgreSQL, events anonymized, cookies cleared | |
+| 1 | Publish Swagger at /docs in production | EPIC-008 | validated | /docs accessible when ENABLE_SWAGGER=true in production | 1ddbea6 |
+| 2 | GDPR data export (GET /auth/me/data) | EPIC-006 | validated | Authenticated user gets full JSON export of all their data | 8532fc3 |
+| 3 | GDPR erasure (DELETE /auth/me/data) | EPIC-006 | validated | User data deleted from PostgreSQL, events anonymized, cookies cleared | 22eb6c4 |
 
 ### Status values
 - `todo` -- Not started
@@ -28,10 +28,10 @@
 
 ## Completion Criteria
 
-- [ ] All tasks validated or explicitly deferred
-- [ ] All tests pass (186+ API tests, 69 shared tests, 0 failures)
-- [ ] No P0 bugs introduced
-- [ ] CONTEXT.md updated if architecture changed
+- [x] All tasks validated or explicitly deferred
+- [x] All tests pass (198 API tests across 14 files, 69 shared tests, 0 failures)
+- [x] No P0 bugs introduced
+- [x] CONTEXT.md updated if architecture changed
 
 ## Task Briefs
 
