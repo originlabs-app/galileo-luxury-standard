@@ -3,11 +3,18 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Package, Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { Package, Plus, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { type ProductStatus } from "@galileo/shared";
 import { api, ApiError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -48,6 +55,24 @@ const STATUS_STYLES: Record<string, string> = {
   RECALLED: "bg-red-500/20 text-red-400 border-red-500/30",
 };
 
+const STATUS_OPTIONS = [
+  { value: "DRAFT", label: "Draft" },
+  { value: "ACTIVE", label: "Active" },
+  { value: "TRANSFERRED", label: "Transferred" },
+  { value: "RECALLED", label: "Recalled" },
+];
+
+const CATEGORY_OPTIONS = [
+  { value: "Leather Goods", label: "Leather Goods" },
+  { value: "Jewelry", label: "Jewelry" },
+  { value: "Watches", label: "Watches" },
+  { value: "Fashion", label: "Fashion" },
+  { value: "Accessories", label: "Accessories" },
+  { value: "Fragrances", label: "Fragrances" },
+  { value: "Eyewear", label: "Eyewear" },
+  { value: "Other", label: "Other" },
+];
+
 function StatusBadge({ status }: { status: string }) {
   return (
     <Badge
@@ -77,32 +102,62 @@ export default function ProductsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState<string | undefined>();
+  const [categoryFilter, setCategoryFilter] = useState<string | undefined>();
 
-  const fetchProducts = useCallback(async (currentPage: number) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const res = await api<ProductsResponse>(
-        `/products?page=${currentPage}&limit=${PAGE_SIZE}`,
-      );
-      setProducts(res.data.products);
-      setPagination(res.data.pagination);
-    } catch (err) {
-      if (err instanceof ApiError) {
-        setError(err.message);
-      } else {
-        setError("Failed to load products");
+  const fetchProducts = useCallback(
+    async (currentPage: number, status?: string, category?: string) => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const params = new URLSearchParams({
+          page: String(currentPage),
+          limit: String(PAGE_SIZE),
+        });
+        if (status) params.set("status", status);
+        if (category) params.set("category", category);
+
+        const res = await api<ProductsResponse>(
+          `/products?${params.toString()}`,
+        );
+        setProducts(res.data.products);
+        setPagination(res.data.pagination);
+      } catch (err) {
+        if (err instanceof ApiError) {
+          setError(err.message);
+        } else {
+          setError("Failed to load products");
+        }
+      } finally {
+        setIsLoading(false);
       }
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+    },
+    [],
+  );
 
   useEffect(() => {
-    fetchProducts(page);
-  }, [page, fetchProducts]);
+    fetchProducts(page, statusFilter, categoryFilter);
+  }, [page, statusFilter, categoryFilter, fetchProducts]);
 
-  if (isLoading) {
+  function handleStatusChange(value: string) {
+    setStatusFilter(value);
+    setPage(1);
+  }
+
+  function handleCategoryChange(value: string) {
+    setCategoryFilter(value);
+    setPage(1);
+  }
+
+  function clearFilters() {
+    setStatusFilter(undefined);
+    setCategoryFilter(undefined);
+    setPage(1);
+  }
+
+  const hasActiveFilters = statusFilter || categoryFilter;
+
+  if (isLoading && !pagination) {
     return (
       <div className="flex flex-1 items-center justify-center py-16">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
@@ -118,7 +173,7 @@ export default function ProductsPage() {
           variant="outline"
           size="sm"
           className="mt-4"
-          onClick={() => fetchProducts(page)}
+          onClick={() => fetchProducts(page, statusFilter, categoryFilter)}
         >
           Retry
         </Button>
@@ -126,7 +181,8 @@ export default function ProductsPage() {
     );
   }
 
-  const hasProducts = products.length > 0 || (pagination && pagination.total > 0);
+  const hasProducts =
+    products.length > 0 || (pagination && pagination.total > 0);
 
   return (
     <div className="flex flex-col gap-6">
@@ -146,6 +202,50 @@ export default function ProductsPage() {
             New Product
           </Link>
         </Button>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-wrap items-center gap-3">
+        <Select value={statusFilter ?? ""} onValueChange={handleStatusChange}>
+          <SelectTrigger className="w-[160px]">
+            <SelectValue placeholder="All statuses" />
+          </SelectTrigger>
+          <SelectContent>
+            {STATUS_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={categoryFilter ?? ""}
+          onValueChange={handleCategoryChange}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="All categories" />
+          </SelectTrigger>
+          <SelectContent>
+            {CATEGORY_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {hasActiveFilters && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={clearFilters}
+            className="text-muted-foreground"
+          >
+            <X className="mr-1 size-3" />
+            Clear filters
+          </Button>
+        )}
       </div>
 
       {hasProducts ? (
@@ -196,8 +296,12 @@ export default function ProductsPage() {
           {pagination && pagination.totalPages > 1 && (
             <div className="flex items-center justify-between">
               <p className="text-sm text-muted-foreground">
-                Showing {(pagination.page - 1) * pagination.limit + 1}–
-                {Math.min(pagination.page * pagination.limit, pagination.total)}{" "}
+                Showing {(pagination.page - 1) * pagination.limit + 1}
+                {"\u2013"}
+                {Math.min(
+                  pagination.page * pagination.limit,
+                  pagination.total,
+                )}{" "}
                 of {pagination.total} products
               </p>
               <div className="flex items-center gap-2">
