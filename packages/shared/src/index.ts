@@ -61,4 +61,5 @@ export {
   ETHEREUM_ADDRESS_RE,
   LINK_WALLET_MESSAGE_PREFIX,
   buildLinkWalletMessage,
+  parseLinkWalletMessage,
 } from "./validation/wallet.js";

@@ -85,9 +85,19 @@ export function WalletConnection() {
     setIsLinking(true);
     setLinkError(null);
     try {
-      const message = buildLinkWalletMessage(user.email);
+      // Step 1: Fetch a one-time nonce from the server
+      const nonceRes = await api<{
+        success: boolean;
+        data: { nonce: string };
+      }>("/auth/nonce");
+      const { nonce } = nonceRes.data;
+
+      // Step 2: Build message with nonce + timestamp
+      const timestamp = Date.now();
+      const message = buildLinkWalletMessage(user.email, nonce, timestamp);
       const signature = await signMessageAsync({ message });
 
+      // Step 3: Submit to link-wallet endpoint
       await api("/auth/link-wallet", {
         method: "POST",
         body: JSON.stringify({ address, signature, message }),

@@ -1,7 +1,8 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { verifyMessage, getAddress } from "viem";
-import { ETHEREUM_ADDRESS_RE, buildLinkWalletMessage } from "@galileo/shared";
+import { ETHEREUM_ADDRESS_RE, parseLinkWalletMessage } from "@galileo/shared";
+import { consumeNonce } from "./nonce.js";
 import { requireCsrfHeader } from "../../middleware/csrf.js";
 import { errorResponseSchema } from "../../utils/schemas.js";
 import { isPrismaUniqueViolation } from "../../utils/prisma-errors.js";
@@ -110,13 +111,49 @@ export default async function linkWalletRoute(fastify: FastifyInstance) {
         });
       }
 
-      const expectedMessage = buildLinkWalletMessage(currentUser.email);
-      if (message !== expectedMessage) {
+      // Parse nonce + timestamp from message (v2 format)
+      const parsedMessage = parseLinkWalletMessage(message);
+      if (!parsedMessage) {
+        return reply.status(400).send({
+          success: false,
+          error: {
+            code: "VALIDATION_ERROR",
+            message:
+              "Message must include nonce and timestamp. Use GET /auth/nonce first.",
+          },
+        });
+      }
+
+      // Verify email matches
+      if (parsedMessage.email !== currentUser.email) {
         return reply.status(400).send({
           success: false,
           error: {
             code: "VALIDATION_ERROR",
             message: "Signed message does not match your account",
+          },
+        });
+      }
+
+      // Verify timestamp (5-minute expiry)
+      const MESSAGE_EXPIRY_MS = 5 * 60 * 1000;
+      if (Date.now() - parsedMessage.timestamp > MESSAGE_EXPIRY_MS) {
+        return reply.status(400).send({
+          success: false,
+          error: {
+            code: "EXPIRED",
+            message: "Signed message has expired. Request a new nonce.",
+          },
+        });
+      }
+
+      // Consume nonce (one-time use)
+      if (!consumeNonce(parsedMessage.nonce, sub)) {
+        return reply.status(400).send({
+          success: false,
+          error: {
+            code: "INVALID_NONCE",
+            message: "Nonce is invalid or has already been used.",
           },
         });
       }

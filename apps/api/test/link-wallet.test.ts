@@ -1,16 +1,29 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
-import { createWalletClient, http } from "viem";
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+  afterEach,
+  vi,
+} from "vitest";
 import { privateKeyToAccount } from "viem/accounts";
-import { mainnet } from "viem/chains";
 import { buildApp } from "../src/server.js";
 import type { FastifyInstance } from "fastify";
 import { parseCookies, cleanDb } from "./helpers.js";
+import { buildLinkWalletMessage } from "@galileo/shared";
+import {
+  _clearNonceStore,
+  _setNonce,
+  createNonce,
+  consumeNonce,
+} from "../src/routes/auth/nonce.js";
 
 /**
  * Generate a deterministic wallet and sign a message.
  */
 function createTestWallet() {
-  // Use a deterministic private key for testing
   const privateKey =
     "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80" as const;
   const account = privateKeyToAccount(privateKey);
@@ -42,11 +55,17 @@ describe("POST /auth/link-wallet", () => {
   });
 
   beforeEach(async () => {
+    _clearNonceStore();
     await cleanDb(app.prisma);
   });
 
+  afterEach(() => {
+    _clearNonceStore();
+    vi.restoreAllMocks();
+  });
+
   /**
-   * Helper: register a user and return auth cookies.
+   * Helper: register a user, return auth cookies and user ID.
    */
   async function registerAndGetCookies(email: string) {
     const res = await app.inject({
@@ -58,15 +77,37 @@ describe("POST /auth/link-wallet", () => {
       },
     });
     expect(res.statusCode).toBe(201);
-    return parseCookies(res);
+    const cookies = parseCookies(res);
+    const userId = res.json().data.user.id;
+    return { cookies, userId };
+  }
+
+  /**
+   * Helper: build a signed message with nonce + timestamp.
+   */
+  async function buildSignedMessage(
+    email: string,
+    userId: string,
+    walletAccount: (typeof wallet1)["account"],
+  ) {
+    const nonce = createNonce(userId);
+    const timestamp = Date.now();
+    const message = buildLinkWalletMessage(email, nonce, timestamp);
+    const signature = await walletAccount.signMessage({ message });
+    return { message, signature, nonce, timestamp };
   }
 
   // ─── Happy Path ───────────────────────────────────────────────
 
-  it("links wallet with valid signature and returns 200", async () => {
-    const cookies = await registerAndGetCookies("wallet-link@test.com");
-    const message = "Link wallet to Galileo: wallet-link@test.com";
-    const signature = await wallet1.account.signMessage({ message });
+  it("links wallet with valid nonce + timestamp and returns 200", async () => {
+    const { cookies, userId } = await registerAndGetCookies(
+      "wallet-link@test.com",
+    );
+    const { message, signature } = await buildSignedMessage(
+      "wallet-link@test.com",
+      userId,
+      wallet1.account,
+    );
 
     const response = await app.inject({
       method: "POST",
@@ -98,9 +139,15 @@ describe("POST /auth/link-wallet", () => {
 
   it("returns 409 when address is already linked to another user", async () => {
     // First user links wallet
-    const cookies1 = await registerAndGetCookies("wallet-link@test.com");
-    const message1 = "Link wallet to Galileo: wallet-link@test.com";
-    const signature1 = await wallet1.account.signMessage({ message: message1 });
+    const { cookies: cookies1, userId: userId1 } = await registerAndGetCookies(
+      "wallet-link@test.com",
+    );
+    const { message: message1, signature: signature1 } =
+      await buildSignedMessage(
+        "wallet-link@test.com",
+        userId1,
+        wallet1.account,
+      );
 
     const res1 = await app.inject({
       method: "POST",
@@ -118,10 +165,15 @@ describe("POST /auth/link-wallet", () => {
     expect(res1.statusCode).toBe(200);
 
     // Second user tries to link same address
-    const cookies2 = await registerAndGetCookies("wallet-link2@test.com");
-    const message2 = "Link wallet to Galileo: wallet-link2@test.com";
-    // wallet1 signs for user2 — valid signature, but address already taken
-    const signature2 = await wallet1.account.signMessage({ message: message2 });
+    const { cookies: cookies2, userId: userId2 } = await registerAndGetCookies(
+      "wallet-link2@test.com",
+    );
+    const { message: message2, signature: signature2 } =
+      await buildSignedMessage(
+        "wallet-link2@test.com",
+        userId2,
+        wallet1.account,
+      );
 
     const res2 = await app.inject({
       method: "POST",
@@ -168,7 +220,7 @@ describe("POST /auth/link-wallet", () => {
   // ─── 400: Invalid Ethereum address ───────────────────────────
 
   it("returns 400 for invalid Ethereum address", async () => {
-    const cookies = await registerAndGetCookies("wallet-link@test.com");
+    const { cookies } = await registerAndGetCookies("wallet-link@test.com");
 
     const response = await app.inject({
       method: "POST",
@@ -193,8 +245,16 @@ describe("POST /auth/link-wallet", () => {
   // ─── 400: Signature verification fails ───────────────────────
 
   it("returns 400 when signature does not match address (wrong signer)", async () => {
-    const cookies = await registerAndGetCookies("wallet-link@test.com");
-    const message = "Link wallet to Galileo: wallet-link@test.com";
+    const { cookies, userId } = await registerAndGetCookies(
+      "wallet-link@test.com",
+    );
+    const nonce = createNonce(userId);
+    const timestamp = Date.now();
+    const message = buildLinkWalletMessage(
+      "wallet-link@test.com",
+      nonce,
+      timestamp,
+    );
     // wallet2 signs, but user claims wallet1's address
     const signature = await wallet2.account.signMessage({ message });
 
@@ -218,11 +278,74 @@ describe("POST /auth/link-wallet", () => {
     expect(body.error.code).toBe("SIGNATURE_INVALID");
   });
 
-  // ─── 400: Message missing required prefix ────────────────────
+  // ─── Nonce + Expiry tests ────────────────────────────────────
 
-  it("returns 400 when message lacks the required prefix", async () => {
-    const cookies = await registerAndGetCookies("wallet-link@test.com");
-    const message = "Some random message without the prefix";
+  it("GET /auth/nonce returns 200 with nonce string", async () => {
+    const { cookies } = await registerAndGetCookies("nonce-test@test.com");
+
+    const res = await app.inject({
+      method: "GET",
+      url: "/auth/nonce",
+      headers: { cookie: `galileo_at=${cookies.galileo_at}` },
+    });
+
+    expect(res.statusCode).toBe(200);
+    const body = res.json();
+    expect(body.success).toBe(true);
+    expect(body.data.nonce).toBeDefined();
+    expect(typeof body.data.nonce).toBe("string");
+  });
+
+  it("GET /auth/nonce requires authentication (401)", async () => {
+    const res = await app.inject({
+      method: "GET",
+      url: "/auth/nonce",
+    });
+
+    expect(res.statusCode).toBe(401);
+  });
+
+  it("returns 400 when message lacks nonce (legacy format)", async () => {
+    const { cookies } = await registerAndGetCookies(
+      "wallet-link-legacy@test.com",
+    );
+    const legacyMessage = "Link wallet to Galileo: wallet-link-legacy@test.com";
+    const signature = await wallet1.account.signMessage({
+      message: legacyMessage,
+    });
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/auth/link-wallet",
+      headers: {
+        cookie: `galileo_at=${cookies.galileo_at}`,
+        "x-galileo-client": "1",
+      },
+      payload: {
+        address: wallet1.address,
+        signature,
+        message: legacyMessage,
+      },
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.json().error.code).toBe("VALIDATION_ERROR");
+    expect(response.json().error.message).toContain("nonce");
+  });
+
+  it("returns 400 EXPIRED when timestamp is too old", async () => {
+    const { cookies, userId } = await registerAndGetCookies(
+      "wallet-link-expired@test.com",
+    );
+    const nonce = createNonce(userId);
+
+    // Use a timestamp from 10 minutes ago
+    const oldTimestamp = Date.now() - 10 * 60 * 1000;
+    const message = buildLinkWalletMessage(
+      "wallet-link-expired@test.com",
+      nonce,
+      oldTimestamp,
+    );
     const signature = await wallet1.account.signMessage({ message });
 
     const response = await app.inject({
@@ -240,8 +363,136 @@ describe("POST /auth/link-wallet", () => {
     });
 
     expect(response.statusCode).toBe(400);
-    const body = response.json();
-    expect(body.success).toBe(false);
-    expect(body.error.code).toBe("VALIDATION_ERROR");
+    expect(response.json().error.code).toBe("EXPIRED");
+  });
+
+  it("returns 400 INVALID_NONCE when nonce is invalid", async () => {
+    const { cookies } = await registerAndGetCookies(
+      "wallet-link-badnonce@test.com",
+    );
+    const timestamp = Date.now();
+    const message = buildLinkWalletMessage(
+      "wallet-link-badnonce@test.com",
+      "fake-nonce-does-not-exist",
+      timestamp,
+    );
+    const signature = await wallet1.account.signMessage({ message });
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/auth/link-wallet",
+      headers: {
+        cookie: `galileo_at=${cookies.galileo_at}`,
+        "x-galileo-client": "1",
+      },
+      payload: {
+        address: wallet1.address,
+        signature,
+        message,
+      },
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.json().error.code).toBe("INVALID_NONCE");
+  });
+
+  it("returns 400 INVALID_NONCE on replayed nonce (second attempt)", async () => {
+    const { cookies, userId } = await registerAndGetCookies(
+      "wallet-link-replay@test.com",
+    );
+    const { message, signature } = await buildSignedMessage(
+      "wallet-link-replay@test.com",
+      userId,
+      wallet1.account,
+    );
+
+    // First attempt — succeeds
+    const res1 = await app.inject({
+      method: "POST",
+      url: "/auth/link-wallet",
+      headers: {
+        cookie: `galileo_at=${cookies.galileo_at}`,
+        "x-galileo-client": "1",
+      },
+      payload: {
+        address: wallet1.address,
+        signature,
+        message,
+      },
+    });
+    expect(res1.statusCode).toBe(200);
+
+    // Clear wallet so we can attempt again (otherwise 409 for same address)
+    await app.prisma.user.update({
+      where: { id: userId },
+      data: { walletAddress: null },
+    });
+
+    // Second attempt with same nonce — should fail
+    const res2 = await app.inject({
+      method: "POST",
+      url: "/auth/link-wallet",
+      headers: {
+        cookie: `galileo_at=${cookies.galileo_at}`,
+        "x-galileo-client": "1",
+      },
+      payload: {
+        address: wallet1.address,
+        signature,
+        message,
+      },
+    });
+    expect(res2.statusCode).toBe(400);
+    expect(res2.json().error.code).toBe("INVALID_NONCE");
+  });
+
+  it("returns 400 INVALID_NONCE with wrong user's nonce", async () => {
+    const { cookies: cookies1, userId: userId1 } = await registerAndGetCookies(
+      "wallet-nonce-user1@test.com",
+    );
+    const { cookies: cookies2, userId: _userId2 } = await registerAndGetCookies(
+      "wallet-nonce-user2@test.com",
+    );
+
+    // Create nonce for user1, but try to use it as user2
+    const nonce = createNonce(userId1);
+    const timestamp = Date.now();
+    const message = buildLinkWalletMessage(
+      "wallet-nonce-user2@test.com",
+      nonce,
+      timestamp,
+    );
+    const signature = await wallet1.account.signMessage({ message });
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/auth/link-wallet",
+      headers: {
+        cookie: `galileo_at=${cookies2.galileo_at}`,
+        "x-galileo-client": "1",
+      },
+      payload: {
+        address: wallet1.address,
+        signature,
+        message,
+      },
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.json().error.code).toBe("INVALID_NONCE");
+  });
+
+  it("nonce expires after 5 minutes", () => {
+    const userId = "test-user-expiry";
+    const nonce = createNonce(userId);
+
+    // Immediately, it should be valid
+    expect(consumeNonce(nonce, userId)).toBe(true);
+
+    // Create another and simulate expiry
+    const nonce2 = createNonce(userId);
+    // Manually set the nonce to be expired
+    _setNonce(nonce2 + "-expired", userId, Date.now() - 1);
+    expect(consumeNonce(nonce2 + "-expired", userId)).toBe(false);
   });
 });
