@@ -1,0 +1,28 @@
+# Dependencies are installed inside the container
+node_modules
+
+# Build artifacts
+**/dist
+**/.next
+**/coverage
+**/test-results
+
+# Development files
+.env*
+.git
+.github
+.planning
+.claude
+
+# Non-API apps and docs (not needed for API image)
+website
+contracts
+governance
+release
+specifications
+
+# Test files
+**/*.test.ts
+**/e2e
+**/playwright
+**/playwright.config.ts
