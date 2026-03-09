@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 current_phase: 1 of 6 (Single-Brand Workspace & Identity Baseline)
-current_plan: 6
-status: verifying
-stopped_at: Completed 01-06-PLAN.md
-last_updated: "2026-03-09T21:11:50.360Z"
+current_plan: 7
+status: completed
+stopped_at: Completed 01-07-PLAN.md
+last_updated: "2026-03-09T21:27:40.081Z"
 last_activity: 2026-03-09
 progress:
   total_phases: 6
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 7
-  completed_plans: 6
-  percent: 86
+  completed_plans: 7
+  percent: 100
 ---
 
 # Project State
@@ -23,34 +23,34 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-03-09)
 
 **Core value:** Luxury brands can prove a product's authenticity and lifecycle through a neutral, interoperable, regulation-ready Digital Product Passport that is actually verifiable end to end.
-**Current focus:** Phase 1: Single-Brand Workspace & Identity Baseline
+**Current focus:** Phase 1 is complete; next action is Phase 2 planning.
 
 ## Current Position
 
 **Current Phase:** 1 of 6 (Single-Brand Workspace & Identity Baseline)
-**Current Plan:** 6
+**Current Plan:** 7
 **Total Plans in Phase:** 7
-**Status:** Phase in progress — browser verification gap remains
+**Status:** Phase complete — browser verification gap closed
 **Last Activity:** 2026-03-09
 
-**Progress:** [█████████░] 86%
+**Progress:** [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
-- Average duration: 12.8 min
-- Total execution time: 1.3 hours
+- Total plans completed: 7
+- Average duration: 13.0 min
+- Total execution time: 1.5 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| Phase 01 | 6 | 77 min | 12.8 min |
+| Phase 01 | 7 | 91 min | 13.0 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-02 (12 min), 01-03 (14 min), 01-04 (8 min), 01-05 (20 min), 01-06 (20 min)
-- Trend: Phase 1 now has green full-file API regression evidence for workspace authz, product identity creation, and duplicate-wallet conflict handling ahead of browser verification closure.
+- Last 5 plans: 01-03 (14 min), 01-04 (8 min), 01-05 (20 min), 01-06 (20 min), 01-07 (14 min)
+- Trend: Phase 1 is now fully complete, including browser proof for SIWE setup landing and refresh-token persistence.
 
 ## Accumulated Context
 
@@ -73,6 +73,8 @@ Recent decisions affecting current work:
 - [Phase 01-single-brand-workspace-identity-baseline]: Phase 1 product surfaces now center immutable identity plus editable metadata instead of mint, transfer, recall, or QR actions.
 - [Phase 01-single-brand-workspace-identity-baseline]: Product API regressions now seed users directly in Prisma and authenticate through /auth/login for deterministic full-file auth proofs.
 - [Phase 01-single-brand-workspace-identity-baseline]: Duplicate-wallet conflict verification now requires deterministic per-test identities and asserts the original user retains the linked wallet after a 409 rejection.
+- [Phase 01-single-brand-workspace-identity-baseline]: Playwright now uses a test-only browser wallet bridge to prove linked-wallet SIWE lands on /dashboard/setup without bypassing the real nonce and verify flow.
+- [Phase 01-single-brand-workspace-identity-baseline]: Browser auth persistence is now verified by forcing one protected 401 and observing the real /auth/refresh call, successful retry, and authenticated page reload.
 
 ### Pending Todos
 
@@ -85,6 +87,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-09T21:11:50.356Z
-Stopped at: Completed 01-06-PLAN.md
+Last session: 2026-03-09T21:27:40.077Z
+Stopped at: Completed 01-07-PLAN.md
 Resume file: None
