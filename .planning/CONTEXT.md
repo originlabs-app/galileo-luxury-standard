@@ -6,7 +6,7 @@
 
 ## Last Updated
 
-2026-03-09 -- updated after Sprint #2 implementation (awaiting Tester validation)
+2026-03-09 -- updated after Sprint #4 implementation (Sentry, audit trail, product filtering)
 
 ## Tech Stack
 
@@ -38,6 +38,7 @@ galileo-protocol/
 |   |   |   |   +-- csrf.ts            # X-Galileo-Client header check
 |   |   |   |   +-- rbac.ts            # requireRole() middleware
 |   |   |   +-- plugins/
+|   |   |   |   +-- audit.ts           # Audit trail onResponse hook
 |   |   |   |   +-- auth.ts            # JWT authentication decorator
 |   |   |   |   +-- chain.ts           # viem client (mock mode — no deployer key)
 |   |   |   |   +-- cookie.ts          # @fastify/cookie (with signing secret)
@@ -45,8 +46,10 @@ galileo-protocol/
 |   |   |   |   +-- prisma.ts          # Prisma client decorator
 |   |   |   |   +-- rate-limit.ts      # @fastify/rate-limit (disabled in test)
 |   |   |   |   +-- security-headers.ts # @fastify/helmet (disabled in test)
+|   |   |   |   +-- sentry.ts          # Sentry error tracking (no-op without DSN)
 |   |   |   |   +-- storage.ts         # R2/S3 storage + local fallback
 |   |   |   +-- routes/
+|   |   |   |   +-- audit/             # GET /audit-log (ADMIN only)
 |   |   |   |   +-- auth/              # register, login, logout, refresh, me, link-wallet
 |   |   |   |   +-- health.ts          # GET /health
 |   |   |   |   +-- products/          # CRUD, mint, qr, recall, transfer, verify, upload
@@ -123,7 +126,7 @@ galileo-protocol/
 
 ## Database Schema
 
-5 models: `User`, `Brand`, `Product`, `ProductPassport`, `ProductEvent`
+6 models: `User`, `Brand`, `Product`, `ProductPassport`, `ProductEvent`, `AuditLog`
 
 - **User**: id, email, passwordHash, role (enum), brandId?, refreshToken?, walletAddress?
 - **Brand**: id, name, slug (unique), did (unique)
@@ -131,7 +134,9 @@ galileo-protocol/
 - **ProductPassport**: id, productId (unique), digitalLink, metadata (JSON), txHash?, tokenAddress?, chainId?, mintedAt?
 - **ProductEvent**: id, productId, type (enum: CREATED/UPDATED/MINTED/TRANSFERRED/VERIFIED/RECALLED), data (JSON), performedBy?
 
-Key relations: User -> Brand (many-to-one), Product -> Brand (many-to-one), Product -> ProductPassport (one-to-one), Product -> ProductEvent (one-to-many), ProductEvent -> User (many-to-one via performedBy)
+- **AuditLog**: id, actor?, action, resource, resourceId?, metadata (JSON), ip?, createdAt
+
+Key relations: User -> Brand (many-to-one), Product -> Brand (many-to-one), Product -> ProductPassport (one-to-one), Product -> ProductEvent (one-to-many), ProductEvent -> User (many-to-one via performedBy). AuditLog is standalone (no FK relations).
 
 ## API Routes
 
@@ -157,6 +162,7 @@ Key relations: User -> Brand (many-to-one), Product -> Brand (many-to-one), Prod
 | POST | /products/:id/upload | BRAND_ADMIN, OPERATOR, ADMIN | Upload product image (multipart) |
 | POST | /products/:id/verify | public | Record verification event |
 | GET | /01/:gtin/21/:serial | public | GS1 Digital Link resolver (JSON-LD) |
+| GET | /audit-log | ADMIN | List audit log entries (paginated, filterable) |
 
 ## Patterns & Conventions
 
@@ -179,10 +185,13 @@ Key relations: User -> Brand (many-to-one), Product -> Brand (many-to-one), Prod
 - Health check pattern: mock decorators for isolated route tests (health.test.ts, logging.test.ts)
 - Deep link pattern: Next.js dynamic segments redirect to home with ?link= param for reuse
 - Materials stored in ProductPassport.metadata JSON (no schema migration, merge on update)
+- Product list filtering: optional status/category query params, AND-ed with brand scoping (R31)
+- Audit trail: onResponse hook logs successful mutations, AuditLog model standalone (no FK)
+- Sentry plugin: decorate-null pattern (R30), no-op when SENTRY_DSN absent
 
 ## Test Architecture
 
-- **Vitest**: 198 API tests across 14 files (gdpr.test.ts added in Sprint #3)
+- **Vitest**: 285 total -- 216 API tests across 16 files + 69 shared tests (sentry.test.ts, audit.test.ts added in Sprint #4)
 - **Playwright**: 2 e2e tests (auth + product lifecycle)
 - **Test DB**: `galileo_test` via `DATABASE_URL_TEST`
 - **Global setup**: `test/global-setup.ts` -- pushes schema, truncates on teardown
@@ -201,7 +210,7 @@ Key relations: User -> Brand (many-to-one), Product -> Brand (many-to-one), Prod
 7. **Smart Wallet pending** (P1): ERC-1271 verification not implemented
 8. ~~**No GDPR endpoints**~~ RESOLVED: GET /auth/me/data (export) + DELETE /auth/me/data (erasure) implemented in Sprint #3
 9. **No multi-tenant isolation** (P2): app-level RBAC only, no database-level RLS
-10. **No error tracking** (P2): no Sentry integration
+10. ~~**No error tracking**~~ RESOLVED: Sentry plugin with graceful no-op when SENTRY_DSN not set
 11. **Register route has response schema** (info): register + login have Fastify response schemas which may strip fields -- inherited from Sprint 1, works because fields are explicitly listed
 
 ## Research Notes

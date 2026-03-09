@@ -14,9 +14,9 @@
 
 | # | Task | Epic | Status | Verify | Commit |
 |---|------|------|--------|--------|--------|
-| 1 | Sentry error tracking integration | EPIC-007 | todo | Unhandled errors captured in Sentry, SENTRY_DSN configurable | |
-| 2 | Audit trail: AuditLog model + onResponse hook + admin endpoint | EPIC-006 | todo | All POST/PATCH/DELETE mutations logged, GET /audit-log returns entries for ADMIN | |
-| 3 | Product list filtering by status and category | EPIC-002 | todo | GET /products?status=ACTIVE&category=watches returns filtered results | |
+| 1 | Sentry error tracking integration | EPIC-007 | done | Unhandled errors captured in Sentry, SENTRY_DSN configurable | 78f3042 |
+| 2 | Audit trail: AuditLog model + onResponse hook + admin endpoint | EPIC-006 | done | All POST/PATCH/DELETE mutations logged, GET /audit-log returns entries for ADMIN | 75e15ca |
+| 3 | Product list filtering by status and category | EPIC-002 | done | GET /products?status=ACTIVE&category=watches returns filtered results | ff33ff6 |
 
 ### Status values
 - `todo` -- Not started

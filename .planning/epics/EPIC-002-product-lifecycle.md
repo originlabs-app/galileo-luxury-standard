@@ -24,6 +24,10 @@ Complete product lifecycle management: CRUD, mock/real mint, transfer, recall, v
 - [ ] Transfer flow with compliance check (5 modules)
 - [ ] Webhook system for real-time notifications (mint, transfer, CPO)
 - [ ] Event logging: append-only, off-chain + on-chain anchoring
+- [x] Product list filtering by status and category (Sprint #4, ff33ff6)
+- [ ] Dashboard stats API endpoint (GET /products/stats)
+- [ ] Dashboard home: live stats + recent activity
+- [ ] Dashboard product list: filter UI (status + category dropdowns)
 
 ## Acceptance Criteria
 

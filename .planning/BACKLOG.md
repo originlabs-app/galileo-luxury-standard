@@ -63,7 +63,7 @@ EPICs (functional bricks, in epics/)
 - [x] `EPIC-007` Health check with dependency status -- DONE (Sprint #2, 25afe6c)
 - [x] `EPIC-007` Structured logging (no PII) -- DONE (Sprint #2, 0749206)
 
-- [ ] `EPIC-007` Sentry integration -- [source: ROADMAP 4.4] -- IN SPRINT #4
+- [x] `EPIC-007` Sentry integration -- DONE (Sprint #4, 78f3042)
   - **Context**: Error tracking for API and frontend
   - **Verify**: Errors captured in Sentry dashboard
 
@@ -79,15 +79,25 @@ EPICs (functional bricks, in epics/)
 
 - [x] `EPIC-006` GDPR data export endpoint -- DONE (Sprint #3, 8532fc3)
 
-- [ ] `EPIC-006` Audit trail -- [source: ROADMAP 4.3] -- IN SPRINT #4
+- [x] `EPIC-006` Audit trail -- DONE (Sprint #4, 75e15ca)
   - **Context**: Append-only log of who did what, when
   - **Verify**: All mutations recorded with actor, action, timestamp
 
 - [x] `EPIC-008` Publish Swagger at /docs in production -- DONE (Sprint #3, 1ddbea6)
 
-- [ ] `EPIC-002` Product list filtering by status and category -- IN SPRINT #4
-  - **Context**: Add ?status=ACTIVE&category=watches query params to GET /products
-  - **Verify**: Filtered results returned correctly, invalid status returns 400
+- [x] `EPIC-002` Product list filtering by status and category -- DONE (Sprint #4, ff33ff6)
+
+- [ ] `EPIC-002` Dashboard stats API endpoint (GET /products/stats)
+  - **Context**: Backend endpoint returning product counts by status, total verifications, and recent activity for the dashboard home page. Currently shows hardcoded zeros.
+  - **Verify**: Returns counts per status, total verifications, recent events. Brand-scoped for non-ADMIN users.
+
+- [ ] `EPIC-002` Dashboard home: live stats + recent activity
+  - **Context**: Replace hardcoded zeros in dashboard home with real data from /products/stats endpoint. Show recent ProductEvents in the activity feed.
+  - **Verify**: Stats cards show real numbers, activity feed shows recent events with timestamps.
+
+- [ ] `EPIC-002` Dashboard product list: filter UI (status + category dropdowns)
+  - **Context**: Add filter dropdowns to the product list page using existing shadcn Select component. Leverages Sprint #4 API filtering (GET /products?status=X&category=Y).
+  - **Verify**: Selecting a filter updates the product list. Clearing filter shows all products.
 
 - [ ] `EPIC-002` Webhook system -- [source: ROADMAP 3.5]
   - **Context**: Real-time notifications for mint, transfer, CPO events

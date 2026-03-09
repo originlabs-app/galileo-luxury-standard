@@ -123,7 +123,6 @@ describe("Audit trail", () => {
         },
       });
       expect(createRes.statusCode).toBe(201);
-      const productId = createRes.json().data.product.id;
 
       const logs = await app.prisma.auditLog.findMany({
         where: { resource: "product" },
