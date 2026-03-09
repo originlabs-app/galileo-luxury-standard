@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Outfit } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { AuthProvider } from "@/hooks/use-auth";
 import { WalletProvider } from "@/components/providers/wallet-provider";
@@ -35,6 +36,7 @@ export default function RootLayout({
         <AuthProvider>
           <WalletProvider>{children}</WalletProvider>
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   );

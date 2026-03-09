@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Outfit } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { RegisterSW } from "./register-sw";
 
@@ -50,6 +51,7 @@ export default function RootLayout({
       >
         {children}
         <RegisterSW />
+        <Analytics />
       </body>
     </html>
   );
