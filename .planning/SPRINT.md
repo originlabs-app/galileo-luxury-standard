@@ -14,11 +14,11 @@
 
 | ID | Task | Epic | Status | Verify | Commit |
 |------|------|------|--------|--------|--------|
-| T8.1 | Batch CSV import endpoint | EPIC-006 | done | Upload CSV with 100 products, all created with correct GTIN validation. Errors reported per row. | 25aa114 |
-| T8.2 | Batch mint endpoint | EPIC-006 | done | POST /products/batch-mint with array of product IDs, all minted. Partial failure handled gracefully. | ccc86e8 |
-| T8.3 | Dashboard: CSV import UI | EPIC-006 | done | Upload button, file picker, progress feedback, error summary displayed. Works on desktop and mobile. | 96ba874 |
-| T8.4 | SIWE wallet login (EIP-4361) | EPIC-005 | done | User can login with wallet signature. Nonce endpoint, SIWE message format, session created on success. | d590d24 |
-| T8.5 | E2E Playwright: batch import, batch mint, SIWE login | EPIC-007 | done | Automated Playwright specs covering Sprint #8 features. Run with `pnpm --filter dashboard exec playwright test`. | a73f30c |
+| T8.1 | Batch CSV import endpoint | EPIC-006 | validated | Upload CSV with 100 products, all created with correct GTIN validation. Errors reported per row. | 25aa114 |
+| T8.2 | Batch mint endpoint | EPIC-006 | validated | POST /products/batch-mint with array of product IDs, all minted. Partial failure handled gracefully. | ccc86e8 |
+| T8.3 | Dashboard: CSV import UI | EPIC-006 | validated | Upload button, file picker, progress feedback, error summary displayed. Works on desktop and mobile. | 96ba874 |
+| T8.4 | SIWE wallet login (EIP-4361) | EPIC-005 | validated | User can login with wallet signature. Nonce endpoint, SIWE message format, session created on success. | d590d24 |
+| T8.5 | E2E Playwright: batch import, batch mint, SIWE login | EPIC-007 | validated | Automated Playwright specs covering Sprint #8 features. Run with `pnpm --filter dashboard exec playwright test`. | a73f30c |
 
 ### Status values
 - `todo` — Not started
