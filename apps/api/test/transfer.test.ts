@@ -14,7 +14,7 @@ vi.mock("viem", async (importOriginal) => {
   const actual = await importOriginal<typeof import("viem")>();
   return {
     ...actual,
-    createPublicClient: vi.fn(),
+    createPublicClient: vi.fn(() => ({ verifyMessage: vi.fn() })),
     createWalletClient: vi.fn(),
     http: vi.fn(),
   };

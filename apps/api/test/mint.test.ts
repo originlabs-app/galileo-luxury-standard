@@ -11,7 +11,7 @@ import type { FastifyInstance } from "fastify";
 
 // Mock viem entirely — must be before any import that touches viem
 vi.mock("viem", () => ({
-  createPublicClient: vi.fn(),
+  createPublicClient: vi.fn(() => ({ verifyMessage: vi.fn() })),
   createWalletClient: vi.fn(),
   http: vi.fn(),
 }));

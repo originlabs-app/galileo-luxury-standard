@@ -127,13 +127,12 @@ export default async function siweRoutes(fastify: FastifyInstance) {
         });
       }
 
-      // Verify signature using viem
+      // Verify signature using publicClient.verifyMessage (supports both EOA + ERC-1271 Smart Wallets)
       let isValid: boolean;
       let checksumAddress: `0x${string}`;
       try {
         checksumAddress = getAddress(fields.address) as `0x${string}`;
-        const { verifyMessage } = await import("viem");
-        isValid = await verifyMessage({
+        isValid = await fastify.chain.publicClient.verifyMessage({
           address: checksumAddress,
           message,
           signature: signature as `0x${string}`,

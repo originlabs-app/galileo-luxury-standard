@@ -9,14 +9,15 @@ import {
 } from "vitest";
 import type { FastifyInstance } from "fastify";
 
-// Mock viem (R06)
+// Mock viem (R06) — publicClient.verifyMessage for ERC-1271 support
 const mockVerifyMessage = vi.fn();
 vi.mock("viem", () => ({
-  createPublicClient: vi.fn(),
+  createPublicClient: vi.fn(() => ({
+    verifyMessage: (...args: unknown[]) => mockVerifyMessage(...args),
+  })),
   createWalletClient: vi.fn(),
   http: vi.fn(),
   getAddress: vi.fn((a: string) => a),
-  verifyMessage: (...args: unknown[]) => mockVerifyMessage(...args),
 }));
 vi.mock("viem/accounts", () => ({ privateKeyToAccount: vi.fn() }));
 vi.mock("viem/chains", () => ({
@@ -241,6 +242,61 @@ describe("SIWE Auth (/auth/siwe/*)", () => {
         payload: { message, signature: "0xsig" },
       });
       expect(res.statusCode).toBe(401);
+    });
+
+    it("should verify Smart Wallet (ERC-1271) signature via publicClient.verifyMessage", async () => {
+      await createUserWithWallet();
+      const nonce = await getNonce();
+      const message = buildSiweMessage(WALLET_ADDRESS, nonce);
+      // publicClient.verifyMessage handles ERC-1271 automatically
+      mockVerifyMessage.mockResolvedValue(true);
+
+      const res = await app.inject({
+        method: "POST",
+        url: "/auth/siwe/verify",
+        payload: { message, signature: "0xsmartWalletSig" },
+      });
+
+      expect(res.statusCode).toBe(200);
+      expect(res.json().data.user.email).toBe("siwe@test.com");
+      // Verify publicClient.verifyMessage was called with correct params
+      expect(mockVerifyMessage).toHaveBeenCalledWith({
+        address: WALLET_ADDRESS,
+        message,
+        signature: "0xsmartWalletSig",
+      });
+    });
+
+    it("should reject invalid Smart Wallet signature (ERC-1271 returns false)", async () => {
+      await createUserWithWallet();
+      const nonce = await getNonce();
+      const message = buildSiweMessage(WALLET_ADDRESS, nonce);
+      mockVerifyMessage.mockResolvedValue(false);
+
+      const res = await app.inject({
+        method: "POST",
+        url: "/auth/siwe/verify",
+        payload: { message, signature: "0xinvalidSmartWalletSig" },
+      });
+
+      expect(res.statusCode).toBe(401);
+      expect(res.json().error.code).toBe("INVALID_SIGNATURE");
+    });
+
+    it("should handle RPC error during ERC-1271 check gracefully (401)", async () => {
+      await createUserWithWallet();
+      const nonce = await getNonce();
+      const message = buildSiweMessage(WALLET_ADDRESS, nonce);
+      mockVerifyMessage.mockRejectedValue(new Error("RPC connection failed"));
+
+      const res = await app.inject({
+        method: "POST",
+        url: "/auth/siwe/verify",
+        payload: { message, signature: "0xsig" },
+      });
+
+      expect(res.statusCode).toBe(401);
+      expect(res.json().error.code).toBe("INVALID_SIGNATURE");
     });
   });
 });

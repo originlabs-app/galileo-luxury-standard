@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
-import { verifyMessage, getAddress } from "viem";
+import { getAddress } from "viem";
 import { ETHEREUM_ADDRESS_RE, parseLinkWalletMessage } from "@galileo/shared";
 import { consumeNonce } from "./nonce.js";
 import { requireCsrfHeader } from "../../middleware/csrf.js";
@@ -77,10 +77,10 @@ export default async function linkWalletRoute(fastify: FastifyInstance) {
       const { address, signature, message } = parsed.data;
       const checksumAddress = getAddress(address);
 
-      // 2. Verify EIP-191 signature first (no DB needed — fail fast)
+      // 2. Verify signature first (supports both EOA + ERC-1271 Smart Wallets)
       let isValid: boolean;
       try {
-        isValid = await verifyMessage({
+        isValid = await fastify.chain.publicClient.verifyMessage({
           address: checksumAddress,
           message,
           signature: signature as `0x${string}`,
