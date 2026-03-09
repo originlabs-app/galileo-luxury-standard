@@ -14,8 +14,8 @@
 
 | # | Task | Epic | Status | Verify | Commit |
 |---|------|------|--------|--------|--------|
-| 1 | GET /products/stats endpoint | EPIC-002 | in_progress | Returns counts per status, total verifications, recent events. Brand-scoped for non-ADMIN. | |
-| 2 | Dashboard home: live stats + recent activity | EPIC-002 | todo | Stats cards show real numbers from API, activity feed shows recent events with timestamps. | |
+| 1 | GET /products/stats endpoint | EPIC-002 | done | Returns counts per status, total verifications, recent events. Brand-scoped for non-ADMIN. | 78bbd38 |
+| 2 | Dashboard home: live stats + recent activity | EPIC-002 | in_progress | Stats cards show real numbers from API, activity feed shows recent events with timestamps. | |
 | 3 | Dashboard product list: filter UI (status + category dropdowns) | EPIC-002 | todo | Selecting a filter updates the product list. Clearing filter shows all products. | |
 | 4 | Dashboard product image upload UI | EPIC-006 | todo | Product create/edit forms allow image upload. Uploaded image visible on product detail. | |
 | 5 | E2E Playwright: dashboard stats, filters, upload | EPIC-007 | todo | Automated Playwright specs covering Sprint #5 features. Run with `pnpm --filter dashboard exec playwright test`. | |
