@@ -14,10 +14,10 @@
 
 | # | Task | Epic | Status | Verify | Commit |
 |---|------|------|--------|--------|--------|
-| 1 | Scanner material composition display | EPIC-004 | done | Scanner shows material composition when product has metadata | f91652f |
-| 2 | Scanner deep link | EPIC-004 | done | QR scan opens product page directly, bypassing scanner home | fdcefe1 |
-| 3 | Health check with dependency status | EPIC-007 | done | GET /health returns db + chain status | 25afe6c |
-| 4 | Structured logging (no PII) | EPIC-007 | done | JSON logs with request IDs, no email/password in logs | 0749206 |
+| 1 | Scanner material composition display | EPIC-004 | validated | Scanner shows material composition when product has metadata | f91652f |
+| 2 | Scanner deep link | EPIC-004 | validated | QR scan opens product page directly, bypassing scanner home | fdcefe1 |
+| 3 | Health check with dependency status | EPIC-007 | validated | GET /health returns db + chain status | 25afe6c |
+| 4 | Structured logging (no PII) | EPIC-007 | validated | JSON logs with request IDs, no email/password in logs | 0749206 |
 
 ### Status values
 - `todo` -- Not started
@@ -29,10 +29,10 @@
 
 ## Completion Criteria
 
-- [ ] All tasks validated or explicitly deferred
-- [ ] All tests pass (173+ API tests, 69 shared tests)
-- [ ] No P0 bugs introduced
-- [ ] CONTEXT.md updated if architecture changed
+- [x] All tasks validated or explicitly deferred
+- [x] All tests pass (186 API tests, 69 shared tests — 255 total, 0 failures)
+- [x] No P0 bugs introduced
+- [x] CONTEXT.md updated if architecture changed
 - [ ] EPIC-004 status updated to `completed` after scanner tasks validated
 
 ## Task Briefs

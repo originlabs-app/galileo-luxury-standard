@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
 import Fastify from "fastify";
-import type { FastifyInstance } from "fastify";
 import { Writable } from "node:stream";
 
 describe("Structured logging", () => {
