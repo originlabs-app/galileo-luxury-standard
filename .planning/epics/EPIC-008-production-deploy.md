@@ -1,6 +1,6 @@
 # EPIC-008: Production Deployment
 
-**Status**: not-started
+**Status**: in-progress
 **Owner**: Researcher
 **Created**: 2026-03-08
 
@@ -17,7 +17,7 @@ Deploy the full stack to production: frontend on Vercel, API on dedicated host, 
 - [ ] 🔒 Transfer contract ownership to multisig (Safe)
 - [ ] Create contracts/deployments/base-mainnet.json
 - [ ] Host Galileo JSON-LD context at https://vocab.galileoprotocol.io/contexts/galileo.jsonld
-- [ ] Publish Swagger at /docs in production
+- [x] Publish Swagger at /docs in production (Sprint #3, 1ddbea6)
 
 ## Acceptance Criteria
 

@@ -12,8 +12,8 @@ GDPR compliance, multi-tenant data isolation, file upload (R2 + CID), and audit 
 
 - [x] File upload: photo/certificate -> Cloudflare R2 + local CIDv1 computation
 - [x] Dashboard: photo upload UI in product create/edit form
-- [ ] `DELETE /users/:id/data` — GDPR erasure (Art. 17)
-- [ ] `GET /users/:id/data` — GDPR data export (Art. 15)
+- [x] `DELETE /auth/me/data` — GDPR erasure (Art. 17) (Sprint #3, 22eb6c4)
+- [x] `GET /auth/me/data` — GDPR data export (Art. 15) (Sprint #3, 8532fc3)
 - [ ] Audit trail: who did what, when (append-only log)
 - [ ] Human review endpoint for compliance rejections (GDPR Art. 22)
 - [ ] DPIA draft (required before mainnet per EDPB Guidelines 02/2025)

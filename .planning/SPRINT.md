@@ -4,9 +4,9 @@
 > Created by the Researcher from the BACKLOG. Each task includes a brief: files to modify, approach, patterns, edge cases.
 > Archived when all tasks are validated or deferred.
 
-## Sprint #3 -- Data Compliance & Production API Polish
+## Sprint #4 -- Production Observability & API Usability
 
-**Goal**: Make the API production-ready by enabling Swagger docs in all environments and implementing GDPR Art. 15 (data export) and Art. 17 (erasure) endpoints -- closing critical compliance gaps before deployment.
+**Goal**: Add error tracking (Sentry), an append-only audit trail for all mutations, and product list filtering -- moving the API closer to production-grade observability and usability.
 **Started**: 2026-03-09
 **Status**: active
 
@@ -14,9 +14,9 @@
 
 | # | Task | Epic | Status | Verify | Commit |
 |---|------|------|--------|--------|--------|
-| 1 | Publish Swagger at /docs in production | EPIC-008 | validated | /docs accessible when ENABLE_SWAGGER=true in production | 1ddbea6 |
-| 2 | GDPR data export (GET /auth/me/data) | EPIC-006 | validated | Authenticated user gets full JSON export of all their data | 8532fc3 |
-| 3 | GDPR erasure (DELETE /auth/me/data) | EPIC-006 | validated | User data deleted from PostgreSQL, events anonymized, cookies cleared | 22eb6c4 |
+| 1 | Sentry error tracking integration | EPIC-007 | todo | Unhandled errors captured in Sentry, SENTRY_DSN configurable | |
+| 2 | Audit trail: AuditLog model + onResponse hook + admin endpoint | EPIC-006 | todo | All POST/PATCH/DELETE mutations logged, GET /audit-log returns entries for ADMIN | |
+| 3 | Product list filtering by status and category | EPIC-002 | todo | GET /products?status=ACTIVE&category=watches returns filtered results | |
 
 ### Status values
 - `todo` -- Not started
@@ -28,310 +28,510 @@
 
 ## Completion Criteria
 
-- [x] All tasks validated or explicitly deferred
-- [x] All tests pass (198 API tests across 14 files, 69 shared tests, 0 failures)
-- [x] No P0 bugs introduced
-- [x] CONTEXT.md updated if architecture changed
+- [ ] All tasks validated or explicitly deferred
+- [ ] All tests pass
+- [ ] No P0 bugs introduced
+- [ ] CONTEXT.md updated if architecture changed
 
 ## Task Briefs
 
-### Brief #1: Publish Swagger at /docs in Production
+### Brief #1: Sentry Error Tracking Integration
+
+**Type**: observability
+**Priority**: P2
+**Epic**: EPIC-007-observability-quality
+
+**Files to modify**:
+- `apps/api/package.json` -- add `@sentry/node` dependency
+- `apps/api/src/config.ts` -- add `SENTRY_DSN` env var (optional)
+- `apps/api/src/plugins/sentry.ts` -- NEW: Sentry plugin (fp() pattern)
+- `apps/api/src/server.ts` -- register sentry plugin (before routes, after core plugins)
+- `apps/api/test/sentry.test.ts` -- NEW: tests using mock decorator pattern
+
+**Approach**:
+
+Sentry captures unhandled errors and sends them to a remote dashboard for monitoring. For Galileo, we use `@sentry/node` directly with a Fastify plugin that:
+1. Initializes Sentry with the DSN from config
+2. Adds an `onError` hook that captures exceptions
+3. Gracefully no-ops when `SENTRY_DSN` is not set (dev/test)
+
+**Step 1: Add dependency**
+
+```bash
+cd apps/api && pnpm add @sentry/node
+```
+
+**Step 2: Add `SENTRY_DSN` to config.ts**
+
+```typescript
+SENTRY_DSN: z.string().url().optional(),
+```
+
+This follows R12 (optional in dev/test, used in production).
+
+**Step 3: Create `apps/api/src/plugins/sentry.ts`**
+
+```typescript
+import fp from "fastify-plugin";
+import * as Sentry from "@sentry/node";
+import type { FastifyInstance } from "fastify";
+import { config } from "../config.js";
+
+declare module "fastify" {
+  interface FastifyInstance {
+    sentry: typeof Sentry | null;
+  }
+}
+
+export default fp(async (fastify: FastifyInstance) => {
+  if (!config.SENTRY_DSN) {
+    fastify.decorate("sentry", null);
+    return;
+  }
+
+  Sentry.init({
+    dsn: config.SENTRY_DSN,
+    environment: config.NODE_ENV,
+    tracesSampleRate: config.NODE_ENV === "production" ? 0.1 : 1.0,
+  });
+
+  fastify.decorate("sentry", Sentry);
+
+  // Capture unhandled errors
+  fastify.addHook("onError", async (_request, _reply, error) => {
+    Sentry.captureException(error);
+  });
+
+  // Flush on shutdown
+  fastify.addHook("onClose", async () => {
+    await Sentry.close(2000);
+  });
+});
+```
+
+**Step 4: Register in `server.ts`**
+
+Add import and register after `storagePlugin`, before routes:
+
+```typescript
+import sentryPlugin from "./plugins/sentry.js";
+// ... in buildApp():
+await fastify.register(sentryPlugin);
+```
+
+**Step 5: Tests in `apps/api/test/sentry.test.ts`**
+
+Use the mock decorator pattern (R17) -- no real Sentry connection needed:
+
+```typescript
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import Fastify from "fastify";
+import type { FastifyInstance } from "fastify";
+
+describe("Sentry plugin", () => {
+  it("decorates fastify with sentry: null when no DSN configured", async () => {
+    const app = Fastify();
+    // Plugin reads config.SENTRY_DSN which is undefined in test env
+    const { default: sentryPlugin } = await import("../src/plugins/sentry.js");
+    await app.register(sentryPlugin);
+    await app.ready();
+
+    expect(app.sentry).toBeNull();
+
+    await app.close();
+  });
+
+  it("does not throw when sentry is null and an error occurs", async () => {
+    const app = Fastify();
+    const { default: sentryPlugin } = await import("../src/plugins/sentry.js");
+    await app.register(sentryPlugin);
+
+    // Add a route that throws
+    app.get("/error-test", async () => {
+      throw new Error("Test error");
+    });
+
+    await app.ready();
+
+    const response = await app.inject({
+      method: "GET",
+      url: "/error-test",
+    });
+
+    // Fastify returns 500 for unhandled errors
+    expect(response.statusCode).toBe(500);
+
+    await app.close();
+  });
+});
+```
+
+**Patterns to follow**:
+- Plugin architecture: `fp()` wrapper, decorate fastify instance (same as prisma.ts, chain.ts)
+- Config pattern: optional env var with no default (R12)
+- Mock decorator pattern for tests (R17)
+- Sentry SDK is disabled in test env (SENTRY_DSN not set)
+
+**Edge cases**:
+- `SENTRY_DSN` not set: plugin decorates `sentry: null`, no errors captured. This is the default for dev/test.
+- `SENTRY_DSN` set but invalid: Sentry SDK handles this gracefully (logs warning, does not throw)
+- High error volume: `tracesSampleRate: 0.1` in production limits trace collection
+- Shutdown: `Sentry.close(2000)` flushes pending events with a 2-second timeout
+
+**Verify**: `SENTRY_DSN` not set: app starts normally, `sentry` decorator is null. With DSN set: errors are captured (verify via Sentry dashboard or mock). All existing tests pass.
+
+---
+
+### Brief #2: Audit Trail -- AuditLog Model + onResponse Hook + Admin Endpoint
+
+**Type**: feature
+**Priority**: P2
+**Epic**: EPIC-006-data-compliance
+
+**Files to modify**:
+- `apps/api/prisma/schema.prisma` -- add `AuditLog` model
+- `apps/api/src/plugins/audit.ts` -- NEW: Fastify plugin with onResponse hook
+- `apps/api/src/routes/audit/index.ts` -- NEW: GET /audit-log endpoint (ADMIN only)
+- `apps/api/src/server.ts` -- register audit plugin + audit routes
+- `apps/api/test/helpers.ts` -- add `AuditLog` to TRUNCATE statement
+- `apps/api/test/global-setup.ts` -- add `AuditLog` to TRUNCATE statement
+- `apps/api/test/audit.test.ts` -- NEW: tests
+
+**Approach**:
+
+An append-only audit log records who did what, when. This is a lightweight first version -- a Prisma model with a Fastify `onResponse` hook that logs all successful mutations (POST, PATCH, DELETE that returned 2xx). A later sprint can add hash-chain integrity per the full spec in `specifications/infrastructure/audit-trail.md`.
+
+**Step 1: Add AuditLog model to Prisma schema**
+
+```prisma
+model AuditLog {
+  id         String   @id @default(cuid())
+  actor      String?  // User ID (null for unauthenticated actions like verify)
+  action     String   // HTTP method + route: "POST /products"
+  resource   String   // Resource type: "product", "user", "auth"
+  resourceId String?  // ID of the affected resource (if applicable)
+  metadata   Json     @default("{}")  // Request body (sanitized), status code, etc.
+  ip         String?  // Client IP for forensics
+  createdAt  DateTime @default(now())
+
+  @@index([actor])
+  @@index([resource])
+  @@index([createdAt])
+}
+```
+
+After adding this, run: `cd apps/api && pnpm prisma generate`
+
+**Step 2: Create `apps/api/src/plugins/audit.ts`**
+
+```typescript
+import fp from "fastify-plugin";
+import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
+
+/** HTTP methods that are considered mutations and should be audited */
+const MUTATION_METHODS = new Set(["POST", "PATCH", "PUT", "DELETE"]);
+
+/** Fields to strip from request body before logging (PII/secrets) */
+const SENSITIVE_FIELDS = new Set([
+  "password",
+  "passwordHash",
+  "refreshToken",
+  "email",
+]);
+
+/** Sanitize request body: remove sensitive fields, truncate large values */
+function sanitizeBody(body: unknown): Record<string, unknown> {
+  if (!body || typeof body !== "object") return {};
+  const sanitized: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(body as Record<string, unknown>)) {
+    if (SENSITIVE_FIELDS.has(key)) {
+      sanitized[key] = "[REDACTED]";
+    } else if (typeof value === "string" && value.length > 200) {
+      sanitized[key] = value.slice(0, 200) + "...";
+    } else {
+      sanitized[key] = value;
+    }
+  }
+  return sanitized;
+}
+
+/** Extract resource type from URL path */
+function extractResource(url: string): string {
+  // /products/:id/mint -> "product"
+  // /auth/login -> "auth"
+  // /auth/me/data -> "auth"
+  const segments = url.split("/").filter(Boolean);
+  if (segments[0] === "auth") return "auth";
+  if (segments[0] === "products") return "product";
+  if (segments[0] === "01") return "resolver";
+  return segments[0] ?? "unknown";
+}
+
+/** Extract resource ID from URL path if present */
+function extractResourceId(url: string): string | null {
+  // /products/:id/... -> id
+  const match = url.match(/\/products\/([^/]+)/);
+  return match?.[1] ?? null;
+}
+
+export default fp(async (fastify: FastifyInstance) => {
+  fastify.addHook(
+    "onResponse",
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      // Only audit mutations that succeeded (2xx)
+      if (!MUTATION_METHODS.has(request.method)) return;
+      if (reply.statusCode < 200 || reply.statusCode >= 300) return;
+
+      // Skip health checks and other non-business routes
+      if (request.url === "/health") return;
+
+      const actor = request.user?.sub ?? null;
+      const action = `${request.method} ${request.routeOptions?.url ?? request.url}`;
+      const resource = extractResource(request.url);
+      const resourceId = extractResourceId(request.url);
+
+      try {
+        await fastify.prisma.auditLog.create({
+          data: {
+            actor,
+            action,
+            resource,
+            resourceId,
+            metadata: {
+              statusCode: reply.statusCode,
+              body: sanitizeBody(request.body),
+              requestId: request.id,
+            },
+            ip: request.ip,
+          },
+        });
+      } catch {
+        // Audit logging must never break the request -- log and continue
+        request.log.error("Failed to write audit log entry");
+      }
+    },
+  );
+});
+```
+
+**Step 3: Create `apps/api/src/routes/audit/index.ts`**
+
+```typescript
+import type { FastifyInstance } from "fastify";
+import { z } from "zod";
+import { requireRole } from "../../middleware/rbac.js";
+
+const auditQuerySchema = z.object({
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(100).default(20),
+  resource: z.string().optional(),
+  actor: z.string().optional(),
+});
+
+export default async function auditRoutes(fastify: FastifyInstance) {
+  fastify.get(
+    "/audit-log",
+    {
+      onRequest: [fastify.authenticate, requireRole("ADMIN")],
+      schema: {
+        description:
+          "List audit log entries. ADMIN only. " +
+          "Supports pagination and filtering by resource type or actor.",
+        tags: ["Audit"],
+        security: [{ cookieAuth: [] }],
+        querystring: {
+          type: "object",
+          properties: {
+            page: { type: "integer", minimum: 1, default: 1 },
+            limit: { type: "integer", minimum: 1, maximum: 100, default: 20 },
+            resource: { type: "string", description: "Filter by resource type" },
+            actor: { type: "string", description: "Filter by actor user ID" },
+          },
+        },
+      },
+    },
+    async (request, reply) => {
+      const parsed = auditQuerySchema.safeParse(request.query);
+      if (!parsed.success) {
+        return reply.status(400).send({
+          success: false,
+          error: {
+            code: "VALIDATION_ERROR",
+            message: "Invalid query parameters",
+            details: parsed.error.flatten().fieldErrors,
+          },
+        });
+      }
+
+      const { page, limit, resource, actor } = parsed.data;
+
+      const where: Record<string, string> = {};
+      if (resource) where.resource = resource;
+      if (actor) where.actor = actor;
+
+      const [entries, total] = await Promise.all([
+        fastify.prisma.auditLog.findMany({
+          where,
+          skip: (page - 1) * limit,
+          take: limit,
+          orderBy: { createdAt: "desc" },
+        }),
+        fastify.prisma.auditLog.count({ where }),
+      ]);
+
+      const totalPages = Math.ceil(total / limit);
+
+      return reply.status(200).send({
+        success: true,
+        data: {
+          entries,
+          pagination: { total, page, limit, totalPages },
+        },
+      });
+    },
+  );
+}
+```
+
+**Step 4: Register in `server.ts`**
+
+```typescript
+import auditPlugin from "./plugins/audit.js";
+import auditRoutes from "./routes/audit/index.js";
+// ... in buildApp():
+await fastify.register(auditPlugin);  // after prisma, before routes
+// ... with other route registrations:
+await fastify.register(auditRoutes);
+```
+
+**Step 5: Update `test/helpers.ts` TRUNCATE**
+
+Add `"AuditLog"` to the TRUNCATE statement:
+
+```typescript
+`TRUNCATE TABLE "AuditLog", "ProductEvent", "ProductPassport", "Product", "User", "Brand" CASCADE`
+```
+
+Do the same in `test/global-setup.ts` teardown.
+
+**Step 6: Tests in `apps/api/test/audit.test.ts`**
+
+```
+~10 tests:
+- POST /products creates an audit log entry with actor, action, resource, resourceId
+- Audit log entry has sanitized body (password redacted)
+- GET /audit-log returns paginated entries for ADMIN
+- GET /audit-log with ?resource=product filters by resource
+- GET /audit-log with ?actor=userId filters by actor
+- GET /audit-log returns 403 for non-ADMIN users
+- GET /audit-log returns 401 for unauthenticated requests
+- Failed mutations (4xx) are NOT logged
+- GET requests are NOT logged (only mutations)
+- Audit hook failure does not break the request (error handling)
+```
+
+Use `buildApp()` + `cleanDb()` + re-seed pattern (R03, R16).
+
+**Patterns to follow**:
+- Plugin architecture: `fp()` wrapper (same as prisma.ts, rate-limit.ts)
+- Pagination: same pattern as products/list.ts (page/limit/totalPages)
+- RBAC: `requireRole("ADMIN")` (same as existing admin guards)
+- PII redaction: sanitize body before logging (R22 principle)
+- Error resilience: audit logging must never break the request
+- No body/response JSON schema in route config (R01)
+
+**Edge cases**:
+- Public endpoints (verify): `actor` is null, still logged
+- Large request body: truncated to 200 chars per field
+- Multipart upload: body sanitization handles non-object bodies gracefully
+- Prisma error during audit write: caught silently, logged via Pino
+- New TRUNCATE in helpers.ts: must be updated or existing tests will have stale AuditLog rows
+
+**Verify**: Create a product (POST). Check AuditLog table has entry with actor, action="POST /products", resource="product", resourceId=productId. GET /audit-log as ADMIN returns the entry. Non-ADMIN gets 403. Failed requests (4xx) do not create entries.
+
+---
+
+### Brief #3: Product List Filtering by Status and Category
 
 **Type**: improvement
 **Priority**: P2
-**Epic**: EPIC-008-production-deploy
+**Epic**: EPIC-002-product-lifecycle
 
 **Files to modify**:
-- `apps/api/src/config.ts` -- add `ENABLE_SWAGGER` env var
-- `apps/api/src/server.ts` -- replace `NODE_ENV !== "production"` guard with `ENABLE_SWAGGER` check
+- `apps/api/src/routes/products/list.ts` -- add `status` and `category` query params
+- `apps/api/test/products.test.ts` -- add filtering tests
 
 **Approach**:
 
-Currently, Swagger UI is guarded by `config.NODE_ENV !== "production"` in `server.ts` (line 64). This prevents API documentation from being available in production. For a B2B API, having `/docs` accessible in production is important for brand integrators.
+The product list endpoint already supports pagination (page/limit). Add optional `status` and `category` query params for filtering. This enables the dashboard to show "only active products" or "only watches".
 
-Instead of simply removing the guard (which would always enable Swagger), add a configurable `ENABLE_SWAGGER` env var that defaults to `true` in development/test and can be explicitly set in production.
+**Step 1: Update `listQuerySchema` in list.ts**
 
-1. **Add `ENABLE_SWAGGER` to config.ts**:
-   ```typescript
-   ENABLE_SWAGGER: z
-     .enum(["true", "false"])
-     .default("true")
-     .transform((v) => v === "true"),
-   ```
+```typescript
+import { ProductStatus } from "@galileo/shared";
 
-2. **Update the guard in server.ts** (line 64):
-   ```typescript
-   // Before:
-   if (config.NODE_ENV !== "production") {
-   // After:
-   if (config.ENABLE_SWAGGER) {
-   ```
+const listQuerySchema = z.object({
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(100).default(20),
+  status: z.nativeEnum(ProductStatus).optional(),
+  category: z.string().max(100).optional(),
+});
+```
 
-3. No changes to the Swagger config content itself. The existing server URL (`http://localhost:{PORT}`) is fine -- browsers auto-detect the actual server. A future task can add a configurable `API_BASE_URL` if needed.
+Note: Use `z.nativeEnum(ProductStatus)` to validate against the shared enum (R09).
 
-**Tests**: No new test file needed. This is a config change. Verify with `pnpm turbo typecheck`. The existing test suite does not exercise Swagger registration (test env has `logger: false` and Swagger was already registering in non-test envs).
+**Step 2: Update the querystring schema metadata** (for Swagger docs)
 
-**Patterns to follow**:
-- Config pattern: Zod schema in config.ts with `.default()` for optional vars (R12)
-- Boolean env vars: parse as `z.enum(["true", "false"]).transform()` since env vars are always strings
+```typescript
+querystring: {
+  type: "object",
+  properties: {
+    page: { type: "integer", minimum: 1, default: 1, description: "Page number" },
+    limit: { type: "integer", minimum: 1, maximum: 100, default: 20, description: "Items per page" },
+    status: { type: "string", enum: ["DRAFT", "MINTING", "ACTIVE", "TRANSFERRED", "RECALLED"], description: "Filter by product status" },
+    category: { type: "string", description: "Filter by product category" },
+  },
+},
+```
 
-**Edge cases**:
-- `ENABLE_SWAGGER` not set: defaults to `"true"` -> Swagger enabled. This is the desired behavior for dev/test, and production deployments must explicitly set env vars anyway.
-- `ENABLE_SWAGGER=false` in production: Swagger disabled, `/docs` returns 404. Useful for internal-only deployments.
-- Swagger in production exposes API structure: acceptable for a B2B API. The endpoints are protected by auth/RBAC regardless.
+**Step 3: Update the where clause in the handler**
 
-**Verify**: Set `ENABLE_SWAGGER=true` in env. Start server. Navigate to `/docs`. Swagger UI loads with all API routes. Set `ENABLE_SWAGGER=false` -- `/docs` returns 404. All existing tests pass.
+```typescript
+const { page, limit, status, category } = parsed.data;
 
----
+// Brand scoping: ADMIN sees all, others see only their brand
+const where: Record<string, unknown> =
+  user.role === "ADMIN" ? {} : { brandId: user.brandId as string };
 
-### Brief #2: GDPR Data Export (GET /auth/me/data)
+// Apply optional filters
+if (status) where.status = status;
+if (category) where.category = category;
+```
 
-**Type**: feature
-**Priority**: P2
-**Epic**: EPIC-006-data-compliance
+**Step 4: Add tests in products.test.ts**
 
-**Files to modify**:
-- `apps/api/src/routes/auth/data-export.ts` -- NEW: GET /auth/me/data route
-- `apps/api/src/routes/auth/index.ts` -- register the new route
-- `apps/api/test/gdpr.test.ts` -- NEW: tests for data export (and erasure in task 3)
+Add to the existing `describe("Product CRUD endpoints")` block:
 
-**Approach**:
-
-GDPR Art. 15 gives users the right to access all their personal data. This endpoint returns a JSON package containing everything the system knows about the authenticated user, excluding sensitive internal fields (passwordHash, refreshToken).
-
-1. **Create `data-export.ts`** route:
-
-   ```typescript
-   import type { FastifyInstance } from "fastify";
-
-   export default async function dataExportRoute(fastify: FastifyInstance) {
-     fastify.get(
-       "/auth/me/data",
-       {
-         onRequest: [fastify.authenticate],
-         schema: {
-           description:
-             "Export all personal data for the authenticated user (GDPR Art. 15). " +
-             "Returns user profile, brand association, products, and events performed.",
-           tags: ["Auth", "GDPR"],
-           security: [{ cookieAuth: [] }],
-         },
-       },
-       async (request, reply) => {
-         const { sub } = request.user;
-
-         const user = await fastify.prisma.user.findUnique({
-           where: { id: sub },
-           include: { brand: true },
-         });
-
-         if (!user) {
-           return reply.status(404).send({
-             success: false,
-             error: { code: "NOT_FOUND", message: "User not found" },
-           });
-         }
-
-         // Products owned by user's brand (if any)
-         let products: unknown[] = [];
-         if (user.brandId) {
-           products = await fastify.prisma.product.findMany({
-             where: { brandId: user.brandId },
-             include: { passport: true },
-           });
-         }
-
-         // Events performed by this user
-         const events = await fastify.prisma.productEvent.findMany({
-           where: { performedBy: sub },
-           orderBy: { createdAt: "desc" },
-           take: 1000,
-         });
-
-         // Build export -- explicitly exclude passwordHash and refreshToken
-         const exportData = {
-           exportedAt: new Date().toISOString(),
-           user: {
-             id: user.id,
-             email: user.email,
-             role: user.role,
-             walletAddress: user.walletAddress,
-             createdAt: user.createdAt,
-             updatedAt: user.updatedAt,
-           },
-           brand: user.brand
-             ? {
-                 id: user.brand.id,
-                 name: user.brand.name,
-                 slug: user.brand.slug,
-                 did: user.brand.did,
-                 createdAt: user.brand.createdAt,
-               }
-             : null,
-           products,
-           events,
-         };
-
-         return reply.status(200).send({
-           success: true,
-           data: exportData,
-         });
-       },
-     );
-   }
-   ```
-
-2. **Register in `auth/index.ts`**:
-   ```typescript
-   import dataExportRoute from "./data-export.js";
-   // ...in the function body:
-   await fastify.register(dataExportRoute);
-   ```
-
-3. **Tests** in `gdpr.test.ts` (~7 tests):
-   - Authenticated user gets 200 with export data containing user, brand, products, events
-   - Export includes user profile WITHOUT passwordHash or refreshToken
-   - Export includes brand data when user has brand
-   - Export includes products when user's brand has products
-   - Export includes events performed by user
-   - User without brand: `brand: null`, `products: []`
-   - Unauthenticated request returns 401
+```
+~4 tests:
+- GET /products?status=ACTIVE returns only active products
+- GET /products?category=watches returns only watches
+- GET /products?status=ACTIVE&category=watches combines both filters
+- GET /products with invalid status returns 400 validation error
+```
 
 **Patterns to follow**:
-- Auth route pattern: `onRequest: [fastify.authenticate]` (same as me.ts, logout.ts)
-- Response format: `{ success: true, data: { ... } }` (standard API pattern)
-- No body/response JSON schema in route config (R01)
-- Use `buildApp()` in tests, `cleanDb()` + re-seed in `beforeEach` (R03, R16)
-- GET request -- no CSRF header needed (CSRF only on POST/PATCH/DELETE/PUT)
+- Use enums from @galileo/shared (R09)
+- Zod validation on query params (same as existing page/limit)
+- No response schema in route config (R01)
 
 **Edge cases**:
-- User with no brand: `brand: null`, `products: []` -- still valid export
-- User with brand but no products: `products: []`
-- Large number of events: limit to 1000 most recent to prevent memory issues
-- `passwordHash` and `refreshToken` must NEVER appear in export -- use explicit field selection (not `select: { passwordHash: false }` which is fragile if new fields are added)
-- Products include passport data (metadata, digitalLink) -- this is the user's own brand data
+- No products match filter: returns empty array with pagination `{ total: 0, products: [], pagination: { ... } }`
+- Invalid status value: Zod rejects with VALIDATION_ERROR
+- Category is free-text: accepts any string up to 100 chars
+- Combined with brand scoping: filters are AND-ed with brand scope
 
-**Verify**: Register user with brand, create products, perform events (mint, verify). GET /auth/me/data returns complete JSON with user, brand, products, events. passwordHash is absent from response. Unauthenticated request returns 401.
-
----
-
-### Brief #3: GDPR Erasure (DELETE /auth/me/data)
-
-**Type**: feature
-**Priority**: P2
-**Epic**: EPIC-006-data-compliance
-
-**Files to modify**:
-- `apps/api/src/routes/auth/data-erasure.ts` -- NEW: DELETE /auth/me/data route
-- `apps/api/src/routes/auth/index.ts` -- register the new route (add alongside task 2 import)
-- `apps/api/test/gdpr.test.ts` -- add erasure tests (same file as task 2)
-
-**Approach**:
-
-GDPR Art. 17 gives users the right to erasure ("right to be forgotten"). This endpoint deletes the authenticated user's personal data from PostgreSQL and clears their auth cookies.
-
-**Key design decisions**:
-- **Products and images are NOT deleted** -- they belong to the brand (business data), not the individual user. If a brand admin leaves, their products remain under the brand.
-- **Events are anonymized** -- `performedBy` is set to `null` (this field is already nullable, see R08). The event itself stays for audit/provenance purposes.
-- **User record is deleted** -- email, passwordHash, refreshToken, walletAddress are all purged.
-- **Auth cookies are cleared** -- the user is logged out after deletion.
-
-1. **Create `data-erasure.ts`** route:
-
-   ```typescript
-   import type { FastifyInstance } from "fastify";
-   import { clearAuthCookies } from "../../utils/cookies.js";
-   import { requireCsrfHeader } from "../../middleware/csrf.js";
-
-   export default async function dataErasureRoute(fastify: FastifyInstance) {
-     fastify.delete(
-       "/auth/me/data",
-       {
-         onRequest: [requireCsrfHeader, fastify.authenticate],
-         schema: {
-           description:
-             "Delete all personal data for the authenticated user (GDPR Art. 17). " +
-             "Anonymizes event references, removes user record, and clears auth cookies. " +
-             "Products and images belong to the brand and are NOT deleted.",
-           tags: ["Auth", "GDPR"],
-           security: [{ cookieAuth: [] }],
-         },
-       },
-       async (request, reply) => {
-         const { sub } = request.user;
-
-         const user = await fastify.prisma.user.findUnique({
-           where: { id: sub },
-         });
-
-         if (!user) {
-           return reply.status(404).send({
-             success: false,
-             error: { code: "NOT_FOUND", message: "User not found" },
-           });
-         }
-
-         await fastify.prisma.$transaction(
-           async (tx: import("../../plugins/prisma.js").TxClient) => {
-             // 1. Anonymize events performed by this user (set performedBy to null)
-             await tx.productEvent.updateMany({
-               where: { performedBy: sub },
-               data: { performedBy: null },
-             });
-
-             // 2. Delete the user record (cascades are handled by Prisma)
-             await tx.user.delete({
-               where: { id: sub },
-             });
-           },
-         );
-
-         // 3. Clear auth cookies
-         clearAuthCookies(reply);
-
-         return reply.status(200).send({
-           success: true,
-           data: {
-             message: "All personal data has been deleted",
-             deletedAt: new Date().toISOString(),
-           },
-         });
-       },
-     );
-   }
-   ```
-
-2. **Register in `auth/index.ts`**:
-   ```typescript
-   import dataErasureRoute from "./data-erasure.js";
-   // ...in the function body:
-   await fastify.register(dataErasureRoute);
-   ```
-
-3. **Tests** in `gdpr.test.ts` (~7 tests):
-   - Authenticated user DELETE /auth/me/data returns 200 with success message
-   - User record is gone from database after erasure (findUnique returns null)
-   - Events previously performed by user now have `performedBy: null`
-   - Products belonging to the user's brand still exist (not deleted)
-   - Auth cookies are cleared in response (Set-Cookie headers with maxAge=0 or empty)
-   - Unauthenticated request returns 401
-   - Request without `X-Galileo-Client` header returns 403 CSRF_REQUIRED
-
-**Patterns to follow**:
-- Mutating route: `onRequest: [requireCsrfHeader, fastify.authenticate]` (same as logout.ts)
-- Transaction: `$transaction(async (tx) => { ... })` with TxClient type
-- Cookie clearing: `clearAuthCookies(reply)` from utils/cookies.ts
-- No body/response JSON schema (R01)
-- ProductEvent.performedBy is nullable (R08) -- setting to null is safe
-
-**Edge cases**:
-- User with no brand: no products involved, just delete user + anonymize events
-- User who is sole BRAND_ADMIN: deletion succeeds. Brand becomes orphaned. This is acceptable -- GDPR Art. 17 right takes precedence. An ADMIN can manage orphaned brands.
-- Concurrent requests: user deletes their account while another request is in-flight. The in-flight request will fail with 401 on next `authenticate` call (user not found). Acceptable behavior.
-- FK constraint on ProductEvent.performedBy: setting to null first, then deleting user avoids FK violations. The `updateMany` runs before `delete` in the same transaction.
-- User without any events: `updateMany` with 0 matches is a no-op -- no error.
-
-**Verify**: Register user, create products with brand, perform events (mint, verify). DELETE /auth/me/data with X-Galileo-Client header. Verify: user record gone from DB, events have performedBy=null, products still exist under brand, cookies cleared. Follow-up GET /auth/me returns 401.
+**Verify**: Create products with different statuses and categories. GET /products?status=ACTIVE returns only active ones. GET /products?category=watches returns only watches. Invalid status returns 400.
 
 ## Notes
 
