@@ -771,11 +771,10 @@ describe("Auth endpoints", () => {
     });
   });
 
-  // ─── Security: Brand Slug Collision ─────────────────────────
+  // ─── Security: Pilot Registration Scope ─────────────────────
 
-  describe("Brand slug collision", () => {
-    it("returns 409 when brand slug already exists", async () => {
-      // First registration with a brand
+  describe("Pilot registration scope", () => {
+    it("ignores repeated brandName hints instead of provisioning a brand", async () => {
       const res1 = await app.inject({
         method: "POST",
         url: "/auth/register",
@@ -787,7 +786,6 @@ describe("Auth endpoints", () => {
       });
       expect(res1.statusCode).toBe(201);
 
-      // Second registration with different email but same brand name → slug collision
       const res2 = await app.inject({
         method: "POST",
         url: "/auth/register",
@@ -798,10 +796,11 @@ describe("Auth endpoints", () => {
         },
       });
 
-      expect(res2.statusCode).toBe(409);
-      const body = res2.json();
-      expect(body.success).toBe(false);
-      expect(body.error.code).toBe("CONFLICT");
+      expect(res2.statusCode).toBe(201);
+      expect(res2.json().data.user.brandId).toBeNull();
+
+      const brandCount = await app.prisma.brand.count();
+      expect(brandCount).toBe(0);
     });
   });
 
