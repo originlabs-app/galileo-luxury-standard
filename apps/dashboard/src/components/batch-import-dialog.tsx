@@ -8,6 +8,7 @@ import {
   LoaderCircle,
   Upload,
 } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 import { API_URL } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import {
@@ -130,6 +131,7 @@ interface BatchImportDialogProps {
 export function BatchImportDialog({
   onImportComplete,
 }: BatchImportDialogProps) {
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [stage, setStage] = useState<ImportStage>("idle");
   const [file, setFile] = useState<File | null>(null);
@@ -197,7 +199,17 @@ export function BatchImportDialog({
     const formData = new FormData();
     formData.append("file", file);
 
-    const query = dryRun ? "" : "?dryRun=false";
+    const params = new URLSearchParams();
+    if (!dryRun) {
+      params.set("dryRun", "false");
+    }
+
+    const effectiveBrandId = user?.brandId ?? user?.brand?.id;
+    if (effectiveBrandId) {
+      params.set("brandId", effectiveBrandId);
+    }
+
+    const query = params.size > 0 ? `?${params.toString()}` : "";
     const response = await fetch(`${API_URL}/products/batch-import${query}`, {
       method: "POST",
       body: formData,
@@ -228,7 +240,7 @@ export function BatchImportDialog({
       ok: true as const,
       data: payload.data,
     };
-  }, [file]);
+  }, [file, user?.brand?.id, user?.brandId]);
 
   const handleValidate = useCallback(async () => {
     if (!file) {

@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 import * as fs from "node:fs";
 import * as path from "node:path";
 
@@ -7,7 +7,7 @@ const VALID_GTIN_13 = "4006381333931";
 test.use({ storageState: "playwright/.auth/user.json" });
 
 function createCsvFile(filename: string, rows: string[][]): string {
-  const content = rows.map((r) => r.join(",")).join("\n");
+  const content = rows.map((row) => row.join(",")).join("\n");
   const dir = path.join(process.cwd(), "playwright/.tmp");
   fs.mkdirSync(dir, { recursive: true });
   const filePath = path.join(dir, filename);
@@ -15,78 +15,87 @@ function createCsvFile(filename: string, rows: string[][]): string {
   return filePath;
 }
 
-test.describe("Batch CSV Import & Mint", () => {
-  test("should navigate to product list, import CSV, and see products created", async ({
+test.describe("Batch CSV import", () => {
+  test("shows validation review, commits accepted rows, and refreshes the products list", async ({
     page,
   }) => {
-    // Create a valid test CSV
+    const timestamp = Date.now();
+    const suffix = String(timestamp).slice(-6);
+    const firstName = `E2E Bag ${timestamp}`;
+    const secondName = `E2E Watch ${timestamp}`;
     const csvPath = createCsvFile("valid-import.csv", [
       ["name", "gtin", "serialNumber", "category", "description", "materials"],
       [
-        "E2E Bag A",
+        firstName,
         VALID_GTIN_13,
-        `E2E-${Date.now()}-001`,
+        `IMP${suffix}A1`,
         "Leather Goods",
-        "E2E test",
+        "Pilot import",
         "leather",
       ],
       [
-        "E2E Watch B",
+        secondName,
         VALID_GTIN_13,
-        `E2E-${Date.now()}-002`,
+        `IMP${suffix}B2`,
         "Watches",
-        "E2E test",
+        "Pilot import",
         "steel",
       ],
     ]);
 
     await page.goto("/dashboard/products");
-    await expect(page.getByRole("heading", { name: "Products" })).toBeVisible({
-      timeout: 15_000,
-    });
+    await expect(
+      page.getByRole("main").getByRole("heading", { name: "Products" }),
+    ).toBeVisible({ timeout: 15_000 });
 
-    // Click "Import CSV" button
     await page.getByRole("button", { name: "Import CSV" }).click();
+    const dialog = page.getByRole("dialog", {
+      name: "Import Products from CSV",
+    });
+    await expect(dialog).toBeVisible();
 
-    // Dialog should appear
-    await expect(page.getByText("Import Products from CSV")).toBeVisible();
+    await dialog.locator('input[type="file"][accept=".csv"]').setInputFiles(csvPath);
+    await expect(dialog.getByText(firstName)).toBeVisible({ timeout: 5_000 });
 
-    // Upload the CSV file
-    const fileInput = page.locator('input[type="file"][accept=".csv"]');
-    await fileInput.setInputFiles(csvPath);
+    await dialog.getByRole("button", { name: "Validate import" }).click();
+    await expect(
+      dialog.getByText("Validation passed. Ready to commit."),
+    ).toBeVisible({ timeout: 30_000 });
+    await expect(
+      dialog.getByText("Accepted rows ready for commit"),
+    ).toBeVisible();
 
-    // Preview should show rows
-    await expect(page.getByText("E2E Bag A")).toBeVisible({ timeout: 5_000 });
-
-    // Click Import
-    await page.getByRole("button", { name: "Import" }).click();
-
-    // Wait for success
-    await expect(page.getByText("created successfully")).toBeVisible({
+    await dialog.getByRole("button", { name: "Commit import" }).click();
+    await expect(dialog.getByText("created successfully")).toBeVisible({
       timeout: 30_000,
     });
+    await dialog.getByRole("button", { name: "Done" }).click();
 
-    // Close dialog
-    await page.getByRole("button", { name: "Done" }).click();
+    await expect(page.getByRole("cell", { name: firstName })).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(page.getByRole("cell", { name: secondName })).toBeVisible();
   });
 
-  test("should show error summary for CSV with invalid rows", async ({
+  test("shows row-level validation feedback and blocks commit when dry-run finds errors", async ({
     page,
   }) => {
+    const timestamp = Date.now();
+    const suffix = String(timestamp).slice(-6);
     const csvPath = createCsvFile("invalid-import.csv", [
       ["name", "gtin", "serialNumber", "category", "description", "materials"],
       [
-        "Good Product",
+        `Good Product ${timestamp}`,
         VALID_GTIN_13,
-        `E2E-ERR-${Date.now()}-001`,
+        `ERR${suffix}A1`,
         "Watches",
         "",
         "",
       ],
       [
-        "Bad GTIN",
-        "0000000000000",
-        `E2E-ERR-${Date.now()}-002`,
+        `Bad GTIN ${timestamp}`,
+        "0000000000001",
+        `ERR${suffix}B2`,
         "Watches",
         "",
         "",
@@ -95,16 +104,27 @@ test.describe("Batch CSV Import & Mint", () => {
 
     await page.goto("/dashboard/products");
     await page.getByRole("button", { name: "Import CSV" }).click();
+    const dialog = page.getByRole("dialog", {
+      name: "Import Products from CSV",
+    });
 
-    const fileInput = page.locator('input[type="file"][accept=".csv"]');
-    await fileInput.setInputFiles(csvPath);
-    await expect(page.getByText("Good Product")).toBeVisible({
+    await dialog.locator('input[type="file"][accept=".csv"]').setInputFiles(csvPath);
+    await expect(dialog.getByText(`Good Product ${timestamp}`)).toBeVisible({
       timeout: 5_000,
     });
 
-    await page.getByRole("button", { name: "Import" }).click();
-
-    // Should show error table
-    await expect(page.getByText("error")).toBeVisible({ timeout: 30_000 });
+    await dialog.getByRole("button", { name: "Validate import" }).click();
+    await expect(
+      dialog.getByText("Validation blocked this import"),
+    ).toBeVisible({ timeout: 30_000 });
+    await expect(
+      dialog.getByText("Row-level validation issues"),
+    ).toBeVisible();
+    await expect(
+      dialog.getByRole("cell", { name: "gtin", exact: true }),
+    ).toBeVisible();
+    await expect(
+      dialog.getByRole("button", { name: "Commit import" }),
+    ).toBeDisabled();
   });
 });

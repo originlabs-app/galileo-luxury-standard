@@ -6,6 +6,15 @@ interface FetchOptions extends RequestInit {
   skipAuth?: boolean;
 }
 
+function isFormDataBody(body: BodyInit | null | undefined): body is FormData {
+  return typeof FormData !== "undefined" && body instanceof FormData;
+}
+
+interface ApiErrorPayload {
+  message: string;
+  details?: unknown;
+}
+
 // Guard: refreshPromise must only exist in the browser. The typeof window
 // check below prevents SSR leaks across concurrent server-side requests
 // (C8 security fix).
@@ -35,7 +44,11 @@ export async function api<T = unknown>(
 
   const headers = new Headers(fetchOptions.headers);
 
-  if (!headers.has("Content-Type") && fetchOptions.body) {
+  if (
+    !headers.has("Content-Type") &&
+    fetchOptions.body &&
+    !isFormDataBody(fetchOptions.body)
+  ) {
     headers.set("Content-Type", "application/json");
   }
 
@@ -80,7 +93,8 @@ export async function api<T = unknown>(
       });
 
       if (!retryResponse.ok) {
-        throw new ApiError(retryResponse.status, await getErrorMessage(retryResponse));
+        const error = await getErrorPayload(retryResponse);
+        throw new ApiError(retryResponse.status, error.message, error.details);
       }
 
       return retryResponse.json() as Promise<T>;
@@ -91,27 +105,37 @@ export async function api<T = unknown>(
   }
 
   if (!response.ok) {
-    throw new ApiError(response.status, await getErrorMessage(response));
+    const error = await getErrorPayload(response);
+    throw new ApiError(response.status, error.message, error.details);
   }
 
   return response.json() as Promise<T>;
 }
 
-async function getErrorMessage(response: Response): Promise<string> {
+async function getErrorPayload(response: Response): Promise<ApiErrorPayload> {
   try {
     const data = await response.json();
     // API wraps errors as { success: false, error: { code, message } }
-    if (data.error?.message) return data.error.message;
-    return data.message ?? "An unexpected error occurred";
+    if (data.error?.message) {
+      return {
+        message: data.error.message,
+        details: data.error.details,
+      };
+    }
+
+    return {
+      message: data.message ?? "An unexpected error occurred",
+    };
   } catch {
-    return "An unexpected error occurred";
+    return { message: "An unexpected error occurred" };
   }
 }
 
 export class ApiError extends Error {
   constructor(
     public status: number,
-    message: string
+    message: string,
+    public details?: unknown
   ) {
     super(message);
     this.name = "ApiError";
