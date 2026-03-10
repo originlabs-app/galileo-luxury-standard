@@ -3,10 +3,17 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Edit3, Loader2, Save, X } from "lucide-react";
-import { type ProductStatus } from "@galileo/shared";
+import { ArrowLeft, Edit3, Loader2, LockKeyhole, Save, X } from "lucide-react";
+import {
+  CATEGORIES,
+  readProductPassportAuthoringMetadata,
+  type ProductMaterial,
+  type ProductMediaDescriptor,
+  type ProductStatus,
+} from "@galileo/shared";
 import { api, ApiError } from "@/lib/api";
 import { ImageUpload } from "@/components/image-upload";
+import { ProductMaterialsEditor } from "@/components/product-materials-editor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,6 +36,7 @@ import {
 interface ProductPassport {
   id: string;
   digitalLink: string;
+  metadata?: unknown;
 }
 
 interface ProductEvent {
@@ -60,16 +68,7 @@ interface ProductResponse {
   };
 }
 
-const CATEGORY_OPTIONS = [
-  { value: "Leather Goods", label: "Leather Goods" },
-  { value: "Jewelry", label: "Jewelry" },
-  { value: "Watches", label: "Watches" },
-  { value: "Fashion", label: "Fashion" },
-  { value: "Accessories", label: "Accessories" },
-  { value: "Fragrances", label: "Fragrances" },
-  { value: "Eyewear", label: "Eyewear" },
-  { value: "Other", label: "Other" },
-] as const;
+const CATEGORY_OPTIONS = CATEGORIES.map((value) => ({ value, label: value }));
 
 const EVENT_LABEL: Record<string, string> = {
   CREATED: "Identity established",
@@ -106,6 +105,19 @@ function IdentityField({
   );
 }
 
+function normalizeMaterials(materials: ProductMaterial[]): ProductMaterial[] {
+  return materials
+    .map((material) => ({
+      name: material.name.trim(),
+      percentage: material.percentage,
+    }))
+    .filter((material) => material.name.length > 0);
+}
+
+function formatMaterial(material: ProductMaterial): string {
+  return `${material.name} - ${material.percentage}%`;
+}
+
 export default function ProductDetailPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
@@ -118,6 +130,7 @@ export default function ProductDetailPage() {
   const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editCategory, setEditCategory] = useState("");
+  const [editMaterials, setEditMaterials] = useState<ProductMaterial[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
 
@@ -147,9 +160,14 @@ export default function ProductDetailPage() {
       return;
     }
 
+    const authoringMetadata = readProductPassportAuthoringMetadata(
+      product.passport?.metadata,
+    );
+
     setEditName(product.name);
     setEditDescription(product.description ?? "");
     setEditCategory(product.category);
+    setEditMaterials(authoringMetadata.materials ?? []);
     setEditError(null);
     setIsEditing(true);
   }
@@ -170,6 +188,12 @@ export default function ProductDetailPage() {
 
     try {
       const body: Record<string, string> = {};
+      const currentAuthoringMetadata = readProductPassportAuthoringMetadata(
+        product.passport?.metadata,
+      );
+      const currentMaterials = currentAuthoringMetadata.materials ?? [];
+      const normalizedEditMaterials = normalizeMaterials(editMaterials);
+
       if (editName.trim() !== product.name) {
         body.name = editName.trim();
       }
@@ -180,14 +204,23 @@ export default function ProductDetailPage() {
         body.category = editCategory;
       }
 
-      if (Object.keys(body).length === 0) {
+      const materialsChanged =
+        JSON.stringify(normalizedEditMaterials) !==
+        JSON.stringify(currentMaterials);
+      const payload: Record<string, unknown> = body;
+
+      if (materialsChanged) {
+        payload.materials = normalizedEditMaterials;
+      }
+
+      if (Object.keys(payload).length === 0) {
         setIsEditing(false);
         return;
       }
 
       const res = await api<ProductResponse>(`/products/${productId}`, {
         method: "PATCH",
-        body: JSON.stringify(body),
+        body: JSON.stringify(payload),
       });
 
       setProduct(res.data.product);
@@ -233,6 +266,15 @@ export default function ProductDetailPage() {
     (left, right) =>
       new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime(),
   );
+  const authoringMetadata = readProductPassportAuthoringMetadata(
+    product.passport?.metadata,
+  );
+  const productMaterials = authoringMetadata.materials ?? [];
+  const productMedia = authoringMetadata.media ?? [];
+  const primaryImage = productMedia.find(
+    (media) => media.kind === "image" && media.position === 0,
+  );
+  const canAuthorDraft = product.status === "DRAFT";
 
   return (
     <div className="flex flex-col gap-6">
@@ -244,14 +286,15 @@ export default function ProductDetailPage() {
         </Button>
         <div className="flex-1 space-y-2">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            Product record
+            Passport workspace
           </p>
           <h1 className="font-serif text-2xl font-semibold text-foreground">
             {product.name}
           </h1>
           <p className="max-w-2xl text-sm text-muted-foreground">
-            Identity is locked. Use this view to refine descriptive metadata and
-            assets without changing the permanent GTIN plus serial baseline.
+            Identity is locked. Use this DRAFT passport workspace to refine
+            descriptive metadata and linked media without changing the
+            permanent GTIN plus serial baseline.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -260,14 +303,32 @@ export default function ProductDetailPage() {
               View identity checkpoint
             </Link>
           </Button>
-          {!isEditing && (
+          {canAuthorDraft && !isEditing && (
             <Button size="sm" onClick={startEditing}>
               <Edit3 className="size-4" />
-              Edit details
+              Edit passport draft
             </Button>
           )}
         </div>
       </div>
+
+      <Card className="border-border/70 bg-muted/20">
+        <CardContent className="flex flex-col gap-3 py-5 md:flex-row md:items-center md:justify-between">
+          <div className="space-y-1">
+            <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
+              Draft authoring status
+            </p>
+            <p className="text-sm text-foreground">
+              Passport draft authoring stays available only while status remains
+              DRAFT.
+            </p>
+          </div>
+          <div className="inline-flex items-center gap-2 rounded-full border border-border/70 px-3 py-1 text-sm font-medium text-foreground">
+            <LockKeyhole className="size-4 text-muted-foreground" />
+            {product.status}
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <Card className="border-border/70">
@@ -276,7 +337,8 @@ export default function ProductDetailPage() {
               Identity baseline
             </CardTitle>
             <CardDescription>
-              These identifiers are permanent for this item in Phase 1.
+              These identifiers are read-only and never change from this
+              workspace.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -298,11 +360,11 @@ export default function ProductDetailPage() {
           <Card>
             <CardHeader>
               <CardTitle className="font-serif text-lg">
-                Edit descriptive metadata
+                Edit passport draft
               </CardTitle>
               <CardDescription>
-                Name, category, and description can evolve after identity is
-                established.
+                Name, category, description, and material composition can evolve
+                while the product stays in DRAFT.
               </CardDescription>
             </CardHeader>
             <form onSubmit={handleSaveEdit}>
@@ -350,6 +412,12 @@ export default function ProductDetailPage() {
                   />
                 </div>
 
+                <ProductMaterialsEditor
+                  materials={editMaterials}
+                  onChange={setEditMaterials}
+                  idPrefix="edit-product-material"
+                />
+
                 <div className="flex items-center gap-2 pt-2">
                   <Button type="submit" size="sm" disabled={isSaving}>
                     {isSaving ? (
@@ -376,11 +444,11 @@ export default function ProductDetailPage() {
           <Card>
             <CardHeader>
               <CardTitle className="font-serif text-lg">
-                Descriptive metadata
+                Passport draft
               </CardTitle>
               <CardDescription>
-                Editable context that supports the product record without
-                changing identity.
+                Mutable passport fields stay grouped separately from the
+                immutable identity baseline.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -397,6 +465,30 @@ export default function ProductDetailPage() {
                   <dt className="text-muted-foreground">Description</dt>
                   <dd className="text-foreground">
                     {product.description || "No description added yet."}
+                  </dd>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <dt className="text-muted-foreground">Materials</dt>
+                  <dd className="text-foreground">
+                    {productMaterials.length > 0 ? (
+                      <ul className="space-y-1">
+                        {productMaterials.map((material) => (
+                          <li key={formatMaterial(material)}>
+                            {formatMaterial(material)}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      "No materials added yet."
+                    )}
+                  </dd>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <dt className="text-muted-foreground">Linked media</dt>
+                  <dd className="text-foreground">
+                    {primaryImage
+                      ? `${primaryImage.alt} (${primaryImage.kind})`
+                      : "No linked media added yet."}
                   </dd>
                 </div>
                 <div className="flex flex-col gap-1">
@@ -417,15 +509,16 @@ export default function ProductDetailPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="font-serif text-lg">Product imagery</CardTitle>
+          <CardTitle className="font-serif text-lg">Linked media</CardTitle>
           <CardDescription>
-            Upload or replace supporting visuals for the record.
+            Media stays mutable only while the passport remains in DRAFT.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <ImageUpload
             productId={productId}
             currentImageUrl={product.imageUrl}
+            currentMedia={productMedia as ProductMediaDescriptor[]}
             onUploadComplete={() => fetchProduct()}
           />
         </CardContent>
@@ -435,8 +528,8 @@ export default function ProductDetailPage() {
         <CardHeader>
           <CardTitle className="font-serif text-lg">Record history</CardTitle>
           <CardDescription>
-            Lifecycle events can appear here later, but Phase 1 keeps the
-            interface centered on identity and metadata readiness.
+            Lifecycle and authoring updates stay auditable even while the
+            record is still a DRAFT passport.
           </CardDescription>
         </CardHeader>
         <CardContent>
