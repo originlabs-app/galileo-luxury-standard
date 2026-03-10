@@ -8,6 +8,7 @@ import {
   vi,
 } from "vitest";
 import type { FastifyInstance } from "fastify";
+import { readProductPassportAuthoringMetadata } from "@galileo/shared";
 
 // Mock viem — must precede all imports that touch viem (R06)
 vi.mock("viem", () => ({
@@ -185,6 +186,62 @@ describe("POST /products/batch-import", () => {
       where: { gtin: VALID_GTIN_13 },
     });
     expect(products).toHaveLength(5);
+  });
+
+  it("stores imported materials in typed passport metadata", async () => {
+    const csv = buildCsv([
+      ["name", "gtin", "serialNumber", "category", "description", "materials"],
+      ["Bag A", VALID_GTIN_13, "MAT001", "Leather Goods", "Desc A", "leather"],
+    ]);
+
+    const res = await injectCsv(csv, brandAdminCookie);
+    expect(res.statusCode).toBe(201);
+    expect(res.json().data.created).toBe(1);
+
+    const importedProduct = await app.prisma.product.findUnique({
+      where: {
+        gtin_serialNumber: {
+          gtin: VALID_GTIN_13,
+          serialNumber: "MAT001",
+        },
+      },
+      include: {
+        passport: true,
+      },
+    });
+
+    const authoring = readProductPassportAuthoringMetadata(
+      importedProduct?.passport?.metadata,
+    );
+    expect(authoring.materials).toEqual([
+      {
+        name: "leather",
+        percentage: 100,
+      },
+    ]);
+  });
+
+  it("should preserve multiline quoted CSV fields during import", async () => {
+    const csv = [
+      'name,gtin,"serial number",category,description,materials',
+      `"Bag A",${VALID_GTIN_13},"MULTI001","Leather Goods","First line`,
+      `Second line","leather"`,
+    ].join("\n");
+
+    const res = await injectCsv(csv, brandAdminCookie);
+    expect(res.statusCode).toBe(201);
+    expect(res.json().data.created).toBe(1);
+
+    const importedProduct = await app.prisma.product.findUnique({
+      where: {
+        gtin_serialNumber: {
+          gtin: VALID_GTIN_13,
+          serialNumber: "MULTI001",
+        },
+      },
+    });
+
+    expect(importedProduct?.description).toBe("First line\nSecond line");
   });
 
   it("should report errors for invalid GTIN rows in partial mode", async () => {
