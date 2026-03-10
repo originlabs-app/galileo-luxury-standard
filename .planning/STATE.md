@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 current_phase: 2
-current_plan: "02-03"
+current_plan: "02-05"
 status: executing
-stopped_at: Completed 02-pilot-catalog-authoring-import-02-PLAN.md
-last_updated: "2026-03-10T10:02:28Z"
+stopped_at: Completed 02-pilot-catalog-authoring-import-03-PLAN.md
+last_updated: "2026-03-10T10:50:44Z"
 last_activity: 2026-03-10
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 13
-  completed_plans: 10
-  percent: 77
+  completed_plans: 12
+  percent: 92
 ---
 
 # Project State
@@ -23,35 +23,35 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-03-09)
 
 **Core value:** Luxury brands can prove a product's authenticity and lifecycle through a neutral, interoperable, regulation-ready Digital Product Passport that is actually verifiable end to end.
-**Current focus:** Phase 2 execution is underway; next action is executing 02-03 for the dashboard import review and commit UX.
+**Current focus:** Phase 2 execution is underway; 02-03 dashboard import UX is now complete and the next action is executing 02-05 for media durability and validation coverage.
 
 ## Current Position
 
 **Current Phase:** 2
-**Current Plan:** 02-03
+**Current Plan:** 02-05
 **Total Plans in Phase:** 5
-**Status:** In progress
+**Status:** Ready to execute
 **Last Activity:** 2026-03-10
 
-**Progress:** [████████░░] 77%
+**Progress:** [█████████▏] 92%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 10
-- Average duration: 14.5 min
-- Total execution time: 2.4 hours
+- Total plans completed: 12
+- Average duration: 14.8 min
+- Total execution time: 3.0 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | Phase 01 | 8 | 100 min | 12.5 min |
-| Phase 02 | 2 | 45 min | 22.5 min |
+| Phase 02 | 4 | 78 min | 19.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-06 (20 min), 01-07 (14 min), 01-08 (9 min), 02-01 (21 min), 02-02 (24 min)
-- Trend: Phase 2 now has both the shared authoring contract and the validation-first CSV import API in place, so dashboard integration can build against stable server semantics.
+- Last 5 plans: 01-08 (9 min), 02-01 (21 min), 02-02 (24 min), 02-03 (11 min), 02-04 (22 min)
+- Trend: Phase 2 now has shared authoring schemas, validation-first import semantics, the dashboard import review loop, and the DRAFT passport workspace in place, so the remaining work can focus on media durability and coverage instead of first-use authoring gaps.
 
 ## Accumulated Context
 
@@ -85,6 +85,10 @@ Recent decisions affecting current work:
 - [Phase 02-pilot-catalog-authoring-import]: Batch import now defaults to dry-run and only writes rows after an explicit commit request with clean server-side validation.
 - [Phase 02-pilot-catalog-authoring-import]: OPERATOR is an allowed import role so batch ingestion stays aligned with the broader product authoring surface.
 - [Phase 02-pilot-catalog-authoring-import]: CSV materials are normalized into structured authoring metadata, and quoted multiline fields are parsed server-side before validation.
+- [Phase 02-pilot-catalog-authoring-import]: The dashboard products workspace now keeps CSV import visible in both populated and empty states, and the import dialog disables commit until server dry-run validation is clean.
+- [Phase 02-pilot-catalog-authoring-import]: Manual create keeps the identity checkpoint redirect even after adding richer passport authoring fields so GTIN and serial still become visibly immutable first.
+- [Phase 02-pilot-catalog-authoring-import]: The product detail page is now the DRAFT-only passport workspace, with GTIN, serial, DID, and GS1 Digital Link held read-only while materials and linked media remain mutable.
+- [Phase 02-pilot-catalog-authoring-import]: Dashboard import requests now forward the active workspace brandId when required so ADMIN verification sessions and scoped operator flows share the same validation-first API contract.
 
 ### Pending Todos
 
@@ -94,9 +98,10 @@ None yet.
 
 - Phase 3 planning must confirm the canonical Base Sepolia deployment manifest, verified contract addresses, and explorer references.
 - Phase 6 planning must confirm where the public dashboard, API, and scanner will be hosted for non-engineer demos.
+- Playwright's configured API webServer path still fails on an unrelated existing TypeScript error in `apps/api/src/routes/products/batch-import.ts`; dashboard E2E verification currently depends on reusing already-running local servers until that concurrent API issue is resolved.
 
 ## Session Continuity
 
-Last session: 2026-03-10T10:02:28Z
-Stopped at: Completed 02-pilot-catalog-authoring-import-02-PLAN.md
+Last session: 2026-03-10T10:50:44Z
+Stopped at: Completed 02-pilot-catalog-authoring-import-03-PLAN.md
 Resume file: None

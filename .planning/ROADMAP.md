@@ -48,13 +48,13 @@ Plans:
   1. An operator can import a CSV product batch and receive row-level validation feedback before bad records are accepted.
   2. Imported and manually created products share the same required passport fields and validation rules.
   3. An operator can edit the core passport metadata and linked media needed for public verification without breaking existing product identifiers.
-**Plans**: 2 / 5 complete
+**Plans**: 4 / 5 complete
 
 Plans:
 - [x] 02-01: Shared authoring contract and typed passport metadata
 - [x] 02-02: CSV validation-first import service and API
-- [ ] 02-03: Dashboard import UX
-- [ ] 02-04: Product passport authoring UI
+- [x] 02-03: Dashboard import UX
+- [x] 02-04: Product passport authoring UI
 - [ ] 02-05: Media durability and validation coverage
 
 ### Phase 3: Base Sepolia Deployment & Live Minting
@@ -120,7 +120,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Single-Brand Workspace & Identity Baseline | 8 / 8 | Complete | 2026-03-09 |
-| 2. Pilot Catalog Authoring & Import | 2 / 5 | In Progress | - |
+| 2. Pilot Catalog Authoring & Import | 4 / 5 | In Progress | - |
 | 3. Base Sepolia Deployment & Live Minting | TBD | Not started | - |
 | 4. Transfer Compliance & Lifecycle Evidence | TBD | Not started | - |
 | 5. Public Resolver & Verification Experience | TBD | Not started | - |
@@ -128,4 +128,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 ---
 *Roadmap created: 2026-03-09*
-*Next step: execute 02-03 dashboard import UX*
+*Next step: execute 02-05 media durability and validation coverage*
