@@ -41,6 +41,22 @@ export default async function healthRoutes(fastify: FastifyInstance) {
         status,
         version: pkg.version,
         uptime: process.uptime(),
+        deployment: {
+          environment: fastify.chain.deployment.environment,
+          network: fastify.chain.deployment.network,
+          chainId: fastify.chain.deployment.chainId,
+          status: fastify.chain.deployment.status,
+          explorer: {
+            name: fastify.chain.deployment.explorer.name,
+            baseUrl: fastify.chain.explorer.baseUrl,
+          },
+          issuance: fastify.chain.issuance,
+          infrastructure: fastify.chain.deployment.infrastructure,
+          rpcConfigured: fastify.chain.rpcConfigured,
+          writeEnabled: fastify.chain.chainEnabled,
+          writeCredentialsConfigured: fastify.chain.writeCredentialsConfigured,
+          basescanConfigured: fastify.chain.writeVerificationConfigured,
+        },
         dependencies: {
           database: dbStatus,
           chain: chainStatus,

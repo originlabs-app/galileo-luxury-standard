@@ -1,4 +1,6 @@
 import "dotenv/config";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { z } from "zod";
 
 const envSchema = z.object({
@@ -29,7 +31,62 @@ const envSchema = z.object({
   NODE_ENV: z
     .enum(["development", "production", "test"])
     .default("development"),
+  BASE_SEPOLIA_RPC_URL: z.string().url().optional(),
+  DEPLOYER_PRIVATE_KEY: z
+    .string()
+    .regex(/^0x[a-fA-F0-9]{64}$/, "DEPLOYER_PRIVATE_KEY must be a 32-byte hex string")
+    .optional(),
+  BASESCAN_API_KEY: z.string().min(1).optional(),
 });
+
+const deploymentManifestSchema = z.object({
+  environment: z.literal("base-sepolia"),
+  network: z.string().min(1),
+  chainId: z.number().int().positive(),
+  status: z.enum(["planned", "deployed"]),
+  rpc: z.object({
+    envVar: z.literal("BASE_SEPOLIA_RPC_URL"),
+  }),
+  explorer: z.object({
+    name: z.string().min(1),
+    baseUrl: z.string().url(),
+    txPath: z.string().min(1),
+    addressPath: z.string().min(1),
+  }),
+  issuance: z.object({
+    model: z.literal("per-product-token"),
+    tokenContract: z.literal("GalileoToken"),
+    description: z.string().min(1),
+  }),
+  infrastructure: z.object({
+    accessControl: z.string().regex(/^0x[a-fA-F0-9]{40}$/).nullable(),
+    claimTopicsRegistry: z.string().regex(/^0x[a-fA-F0-9]{40}$/).nullable(),
+    trustedIssuersRegistry: z.string().regex(/^0x[a-fA-F0-9]{40}$/).nullable(),
+    identityRegistryStorage: z.string().regex(/^0x[a-fA-F0-9]{40}$/).nullable(),
+    identityRegistry: z.string().regex(/^0x[a-fA-F0-9]{40}$/).nullable(),
+    compliance: z.string().regex(/^0x[a-fA-F0-9]{40}$/).nullable(),
+    brandAuthorizationModule: z.string().regex(/^0x[a-fA-F0-9]{40}$/).nullable(),
+    cpoCertificationModule: z.string().regex(/^0x[a-fA-F0-9]{40}$/).nullable(),
+    jurisdictionModule: z.string().regex(/^0x[a-fA-F0-9]{40}$/).nullable(),
+    sanctionsModule: z.string().regex(/^0x[a-fA-F0-9]{40}$/).nullable(),
+    serviceCenterModule: z.string().regex(/^0x[a-fA-F0-9]{40}$/).nullable(),
+  }),
+});
+
+function loadBaseSepoliaDeployment() {
+  const manifestPath = path.resolve(
+    process.cwd(),
+    "..",
+    "..",
+    "contracts",
+    "deployments",
+    "base-sepolia.json",
+  );
+  const manifestText = readFileSync(manifestPath, "utf8");
+  const manifest = JSON.parse(manifestText) as unknown;
+
+  return deploymentManifestSchema.parse(manifest);
+}
 
 function loadConfig() {
   const result = envSchema.safeParse(process.env);
@@ -45,8 +102,32 @@ function loadConfig() {
     );
   }
 
-  return result.data;
+  const env = result.data;
+  const deployment = loadBaseSepoliaDeployment();
+  const rpcUrl = env.BASE_SEPOLIA_RPC_URL;
+  const writeEnabled = Boolean(rpcUrl && env.DEPLOYER_PRIVATE_KEY);
+
+  return {
+    ...env,
+    chain: {
+      deployment,
+      rpcUrl,
+      rpcConfigured: Boolean(rpcUrl),
+      writeEnabled,
+      writeCredentialsConfigured: Boolean(env.DEPLOYER_PRIVATE_KEY),
+      verificationApiKeyConfigured: Boolean(env.BASESCAN_API_KEY),
+      explorer: {
+        ...deployment.explorer,
+        txUrl: (txHash: string) =>
+          `${deployment.explorer.baseUrl}${deployment.explorer.txPath}${txHash}`,
+        addressUrl: (address: string) =>
+          `${deployment.explorer.baseUrl}${deployment.explorer.addressPath}${address}`,
+      },
+    },
+  };
 }
 
-export type Config = z.infer<typeof envSchema>;
+export type EnvConfig = z.infer<typeof envSchema>;
+export type BaseSepoliaDeployment = z.infer<typeof deploymentManifestSchema>;
+export type Config = ReturnType<typeof loadConfig>;
 export const config = loadConfig();

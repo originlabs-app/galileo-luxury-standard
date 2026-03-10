@@ -3,6 +3,58 @@ import Fastify from "fastify";
 import type { FastifyInstance } from "fastify";
 import healthRoutes from "../src/routes/health.js";
 
+const deployment = {
+  environment: "base-sepolia",
+  network: "Base Sepolia",
+  chainId: 84532,
+  status: "planned",
+  explorer: {
+    name: "Basescan",
+    baseUrl: "https://sepolia.basescan.org",
+  },
+  issuance: {
+    model: "per-product-token",
+    tokenContract: "GalileoToken",
+    description:
+      "Infrastructure addresses are canonical. Each product is issued as its own GalileoToken deployment rather than sharing one pilot-wide token address.",
+  },
+  infrastructure: {
+    accessControl: null,
+    claimTopicsRegistry: null,
+    trustedIssuersRegistry: null,
+    identityRegistryStorage: null,
+    identityRegistry: null,
+    compliance: null,
+    brandAuthorizationModule: null,
+    cpoCertificationModule: null,
+    jurisdictionModule: null,
+    sanctionsModule: null,
+    serviceCenterModule: null,
+  },
+};
+
+function createChainState(overrides?: Partial<FastifyInstance["chain"]>) {
+  return {
+    chainEnabled: false,
+    deployment,
+    issuance: deployment.issuance,
+    explorer: {
+      baseUrl: deployment.explorer.baseUrl,
+      txUrl: (txHash: string) =>
+        `${deployment.explorer.baseUrl}/tx/${txHash}`,
+      addressUrl: (address: string) =>
+        `${deployment.explorer.baseUrl}/address/${address}`,
+    },
+    rpcConfigured: false,
+    writeCredentialsConfigured: false,
+    writeVerificationConfigured: false,
+    publicClient: {
+      getChainId: async () => deployment.chainId,
+    },
+    ...overrides,
+  };
+}
+
 describe("GET /health", () => {
   let app: FastifyInstance;
 
@@ -12,8 +64,7 @@ describe("GET /health", () => {
     app.decorate("prisma", {
       $queryRawUnsafe: async () => [{ "?column?": 1 }],
     });
-    // Mock chain decorator (disabled)
-    app.decorate("chain", { chainEnabled: false });
+    app.decorate("chain", createChainState());
     await app.register(healthRoutes);
     await app.ready();
   });
@@ -38,6 +89,8 @@ describe("GET /health", () => {
     expect(body.dependencies).toBeDefined();
     expect(body.dependencies.database).toBe("ok");
     expect(body.dependencies.chain).toBe("disabled");
+    expect(body.deployment.chainId).toBe(84532);
+    expect(body.deployment.writeEnabled).toBe(false);
   });
 
   it("returns the correct version from package.json", async () => {
@@ -68,7 +121,7 @@ describe("GET /health", () => {
         throw new Error("Connection refused");
       },
     });
-    degradedApp.decorate("chain", { chainEnabled: false });
+    degradedApp.decorate("chain", createChainState());
     await degradedApp.register(healthRoutes);
     await degradedApp.ready();
 
@@ -85,17 +138,62 @@ describe("GET /health", () => {
     await degradedApp.close();
   });
 
+  it("returns canonical Base Sepolia deployment metadata when chain config is present", async () => {
+    const chainApp = Fastify();
+    chainApp.decorate("prisma", {
+      $queryRawUnsafe: async () => [{ "?column?": 1 }],
+    });
+    chainApp.decorate(
+      "chain",
+      createChainState({
+        chainEnabled: true,
+        rpcConfigured: true,
+        writeCredentialsConfigured: true,
+        writeVerificationConfigured: true,
+      }),
+    );
+    await chainApp.register(healthRoutes);
+    await chainApp.ready();
+
+    const response = await chainApp.inject({
+      method: "GET",
+      url: "/health",
+    });
+
+    expect(response.statusCode).toBe(200);
+    const body = response.json();
+    expect(body.dependencies.chain).toBe("ok");
+    expect(body.deployment).toEqual({
+      environment: "base-sepolia",
+      network: "Base Sepolia",
+      chainId: 84532,
+      status: "planned",
+      explorer: {
+        name: "Basescan",
+        baseUrl: "https://sepolia.basescan.org",
+      },
+      issuance: deployment.issuance,
+      infrastructure: deployment.infrastructure,
+      rpcConfigured: true,
+      writeEnabled: true,
+      writeCredentialsConfigured: true,
+      basescanConfigured: true,
+    });
+
+    await chainApp.close();
+  });
+
   it("reports chain status as ok when chain is enabled and responsive", async () => {
     const chainApp = Fastify();
     chainApp.decorate("prisma", {
       $queryRawUnsafe: async () => [{ "?column?": 1 }],
     });
-    chainApp.decorate("chain", {
+    chainApp.decorate("chain", createChainState({
       chainEnabled: true,
       publicClient: {
         getChainId: async () => 84532,
       },
-    });
+    }));
     await chainApp.register(healthRoutes);
     await chainApp.ready();
 
@@ -116,14 +214,14 @@ describe("GET /health", () => {
     chainApp.decorate("prisma", {
       $queryRawUnsafe: async () => [{ "?column?": 1 }],
     });
-    chainApp.decorate("chain", {
+    chainApp.decorate("chain", createChainState({
       chainEnabled: true,
       publicClient: {
         getChainId: async () => {
           throw new Error("RPC timeout");
         },
       },
-    });
+    }));
     await chainApp.register(healthRoutes);
     await chainApp.ready();
 

@@ -1,0 +1,33 @@
+{
+  "environment": "base-sepolia",
+  "network": "Base Sepolia",
+  "chainId": 84532,
+  "status": "planned",
+  "rpc": {
+    "envVar": "BASE_SEPOLIA_RPC_URL"
+  },
+  "explorer": {
+    "name": "Basescan",
+    "baseUrl": "https://sepolia.basescan.org",
+    "txPath": "/tx/",
+    "addressPath": "/address/"
+  },
+  "issuance": {
+    "model": "per-product-token",
+    "tokenContract": "GalileoToken",
+    "description": "Infrastructure addresses are canonical. Each product is issued as its own GalileoToken deployment rather than sharing one pilot-wide token address."
+  },
+  "infrastructure": {
+    "accessControl": null,
+    "claimTopicsRegistry": null,
+    "trustedIssuersRegistry": null,
+    "identityRegistryStorage": null,
+    "identityRegistry": null,
+    "compliance": null,
+    "brandAuthorizationModule": null,
+    "cpoCertificationModule": null,
+    "jurisdictionModule": null,
+    "sanctionsModule": null,
+    "serviceCenterModule": null
+  }
+}
