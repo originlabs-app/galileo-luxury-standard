@@ -3,6 +3,7 @@ import { buildApp } from "../src/server.js";
 import type { FastifyInstance } from "fastify";
 import { parseCookies, cleanDb, nextFixtureId } from "./helpers.js";
 import { hashPassword } from "../src/utils/password.js";
+import { readProductPassportAuthoringMetadata } from "@galileo/shared";
 
 // Valid GTINs (GS1 check digit verified)
 const VALID_GTIN_13 = "4006381333931";
@@ -455,7 +456,15 @@ describe("Product CRUD endpoints", () => {
         where: { productId: body.data.product.id },
       });
       const metadata = passport!.metadata as Record<string, unknown>;
-      expect(metadata.materials).toEqual(materials);
+      expect(metadata).toMatchObject({
+        authoring: {
+          version: 1,
+          materials,
+        },
+      });
+      expect(readProductPassportAuthoringMetadata(metadata).materials).toEqual(
+        materials,
+      );
     });
 
     it("creates product without materials (field is optional)", async () => {
@@ -762,14 +771,14 @@ describe("Product CRUD endpoints", () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it("returns 403 for other brand's product", async () => {
+    it("returns 404 for other brand's product", async () => {
       const response = await app.inject({
         method: "GET",
         url: `/products/${productId}`,
         headers: { cookie: otherBrandAdminCookie },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
     it("ADMIN can see any brand's product", async () => {
@@ -1131,7 +1140,7 @@ describe("Product CRUD endpoints", () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it("returns 403 for other brand's product", async () => {
+    it("returns 404 for other brand's product", async () => {
       const response = await app.inject({
         method: "PATCH",
         url: `/products/${draftProductId}`,
@@ -1141,7 +1150,7 @@ describe("Product CRUD endpoints", () => {
         },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
     it("returns 404 for non-existent product", async () => {
@@ -1205,7 +1214,15 @@ describe("Product CRUD endpoints", () => {
         where: { productId: draftProductId },
       });
       const metadata = passport!.metadata as Record<string, unknown>;
-      expect(metadata.materials).toEqual(materials);
+      expect(metadata).toMatchObject({
+        authoring: {
+          version: 1,
+          materials,
+        },
+      });
+      expect(readProductPassportAuthoringMetadata(metadata).materials).toEqual(
+        materials,
+      );
     });
   });
 });

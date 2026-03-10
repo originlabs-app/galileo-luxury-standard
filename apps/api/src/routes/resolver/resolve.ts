@@ -1,6 +1,10 @@
 import type { FastifyInstance } from "fastify";
 import type { ProductStatus } from "../../generated/prisma/enums.js";
-import { validateGtin, padGtin14 } from "@galileo/shared";
+import {
+  padGtin14,
+  readProductPassportAuthoringMetadata,
+  validateGtin,
+} from "@galileo/shared";
 
 /**
  * Maps internal product status to public-safe resolver values.
@@ -106,14 +110,10 @@ export default async function resolveDigitalLinkRoute(
       const gtin14 = padGtin14(rawGtin);
       const mappedStatus = STATUS_MAP[product.status];
 
-      // Extract materials from passport metadata
-      const metadata = product.passport?.metadata as Record<
-        string,
-        unknown
-      > | null;
-      const materials = Array.isArray(metadata?.materials)
-        ? metadata.materials
-        : [];
+      const authoringMetadata = readProductPassportAuthoringMetadata(
+        product.passport?.metadata,
+      );
+      const materials = authoringMetadata.materials ?? [];
 
       // Build JSON-LD payload with @context array (C1: Galileo context, I1: canonical GS1 URL)
       const jsonLd = {

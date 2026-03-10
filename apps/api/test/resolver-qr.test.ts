@@ -3,6 +3,7 @@ import { buildApp } from "../src/server.js";
 import type { FastifyInstance } from "fastify";
 import { parseCookies, cleanDb } from "./helpers.js";
 import { JSONLD_CONTEXT } from "../src/routes/resolver/resolve.js";
+import { writeProductPassportAuthoringMetadata } from "@galileo/shared";
 
 // Valid GTINs (GS1 check digit verified)
 const VALID_GTIN = "4006381333931";
@@ -219,26 +220,26 @@ describe("Resolver & QR endpoints", () => {
     });
 
     it("correctly decodes URL-encoded serial number", async () => {
-      // Create a product with special characters in serial
       const specialSerial = "SN/TEST#123?A B";
-      const createRes = await app.inject({
-        method: "POST",
-        url: "/products",
-        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
-        payload: {
+      const specialProduct = await app.prisma.product.create({
+        data: {
           gtin: VALID_GTIN,
           serialNumber: specialSerial,
+          did: "did:galileo:test:special-serial-product",
           name: "Special Serial Product",
           category: "Accessories",
+          status: "ACTIVE",
+          brandId: testBrandId,
         },
       });
-      const specialId = createRes.json().data.product.id;
 
-      // Mint the product
-      await app.inject({
-        method: "POST",
-        url: `/products/${specialId}/mint`,
-        headers: { cookie: brandAdminCookie, "x-galileo-client": "1" },
+      await app.prisma.productPassport.create({
+        data: {
+          productId: specialProduct.id,
+          digitalLink: `https://id.galileoprotocol.io/01/0${VALID_GTIN}/21/${encodeURIComponent(specialSerial)}`,
+          mintedAt: new Date(),
+          chainId: 84532,
+        },
       });
 
       // Resolve with URL-encoded serial
@@ -291,13 +292,13 @@ describe("Resolver & QR endpoints", () => {
       await app.prisma.productPassport.update({
         where: { id: passport!.id },
         data: {
-          metadata: {
+          metadata: writeProductPassportAuthoringMetadata(passport!.metadata, {
             materials: [
               { name: "Calfskin Leather", percentage: 65 },
               { name: "Cotton Canvas", percentage: 30 },
               { name: "Brass Hardware", percentage: 5 },
             ],
-          },
+          }),
         },
       });
 
@@ -314,6 +315,34 @@ describe("Resolver & QR endpoints", () => {
       expect(body.hasMaterialComposition[0].percentage).toBe(65);
       expect(body.hasMaterialComposition[1].name).toBe("Cotton Canvas");
       expect(body.hasMaterialComposition[2].name).toBe("Brass Hardware");
+    });
+
+    it("includes hasMaterialComposition when product uses legacy metadata.materials", async () => {
+      const passport = await app.prisma.productPassport.findUnique({
+        where: { productId: activeProductId },
+      });
+      await app.prisma.productPassport.update({
+        where: { id: passport!.id },
+        data: {
+          metadata: {
+            materials: [
+              { name: "Silk Lining", percentage: 40 },
+              { name: "Lambskin", percentage: 60 },
+            ],
+          },
+        },
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/01/${activeProductGtin}/21/${activeProductSerial}`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.json().hasMaterialComposition).toEqual([
+        { name: "Silk Lining", percentage: 40 },
+        { name: "Lambskin", percentage: 60 },
+      ]);
     });
 
     it("omits hasMaterialComposition when product has no materials in metadata", async () => {
@@ -333,7 +362,11 @@ describe("Resolver & QR endpoints", () => {
       });
       await app.prisma.productPassport.update({
         where: { id: passport!.id },
-        data: { metadata: { materials: [] } },
+        data: {
+          metadata: writeProductPassportAuthoringMetadata(passport!.metadata, {
+            materials: [],
+          }),
+        },
       });
 
       const response = await app.inject({
@@ -442,14 +475,14 @@ describe("Resolver & QR endpoints", () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it("returns 403 for other brand's product", async () => {
+    it("returns 404 for other brand's product", async () => {
       const response = await app.inject({
         method: "GET",
         url: `/products/${activeProductId}/qr`,
         headers: { cookie: otherBrandAdminCookie },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(404);
     });
 
     it("returns 400 for non-numeric size parameter", async () => {

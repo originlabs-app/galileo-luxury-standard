@@ -1,44 +1,13 @@
 import type { FastifyInstance } from "fastify";
-import { z } from "zod";
+import {
+  productAuthoringPatchSchema,
+  writeProductPassportAuthoringMetadata,
+} from "@galileo/shared";
+import { Prisma } from "../../generated/prisma/client.js";
 import { requireRole } from "../../middleware/rbac.js";
-import { ensureSameWorkspaceBrand } from "../../utils/workspace.js";
+import { buildWorkspaceProductByIdWhere } from "../../utils/workspace.js";
 
-const PRODUCT_CATEGORIES = [
-  "Leather Goods",
-  "Jewelry",
-  "Watches",
-  "Fashion",
-  "Accessories",
-  "Fragrances",
-  "Eyewear",
-  "Other",
-] as const;
-
-const materialSchema = z.object({
-  name: z.string().min(1).max(100),
-  percentage: z.number().min(0).max(100),
-});
-
-const updateProductBody = z
-  .object({
-    name: z
-      .string()
-      .min(1)
-      .max(255, "Name must be at most 255 characters")
-      .optional(),
-    description: z
-      .string()
-      .max(2000, "Description must be at most 2000 characters")
-      .optional(),
-    category: z
-      .enum(PRODUCT_CATEGORIES, {
-        message:
-          "Category must be one of: Leather Goods, Jewelry, Watches, Fashion, Accessories, Fragrances, Eyewear, Other",
-      })
-      .optional(),
-    materials: z.array(materialSchema).max(20).optional(),
-  })
-  .strict();
+const updateProductBody = productAuthoringPatchSchema;
 
 export default async function updateProductRoute(fastify: FastifyInstance) {
   fastify.patch<{ Params: { id: string } }>(
@@ -73,16 +42,20 @@ export default async function updateProductRoute(fastify: FastifyInstance) {
           error: {
             code: "VALIDATION_ERROR",
             message:
-              "Invalid input. Only name, description, category, and materials can be updated.",
+              "Invalid input. Only name, description, category, materials, and media can be updated.",
             details: parsed.error.flatten().fieldErrors,
           },
         });
       }
 
-      const { materials, ...productFields } = parsed.data;
+      const { materials, media, ...productFields } = parsed.data;
 
-      // Must have at least one field to update (product fields or materials)
-      if (Object.keys(productFields).length === 0 && materials === undefined) {
+      // Must have at least one field to update (product fields or authoring extras)
+      if (
+        Object.keys(productFields).length === 0 &&
+        materials === undefined &&
+        media === undefined
+      ) {
         return reply.status(400).send({
           success: false,
           error: {
@@ -92,10 +65,13 @@ export default async function updateProductRoute(fastify: FastifyInstance) {
         });
       }
 
-      // Find the product
-      const product = await fastify.prisma.product.findUnique({
-        where: { id },
-      });
+      const where = buildWorkspaceProductByIdWhere(reply, user, id);
+
+      if (!where) {
+        return;
+      }
+
+      const product = await fastify.prisma.product.findFirst({ where });
 
       if (!product) {
         return reply.status(404).send({
@@ -105,10 +81,6 @@ export default async function updateProductRoute(fastify: FastifyInstance) {
             message: "Product not found",
           },
         });
-      }
-
-      if (!ensureSameWorkspaceBrand(reply, user, product.brandId)) {
-        return;
       }
 
       // Only DRAFT products can be updated
@@ -132,18 +104,18 @@ export default async function updateProductRoute(fastify: FastifyInstance) {
             });
           }
 
-          // Store materials in passport metadata (merge with existing)
-          if (materials !== undefined) {
+          if (materials !== undefined || media !== undefined) {
             const passport = await tx.productPassport.findUnique({
               where: { productId: id },
             });
             if (passport) {
-              const existingMetadata =
-                (passport.metadata as Record<string, unknown>) ?? {};
               await tx.productPassport.update({
                 where: { id: passport.id },
                 data: {
-                  metadata: { ...existingMetadata, materials },
+                  metadata: writeProductPassportAuthoringMetadata(
+                    passport.metadata,
+                    { materials, media },
+                  ) as Prisma.InputJsonValue,
                 },
               });
             }
@@ -153,7 +125,11 @@ export default async function updateProductRoute(fastify: FastifyInstance) {
             data: {
               productId: id,
               type: "UPDATED",
-              data: { ...productFields, ...(materials ? { materials } : {}) },
+              data: {
+                ...productFields,
+                ...(materials !== undefined ? { materials } : {}),
+                ...(media !== undefined ? { media } : {}),
+              },
               performedBy: user.sub,
             },
           });

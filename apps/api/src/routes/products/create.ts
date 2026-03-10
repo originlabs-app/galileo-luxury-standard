@@ -3,45 +3,20 @@ import { z } from "zod";
 import {
   generateDid,
   generateDigitalLinkUrl,
+  productAuthoringSchema,
   productIdentitySchema,
+  writeProductPassportAuthoringMetadata,
 } from "@galileo/shared";
+import { Prisma } from "../../generated/prisma/client.js";
 import { requireRole } from "../../middleware/rbac.js";
 import { isPrismaUniqueViolation } from "../../utils/prisma-errors.js";
 import { resolveWorkspaceMutationBrandId } from "../../utils/workspace.js";
 
-const PRODUCT_CATEGORIES = [
-  "Leather Goods",
-  "Jewelry",
-  "Watches",
-  "Fashion",
-  "Accessories",
-  "Fragrances",
-  "Eyewear",
-  "Other",
-] as const;
-
-const materialSchema = z.object({
-  name: z.string().min(1).max(100),
-  percentage: z.number().min(0).max(100),
-});
-
 const createProductBody = productIdentitySchema
   .extend({
-    name: z
-      .string()
-      .min(1, "Name is required")
-      .max(255, "Name must be at most 255 characters"),
-    description: z
-      .string()
-      .max(2000, "Description must be at most 2000 characters")
-      .optional(),
-    category: z.enum(PRODUCT_CATEGORIES, {
-      message:
-        "Category must be one of: Leather Goods, Jewelry, Watches, Fashion, Accessories, Fragrances, Eyewear, Other",
-    }),
     brandId: z.string().optional(),
-    materials: z.array(materialSchema).max(20).optional(),
   })
+  .merge(productAuthoringSchema)
   .strict();
 
 export default async function createProductRoute(fastify: FastifyInstance) {
@@ -86,6 +61,7 @@ export default async function createProductRoute(fastify: FastifyInstance) {
         category,
         brandId: bodyBrandId,
         materials,
+        media,
       } = parsed.data;
 
       const user = request.user;
@@ -105,6 +81,10 @@ export default async function createProductRoute(fastify: FastifyInstance) {
       // Generate DID and Digital Link
       const did = generateDid(gtin, serialNumber);
       const digitalLink = generateDigitalLinkUrl(gtin, serialNumber);
+      const passportMetadata = writeProductPassportAuthoringMetadata(
+        undefined,
+        { materials, media },
+      );
 
       try {
         // Create product, passport, and event in a transaction
@@ -126,7 +106,11 @@ export default async function createProductRoute(fastify: FastifyInstance) {
               data: {
                 productId: product.id,
                 digitalLink,
-                ...(materials ? { metadata: { materials } } : {}),
+                ...(Object.keys(passportMetadata).length > 0
+                  ? {
+                      metadata: passportMetadata as Prisma.InputJsonValue,
+                    }
+                  : {}),
               },
             });
 
