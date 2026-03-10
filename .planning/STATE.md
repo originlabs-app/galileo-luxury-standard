@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 2
-current_plan: "02-05"
-status: executing
-stopped_at: Completed 02-pilot-catalog-authoring-import-03-PLAN.md
-last_updated: "2026-03-10T10:50:44Z"
+current_phase: 3
+current_plan: null
+status: ready_to_plan
+stopped_at: Completed 02-pilot-catalog-authoring-import-05-PLAN.md
+last_updated: "2026-03-10T11:17:55Z"
 last_activity: 2026-03-10
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 13
-  completed_plans: 12
-  percent: 92
+  completed_plans: 13
+  percent: 100
 ---
 
 # Project State
@@ -23,35 +23,35 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-03-09)
 
 **Core value:** Luxury brands can prove a product's authenticity and lifecycle through a neutral, interoperable, regulation-ready Digital Product Passport that is actually verifiable end to end.
-**Current focus:** Phase 2 execution is underway; 02-03 dashboard import UX is now complete and the next action is executing 02-05 for media durability and validation coverage.
+**Current focus:** Phase 2 is complete; the next action is planning Phase 3 so Base Sepolia deployment and live minting can build on the now-finished authoring and import foundation.
 
 ## Current Position
 
-**Current Phase:** 2
-**Current Plan:** 02-05
-**Total Plans in Phase:** 5
-**Status:** Ready to execute
+**Current Phase:** 3
+**Current Plan:** TBD
+**Total Plans in Phase:** TBD
+**Status:** Ready to plan
 **Last Activity:** 2026-03-10
 
-**Progress:** [█████████▏] 92%
+**Progress:** [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 12
-- Average duration: 14.8 min
-- Total execution time: 3.0 hours
+- Total plans completed: 13
+- Average duration: 14.7 min
+- Total execution time: 3.2 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | Phase 01 | 8 | 100 min | 12.5 min |
-| Phase 02 | 4 | 78 min | 19.5 min |
+| Phase 02 | 5 | 91 min | 18.2 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-08 (9 min), 02-01 (21 min), 02-02 (24 min), 02-03 (11 min), 02-04 (22 min)
-- Trend: Phase 2 now has shared authoring schemas, validation-first import semantics, the dashboard import review loop, and the DRAFT passport workspace in place, so the remaining work can focus on media durability and coverage instead of first-use authoring gaps.
+- Last 5 plans: 02-01 (21 min), 02-02 (24 min), 02-03 (11 min), 02-04 (22 min), 02-05 (13 min)
+- Trend: Phase 2 finished by hardening media durability and proving that imported products, DRAFT authoring, and linked-media replacement now behave as one operator workflow end to end.
 
 ## Accumulated Context
 
@@ -89,6 +89,9 @@ Recent decisions affecting current work:
 - [Phase 02-pilot-catalog-authoring-import]: Manual create keeps the identity checkpoint redirect even after adding richer passport authoring fields so GTIN and serial still become visibly immutable first.
 - [Phase 02-pilot-catalog-authoring-import]: The product detail page is now the DRAFT-only passport workspace, with GTIN, serial, DID, and GS1 Digital Link held read-only while materials and linked media remain mutable.
 - [Phase 02-pilot-catalog-authoring-import]: Dashboard import requests now forward the active workspace brandId when required so ADMIN verification sessions and scoped operator flows share the same validation-first API contract.
+- [Phase 02-pilot-catalog-authoring-import]: Product image upload now returns the typed media descriptor plus explicit replacement and cleanup metadata so dashboard authoring does not need a second patch route to infer upload state.
+- [Phase 02-pilot-catalog-authoring-import]: Local upload fallback is served directly by the API with path-safe `/uploads/*` handling so pilot media remains usable in development and test environments without R2.
+- [Phase 02-pilot-catalog-authoring-import]: Dashboard upload confirmation must survive the post-upload product refresh so operators can see successful save or replacement after the DRAFT workspace rehydrates.
 
 ### Pending Todos
 
@@ -102,6 +105,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-10T10:50:44Z
-Stopped at: Completed 02-pilot-catalog-authoring-import-03-PLAN.md
+Last session: 2026-03-10T11:17:55Z
+Stopped at: Completed 02-pilot-catalog-authoring-import-05-PLAN.md
 Resume file: None
