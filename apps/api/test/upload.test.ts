@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
+import { readProductPassportAuthoringMetadata } from "@galileo/shared";
 import { buildApp } from "../src/server.js";
 import type { FastifyInstance } from "fastify";
 import { parseCookies, cleanDb } from "./helpers.js";
@@ -15,9 +16,20 @@ function buildMultipartBody(
   filename: string,
   mimeType: string,
   fileContent: Buffer,
+  fields: Record<string, string> = {},
 ): { body: Buffer; contentType: string } {
   const boundary = "----TestBoundary" + Date.now();
   const parts: Buffer[] = [];
+
+  for (const [name, value] of Object.entries(fields)) {
+    parts.push(
+      Buffer.from(
+        `--${boundary}\r\n` +
+          `Content-Disposition: form-data; name="${name}"\r\n\r\n` +
+          `${value}\r\n`,
+      ),
+    );
+  }
 
   // File part
   parts.push(
@@ -58,6 +70,16 @@ function tinyJpeg(): Buffer {
       "5c6c7c8c9cad2d3d4d5d6d7d8d9dae1e2e3e4e5" +
       "e6e7e8e9eaf1f2f3f4f5f6f7f8f9faffda00080" +
       "1010000003f00fbdfbd17ffd9",
+    "hex",
+  );
+}
+
+function tinyPng(): Buffer {
+  return Buffer.from(
+    "89504e470d0a1a0a0000000d4948445200000001" +
+      "000000010802000000907753de0000000c494441" +
+      "5408d763f8cfc000000002000160e52d6c000000" +
+      "0049454e44ae426082",
     "hex",
   );
 }
@@ -223,6 +245,7 @@ describe("POST /products/:id/upload", () => {
       "watch.jpg",
       "image/jpeg",
       jpeg,
+      { alt: "Front-facing watch image" },
     );
 
     const res = await app.inject({
@@ -243,25 +266,47 @@ describe("POST /products/:id/upload", () => {
     expect(json.data.upload.imageCid).toBeTruthy();
     expect(json.data.upload.imageUrl).toBeTruthy();
     expect(json.data.upload.size).toBeGreaterThan(0);
+    expect(json.data.upload.media.alt).toBe("Front-facing watch image");
+    expect(json.data.upload.replacement.action).toBe("added");
+    expect(json.data.upload.replacement.previousFileDeleted).toBeNull();
     expect(json.data.product.imageUrl).toBe(json.data.upload.imageUrl);
     expect(json.data.product.imageCid).toBe(json.data.upload.imageCid);
+
+    const authoring = readProductPassportAuthoringMetadata(
+      json.data.product.passport.metadata,
+    );
+    expect(authoring.media).toEqual([
+      {
+        kind: "image",
+        url: json.data.upload.imageUrl,
+        cid: json.data.upload.imageCid,
+        alt: "Front-facing watch image",
+        position: 0,
+      },
+    ]);
+
+    const uploadedFile = await app.inject({
+      method: "GET",
+      url: json.data.upload.imageUrl,
+    });
+    expect(uploadedFile.statusCode).toBe(200);
+    expect(uploadedFile.headers["content-type"]).toContain("image/jpeg");
+
+    const updatedEvent = json.data.product.events.find(
+      (event: { type: string }) => event.type === "UPDATED",
+    );
+    expect(updatedEvent).toBeDefined();
   });
 
   it("uploads a PNG image successfully", async () => {
     const productId = await createDraftProduct();
-    // Minimal PNG: 1x1 red pixel
-    const png = Buffer.from(
-      "89504e470d0a1a0a0000000d4948445200000001" +
-        "000000010802000000907753de0000000c494441" +
-        "5408d763f8cfc000000002000160e52d6c000000" +
-        "0049454e44ae426082",
-      "hex",
-    );
+    const png = tinyPng();
     const { body, contentType } = buildMultipartBody(
       "file",
       "image.png",
       "image/png",
       png,
+      { alt: "Caseback close-up" },
     );
 
     const res = await app.inject({
@@ -298,6 +343,7 @@ describe("POST /products/:id/upload", () => {
       "watch.jpg",
       "image/jpeg",
       jpeg,
+      { alt: "Draft-only image" },
     );
 
     const res = await app.inject({
@@ -324,6 +370,7 @@ describe("POST /products/:id/upload", () => {
       "document.pdf",
       "application/pdf",
       pdfBytes,
+      { alt: "Upload should fail" },
     );
 
     const res = await app.inject({
@@ -342,7 +389,7 @@ describe("POST /products/:id/upload", () => {
     expect(res.json().error.message).toContain("Invalid file type");
   });
 
-  it("rejects upload from another brand's admin", async () => {
+  it("returns 404 for upload from another brand's admin", async () => {
     const productId = await createDraftProduct();
     const jpeg = tinyJpeg();
     const { body, contentType } = buildMultipartBody(
@@ -350,6 +397,7 @@ describe("POST /products/:id/upload", () => {
       "watch.jpg",
       "image/jpeg",
       jpeg,
+      { alt: "Wrong brand image" },
     );
 
     const res = await app.inject({
@@ -363,8 +411,8 @@ describe("POST /products/:id/upload", () => {
       body,
     });
 
-    expect(res.statusCode).toBe(403);
-    expect(res.json().error.code).toBe("FORBIDDEN");
+    expect(res.statusCode).toBe(404);
+    expect(res.json().error.code).toBe("NOT_FOUND");
   });
 
   it("rejects upload from VIEWER role", async () => {
@@ -375,6 +423,7 @@ describe("POST /products/:id/upload", () => {
       "watch.jpg",
       "image/jpeg",
       jpeg,
+      { alt: "Viewer image" },
     );
 
     const res = await app.inject({
@@ -399,6 +448,7 @@ describe("POST /products/:id/upload", () => {
       "watch.jpg",
       "image/jpeg",
       jpeg,
+      { alt: "Unauthenticated image" },
     );
 
     const res = await app.inject({
@@ -421,6 +471,7 @@ describe("POST /products/:id/upload", () => {
       "watch.jpg",
       "image/jpeg",
       jpeg,
+      { alt: "Missing product image" },
     );
 
     const res = await app.inject({
@@ -446,6 +497,7 @@ describe("POST /products/:id/upload", () => {
       "watch.jpg",
       "image/jpeg",
       jpeg,
+      { alt: "Admin upload image" },
     );
 
     const res = await app.inject({
@@ -471,6 +523,7 @@ describe("POST /products/:id/upload", () => {
       "watch.jpg",
       "image/jpeg",
       jpeg,
+      { alt: "Same image first upload" },
     );
 
     const res = await app.inject({
@@ -492,6 +545,7 @@ describe("POST /products/:id/upload", () => {
       "different-name.jpg",
       "image/jpeg",
       jpeg,
+      { alt: "Same image second upload" },
     );
 
     const res2 = await app.inject({
@@ -509,5 +563,111 @@ describe("POST /products/:id/upload", () => {
     expect(cid1).toBe(cid2);
     // CIDv1 with raw codec + SHA-256 starts with "bafkrei"
     expect(cid1).toMatch(/^bafkrei/);
+  });
+
+  it("requires alt text for typed media authoring metadata", async () => {
+    const productId = await createDraftProduct();
+    const jpeg = tinyJpeg();
+    const { body, contentType } = buildMultipartBody(
+      "file",
+      "watch.jpg",
+      "image/jpeg",
+      jpeg,
+    );
+
+    const res = await app.inject({
+      method: "POST",
+      url: `/products/${productId}/upload`,
+      headers: {
+        cookie: brandAdminCookie,
+        "x-galileo-client": "test",
+        "content-type": contentType,
+      },
+      body,
+    });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.json().error.code).toBe("VALIDATION_ERROR");
+    expect(res.json().error.message).toContain("alt");
+  });
+
+  it("replaces the primary image metadata and deletes the superseded local object", async () => {
+    const productId = await createDraftProduct();
+    const firstUpload = buildMultipartBody(
+      "file",
+      "watch.jpg",
+      "image/jpeg",
+      tinyJpeg(),
+      { alt: "Front image" },
+    );
+
+    const firstResponse = await app.inject({
+      method: "POST",
+      url: `/products/${productId}/upload`,
+      headers: {
+        cookie: brandAdminCookie,
+        "x-galileo-client": "test",
+        "content-type": firstUpload.contentType,
+      },
+      body: firstUpload.body,
+    });
+
+    expect(firstResponse.statusCode).toBe(200);
+    const firstJson = firstResponse.json();
+
+    const secondUpload = buildMultipartBody(
+      "file",
+      "watch.png",
+      "image/png",
+      tinyPng(),
+      { alt: "Updated hero image" },
+    );
+    const secondResponse = await app.inject({
+      method: "POST",
+      url: `/products/${productId}/upload`,
+      headers: {
+        cookie: brandAdminCookie,
+        "x-galileo-client": "test",
+        "content-type": secondUpload.contentType,
+      },
+      body: secondUpload.body,
+    });
+
+    expect(secondResponse.statusCode).toBe(200);
+    const secondJson = secondResponse.json();
+    expect(secondJson.data.upload.replacement.action).toBe("replaced");
+    expect(secondJson.data.upload.replacement.previousImageUrl).toBe(
+      firstJson.data.upload.imageUrl,
+    );
+    expect(secondJson.data.upload.replacement.previousImageCid).toBe(
+      firstJson.data.upload.imageCid,
+    );
+    expect(secondJson.data.upload.replacement.previousFileDeleted).toBe(true);
+
+    const currentAuthoring = readProductPassportAuthoringMetadata(
+      secondJson.data.product.passport.metadata,
+    );
+    expect(currentAuthoring.media).toEqual([
+      {
+        kind: "image",
+        url: secondJson.data.upload.imageUrl,
+        cid: secondJson.data.upload.imageCid,
+        alt: "Updated hero image",
+        position: 0,
+      },
+    ]);
+
+    const deletedUpload = await app.inject({
+      method: "GET",
+      url: firstJson.data.upload.imageUrl,
+    });
+    expect(deletedUpload.statusCode).toBe(404);
+
+    const activeUpload = await app.inject({
+      method: "GET",
+      url: secondJson.data.upload.imageUrl,
+    });
+    expect(activeUpload.statusCode).toBe(200);
+    expect(activeUpload.headers["content-type"]).toContain("image/png");
   });
 });

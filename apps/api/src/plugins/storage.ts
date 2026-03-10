@@ -12,6 +12,7 @@ import { config } from "../config.js";
 export interface StorageService {
   upload(key: string, buffer: Buffer, contentType: string): Promise<string>;
   delete(key: string): Promise<void>;
+  resolveKey(url: string): string | null;
   /** Whether R2/S3 is configured (false = local filesystem fallback) */
   isCloudStorage: boolean;
 }
@@ -48,6 +49,15 @@ function buildLocalStorage(uploadsDir: string): StorageService {
         // File may not exist — ignore
       }
     },
+
+    resolveKey(url: string): string | null {
+      const prefix = "/uploads/";
+      if (!url.startsWith(prefix)) {
+        return null;
+      }
+
+      return decodeURIComponent(url.slice(prefix.length));
+    },
   };
 }
 
@@ -59,6 +69,8 @@ function buildCloudStorage(
   bucket: string,
   publicUrl: string,
 ): StorageService {
+  const normalizedPublicUrl = publicUrl.replace(/\/+$/, "");
+
   return {
     isCloudStorage: true,
 
@@ -85,6 +97,15 @@ function buildCloudStorage(
           Key: key,
         }),
       );
+    },
+
+    resolveKey(url: string): string | null {
+      const prefix = `${normalizedPublicUrl}/`;
+      if (!url.startsWith(prefix)) {
+        return null;
+      }
+
+      return decodeURIComponent(url.slice(prefix.length));
     },
   };
 }

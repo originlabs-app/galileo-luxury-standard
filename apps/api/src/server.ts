@@ -2,6 +2,8 @@ import Fastify from "fastify";
 import fastifyMultipart from "@fastify/multipart";
 import fastifySwagger from "@fastify/swagger";
 import fastifySwaggerUi from "@fastify/swagger-ui";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { config } from "./config.js";
 import prismaPlugin from "./plugins/prisma.js";
 import authPlugin from "./plugins/auth.js";
@@ -116,6 +118,54 @@ export async function buildApp() {
   await fastify.register(storagePlugin);
   await fastify.register(sentryPlugin);
   await fastify.register(auditPlugin);
+
+  if (!fastify.storage.isCloudStorage) {
+    const uploadsDir = path.resolve(process.cwd(), "uploads");
+    const MIME_BY_EXTENSION: Record<string, string> = {
+      ".jpeg": "image/jpeg",
+      ".jpg": "image/jpeg",
+      ".png": "image/png",
+      ".webp": "image/webp",
+    };
+
+    fastify.get<{ Params: { "*": string } }>("/uploads/*", async (request, reply) => {
+      const requestedPath = request.params["*"];
+      const resolvedPath = path.resolve(uploadsDir, requestedPath);
+
+      if (
+        resolvedPath !== uploadsDir &&
+        !resolvedPath.startsWith(`${uploadsDir}${path.sep}`)
+      ) {
+        return reply.status(404).send({
+          success: false,
+          error: {
+            code: "NOT_FOUND",
+            message: "Upload not found",
+          },
+        });
+      }
+
+      try {
+        const fileBuffer = await readFile(resolvedPath);
+        const contentType =
+          MIME_BY_EXTENSION[path.extname(resolvedPath).toLowerCase()] ??
+          "application/octet-stream";
+
+        return reply
+          .header("cache-control", "public, max-age=60")
+          .header("content-type", contentType)
+          .send(fileBuffer);
+      } catch {
+        return reply.status(404).send({
+          success: false,
+          error: {
+            code: "NOT_FOUND",
+            message: "Upload not found",
+          },
+        });
+      }
+    });
+  }
 
   // Register routes
   await fastify.register(healthRoutes);

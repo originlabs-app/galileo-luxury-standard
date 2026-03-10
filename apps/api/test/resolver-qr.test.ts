@@ -378,6 +378,46 @@ describe("Resolver & QR endpoints", () => {
       const body = response.json();
       expect(body.hasMaterialComposition).toBeUndefined();
     });
+
+    it("keeps linked media inside authoring metadata without exposing upload internals", async () => {
+      const passport = await app.prisma.productPassport.findUnique({
+        where: { productId: activeProductId },
+      });
+      await app.prisma.productPassport.update({
+        where: { id: passport!.id },
+        data: {
+          metadata: writeProductPassportAuthoringMetadata(passport!.metadata, {
+            media: [
+              {
+                kind: "image",
+                url: "/uploads/products/active/example-image.jpg",
+                cid: "bafkreiexamplecid",
+                alt: "Front profile image",
+                position: 0,
+              },
+            ],
+          }),
+        },
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/01/${activeProductGtin}/21/${activeProductSerial}`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = response.json();
+      expect(body).not.toHaveProperty("imageUrl");
+      expect(body).not.toHaveProperty("imageCid");
+      expect(body.passport).not.toHaveProperty("metadata");
+      expect(body.passport).not.toHaveProperty("media");
+      expect(body.passport).toEqual(
+        expect.objectContaining({
+          digitalLink: expect.any(String),
+          chainId: 84532,
+        }),
+      );
+    });
   });
 
   // ─── QR Code Generation ──────────────────────────────────────
