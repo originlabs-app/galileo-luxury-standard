@@ -2,18 +2,18 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 1 of 6 (Single-Brand Workspace & Identity Baseline)
-current_plan: 8
-status: verifying
-stopped_at: Completed 01-single-brand-workspace-identity-baseline-08-PLAN.md
-last_updated: "2026-03-09T23:00:21.085Z"
-last_activity: 2026-03-09
+current_phase: 2
+current_plan: "02-02"
+status: executing
+stopped_at: Completed 02-pilot-catalog-authoring-import-01-PLAN.md
+last_updated: "2026-03-10T09:34:50Z"
+last_activity: 2026-03-10
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 8
-  completed_plans: 8
-  percent: 100
+  total_plans: 13
+  completed_plans: 9
+  percent: 69
 ---
 
 # Project State
@@ -23,34 +23,35 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-03-09)
 
 **Core value:** Luxury brands can prove a product's authenticity and lifecycle through a neutral, interoperable, regulation-ready Digital Product Passport that is actually verifiable end to end.
-**Current focus:** Phase 1 execution is complete; next action is verification closeout and Phase 2 planning.
+**Current focus:** Phase 2 execution is underway; next action is executing 02-02 for validation-first CSV import service and API behavior.
 
 ## Current Position
 
-**Current Phase:** 1 of 6 (Single-Brand Workspace & Identity Baseline)
-**Current Plan:** 8
-**Total Plans in Phase:** 8
-**Status:** Phase complete — ready for verification
-**Last Activity:** 2026-03-09
+**Current Phase:** 2
+**Current Plan:** 02-02
+**Total Plans in Phase:** 5
+**Status:** In progress
+**Last Activity:** 2026-03-10
 
-**Progress:** [██████████] 100%
+**Progress:** [███████░░░] 69%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
-- Average duration: 12.5 min
-- Total execution time: 1.7 hours
+- Total plans completed: 9
+- Average duration: 13.4 min
+- Total execution time: 2.0 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | Phase 01 | 8 | 100 min | 12.5 min |
+| Phase 02 | 1 | 21 min | 21 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-04 (8 min), 01-05 (20 min), 01-06 (20 min), 01-07 (14 min), 01-08 (9 min)
-- Trend: Phase 1 execution is complete, including the final dashboard typecheck fix for the linked-wallet SIWE browser proof.
+- Last 5 plans: 01-05 (20 min), 01-06 (20 min), 01-07 (14 min), 01-08 (9 min), 02-01 (21 min)
+- Trend: Phase 2 execution has started with the shared product authoring contract and typed passport metadata helpers in place.
 
 ## Accumulated Context
 
@@ -76,6 +77,11 @@ Recent decisions affecting current work:
 - [Phase 01-single-brand-workspace-identity-baseline]: Playwright now uses a test-only browser wallet bridge to prove linked-wallet SIWE lands on /dashboard/setup without bypassing the real nonce and verify flow.
 - [Phase 01-single-brand-workspace-identity-baseline]: Browser auth persistence is now verified by forcing one protected 401 and observing the real /auth/refresh call, successful retry, and authenticated page reload.
 - [Phase 01-single-brand-workspace-identity-baseline]: Keep the Playwright SIWE helper on the existing dashboard Window declaration so the e2e proof typechecks without a second ambient contract. — The dashboard tsconfig already includes siwe-login.tsx, so extending that local Window augmentation keeps the helper visible to both app code and Playwright specs while avoiding duplicate global declarations.
+- [Phase 02-pilot-catalog-authoring-import]: Phase 2 will treat CSV import as a validation-first dry-run plus commit workflow instead of default partial writes.
+- [Phase 02-pilot-catalog-authoring-import]: Manual create, import, and DRAFT editing should reuse one shared authoring contract layered on top of immutable product identity.
+- [Phase 02-pilot-catalog-authoring-import]: Passport metadata should move behind a typed envelope for structured materials and linked media instead of route-local raw JSON shapes.
+- [Phase 02-pilot-catalog-authoring-import]: Shared Phase 2 authoring validation now lives in @galileo/shared and is reused by manual create and patch flows.
+- [Phase 02-pilot-catalog-authoring-import]: Resolver material composition reads now prefer metadata.authoring but preserve legacy root-level metadata.materials until import migrates.
 
 ### Pending Todos
 
@@ -88,6 +94,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-09T23:00:21.074Z
-Stopped at: Completed 01-single-brand-workspace-identity-baseline-08-PLAN.md
+Last session: 2026-03-10T09:34:50Z
+Stopped at: Completed 02-pilot-catalog-authoring-import-01-PLAN.md
 Resume file: None
