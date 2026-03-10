@@ -36,6 +36,22 @@ export default async function healthRoutes(fastify: FastifyInstance) {
 
       const status = dbStatus === "ok" ? "ok" : "degraded";
       const statusCode = status === "ok" ? 200 : 503;
+      const contracts = Object.fromEntries(
+        Object.entries(fastify.chain.deployment.infrastructure).map(
+          ([name, address]) => [
+            name,
+            {
+              address,
+              explorerUrl: address
+                ? fastify.chain.explorer.addressUrl(address)
+                : null,
+            },
+          ],
+        ),
+      );
+      const deployedContractCount = Object.values(
+        fastify.chain.deployment.infrastructure,
+      ).filter(Boolean).length;
 
       return reply.status(statusCode).send({
         status,
@@ -49,11 +65,15 @@ export default async function healthRoutes(fastify: FastifyInstance) {
           explorer: {
             name: fastify.chain.deployment.explorer.name,
             baseUrl: fastify.chain.explorer.baseUrl,
+            txBaseUrl: `${fastify.chain.explorer.baseUrl}${fastify.chain.deployment.explorer.txPath}`,
+            addressBaseUrl: `${fastify.chain.explorer.baseUrl}${fastify.chain.deployment.explorer.addressPath}`,
           },
           issuance: fastify.chain.issuance,
-          infrastructure: fastify.chain.deployment.infrastructure,
+          contracts,
+          contractCount: deployedContractCount,
           rpcConfigured: fastify.chain.rpcConfigured,
           writeEnabled: fastify.chain.chainEnabled,
+          writeMode: fastify.chain.chainEnabled ? "enabled" : "read-only",
           writeCredentialsConfigured: fastify.chain.writeCredentialsConfigured,
           basescanConfigured: fastify.chain.writeVerificationConfigured,
         },

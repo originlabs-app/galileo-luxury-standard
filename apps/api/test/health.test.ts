@@ -11,6 +11,8 @@ const deployment = {
   explorer: {
     name: "Basescan",
     baseUrl: "https://sepolia.basescan.org",
+    txPath: "/tx/",
+    addressPath: "/address/",
   },
   issuance: {
     model: "per-product-token",
@@ -91,6 +93,7 @@ describe("GET /health", () => {
     expect(body.dependencies.chain).toBe("disabled");
     expect(body.deployment.chainId).toBe(84532);
     expect(body.deployment.writeEnabled).toBe(false);
+    expect(body.deployment.writeMode).toBe("read-only");
   });
 
   it("returns the correct version from package.json", async () => {
@@ -171,11 +174,27 @@ describe("GET /health", () => {
       explorer: {
         name: "Basescan",
         baseUrl: "https://sepolia.basescan.org",
+        txBaseUrl: "https://sepolia.basescan.org/tx/",
+        addressBaseUrl: "https://sepolia.basescan.org/address/",
       },
       issuance: deployment.issuance,
-      infrastructure: deployment.infrastructure,
+      contracts: {
+        accessControl: { address: null, explorerUrl: null },
+        claimTopicsRegistry: { address: null, explorerUrl: null },
+        trustedIssuersRegistry: { address: null, explorerUrl: null },
+        identityRegistryStorage: { address: null, explorerUrl: null },
+        identityRegistry: { address: null, explorerUrl: null },
+        compliance: { address: null, explorerUrl: null },
+        brandAuthorizationModule: { address: null, explorerUrl: null },
+        cpoCertificationModule: { address: null, explorerUrl: null },
+        jurisdictionModule: { address: null, explorerUrl: null },
+        sanctionsModule: { address: null, explorerUrl: null },
+        serviceCenterModule: { address: null, explorerUrl: null },
+      },
+      contractCount: 0,
       rpcConfigured: true,
       writeEnabled: true,
+      writeMode: "enabled",
       writeCredentialsConfigured: true,
       basescanConfigured: true,
     });

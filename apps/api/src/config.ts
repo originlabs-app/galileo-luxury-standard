@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { readFileSync } from "node:fs";
-import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { z } from "zod";
 
 const envSchema = z.object({
@@ -74,13 +74,8 @@ const deploymentManifestSchema = z.object({
 });
 
 function loadBaseSepoliaDeployment() {
-  const manifestPath = path.resolve(
-    process.cwd(),
-    "..",
-    "..",
-    "contracts",
-    "deployments",
-    "base-sepolia.json",
+  const manifestPath = fileURLToPath(
+    new URL("../../../contracts/deployments/base-sepolia.json", import.meta.url),
   );
   const manifestText = readFileSync(manifestPath, "utf8");
   const manifest = JSON.parse(manifestText) as unknown;
