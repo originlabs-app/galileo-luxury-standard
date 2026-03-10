@@ -1,7 +1,13 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { Upload, FileUp, AlertCircle, CheckCircle2 } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle2,
+  FileUp,
+  LoaderCircle,
+  Upload,
+} from "lucide-react";
 import { API_URL } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,47 +27,97 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-interface RowError {
-  row: number;
+interface ImportRowIssue {
   field: string;
   message: string;
 }
 
-interface ImportResult {
-  created: number;
-  errors: RowError[];
+interface RowError extends ImportRowIssue {
+  row: number;
 }
 
-type ImportState = "idle" | "preview" | "uploading" | "success" | "error";
+interface ImportRowInput {
+  name: string;
+  gtin: string;
+  serialNumber: string;
+  category: string;
+  description?: string;
+}
+
+interface ImportRowResult {
+  row: number;
+  status: "accepted" | "rejected";
+  input: ImportRowInput | null;
+  errors: ImportRowIssue[];
+}
+
+interface ImportSummary {
+  totalRows: number;
+  acceptedRows: number;
+  rejectedRows: number;
+}
+
+interface ImportResult {
+  dryRun: boolean;
+  created: number;
+  errors: RowError[];
+  rows: ImportRowResult[];
+  summary: ImportSummary;
+}
+
+interface ImportResponse {
+  success: boolean;
+  data?: ImportResult;
+  error?: {
+    message?: string;
+    details?: {
+      errors?: RowError[];
+    };
+  };
+}
+
+type ImportStage =
+  | "idle"
+  | "preview"
+  | "validating"
+  | "review"
+  | "committing"
+  | "complete";
 
 function parseCsvPreview(content: string): string[][] {
-  const lines = content.split(/\r?\n/).filter((l) => l.trim() !== "");
+  const lines = content.split(/\r?\n/).filter((line) => line.trim() !== "");
   return lines.slice(0, 6).map((line) => {
     const fields: string[] = [];
     let current = "";
     let inQuotes = false;
-    for (let i = 0; i < line.length; i++) {
-      const ch = line[i]!;
+
+    for (let index = 0; index < line.length; index += 1) {
+      const char = line[index]!;
+
       if (inQuotes) {
-        if (ch === '"') {
-          if (i + 1 < line.length && line[i + 1] === '"') {
+        if (char === '"') {
+          if (index + 1 < line.length && line[index + 1] === '"') {
             current += '"';
-            i++;
+            index += 1;
           } else {
             inQuotes = false;
           }
         } else {
-          current += ch;
+          current += char;
         }
-      } else if (ch === '"') {
+        continue;
+      }
+
+      if (char === '"') {
         inQuotes = true;
-      } else if (ch === ",") {
+      } else if (char === ",") {
         fields.push(current.trim());
         current = "";
       } else {
-        current += ch;
+        current += char;
       }
     }
+
     fields.push(current.trim());
     return fields;
   });
@@ -75,14 +131,14 @@ export function BatchImportDialog({
   onImportComplete,
 }: BatchImportDialogProps) {
   const [open, setOpen] = useState(false);
-  const [state, setState] = useState<ImportState>("idle");
+  const [stage, setStage] = useState<ImportStage>("idle");
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string[][]>([]);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   function reset() {
-    setState("idle");
+    setStage("idle");
     setFile(null);
     setPreview([]);
     setResult(null);
@@ -91,21 +147,26 @@ export function BatchImportDialog({
 
   function handleOpenChange(nextOpen: boolean) {
     setOpen(nextOpen);
-    if (!nextOpen) reset();
+    if (!nextOpen) {
+      reset();
+    }
   }
 
   const handleFileSelect = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const selected = e.target.files?.[0];
-      if (!selected) return;
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const selected = event.target.files?.[0];
+      if (!selected) {
+        return;
+      }
 
       if (!selected.name.endsWith(".csv")) {
         setErrorMessage("Please select a .csv file");
-        setState("error");
+        setStage("idle");
         return;
       }
 
       setFile(selected);
+      setResult(null);
       setErrorMessage(null);
 
       const reader = new FileReader();
@@ -113,54 +174,139 @@ export function BatchImportDialog({
         const content = reader.result as string;
         if (!content.trim()) {
           setErrorMessage("File is empty");
-          setState("error");
+          setPreview([]);
+          setStage("idle");
           return;
         }
-        const rows = parseCsvPreview(content);
-        setPreview(rows);
-        setState("preview");
+
+        setPreview(parseCsvPreview(content));
+        setStage("preview");
       };
       reader.readAsText(selected);
 
-      // Reset the input so re-selecting the same file triggers onChange
-      e.target.value = "";
+      event.target.value = "";
     },
     [],
   );
 
-  const handleImport = useCallback(async () => {
-    if (!file) return;
+  const submitImport = useCallback(async (dryRun: boolean) => {
+    if (!file) {
+      return null;
+    }
 
-    setState("uploading");
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const query = dryRun ? "" : "?dryRun=false";
+    const response = await fetch(`${API_URL}/products/batch-import${query}`, {
+      method: "POST",
+      body: formData,
+      credentials: "include",
+      headers: {
+        "X-Galileo-Client": "dashboard",
+      },
+    });
+
+    const payload = (await response.json()) as ImportResponse;
+    if (!response.ok || !payload.success || !payload.data) {
+      const detailErrors =
+        payload.error?.details?.errors ?? payload.data?.errors ?? [];
+
+      return {
+        ok: false as const,
+        message: payload.error?.message ?? "Import failed",
+        data: payload.data
+          ? {
+              ...payload.data,
+              errors: detailErrors,
+            }
+          : null,
+      };
+    }
+
+    return {
+      ok: true as const,
+      data: payload.data,
+    };
+  }, [file]);
+
+  const handleValidate = useCallback(async () => {
+    if (!file) {
+      return;
+    }
+
+    setStage("validating");
     setErrorMessage(null);
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const res = await fetch(`${API_URL}/products/batch-import?partial=true`, {
-        method: "POST",
-        body: formData,
-        credentials: "include",
-        headers: {
-          "X-Galileo-Client": "dashboard",
-        },
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error?.message ?? "Import failed");
+      const response = await submitImport(true);
+      if (!response) {
+        setStage("preview");
+        return;
       }
 
-      const data = await res.json();
-      setResult(data.data);
-      setState("success");
-      onImportComplete?.();
-    } catch (err) {
-      setErrorMessage(err instanceof Error ? err.message : "Import failed");
-      setState("error");
+      if (!response.ok) {
+        setResult(response.data);
+        setErrorMessage(response.message);
+        setStage(response.data ? "review" : "preview");
+        return;
+      }
+
+      setResult(response.data);
+      setStage("review");
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Could not validate the import",
+      );
+      setStage("preview");
     }
-  }, [file, onImportComplete]);
+  }, [file, submitImport]);
+
+  const handleCommit = useCallback(async () => {
+    if (!file) {
+      return;
+    }
+
+    setStage("committing");
+    setErrorMessage(null);
+
+    try {
+      const response = await submitImport(false);
+      if (!response) {
+        setStage("review");
+        return;
+      }
+
+      if (!response.ok) {
+        setResult(response.data);
+        setErrorMessage(response.message);
+        setStage(response.data ? "review" : "preview");
+        return;
+      }
+
+      setResult(response.data);
+      setStage("complete");
+      onImportComplete?.();
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Could not commit the import",
+      );
+      setStage("review");
+    }
+  }, [file, onImportComplete, submitImport]);
+
+  const acceptedRows =
+    result?.rows.filter(
+      (row): row is ImportRowResult & { input: ImportRowInput } =>
+        row.status === "accepted" && row.input !== null,
+    ) ?? [];
+  const rejectedRows = result?.errors ?? [];
+  const hasBlockingErrors = (result?.summary.rejectedRows ?? 0) > 0;
+  const canCommit =
+    stage === "review" &&
+    !!result &&
+    result.summary.acceptedRows > 0 &&
+    !hasBlockingErrors;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -174,22 +320,22 @@ export function BatchImportDialog({
         <DialogHeader>
           <DialogTitle>Import Products from CSV</DialogTitle>
           <DialogDescription>
-            Upload a CSV file with columns: name, gtin, serialNumber, category,
-            description, materials
+            Upload a catalog CSV, review the server validation result, and only
+            commit when every row is accepted.
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-col gap-4">
-          {/* File picker */}
-          {(state === "idle" || state === "error") && !result && (
+          {stage === "idle" ? (
             <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed p-8">
               <Upload className="size-8 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">
-                Select a CSV file to import products
+              <p className="text-center text-sm text-muted-foreground">
+                Select a CSV file with `name`, `gtin`, `serialNumber`,
+                `category`, `description`, and `materials` columns.
               </p>
               <Button variant="outline" size="sm" asChild>
                 <label className="cursor-pointer">
-                  Choose file
+                  Choose CSV file
                   <input
                     type="file"
                     accept=".csv"
@@ -198,36 +344,40 @@ export function BatchImportDialog({
                   />
                 </label>
               </Button>
-              {errorMessage && (
+              {errorMessage ? (
                 <div className="flex items-center gap-2 text-sm text-destructive">
                   <AlertCircle className="size-4" />
                   {errorMessage}
                 </div>
-              )}
+              ) : null}
             </div>
-          )}
+          ) : null}
 
-          {/* Preview */}
-          {state === "preview" && preview.length > 0 && (
+          {stage === "preview" && preview.length > 0 ? (
             <>
-              <p className="text-sm text-muted-foreground">
-                Preview of <strong>{file?.name}</strong> (first{" "}
-                {Math.min(5, preview.length - 1)} data rows):
-              </p>
+              <div className="rounded-lg border bg-muted/30 p-4">
+                <p className="text-sm font-medium text-foreground">
+                  {file?.name}
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  This preview is local only. Run server validation before any
+                  products are created.
+                </p>
+              </div>
               <div className="max-h-64 overflow-auto rounded-lg border">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      {preview[0]?.map((h, i) => (
-                        <TableHead key={i}>{h}</TableHead>
+                      {preview[0]?.map((header, index) => (
+                        <TableHead key={index}>{header}</TableHead>
                       ))}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {preview.slice(1).map((row, i) => (
-                      <TableRow key={i}>
-                        {row.map((cell, j) => (
-                          <TableCell key={j} className="text-xs">
+                    {preview.slice(1).map((row, rowIndex) => (
+                      <TableRow key={rowIndex}>
+                        {row.map((cell, cellIndex) => (
+                          <TableCell key={cellIndex} className="text-xs">
                             {cell}
                           </TableCell>
                         ))}
@@ -238,39 +388,129 @@ export function BatchImportDialog({
               </div>
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={reset}>
-                  Cancel
+                  Choose another file
                 </Button>
-                <Button onClick={handleImport}>Import</Button>
+                <Button onClick={handleValidate}>Validate import</Button>
               </div>
             </>
-          )}
+          ) : null}
 
-          {/* Uploading */}
-          {state === "uploading" && (
+          {stage === "validating" || stage === "committing" ? (
             <div className="flex flex-col items-center gap-3 py-8">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+              <LoaderCircle className="size-8 animate-spin text-primary" />
               <p className="text-sm text-muted-foreground">
-                Importing products...
+                {stage === "validating"
+                  ? "Running server validation..."
+                  : "Committing accepted rows..."}
               </p>
             </div>
-          )}
+          ) : null}
 
-          {/* Success */}
-          {state === "success" && result && (
+          {stage === "review" && result ? (
             <div className="flex flex-col gap-4">
-              <div className="flex items-center gap-2 text-sm">
-                <CheckCircle2 className="size-5 text-green-500" />
-                <span>
-                  <strong>{result.created}</strong> product
-                  {result.created !== 1 ? "s" : ""} created successfully
-                </span>
+              <div
+                className={`rounded-lg border px-4 py-4 ${
+                  hasBlockingErrors
+                    ? "border-destructive/40 bg-destructive/5"
+                    : "border-emerald-500/30 bg-emerald-500/5"
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  {hasBlockingErrors ? (
+                    <AlertCircle className="mt-0.5 size-5 text-destructive" />
+                  ) : (
+                    <CheckCircle2 className="mt-0.5 size-5 text-emerald-600" />
+                  )}
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-foreground">
+                      {hasBlockingErrors
+                        ? "Validation blocked this import"
+                        : "Validation passed. Ready to commit."}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {hasBlockingErrors
+                        ? "Fix the rejected rows and re-run the import. No products have been created."
+                        : "Every row passed server validation. Commit when you are ready to add them to the workspace."}
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-4 grid grid-cols-3 gap-3 text-sm">
+                  <div className="rounded-md border bg-background px-3 py-2">
+                    <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                      Total rows
+                    </p>
+                    <p className="mt-1 font-semibold text-foreground">
+                      {result.summary.totalRows}
+                    </p>
+                  </div>
+                  <div className="rounded-md border bg-background px-3 py-2">
+                    <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                      Accepted
+                    </p>
+                    <p className="mt-1 font-semibold text-foreground">
+                      {result.summary.acceptedRows}
+                    </p>
+                  </div>
+                  <div className="rounded-md border bg-background px-3 py-2">
+                    <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                      Rejected
+                    </p>
+                    <p className="mt-1 font-semibold text-foreground">
+                      {result.summary.rejectedRows}
+                    </p>
+                  </div>
+                </div>
               </div>
 
-              {result.errors.length > 0 && (
+              {errorMessage ? (
+                <div className="flex items-center gap-2 rounded-lg border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+                  <AlertCircle className="size-4" />
+                  {errorMessage}
+                </div>
+              ) : null}
+
+              {acceptedRows.length > 0 ? (
                 <>
-                  <p className="text-sm text-destructive">
-                    {result.errors.length} error
-                    {result.errors.length !== 1 ? "s" : ""}:
+                  <p className="text-sm font-medium text-foreground">
+                    Accepted rows ready for commit
+                  </p>
+                  <div className="max-h-48 overflow-auto rounded-lg border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Row</TableHead>
+                          <TableHead>Name</TableHead>
+                          <TableHead>GTIN</TableHead>
+                          <TableHead>Serial</TableHead>
+                          <TableHead>Category</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {acceptedRows.slice(0, 5).map((row) => (
+                          <TableRow key={row.row}>
+                            <TableCell>{row.row}</TableCell>
+                            <TableCell className="font-medium">
+                              {row.input.name}
+                            </TableCell>
+                            <TableCell className="font-mono text-xs text-muted-foreground">
+                              {row.input.gtin}
+                            </TableCell>
+                            <TableCell className="font-mono text-xs text-muted-foreground">
+                              {row.input.serialNumber}
+                            </TableCell>
+                            <TableCell>{row.input.category}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </>
+              ) : null}
+
+              {rejectedRows.length > 0 ? (
+                <>
+                  <p className="text-sm font-medium text-destructive">
+                    Row-level validation issues
                   </p>
                   <div className="max-h-48 overflow-auto rounded-lg border">
                     <Table>
@@ -282,12 +522,14 @@ export function BatchImportDialog({
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {result.errors.map((err, i) => (
-                          <TableRow key={i}>
-                            <TableCell>{err.row}</TableCell>
-                            <TableCell>{err.field}</TableCell>
+                        {rejectedRows.map((error, index) => (
+                          <TableRow
+                            key={`${error.row}-${error.field}-${index}`}
+                          >
+                            <TableCell>{error.row}</TableCell>
+                            <TableCell>{error.field}</TableCell>
                             <TableCell className="text-xs text-destructive">
-                              {err.message}
+                              {error.message}
                             </TableCell>
                           </TableRow>
                         ))}
@@ -295,21 +537,68 @@ export function BatchImportDialog({
                     </Table>
                   </div>
                 </>
-              )}
+              ) : null}
+
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={reset}>
+                  Choose another file
+                </Button>
+                <Button onClick={handleCommit} disabled={!canCommit}>
+                  Commit import
+                </Button>
+              </div>
+            </div>
+          ) : null}
+
+          {stage === "complete" && result ? (
+            <div className="flex flex-col gap-4">
+              <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 px-4 py-4">
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="mt-0.5 size-5 text-emerald-600" />
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-foreground">
+                      {result.created} product
+                      {result.created !== 1 ? "s" : ""} created successfully
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      The products workspace has been refreshed with the committed import.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3 text-sm">
+                <div className="rounded-md border bg-background px-3 py-2">
+                  <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                    Imported
+                  </p>
+                  <p className="mt-1 font-semibold text-foreground">
+                    {result.created}
+                  </p>
+                </div>
+                <div className="rounded-md border bg-background px-3 py-2">
+                  <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                    Accepted
+                  </p>
+                  <p className="mt-1 font-semibold text-foreground">
+                    {result.summary.acceptedRows}
+                  </p>
+                </div>
+                <div className="rounded-md border bg-background px-3 py-2">
+                  <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                    Rejected
+                  </p>
+                  <p className="mt-1 font-semibold text-foreground">
+                    {result.summary.rejectedRows}
+                  </p>
+                </div>
+              </div>
 
               <div className="flex justify-end">
                 <Button onClick={() => handleOpenChange(false)}>Done</Button>
               </div>
             </div>
-          )}
-
-          {/* Error state with result */}
-          {state === "error" && errorMessage && !file && (
-            <div className="flex items-center gap-2 text-sm text-destructive">
-              <AlertCircle className="size-4" />
-              {errorMessage}
-            </div>
-          )}
+          ) : null}
         </div>
       </DialogContent>
     </Dialog>

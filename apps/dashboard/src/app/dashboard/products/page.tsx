@@ -4,8 +4,9 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight, Package, Plus, X } from "lucide-react";
-import { type ProductStatus } from "@galileo/shared";
+import { CATEGORIES, type ProductStatus } from "@galileo/shared";
 import { api, ApiError } from "@/lib/api";
+import { BatchImportDialog } from "@/components/batch-import-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -48,16 +49,10 @@ interface ProductsResponse {
   };
 }
 
-const CATEGORY_OPTIONS = [
-  { value: "Leather Goods", label: "Leather Goods" },
-  { value: "Jewelry", label: "Jewelry" },
-  { value: "Watches", label: "Watches" },
-  { value: "Fashion", label: "Fashion" },
-  { value: "Accessories", label: "Accessories" },
-  { value: "Fragrances", label: "Fragrances" },
-  { value: "Eyewear", label: "Eyewear" },
-  { value: "Other", label: "Other" },
-];
+const CATEGORY_OPTIONS = CATEGORIES.map((value) => ({
+  value,
+  label: value,
+}));
 
 const PAGE_SIZE = 20;
 
@@ -135,6 +130,15 @@ export default function ProductsPage() {
     setPage(1);
   }
 
+  const handleImportComplete = useCallback(() => {
+    if (page !== 1) {
+      setPage(1);
+      return;
+    }
+
+    void fetchProducts(1, categoryFilter);
+  }, [categoryFilter, fetchProducts, page]);
+
   if (isLoading && !pagination) {
     return (
       <div className="flex flex-1 items-center justify-center py-16">
@@ -174,12 +178,15 @@ export default function ProductsPage() {
             downstream lifecycle workflows enter scope.
           </p>
         </div>
-        <Button asChild>
-          <Link href="/dashboard/products/new">
-            <Plus className="size-4" />
-            New Product
-          </Link>
-        </Button>
+        <div className="flex flex-wrap items-center gap-3">
+          <BatchImportDialog onImportComplete={handleImportComplete} />
+          <Button asChild>
+            <Link href="/dashboard/products/new">
+              <Plus className="size-4" />
+              New Product
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
@@ -309,12 +316,15 @@ export default function ProductsPage() {
             Create your first product to establish its permanent identity before
             any downstream lifecycle steps.
           </p>
-          <Button asChild className="mt-6">
-            <Link href="/dashboard/products/new">
-              <Plus className="size-4" />
-              Create Product
-            </Link>
-          </Button>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <BatchImportDialog onImportComplete={handleImportComplete} />
+            <Button asChild>
+              <Link href="/dashboard/products/new">
+                <Plus className="size-4" />
+                Create Product
+              </Link>
+            </Button>
+          </div>
         </div>
       )}
     </div>
