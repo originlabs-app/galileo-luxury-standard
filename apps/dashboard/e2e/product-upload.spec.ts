@@ -17,6 +17,27 @@ function createTestPng(filePath: string): void {
   fs.writeFileSync(filePath, pngBuffer);
 }
 
+async function createDraftProduct(page: import("@playwright/test").Page, name: string, serialNumber: string) {
+  await page.goto("/dashboard/products/new");
+  await page.getByLabel("Name").fill(name);
+  await page.getByLabel("GTIN").fill("00012345678905");
+  await page.getByLabel("Serial Number").fill(serialNumber);
+  await page.getByRole("combobox", { name: /category/i }).click();
+  await page.getByRole("option", { name: "Watches" }).click();
+  await page.getByRole("button", { name: /add material/i }).click();
+  await page.getByLabel("Material name 1").fill("Calfskin");
+  await page.getByLabel("Material percentage 1").fill("100");
+  await page.getByRole("button", { name: /create product/i }).click();
+
+  await page.waitForURL(/\/dashboard\/products\/[a-zA-Z0-9-]+\/identity$/, {
+    timeout: 15_000,
+  });
+  await page.getByRole("link", { name: /continue to product record/i }).click();
+  await page.waitForURL(/\/dashboard\/products\/[a-zA-Z0-9-]+$/, {
+    timeout: 15_000,
+  });
+}
+
 test.describe("Product Image Upload", () => {
   const testPngPath = path.join(
     __dirname,
@@ -39,41 +60,17 @@ test.describe("Product Image Upload", () => {
     page,
   }) => {
     const uniqueSerial = `SN-UP-${Date.now()}`;
+    await createDraftProduct(page, "Upload Test Product", uniqueSerial);
 
-    // Create a product first
-    await page.goto("/dashboard/products/new");
-    await page.getByLabel("Name").fill("Upload Test Product");
-    await page.getByLabel("GTIN").fill("00012345678905");
-    await page.getByLabel("Serial Number").fill(uniqueSerial);
-    await page.getByRole("combobox", { name: /category/i }).click();
-    await page.getByRole("option", { name: "Watches" }).click();
-    await page.getByRole("button", { name: /create product/i }).click();
-
-    // Wait for redirect to detail page
-    await page.waitForURL(/\/dashboard\/products\/[a-zA-Z0-9-]+$/, {
-      timeout: 15_000,
-    });
-
-    // Verify image upload component is visible
-    await expect(page.getByText("Product Image")).toBeVisible();
-    await expect(page.getByText("Upload image")).toBeVisible();
+    await expect(page.getByText("Linked media draft")).toBeVisible();
+    await expect(page.getByLabel("Media alt text")).toBeVisible();
+    await expect(page.getByText("Upload linked image")).toBeVisible();
   });
 
   test("uploading an image shows preview", async ({ page }) => {
     const uniqueSerial = `SN-UP2-${Date.now()}`;
-
-    // Create a product
-    await page.goto("/dashboard/products/new");
-    await page.getByLabel("Name").fill("Upload Preview Product");
-    await page.getByLabel("GTIN").fill("00012345678905");
-    await page.getByLabel("Serial Number").fill(uniqueSerial);
-    await page.getByRole("combobox", { name: /category/i }).click();
-    await page.getByRole("option", { name: "Watches" }).click();
-    await page.getByRole("button", { name: /create product/i }).click();
-
-    await page.waitForURL(/\/dashboard\/products\/[a-zA-Z0-9-]+$/, {
-      timeout: 15_000,
-    });
+    await createDraftProduct(page, "Upload Preview Product", uniqueSerial);
+    await page.getByLabel("Media alt text").fill("Front-facing dial image");
 
     // Upload image using setInputFiles
     const fileInput = page.locator('input[type="file"]');
@@ -81,28 +78,19 @@ test.describe("Product Image Upload", () => {
 
     // Wait for upload to complete — preview image should appear
     await expect(page.getByAltText("Product")).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByLabel("Media alt text")).toHaveValue(
+      "Front-facing dial image",
+    );
   });
 
   test("image upload component is responsive on mobile", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
 
     const uniqueSerial = `SN-UP3-${Date.now()}`;
+    await createDraftProduct(page, "Upload Mobile Product", uniqueSerial);
 
-    // Create a product
-    await page.goto("/dashboard/products/new");
-    await page.getByLabel("Name").fill("Upload Mobile Product");
-    await page.getByLabel("GTIN").fill("00012345678905");
-    await page.getByLabel("Serial Number").fill(uniqueSerial);
-    await page.getByRole("combobox", { name: /category/i }).click();
-    await page.getByRole("option", { name: "Watches" }).click();
-    await page.getByRole("button", { name: /create product/i }).click();
-
-    await page.waitForURL(/\/dashboard\/products\/[a-zA-Z0-9-]+$/, {
-      timeout: 15_000,
-    });
-
-    // Verify upload component is visible on mobile
-    await expect(page.getByText("Product Image")).toBeVisible();
-    await expect(page.getByText("Upload image")).toBeVisible();
+    await expect(page.getByText("Linked media draft")).toBeVisible();
+    await expect(page.getByLabel("Media alt text")).toBeVisible();
+    await expect(page.getByText("Upload linked image")).toBeVisible();
   });
 });

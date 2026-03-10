@@ -3,9 +3,14 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { validateGtin } from "@galileo/shared";
+import {
+  CATEGORIES,
+  type ProductMaterial,
+  validateGtin,
+} from "@galileo/shared";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
+import { ProductMaterialsEditor } from "@/components/product-materials-editor";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,16 +30,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 
-const CATEGORY_OPTIONS = [
-  { value: "Leather Goods", label: "Leather Goods" },
-  { value: "Jewelry", label: "Jewelry" },
-  { value: "Watches", label: "Watches" },
-  { value: "Fashion", label: "Fashion" },
-  { value: "Accessories", label: "Accessories" },
-  { value: "Fragrances", label: "Fragrances" },
-  { value: "Eyewear", label: "Eyewear" },
-  { value: "Other", label: "Other" },
-] as const;
+const CATEGORY_OPTIONS = CATEGORIES.map((value) => ({ value, label: value }));
 
 interface FormErrors {
   name?: string;
@@ -59,6 +55,7 @@ export default function NewProductPage() {
   const [serialNumber, setSerialNumber] = useState("");
   const [category, setCategory] = useState("");
   const [description, setDescription] = useState("");
+  const [materials, setMaterials] = useState<ProductMaterial[]>([]);
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [serverError, setServerError] = useState("");
@@ -98,6 +95,13 @@ export default function NewProductPage() {
     setIsSubmitting(true);
     try {
       const effectiveBrandId = user?.brandId ?? user?.brand?.id;
+      const normalizedMaterials = materials
+        .map((material) => ({
+          name: material.name.trim(),
+          percentage: material.percentage,
+        }))
+        .filter((material) => material.name.length > 0);
+
       const res = await api<CreateProductResponse>("/products", {
         method: "POST",
         body: JSON.stringify({
@@ -106,6 +110,8 @@ export default function NewProductPage() {
           serialNumber: serialNumber.trim(),
           category,
           description: description.trim() || undefined,
+          materials:
+            normalizedMaterials.length > 0 ? normalizedMaterials : undefined,
           brandId: effectiveBrandId,
         }),
       });
@@ -269,6 +275,18 @@ export default function NewProductPage() {
                 onChange={(e) => setDescription(e.target.value)}
                 rows={3}
               />
+            </div>
+
+            <ProductMaterialsEditor
+              materials={materials}
+              onChange={setMaterials}
+              idPrefix="create-product-material"
+            />
+
+            <div className="rounded-lg border border-border/70 bg-muted/30 px-4 py-4 text-sm text-muted-foreground">
+              Linked media stays in the same passport draft. Once identity is
+              created, the next workspace exposes the DRAFT-only media controls
+              for image upload and alt text authoring.
             </div>
 
             {/* Actions */}

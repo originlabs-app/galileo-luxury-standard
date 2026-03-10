@@ -1,29 +1,64 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { Upload, Image as ImageIcon } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { type ProductMediaDescriptor } from "@galileo/shared";
+import { Image as ImageIcon, Upload } from "lucide-react";
 import { API_URL } from "@/lib/constants";
+import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
+interface UploadResponse {
+  success: true;
+  data: {
+    upload: {
+      imageCid: string;
+      imageUrl: string;
+    };
+  };
+}
 
 interface ImageUploadProps {
   productId: string;
   currentImageUrl?: string | null;
-  onUploadComplete?: (imageUrl: string) => void;
+  currentMedia?: ProductMediaDescriptor[];
+  onUploadComplete?: () => void;
 }
 
 export function ImageUpload({
   productId,
   currentImageUrl,
+  currentMedia = [],
   onUploadComplete,
 }: ImageUploadProps) {
   const [preview, setPreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [altText, setAltText] = useState("");
+
+  const primaryImage = useMemo(
+    () =>
+      currentMedia.find((media) => media.kind === "image" && media.position === 0) ??
+      currentMedia.find((media) => media.kind === "image"),
+    [currentMedia],
+  );
+
+  useEffect(() => {
+    setAltText(primaryImage?.alt ?? "");
+  }, [primaryImage]);
 
   const handleFileSelect = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (!file) return;
+      const trimmedAltText = altText.trim();
+
+      if (!trimmedAltText) {
+        setError("Add alt text before uploading linked media.");
+        e.target.value = "";
+        return;
+      }
 
       // Preview
       const reader = new FileReader();
@@ -51,8 +86,28 @@ export function ImageUpload({
           throw new Error(data.error?.message ?? "Upload failed");
         }
 
-        const data = await res.json();
-        onUploadComplete?.(data.data.imageUrl);
+        const data = (await res.json()) as UploadResponse;
+        const mediaWithoutPrimaryImage = currentMedia.filter(
+          (media) => !(media.kind === "image" && media.position === 0),
+        );
+
+        await api(`/products/${productId}`, {
+          method: "PATCH",
+          body: JSON.stringify({
+            media: [
+              {
+                kind: "image",
+                url: data.data.upload.imageUrl,
+                cid: data.data.upload.imageCid,
+                alt: trimmedAltText,
+                position: 0,
+              },
+              ...mediaWithoutPrimaryImage,
+            ],
+          }),
+        });
+
+        onUploadComplete?.();
       } catch (err) {
         setError(err instanceof Error ? err.message : "Upload failed");
         setPreview(null);
@@ -60,16 +115,31 @@ export function ImageUpload({
         setIsUploading(false);
       }
     },
-    [productId, onUploadComplete],
+    [altText, currentMedia, productId, onUploadComplete],
   );
 
   const displayUrl = preview ?? currentImageUrl;
 
   return (
-    <div className="flex flex-col gap-2">
-      <label className="text-sm font-medium text-foreground">
-        Product Image
-      </label>
+    <div className="flex flex-col gap-4">
+      <div className="space-y-1">
+        <Label>Linked media draft</Label>
+        <p className="text-sm text-muted-foreground">
+          Upload the primary product image and store the shared passport media
+          descriptor while the record stays in DRAFT.
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <Label htmlFor={`media-alt-${productId}`}>Media alt text</Label>
+        <Input
+          id={`media-alt-${productId}`}
+          value={altText}
+          onChange={(event) => setAltText(event.target.value)}
+          placeholder="Front-facing product image"
+        />
+      </div>
+
       {displayUrl ? (
         <div className="relative aspect-square w-full max-w-[200px] overflow-hidden rounded-lg border">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -94,7 +164,7 @@ export function ImageUpload({
         >
           <label className="cursor-pointer">
             <Upload className="mr-1 size-3" />
-            {isUploading ? "Uploading..." : "Upload image"}
+            {isUploading ? "Uploading..." : "Upload linked image"}
             <input
               type="file"
               accept="image/*"
@@ -104,6 +174,11 @@ export function ImageUpload({
           </label>
         </Button>
       </div>
+      {primaryImage?.cid ? (
+        <p className="text-xs text-muted-foreground">
+          Current linked CID: {primaryImage.cid}
+        </p>
+      ) : null}
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   );
