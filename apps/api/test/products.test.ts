@@ -189,7 +189,8 @@ describe("Product CRUD endpoints", () => {
       expect(events[0]!.type).toBe("CREATED");
     });
 
-    it("allows OPERATOR to create products", async () => {
+    it("allows OPERATOR to create products with the shared authoring contract", async () => {
+      const materials = [{ name: "Brushed Steel", percentage: 100 }];
       const response = await app.inject({
         method: "POST",
         url: "/products",
@@ -199,12 +200,20 @@ describe("Product CRUD endpoints", () => {
           serialNumber: "SN-OP-001",
           name: "Operator Product",
           category: "Jewelry",
+          materials,
         },
       });
 
       expect(response.statusCode).toBe(201);
       const body = response.json();
       expect(body.data.product.brandId).toBe(testBrandId);
+
+      const passport = await app.prisma.productPassport.findUnique({
+        where: { productId: body.data.product.id },
+      });
+      expect(
+        readProductPassportAuthoringMetadata(passport?.metadata).materials,
+      ).toEqual(materials);
     });
 
     it("non-ADMIN without brandId gets 403", async () => {

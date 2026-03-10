@@ -3,28 +3,31 @@ import { requireRole } from "../../middleware/rbac.js";
 import { resolveWorkspaceMutationBrandId } from "../../utils/workspace.js";
 import {
   commitCatalogCsvImport,
-  partialCatalogCsvImport,
+  preflightCatalogCsvImport,
 } from "../../services/products/import-csv.js";
 
 const MAX_ROWS = 500;
 const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1 MB
 
 export default async function batchImportRoute(fastify: FastifyInstance) {
-  fastify.post<{ Querystring: { partial?: string; brandId?: string } }>(
+  fastify.post<{ Querystring: { dryRun?: string; brandId?: string } }>(
     "/products/batch-import",
     {
-      onRequest: [fastify.authenticate, requireRole("BRAND_ADMIN", "ADMIN")],
+      onRequest: [
+        fastify.authenticate,
+        requireRole("BRAND_ADMIN", "OPERATOR", "ADMIN"),
+      ],
       schema: {
         description:
-          "Import products from a CSV file (multipart/form-data). Max 500 rows, 1MB.",
+          "Dry-run or commit a product CSV import (multipart/form-data). Max 500 rows, 1MB.",
         tags: ["Products"],
         security: [{ cookieAuth: [] }],
         querystring: {
           type: "object",
           properties: {
-            partial: {
+            dryRun: {
               type: "string",
-              description: "Set to 'true' for partial success mode",
+              description: "Defaults to 'true'. Set to 'false' to commit rows.",
             },
             brandId: {
               type: "string",
@@ -36,7 +39,7 @@ export default async function batchImportRoute(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const user = request.user;
-      const isPartial = request.query.partial === "true";
+      const dryRun = request.query.dryRun !== "false";
       const brandId = resolveWorkspaceMutationBrandId(
         reply,
         user,
@@ -78,12 +81,11 @@ export default async function batchImportRoute(fastify: FastifyInstance) {
       }
 
       const content = buffer.toString("utf-8");
-      const result = isPartial
-        ? await partialCatalogCsvImport({
+      const result = dryRun
+        ? await preflightCatalogCsvImport({
             brandId,
             content,
             maxRows: MAX_ROWS,
-            performedBy: user.sub,
             prisma: fastify.prisma,
           })
         : await commitCatalogCsvImport({
@@ -101,10 +103,23 @@ export default async function batchImportRoute(fastify: FastifyInstance) {
         });
       }
 
-      return reply.status(201).send({
-        success: true,
+      const hasCommitErrors = !dryRun && result.errors.length > 0;
+      const statusCode = dryRun ? 200 : hasCommitErrors ? 400 : 201;
+
+      return reply.status(statusCode).send({
+        success: !hasCommitErrors,
+        ...(!hasCommitErrors
+          ? {}
+          : {
+              error: {
+                code: "VALIDATION_ERROR",
+                message: "Import commit blocked by validation errors",
+                details: { errors: result.errors },
+              },
+            }),
         data: {
-          created: result.created,
+          dryRun,
+          created: dryRun ? 0 : result.created,
           errors: result.errors,
           rows: result.rows,
           summary: result.summary,

@@ -35,6 +35,7 @@ function buildCsv(rows: string[][]): string {
 describe("POST /products/batch-import", () => {
   let app: FastifyInstance;
   let brandAdminCookie: string;
+  let operatorCookie: string;
   let adminCookie: string;
   let viewerCookie: string;
   let testBrandId: string;
@@ -88,6 +89,22 @@ describe("POST /products/batch-import", () => {
       payload: { email: "ba@test.com", password: "Password123!" },
     });
     brandAdminCookie = `galileo_at=${parseCookies(baLogin).galileo_at}`;
+
+    await app.inject({
+      method: "POST",
+      url: "/auth/register",
+      payload: { email: "operator@test.com", password: "Password123!" },
+    });
+    await app.prisma.user.update({
+      where: { email: "operator@test.com" },
+      data: { brandId: testBrandId, role: "OPERATOR" },
+    });
+    const operatorLogin = await app.inject({
+      method: "POST",
+      url: "/auth/login",
+      payload: { email: "operator@test.com", password: "Password123!" },
+    });
+    operatorCookie = `galileo_at=${parseCookies(operatorLogin).galileo_at}`;
 
     // Register ADMIN — WITHOUT brandName
     await app.inject({
@@ -174,10 +191,11 @@ describe("POST /products/batch-import", () => {
       ["Perf E", VALID_GTIN_13, "SN005", "Fragrances", "Desc E", ""],
     ]);
 
-    const res = await injectCsv(csv, brandAdminCookie);
+    const res = await injectCsv(csv, brandAdminCookie, "?dryRun=false");
     expect(res.statusCode).toBe(201);
     const data = res.json();
     expect(data.success).toBe(true);
+    expect(data.data.dryRun).toBe(false);
     expect(data.data.created).toBe(5);
     expect(data.data.errors).toHaveLength(0);
 
@@ -188,14 +206,49 @@ describe("POST /products/batch-import", () => {
     expect(products).toHaveLength(5);
   });
 
+  it("should return row-level validation feedback during dry-run", async () => {
+    const csv = buildCsv([
+      ["name", "gtin", "serialNumber", "category", "description", "materials"],
+      ["Good", VALID_GTIN_13, "DRY001", "Watches", "", ""],
+      ["Bad", "0000000000001", "DRY002", "Watches", "", ""],
+    ]);
+
+    const res = await injectCsv(csv, brandAdminCookie);
+    expect(res.statusCode).toBe(200);
+    const data = res.json();
+    expect(data.success).toBe(true);
+    expect(data.data.dryRun).toBe(true);
+    expect(data.data.created).toBe(0);
+    expect(data.data.summary).toEqual({
+      totalRows: 2,
+      acceptedRows: 1,
+      rejectedRows: 1,
+    });
+    expect(data.data.errors).toHaveLength(1);
+    expect(data.data.errors[0]).toMatchObject({
+      row: 3,
+      field: "gtin",
+    });
+    expect(data.data.rows).toEqual([
+      expect.objectContaining({ row: 2, status: "accepted" }),
+      expect.objectContaining({ row: 3, status: "rejected" }),
+    ]);
+
+    const products = await app.prisma.product.findMany({
+      where: { gtin: VALID_GTIN_13 },
+    });
+    expect(products).toHaveLength(0);
+  });
+
   it("stores imported materials in typed passport metadata", async () => {
     const csv = buildCsv([
       ["name", "gtin", "serialNumber", "category", "description", "materials"],
       ["Bag A", VALID_GTIN_13, "MAT001", "Leather Goods", "Desc A", "leather"],
     ]);
 
-    const res = await injectCsv(csv, brandAdminCookie);
+    const res = await injectCsv(csv, brandAdminCookie, "?dryRun=false");
     expect(res.statusCode).toBe(201);
+    expect(res.json().data.dryRun).toBe(false);
     expect(res.json().data.created).toBe(1);
 
     const importedProduct = await app.prisma.product.findUnique({
@@ -228,7 +281,7 @@ describe("POST /products/batch-import", () => {
       `Second line","leather"`,
     ].join("\n");
 
-    const res = await injectCsv(csv, brandAdminCookie);
+    const res = await injectCsv(csv, brandAdminCookie, "?dryRun=false");
     expect(res.statusCode).toBe(201);
     expect(res.json().data.created).toBe(1);
 
@@ -244,21 +297,6 @@ describe("POST /products/batch-import", () => {
     expect(importedProduct?.description).toBe("First line\nSecond line");
   });
 
-  it("should report errors for invalid GTIN rows in partial mode", async () => {
-    const csv = buildCsv([
-      ["name", "gtin", "serialNumber", "category", "description", "materials"],
-      ["Good", VALID_GTIN_13, "SN100", "Watches", "", ""],
-      ["Bad", "0000000000001", "SN101", "Watches", "", ""],
-    ]);
-
-    const res = await injectCsv(csv, brandAdminCookie, "?partial=true");
-    expect(res.statusCode).toBe(201);
-    const data = res.json();
-    expect(data.data.created).toBe(1);
-    expect(data.data.errors).toHaveLength(1);
-    expect(data.data.errors[0].field).toBe("gtin");
-  });
-
   it("should report error for duplicate GTIN+serial within CSV", async () => {
     const csv = buildCsv([
       ["name", "gtin", "serialNumber", "category", "description", "materials"],
@@ -266,10 +304,10 @@ describe("POST /products/batch-import", () => {
       ["Item B", VALID_GTIN_13, "DUPE001", "Jewelry", "", ""],
     ]);
 
-    const res = await injectCsv(csv, brandAdminCookie, "?partial=true");
-    expect(res.statusCode).toBe(201);
+    const res = await injectCsv(csv, brandAdminCookie);
+    expect(res.statusCode).toBe(200);
     const data = res.json();
-    expect(data.data.created).toBe(1);
+    expect(data.data.created).toBe(0);
     expect(data.data.errors).toHaveLength(1);
     expect(data.data.errors[0].message).toContain("Duplicate");
   });
@@ -277,8 +315,9 @@ describe("POST /products/batch-import", () => {
   it("should return 0 created for empty CSV (header only)", async () => {
     const csv = "name,gtin,serialNumber,category,description,materials\n";
     const res = await injectCsv(csv, brandAdminCookie);
-    expect(res.statusCode).toBe(201);
+    expect(res.statusCode).toBe(200);
     const data = res.json();
+    expect(data.data.dryRun).toBe(true);
     expect(data.data.created).toBe(0);
     expect(data.data.errors).toHaveLength(0);
   });
@@ -306,9 +345,30 @@ describe("POST /products/batch-import", () => {
       ["name", "gtin", "serialNumber", "category", "description", "materials"],
       ["Mine", VALID_GTIN_13, "OWN001", "Fashion", "", ""],
     ]);
-    const res = await injectCsv(csv, brandAdminCookie);
+    const res = await injectCsv(csv, brandAdminCookie, "?dryRun=false");
     expect(res.statusCode).toBe(201);
     expect(res.json().data.created).toBe(1);
+  });
+
+  it("should allow OPERATOR to import for own brand", async () => {
+    const csv = buildCsv([
+      ["name", "gtin", "serialNumber", "category", "description", "materials"],
+      ["Mine", VALID_GTIN_13, "OP001", "Fashion", "", ""],
+    ]);
+
+    const res = await injectCsv(csv, operatorCookie, "?dryRun=false");
+    expect(res.statusCode).toBe(201);
+    expect(res.json().data.created).toBe(1);
+
+    const product = await app.prisma.product.findUnique({
+      where: {
+        gtin_serialNumber: {
+          gtin: VALID_GTIN_13,
+          serialNumber: "OP001",
+        },
+      },
+    });
+    expect(product?.brandId).toBe(testBrandId);
   });
 
   it("should reject VIEWER role with 403", async () => {
@@ -342,14 +402,15 @@ describe("POST /products/batch-import", () => {
       ["Bad", "0000000000001", "TX002", "Watches", "", ""],
     ]);
 
-    const res = await injectCsv(csv, brandAdminCookie);
-    expect(res.statusCode).toBe(201);
+    const res = await injectCsv(csv, brandAdminCookie, "?dryRun=false");
+    expect(res.statusCode).toBe(400);
     const data = res.json();
+    expect(data.success).toBe(false);
     expect(data.data.created).toBe(0);
     expect(data.data.errors.length).toBeGreaterThan(0);
   });
 
-  it("should create valid rows and report invalid in partial mode", async () => {
+  it("should reject commit when dry-run errors remain", async () => {
     const csv = buildCsv([
       ["name", "gtin", "serialNumber", "category", "description", "materials"],
       ["Good1", VALID_GTIN_13, "P001", "Watches", "", ""],
@@ -357,11 +418,18 @@ describe("POST /products/batch-import", () => {
       ["Good2", VALID_GTIN_13, "P003", "Jewelry", "", ""],
     ]);
 
-    const res = await injectCsv(csv, brandAdminCookie, "?partial=true");
-    expect(res.statusCode).toBe(201);
+    const res = await injectCsv(csv, brandAdminCookie, "?dryRun=false");
+    expect(res.statusCode).toBe(400);
     const data = res.json();
-    expect(data.data.created).toBe(2);
+    expect(data.success).toBe(false);
+    expect(data.data.dryRun).toBe(false);
+    expect(data.data.created).toBe(0);
     expect(data.data.errors).toHaveLength(1);
+
+    const products = await app.prisma.product.findMany({
+      where: { gtin: VALID_GTIN_13 },
+    });
+    expect(products).toHaveLength(0);
   });
 
   it("should require ADMIN to provide brandId", async () => {
@@ -371,12 +439,16 @@ describe("POST /products/batch-import", () => {
     ]);
 
     // Without brandId query param
-    const res = await injectCsv(csv, adminCookie);
+    const res = await injectCsv(csv, adminCookie, "?dryRun=false");
     expect(res.statusCode).toBe(400);
     expect(res.json().error.message).toContain("brandId");
 
     // With brandId
-    const res2 = await injectCsv(csv, adminCookie, `?brandId=${testBrandId}`);
+    const res2 = await injectCsv(
+      csv,
+      adminCookie,
+      `?dryRun=false&brandId=${testBrandId}`,
+    );
     expect(res2.statusCode).toBe(201);
     expect(res2.json().data.created).toBe(1);
   });
