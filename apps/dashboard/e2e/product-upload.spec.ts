@@ -132,6 +132,14 @@ test.describe("Product Image Upload", () => {
     await expect(
       page.getByRole("definition").filter({ hasText: /^DRAFT$/ }).first(),
     ).toBeVisible();
+
+    await page.reload();
+    await expect(page.getByAltText("Product")).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByText("Updated hero image (image)")).toBeVisible();
+    await expect(page.getByAltText("Product")).toHaveAttribute(
+      "src",
+      /http:\/\/localhost:4000\/uploads\//,
+    );
   });
 
   test("image upload component is responsive on mobile", async ({ page }) => {

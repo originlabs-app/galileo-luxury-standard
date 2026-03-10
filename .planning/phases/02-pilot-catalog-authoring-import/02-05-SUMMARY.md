@@ -103,9 +103,17 @@ Each task was committed atomically:
 - **Verification:** `pnpm --filter @galileo/dashboard exec playwright test e2e/batch-import.spec.ts e2e/product-upload.spec.ts`
 - **Committed in:** `39a36ec`
 
+**3. [Rule 1 - Bug] Resolved local upload URLs after workspace refresh**
+- **Found during:** Post-task finish check for Task 2
+- **Issue:** After a full page reload, the dashboard image preview could keep a relative `/uploads/...` path, which points at the dashboard origin instead of the API origin and breaks local-fallback previews.
+- **Fix:** Normalized relative media URLs against `API_URL` in the dashboard upload component and extended the browser proof to reload the page and assert the API-served media URL remains visible.
+- **Files modified:** `apps/dashboard/src/components/image-upload.tsx`, `apps/dashboard/e2e/product-upload.spec.ts`
+- **Verification:** `pnpm --filter @galileo/dashboard exec tsc --noEmit`
+- **Committed in:** `TBD`
+
 ---
 
-**Total deviations:** 2 auto-fixed (1 Rule 2, 1 Rule 1)
+**Total deviations:** 3 auto-fixed (1 Rule 2, 2 Rule 1)
 **Impact on plan:** All deviations were contained inside the owned dashboard surface and tightened the intended operator proof without changing plan scope.
 
 ## Issues Encountered

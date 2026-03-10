@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { type ProductMediaDescriptor } from "@galileo/shared";
 import { Image as ImageIcon, Upload } from "lucide-react";
 import { api, ApiError } from "@/lib/api";
+import { API_URL } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,6 +35,22 @@ interface ImageUploadProps {
 
 const uploadStatusStorageKey = (productId: string) =>
   `galileo:image-upload-status:${productId}`;
+
+function resolveMediaUrl(url: string | null | undefined): string | null {
+  if (!url) {
+    return null;
+  }
+
+  if (/^https?:\/\//.test(url)) {
+    return url;
+  }
+
+  if (url.startsWith("/")) {
+    return `${API_URL}${url}`;
+  }
+
+  return url;
+}
 
 export function ImageUpload({
   productId,
@@ -155,7 +172,11 @@ export function ImageUpload({
     [altText, productId, onUploadComplete],
   );
 
-  const displayUrl = preview ?? primaryImage?.url ?? currentImageUrl ?? null;
+  const displayUrl =
+    preview ??
+    resolveMediaUrl(primaryImage?.url) ??
+    resolveMediaUrl(currentImageUrl) ??
+    null;
   const actionLabel = primaryImage ? "Replace linked image" : "Upload linked image";
 
   return (
