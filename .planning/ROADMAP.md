@@ -11,7 +11,7 @@ This roadmap converts the existing simulated brownfield MVP into a live single-b
 - Decimal phases (2.1, 2.2): Urgent insertions if required later
 
 - [x] **Phase 1: Single-Brand Workspace & Identity Baseline** - Lock pilot access control and persistent product identity prerequisites
-- [x] **Phase 2: Pilot Catalog Authoring & Import** - Make passport authoring and batch catalog ingestion usable for the pilot team
+- [ ] **Phase 2: Pilot Catalog Authoring & Import** - Make passport authoring and batch catalog ingestion usable for the pilot team
 - [ ] **Phase 3: Base Sepolia Deployment & Live Minting** - Replace simulated issuance with a canonical live chain environment and real mint evidence
 - [ ] **Phase 4: Transfer Compliance & Lifecycle Evidence** - Complete auditable post-mint lifecycle flows for pilot demos
 - [ ] **Phase 5: Public Resolver & Verification Experience** - Deliver durable QR resolution and wallet-free public provenance verification
@@ -120,7 +120,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Single-Brand Workspace & Identity Baseline | 8 / 8 | Complete | 2026-03-09 |
-| 2. Pilot Catalog Authoring & Import | 5 / 5 | Complete | 2026-03-10 |
+| 2. Pilot Catalog Authoring & Import | 5 / 5 | Gaps found | - |
 | 3. Base Sepolia Deployment & Live Minting | TBD | Not started | - |
 | 4. Transfer Compliance & Lifecycle Evidence | TBD | Not started | - |
 | 5. Public Resolver & Verification Experience | TBD | Not started | - |
