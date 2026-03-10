@@ -106,12 +106,12 @@ test.describe("Product Lifecycle", () => {
       timeout: 15_000,
     });
 
-    // Verify the products index no longer advertises later-phase actions
+    // Verify the products index stays focused on identity work and Phase 2 import
     await page.getByRole("link", { name: "Products" }).click();
     await page.waitForURL(/\/dashboard\/products$/, { timeout: 15_000 });
     await expect(page.getByText("Track the permanent identifiers created for each item before any downstream lifecycle workflows enter scope.")).toBeVisible();
     await expect(
-      page.getByRole("button", { name: /batch import/i }),
-    ).not.toBeVisible();
+      page.getByRole("button", { name: "Import CSV" }),
+    ).toBeVisible();
   });
 });

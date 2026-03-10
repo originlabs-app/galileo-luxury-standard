@@ -85,43 +85,106 @@ type ImportStage =
   | "committing"
   | "complete";
 
-function parseCsvPreview(content: string): string[][] {
-  const lines = content.split(/\r?\n/).filter((line) => line.trim() !== "");
-  return lines.slice(0, 6).map((line) => {
-    const fields: string[] = [];
-    let current = "";
-    let inQuotes = false;
+type CsvPreviewResult =
+  | { ok: true; rows: string[][] }
+  | { ok: false; message: string };
 
-    for (let index = 0; index < line.length; index += 1) {
-      const char = line[index]!;
+function stripBom(text: string): string {
+  if (text.charCodeAt(0) === 0xfeff) {
+    return text.slice(1);
+  }
 
-      if (inQuotes) {
-        if (char === '"') {
-          if (index + 1 < line.length && line[index + 1] === '"') {
-            current += '"';
-            index += 1;
-          } else {
-            inQuotes = false;
-          }
-        } else {
-          current += char;
-        }
-        continue;
-      }
+  return text;
+}
 
+function parseCsvRecords(content: string): CsvPreviewResult {
+  const rows: string[][] = [];
+  let currentRow: string[] = [];
+  let currentField = "";
+  let inQuotes = false;
+
+  const text = stripBom(content);
+
+  function pushField() {
+    currentRow.push(currentField.trim());
+    currentField = "";
+  }
+
+  function pushRow() {
+    const isEmptyRow = currentRow.every((field) => field === "");
+    if (!isEmptyRow) {
+      rows.push(currentRow);
+    }
+    currentRow = [];
+  }
+
+  for (let index = 0; index < text.length; index += 1) {
+    const char = text[index]!;
+
+    if (inQuotes) {
       if (char === '"') {
-        inQuotes = true;
-      } else if (char === ",") {
-        fields.push(current.trim());
-        current = "";
+        if (text[index + 1] === '"') {
+          currentField += '"';
+          index += 1;
+        } else {
+          inQuotes = false;
+        }
       } else {
-        current += char;
+        currentField += char;
       }
+      continue;
     }
 
-    fields.push(current.trim());
-    return fields;
-  });
+    if (char === '"') {
+      inQuotes = true;
+      continue;
+    }
+
+    if (char === ",") {
+      pushField();
+      continue;
+    }
+
+    if (char === "\n") {
+      pushField();
+      pushRow();
+      continue;
+    }
+
+    if (char === "\r") {
+      if (text[index + 1] === "\n") {
+        index += 1;
+      }
+      pushField();
+      pushRow();
+      continue;
+    }
+
+    currentField += char;
+  }
+
+  if (inQuotes) {
+    return { ok: false, message: "Malformed CSV: unterminated quoted field" };
+  }
+
+  if (currentField.length > 0 || currentRow.length > 0) {
+    pushField();
+    pushRow();
+  }
+
+  return { ok: true, rows };
+}
+
+function parseCsvPreview(content: string): CsvPreviewResult {
+  const parsed = parseCsvRecords(content);
+  if (!parsed.ok) {
+    return parsed;
+  }
+
+  return {
+    ok: true,
+    rows: parsed.rows.slice(0, 6),
+  };
 }
 
 interface BatchImportDialogProps {
@@ -181,7 +244,15 @@ export function BatchImportDialog({
           return;
         }
 
-        setPreview(parseCsvPreview(content));
+        const parsedPreview = parseCsvPreview(content);
+        if (!parsedPreview.ok) {
+          setErrorMessage(parsedPreview.message);
+          setPreview([]);
+          setStage("idle");
+          return;
+        }
+
+        setPreview(parsedPreview.rows);
         setStage("preview");
       };
       reader.readAsText(selected);
@@ -373,7 +444,8 @@ export function BatchImportDialog({
                 </p>
                 <p className="mt-1 text-sm text-muted-foreground">
                   This preview is local only. Run server validation before any
-                  products are created.
+                  products are created. Quoted multiline cells use the same CSV
+                  framing rules as the server.
                 </p>
               </div>
               <div className="max-h-64 overflow-auto rounded-lg border">

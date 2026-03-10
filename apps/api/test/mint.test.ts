@@ -24,7 +24,7 @@ vi.mock("viem/chains", () => ({
   baseSepolia: { id: 84532, name: "Base Sepolia" },
 }));
 
-import { parseCookies, cleanDb } from "./helpers.js";
+import { parseCookies, cleanDb, nextFixtureId } from "./helpers.js";
 
 // Valid GTIN (GS1 check digit verified)
 const VALID_GTIN_13 = "4006381333931";
@@ -40,6 +40,7 @@ describe("POST /products/:id/mint", () => {
 
   let testBrandId: string;
   let otherBrandId: string;
+  let fixtureId: string;
 
   beforeAll(async () => {
     // Dynamic import to ensure vi.mock takes effect before module load
@@ -54,13 +55,21 @@ describe("POST /products/:id/mint", () => {
 
   beforeEach(async () => {
     await cleanDb(app.prisma);
+    fixtureId = nextFixtureId("mint");
+    const testBrandSlug = `test-luxury-brand-${fixtureId}`;
+    const otherBrandSlug = `other-brand-${fixtureId}`;
+    const brandAdminEmail = `mint-brand-admin.${fixtureId}@test.com`;
+    const operatorEmail = `mint-operator.${fixtureId}@test.com`;
+    const viewerEmail = `mint-viewer.${fixtureId}@test.com`;
+    const otherBrandAdminEmail = `mint-other-admin.${fixtureId}@test.com`;
+    const adminEmail = `mint-admin.${fixtureId}@test.com`;
 
     // Create test brand
     const brand = await app.prisma.brand.create({
       data: {
         name: "Test Luxury Brand",
-        slug: "test-luxury-brand",
-        did: "did:galileo:brand:test-luxury-brand",
+        slug: testBrandSlug,
+        did: `did:galileo:brand:${testBrandSlug}`,
       },
     });
     testBrandId = brand.id;
@@ -69,8 +78,8 @@ describe("POST /products/:id/mint", () => {
     const otherBrand = await app.prisma.brand.create({
       data: {
         name: "Other Brand",
-        slug: "other-brand",
-        did: "did:galileo:brand:other-brand",
+        slug: otherBrandSlug,
+        did: `did:galileo:brand:${otherBrandSlug}`,
       },
     });
     otherBrandId = otherBrand.id;
@@ -80,7 +89,7 @@ describe("POST /products/:id/mint", () => {
       method: "POST",
       url: "/auth/register",
       payload: {
-        email: "mint-brand-admin@test.com",
+        email: brandAdminEmail,
         password: "password123",
       },
     });
@@ -93,7 +102,7 @@ describe("POST /products/:id/mint", () => {
       method: "POST",
       url: "/auth/login",
       payload: {
-        email: "mint-brand-admin@test.com",
+        email: brandAdminEmail,
         password: "password123",
       },
     });
@@ -105,7 +114,7 @@ describe("POST /products/:id/mint", () => {
       method: "POST",
       url: "/auth/register",
       payload: {
-        email: "mint-operator@test.com",
+        email: operatorEmail,
         password: "password123",
       },
     });
@@ -118,7 +127,7 @@ describe("POST /products/:id/mint", () => {
       method: "POST",
       url: "/auth/login",
       payload: {
-        email: "mint-operator@test.com",
+        email: operatorEmail,
         password: "password123",
       },
     });
@@ -130,7 +139,7 @@ describe("POST /products/:id/mint", () => {
       method: "POST",
       url: "/auth/register",
       payload: {
-        email: "mint-viewer@test.com",
+        email: viewerEmail,
         password: "password123",
       },
     });
@@ -143,7 +152,7 @@ describe("POST /products/:id/mint", () => {
       method: "POST",
       url: "/auth/login",
       payload: {
-        email: "mint-viewer@test.com",
+        email: viewerEmail,
         password: "password123",
       },
     });
@@ -155,7 +164,7 @@ describe("POST /products/:id/mint", () => {
       method: "POST",
       url: "/auth/register",
       payload: {
-        email: "mint-other-admin@test.com",
+        email: otherBrandAdminEmail,
         password: "password123",
       },
     });
@@ -168,7 +177,7 @@ describe("POST /products/:id/mint", () => {
       method: "POST",
       url: "/auth/login",
       payload: {
-        email: "mint-other-admin@test.com",
+        email: otherBrandAdminEmail,
         password: "password123",
       },
     });
@@ -180,7 +189,7 @@ describe("POST /products/:id/mint", () => {
       method: "POST",
       url: "/auth/register",
       payload: {
-        email: "mint-admin@test.com",
+        email: adminEmail,
         password: "password123",
       },
     });
@@ -193,7 +202,7 @@ describe("POST /products/:id/mint", () => {
       method: "POST",
       url: "/auth/login",
       payload: {
-        email: "mint-admin@test.com",
+        email: adminEmail,
         password: "password123",
       },
     });
@@ -333,9 +342,9 @@ describe("POST /products/:id/mint", () => {
     expect(response.statusCode).toBe(404);
   });
 
-  // ── 7. Mint wrong brand (403) ──────────────────────────────
+  // ── 7. Mint wrong brand (404) ──────────────────────────────
 
-  it("returns 403 when BRAND_ADMIN tries to mint another brand's product", async () => {
+  it("returns 404 when BRAND_ADMIN tries to mint another brand's product", async () => {
     const productId = await createDraftProduct("MINT-OTHERBRAND");
 
     const response = await app.inject({
@@ -344,7 +353,7 @@ describe("POST /products/:id/mint", () => {
       headers: { cookie: otherBrandAdminCookie, "x-galileo-client": "1" },
     });
 
-    expect(response.statusCode).toBe(403);
+    expect(response.statusCode).toBe(404);
   });
 
   // ── 8. Chain disabled startup — chainEnabled is false ──────

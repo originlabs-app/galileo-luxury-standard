@@ -345,12 +345,8 @@ function summarizeRows(rows: CatalogImportRowResult[]): CatalogImportSummary {
   };
 }
 
-function buildConflictMessage(existingBrandId: string, brandId: string): string {
-  if (existingBrandId === brandId) {
-    return "A product with this GTIN and serial number already exists in this workspace";
-  }
-
-  return "A product with this GTIN and serial number already exists in another workspace";
+function buildConflictMessage(): string {
+  return "A product with this GTIN and serial number already exists";
 }
 
 function addRowIssue(
@@ -375,7 +371,6 @@ function addRowIssue(
 
 async function enrichRowsWithDuplicateChecks(
   rows: CatalogImportRowResult[],
-  brandId: string,
   prisma: CsvImportPreviewDbClient,
 ): Promise<CatalogImportRowResult[]> {
   const seenIdentityRows = new Map<string, number>();
@@ -418,7 +413,6 @@ async function enrichRowsWithDuplicateChecks(
     select: {
       gtin: true,
       serialNumber: true,
-      brandId: true,
     },
   });
 
@@ -444,7 +438,7 @@ async function enrichRowsWithDuplicateChecks(
 
     return addRowIssue(row, {
       field: "gtin",
-      message: buildConflictMessage(conflict.brandId, brandId),
+      message: buildConflictMessage(),
     });
   });
 }
@@ -487,7 +481,6 @@ export async function preflightCatalogCsvImport(
 
   const rows = await enrichRowsWithDuplicateChecks(
     normalizedRows,
-    params.brandId,
     params.prisma,
   );
 

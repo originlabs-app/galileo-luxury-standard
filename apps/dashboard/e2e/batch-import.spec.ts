@@ -7,7 +7,13 @@ const VALID_GTIN_13 = "4006381333931";
 test.use({ storageState: "playwright/.auth/user.json" });
 
 function createCsvFile(filename: string, rows: string[][]): string {
-  const content = rows.map((row) => row.join(",")).join("\n");
+  return createCsvTextFile(
+    filename,
+    rows.map((row) => row.join(",")).join("\n"),
+  );
+}
+
+function createCsvTextFile(filename: string, content: string): string {
   const dir = path.join(process.cwd(), "playwright/.tmp");
   fs.mkdirSync(dir, { recursive: true });
   const filePath = path.join(dir, filename);
@@ -139,5 +145,40 @@ test.describe("Batch CSV import", () => {
     await expect(
       dialog.getByRole("button", { name: "Commit import" }),
     ).toBeDisabled();
+  });
+
+  test("preserves quoted multiline CSV fields in the local preview before server validation", async ({
+    page,
+  }) => {
+    const timestamp = Date.now();
+    const suffix = String(timestamp).slice(-6);
+    const firstLine = `Preview alpha ${timestamp}`;
+    const secondLine = `Preview beta ${timestamp}`;
+    const csvPath = createCsvTextFile(
+      "multiline-import.csv",
+      [
+        'name,gtin,serialNumber,category,description,materials',
+        `"Multiline Product ${timestamp}",${VALID_GTIN_13},"ML${suffix}A1","Leather Goods","${firstLine}`,
+        `${secondLine}","leather"`,
+      ].join("\n"),
+    );
+
+    await page.goto("/dashboard/products");
+    await page.getByRole("button", { name: "Import CSV" }).click();
+    const dialog = page.getByRole("dialog", {
+      name: "Import Products from CSV",
+    });
+
+    await dialog.locator('input[type="file"][accept=".csv"]').setInputFiles(csvPath);
+    await expect(dialog.getByText(firstLine)).toBeVisible({ timeout: 5_000 });
+    await expect(dialog.getByText(secondLine)).toBeVisible();
+
+    await dialog.getByRole("button", { name: "Validate import" }).click();
+    await expect(
+      dialog.getByText("Validation passed. Ready to commit."),
+    ).toBeVisible({ timeout: 30_000 });
+    await expect(
+      dialog.getByRole("cell", { name: `Multiline Product ${timestamp}` }),
+    ).toBeVisible();
   });
 });

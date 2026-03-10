@@ -22,7 +22,7 @@ vi.mock("viem/chains", () => ({
   baseSepolia: { id: 84532, name: "Base Sepolia" },
 }));
 
-import { parseCookies, cleanDb } from "./helpers.js";
+import { parseCookies, cleanDb, nextFixtureId } from "./helpers.js";
 
 const VALID_GTIN_13 = "4006381333931";
 
@@ -33,6 +33,7 @@ describe("POST /products/batch-mint", () => {
   let testBrandId: string;
   let otherBrandId: string;
   let otherBrandAdminCookie: string;
+  let fixtureId: string;
 
   beforeAll(async () => {
     const { buildApp } = await import("../src/server.js");
@@ -46,12 +47,18 @@ describe("POST /products/batch-mint", () => {
 
   beforeEach(async () => {
     await cleanDb(app.prisma);
+    fixtureId = nextFixtureId("batch-mint");
+    const testBrandSlug = `test-brand-${fixtureId}`;
+    const otherBrandSlug = `other-brand-${fixtureId}`;
+    const brandAdminEmail = `ba.${fixtureId}@test.com`;
+    const adminEmail = `admin.${fixtureId}@test.com`;
+    const otherBrandAdminEmail = `other-ba.${fixtureId}@test.com`;
 
     const brand = await app.prisma.brand.create({
       data: {
         name: "Test Brand",
-        slug: "test-brand",
-        did: "did:galileo:brand:test-brand",
+        slug: testBrandSlug,
+        did: `did:galileo:brand:${testBrandSlug}`,
       },
     });
     testBrandId = brand.id;
@@ -59,8 +66,8 @@ describe("POST /products/batch-mint", () => {
     const otherBrand = await app.prisma.brand.create({
       data: {
         name: "Other Brand",
-        slug: "other-brand",
-        did: "did:galileo:brand:other-brand",
+        slug: otherBrandSlug,
+        did: `did:galileo:brand:${otherBrandSlug}`,
       },
     });
     otherBrandId = otherBrand.id;
@@ -69,16 +76,16 @@ describe("POST /products/batch-mint", () => {
     await app.inject({
       method: "POST",
       url: "/auth/register",
-      payload: { email: "ba@test.com", password: "Password123!" },
+      payload: { email: brandAdminEmail, password: "Password123!" },
     });
     await app.prisma.user.update({
-      where: { email: "ba@test.com" },
+      where: { email: brandAdminEmail },
       data: { brandId: testBrandId, role: "BRAND_ADMIN" },
     });
     const baLogin = await app.inject({
       method: "POST",
       url: "/auth/login",
-      payload: { email: "ba@test.com", password: "Password123!" },
+      payload: { email: brandAdminEmail, password: "Password123!" },
     });
     brandAdminCookie = `galileo_at=${parseCookies(baLogin).galileo_at}`;
 
@@ -86,16 +93,16 @@ describe("POST /products/batch-mint", () => {
     await app.inject({
       method: "POST",
       url: "/auth/register",
-      payload: { email: "admin@test.com", password: "Password123!" },
+      payload: { email: adminEmail, password: "Password123!" },
     });
     await app.prisma.user.update({
-      where: { email: "admin@test.com" },
+      where: { email: adminEmail },
       data: { role: "ADMIN" },
     });
     const adLogin = await app.inject({
       method: "POST",
       url: "/auth/login",
-      payload: { email: "admin@test.com", password: "Password123!" },
+      payload: { email: adminEmail, password: "Password123!" },
     });
     adminCookie = `galileo_at=${parseCookies(adLogin).galileo_at}`;
 
@@ -103,16 +110,16 @@ describe("POST /products/batch-mint", () => {
     await app.inject({
       method: "POST",
       url: "/auth/register",
-      payload: { email: "other-ba@test.com", password: "Password123!" },
+      payload: { email: otherBrandAdminEmail, password: "Password123!" },
     });
     await app.prisma.user.update({
-      where: { email: "other-ba@test.com" },
+      where: { email: otherBrandAdminEmail },
       data: { brandId: otherBrandId, role: "BRAND_ADMIN" },
     });
     const otherLogin = await app.inject({
       method: "POST",
       url: "/auth/login",
-      payload: { email: "other-ba@test.com", password: "Password123!" },
+      payload: { email: otherBrandAdminEmail, password: "Password123!" },
     });
     otherBrandAdminCookie = `galileo_at=${parseCookies(otherLogin).galileo_at}`;
   });
@@ -126,7 +133,7 @@ describe("POST /products/batch-mint", () => {
       data: {
         gtin: VALID_GTIN_13,
         serialNumber: serial,
-        did: `did:galileo:${serial}`,
+        did: `did:galileo:${fixtureId}:${serial}`,
         name: `Product ${serial}`,
         category: "Watches",
         brandId: brand,
@@ -205,10 +212,14 @@ describe("POST /products/batch-mint", () => {
     expect(data.data.errors[0].message).toContain("recalled");
   });
 
-  it("should reject cross-brand products for BRAND_ADMIN (403)", async () => {
+  it("should treat cross-brand products like missing products for BRAND_ADMIN", async () => {
     const crossId = await createProduct("BM040", "DRAFT", otherBrandId);
     const res = await mintBatch([crossId], brandAdminCookie);
-    expect(res.statusCode).toBe(403);
+    expect(res.statusCode).toBe(200);
+    expect(res.json().data.minted).toBe(0);
+    expect(res.json().data.errors).toEqual([
+      { productId: crossId, message: "Product not found" },
+    ]);
   });
 
   it("should reject empty productIds array with 400", async () => {

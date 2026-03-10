@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import { buildApp } from "../src/server.js";
 import type { FastifyInstance } from "fastify";
-import { parseCookies, cleanDb } from "./helpers.js";
+import { parseCookies, cleanDb, nextFixtureId } from "./helpers.js";
 import { JSONLD_CONTEXT } from "../src/routes/resolver/resolve.js";
 import { writeProductPassportAuthoringMetadata } from "@galileo/shared";
 
@@ -15,6 +15,7 @@ describe("Resolver & QR endpoints", () => {
   let otherBrandAdminCookie: string;
   let testBrandId: string;
   let otherBrandId: string;
+  let testBrandDid: string;
 
   // Store products created in beforeEach
   let activeProductId: string;
@@ -35,13 +36,19 @@ describe("Resolver & QR endpoints", () => {
 
   beforeEach(async () => {
     await cleanDb(app.prisma);
+    const fixtureId = nextFixtureId("resolver");
+    const testBrandSlug = `resolver-test-brand-${fixtureId}`;
+    const otherBrandSlug = `other-resolver-brand-${fixtureId}`;
+    const brandAdminEmail = `resolver-admin.${fixtureId}@test.com`;
+    const otherBrandAdminEmail = `other-resolver-admin.${fixtureId}@test.com`;
+    testBrandDid = `did:galileo:brand:${testBrandSlug}`;
 
     // Create test brand
     const brand = await app.prisma.brand.create({
       data: {
         name: "Resolver Test Brand",
-        slug: "resolver-test-brand",
-        did: "did:galileo:brand:resolver-test-brand",
+        slug: testBrandSlug,
+        did: testBrandDid,
       },
     });
     testBrandId = brand.id;
@@ -50,8 +57,8 @@ describe("Resolver & QR endpoints", () => {
     const otherBrand = await app.prisma.brand.create({
       data: {
         name: "Other Resolver Brand",
-        slug: "other-resolver-brand",
-        did: "did:galileo:brand:other-resolver-brand",
+        slug: otherBrandSlug,
+        did: `did:galileo:brand:${otherBrandSlug}`,
       },
     });
     otherBrandId = otherBrand.id;
@@ -60,7 +67,7 @@ describe("Resolver & QR endpoints", () => {
     const brandAdminRes = await app.inject({
       method: "POST",
       url: "/auth/register",
-      payload: { email: "resolver-admin@test.com", password: "password123" },
+      payload: { email: brandAdminEmail, password: "password123" },
     });
     const brandAdminUser = brandAdminRes.json().data.user;
     await app.prisma.user.update({
@@ -70,7 +77,7 @@ describe("Resolver & QR endpoints", () => {
     const brandAdminLogin = await app.inject({
       method: "POST",
       url: "/auth/login",
-      payload: { email: "resolver-admin@test.com", password: "password123" },
+      payload: { email: brandAdminEmail, password: "password123" },
     });
     const brandAdminCookies = parseCookies(brandAdminLogin);
     brandAdminCookie = `galileo_at=${brandAdminCookies.galileo_at}`;
@@ -80,7 +87,7 @@ describe("Resolver & QR endpoints", () => {
       method: "POST",
       url: "/auth/register",
       payload: {
-        email: "other-resolver-admin@test.com",
+        email: otherBrandAdminEmail,
         password: "password123",
       },
     });
@@ -93,7 +100,7 @@ describe("Resolver & QR endpoints", () => {
       method: "POST",
       url: "/auth/login",
       payload: {
-        email: "other-resolver-admin@test.com",
+        email: otherBrandAdminEmail,
         password: "password123",
       },
     });
@@ -178,7 +185,7 @@ describe("Resolver & QR endpoints", () => {
       // Brand fields (C3: @type Brand, @id instead of custom did)
       expect(body.brand).toBeDefined();
       expect(body.brand["@type"]).toBe("Brand");
-      expect(body.brand["@id"]).toBe("did:galileo:brand:resolver-test-brand");
+      expect(body.brand["@id"]).toBe(testBrandDid);
       expect(body.brand.name).toBe("Resolver Test Brand");
     });
 

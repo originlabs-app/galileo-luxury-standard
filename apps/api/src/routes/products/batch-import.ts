@@ -81,20 +81,40 @@ export default async function batchImportRoute(fastify: FastifyInstance) {
       }
 
       const content = buffer.toString("utf-8");
-      const result = dryRun
-        ? await preflightCatalogCsvImport({
-            brandId,
-            content,
-            maxRows: MAX_ROWS,
-            prisma: fastify.prisma,
-          })
-        : await commitCatalogCsvImport({
-            brandId,
-            content,
-            maxRows: MAX_ROWS,
-            performedBy: user.sub,
-            prisma: fastify.prisma,
+      if (dryRun) {
+        const result = await preflightCatalogCsvImport({
+          brandId,
+          content,
+          maxRows: MAX_ROWS,
+          prisma: fastify.prisma,
+        });
+
+        if (!result.ok) {
+          return reply.status(400).send({
+            success: false,
+            error: { code: "BAD_REQUEST", message: result.message },
           });
+        }
+
+        return reply.status(200).send({
+          success: true,
+          data: {
+            dryRun: true,
+            created: 0,
+            errors: result.errors,
+            rows: result.rows,
+            summary: result.summary,
+          },
+        });
+      }
+
+      const result = await commitCatalogCsvImport({
+        brandId,
+        content,
+        maxRows: MAX_ROWS,
+        performedBy: user.sub,
+        prisma: fastify.prisma,
+      });
 
       if (!result.ok) {
         return reply.status(400).send({
@@ -103,10 +123,9 @@ export default async function batchImportRoute(fastify: FastifyInstance) {
         });
       }
 
-      const hasCommitErrors = !dryRun && result.errors.length > 0;
-      const statusCode = dryRun ? 200 : hasCommitErrors ? 400 : 201;
+      const hasCommitErrors = result.errors.length > 0;
 
-      return reply.status(statusCode).send({
+      return reply.status(hasCommitErrors ? 400 : 201).send({
         success: !hasCommitErrors,
         ...(!hasCommitErrors
           ? {}
@@ -118,8 +137,8 @@ export default async function batchImportRoute(fastify: FastifyInstance) {
               },
             }),
         data: {
-          dryRun,
-          created: dryRun ? 0 : result.created,
+          dryRun: false,
+          created: result.created,
           errors: result.errors,
           rows: result.rows,
           summary: result.summary,

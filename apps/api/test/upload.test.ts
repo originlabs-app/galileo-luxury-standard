@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import { readProductPassportAuthoringMetadata } from "@galileo/shared";
 import { buildApp } from "../src/server.js";
 import type { FastifyInstance } from "fastify";
-import { parseCookies, cleanDb } from "./helpers.js";
+import { parseCookies, cleanDb, nextFixtureId } from "./helpers.js";
 
 const VALID_GTIN_13 = "4006381333931";
 
@@ -92,6 +92,7 @@ describe("POST /products/:id/upload", () => {
   let otherBrandAdminCookie: string;
   let testBrandId: string;
   let otherBrandId: string;
+  let fixtureId: string;
 
   beforeAll(async () => {
     app = await buildApp();
@@ -104,13 +105,20 @@ describe("POST /products/:id/upload", () => {
 
   beforeEach(async () => {
     await cleanDb(app.prisma);
+    fixtureId = nextFixtureId("upload");
+    const testBrandSlug = `upload-test-brand-${fixtureId}`;
+    const otherBrandSlug = `other-upload-brand-${fixtureId}`;
+    const brandAdminEmail = `upload-ba.${fixtureId}@test.com`;
+    const viewerEmail = `upload-viewer.${fixtureId}@test.com`;
+    const adminEmail = `upload-admin.${fixtureId}@test.com`;
+    const otherBrandAdminEmail = `upload-other-ba.${fixtureId}@test.com`;
 
     // Create test brand
     const brand = await app.prisma.brand.create({
       data: {
         name: "Upload Test Brand",
-        slug: "upload-test-brand",
-        did: "did:galileo:brand:upload-test-brand",
+        slug: testBrandSlug,
+        did: `did:galileo:brand:${testBrandSlug}`,
       },
     });
     testBrandId = brand.id;
@@ -119,8 +127,8 @@ describe("POST /products/:id/upload", () => {
     const otherBrand = await app.prisma.brand.create({
       data: {
         name: "Other Upload Brand",
-        slug: "other-upload-brand",
-        did: "did:galileo:brand:other-upload-brand",
+        slug: otherBrandSlug,
+        did: `did:galileo:brand:${otherBrandSlug}`,
       },
     });
     otherBrandId = otherBrand.id;
@@ -129,10 +137,10 @@ describe("POST /products/:id/upload", () => {
     await app.inject({
       method: "POST",
       url: "/auth/register",
-      payload: { email: "upload-ba@test.com", password: "password123" },
+      payload: { email: brandAdminEmail, password: "password123" },
     });
     const baUser = await app.prisma.user.findUnique({
-      where: { email: "upload-ba@test.com" },
+      where: { email: brandAdminEmail },
     });
     await app.prisma.user.update({
       where: { id: baUser!.id },
@@ -141,7 +149,7 @@ describe("POST /products/:id/upload", () => {
     const baLogin = await app.inject({
       method: "POST",
       url: "/auth/login",
-      payload: { email: "upload-ba@test.com", password: "password123" },
+      payload: { email: brandAdminEmail, password: "password123" },
     });
     const baCookies = parseCookies(baLogin);
     brandAdminCookie = `galileo_at=${baCookies.galileo_at}`;
@@ -150,10 +158,10 @@ describe("POST /products/:id/upload", () => {
     await app.inject({
       method: "POST",
       url: "/auth/register",
-      payload: { email: "upload-viewer@test.com", password: "password123" },
+      payload: { email: viewerEmail, password: "password123" },
     });
     const viewerUser = await app.prisma.user.findUnique({
-      where: { email: "upload-viewer@test.com" },
+      where: { email: viewerEmail },
     });
     await app.prisma.user.update({
       where: { id: viewerUser!.id },
@@ -162,7 +170,7 @@ describe("POST /products/:id/upload", () => {
     const viewerLogin = await app.inject({
       method: "POST",
       url: "/auth/login",
-      payload: { email: "upload-viewer@test.com", password: "password123" },
+      payload: { email: viewerEmail, password: "password123" },
     });
     const viewerCookies = parseCookies(viewerLogin);
     viewerCookie = `galileo_at=${viewerCookies.galileo_at}`;
@@ -171,10 +179,10 @@ describe("POST /products/:id/upload", () => {
     await app.inject({
       method: "POST",
       url: "/auth/register",
-      payload: { email: "upload-admin@test.com", password: "password123" },
+      payload: { email: adminEmail, password: "password123" },
     });
     const admUser = await app.prisma.user.findUnique({
-      where: { email: "upload-admin@test.com" },
+      where: { email: adminEmail },
     });
     await app.prisma.user.update({
       where: { id: admUser!.id },
@@ -183,7 +191,7 @@ describe("POST /products/:id/upload", () => {
     const admLogin = await app.inject({
       method: "POST",
       url: "/auth/login",
-      payload: { email: "upload-admin@test.com", password: "password123" },
+      payload: { email: adminEmail, password: "password123" },
     });
     const admCookies = parseCookies(admLogin);
     adminCookie = `galileo_at=${admCookies.galileo_at}`;
@@ -193,12 +201,12 @@ describe("POST /products/:id/upload", () => {
       method: "POST",
       url: "/auth/register",
       payload: {
-        email: "upload-other-ba@test.com",
+        email: otherBrandAdminEmail,
         password: "password123",
       },
     });
     const otherBaUser = await app.prisma.user.findUnique({
-      where: { email: "upload-other-ba@test.com" },
+      where: { email: otherBrandAdminEmail },
     });
     await app.prisma.user.update({
       where: { id: otherBaUser!.id },
@@ -208,7 +216,7 @@ describe("POST /products/:id/upload", () => {
       method: "POST",
       url: "/auth/login",
       payload: {
-        email: "upload-other-ba@test.com",
+        email: otherBrandAdminEmail,
         password: "password123",
       },
     });

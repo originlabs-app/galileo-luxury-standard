@@ -23,7 +23,7 @@ vi.mock("viem/chains", () => ({
   baseSepolia: { id: 84532, name: "Base Sepolia" },
 }));
 
-import { parseCookies, cleanDb } from "./helpers.js";
+import { parseCookies, cleanDb, nextFixtureId } from "./helpers.js";
 
 const VALID_GTIN_13 = "4006381333931";
 const VALID_GTIN_13_B = "0012345678905";
@@ -41,6 +41,7 @@ describe("POST /products/batch-import", () => {
   let testBrandId: string;
   let otherBrandId: string;
   let otherBrandAdminCookie: string;
+  let fixtureId: string;
 
   beforeAll(async () => {
     const { buildApp } = await import("../src/server.js");
@@ -54,12 +55,20 @@ describe("POST /products/batch-import", () => {
 
   beforeEach(async () => {
     await cleanDb(app.prisma);
+    fixtureId = nextFixtureId("batch-import");
+    const testBrandSlug = `test-brand-${fixtureId}`;
+    const otherBrandSlug = `other-brand-${fixtureId}`;
+    const brandAdminEmail = `ba.${fixtureId}@test.com`;
+    const operatorEmail = `operator.${fixtureId}@test.com`;
+    const adminEmail = `admin.${fixtureId}@test.com`;
+    const viewerEmail = `viewer.${fixtureId}@test.com`;
+    const otherBrandAdminEmail = `other-ba.${fixtureId}@test.com`;
 
     const brand = await app.prisma.brand.create({
       data: {
         name: "Test Brand",
-        slug: "test-brand",
-        did: "did:galileo:brand:test-brand",
+        slug: testBrandSlug,
+        did: `did:galileo:brand:${testBrandSlug}`,
       },
     });
     testBrandId = brand.id;
@@ -67,8 +76,8 @@ describe("POST /products/batch-import", () => {
     const otherBrand = await app.prisma.brand.create({
       data: {
         name: "Other Brand",
-        slug: "other-brand",
-        did: "did:galileo:brand:other-brand",
+        slug: otherBrandSlug,
+        did: `did:galileo:brand:${otherBrandSlug}`,
       },
     });
     otherBrandId = otherBrand.id;
@@ -77,32 +86,32 @@ describe("POST /products/batch-import", () => {
     await app.inject({
       method: "POST",
       url: "/auth/register",
-      payload: { email: "ba@test.com", password: "Password123!" },
+      payload: { email: brandAdminEmail, password: "Password123!" },
     });
     await app.prisma.user.update({
-      where: { email: "ba@test.com" },
+      where: { email: brandAdminEmail },
       data: { brandId: testBrandId, role: "BRAND_ADMIN" },
     });
     const baLogin = await app.inject({
       method: "POST",
       url: "/auth/login",
-      payload: { email: "ba@test.com", password: "Password123!" },
+      payload: { email: brandAdminEmail, password: "Password123!" },
     });
     brandAdminCookie = `galileo_at=${parseCookies(baLogin).galileo_at}`;
 
     await app.inject({
       method: "POST",
       url: "/auth/register",
-      payload: { email: "operator@test.com", password: "Password123!" },
+      payload: { email: operatorEmail, password: "Password123!" },
     });
     await app.prisma.user.update({
-      where: { email: "operator@test.com" },
+      where: { email: operatorEmail },
       data: { brandId: testBrandId, role: "OPERATOR" },
     });
     const operatorLogin = await app.inject({
       method: "POST",
       url: "/auth/login",
-      payload: { email: "operator@test.com", password: "Password123!" },
+      payload: { email: operatorEmail, password: "Password123!" },
     });
     operatorCookie = `galileo_at=${parseCookies(operatorLogin).galileo_at}`;
 
@@ -110,16 +119,16 @@ describe("POST /products/batch-import", () => {
     await app.inject({
       method: "POST",
       url: "/auth/register",
-      payload: { email: "admin@test.com", password: "Password123!" },
+      payload: { email: adminEmail, password: "Password123!" },
     });
     await app.prisma.user.update({
-      where: { email: "admin@test.com" },
+      where: { email: adminEmail },
       data: { role: "ADMIN" },
     });
     const adLogin = await app.inject({
       method: "POST",
       url: "/auth/login",
-      payload: { email: "admin@test.com", password: "Password123!" },
+      payload: { email: adminEmail, password: "Password123!" },
     });
     adminCookie = `galileo_at=${parseCookies(adLogin).galileo_at}`;
 
@@ -127,16 +136,16 @@ describe("POST /products/batch-import", () => {
     await app.inject({
       method: "POST",
       url: "/auth/register",
-      payload: { email: "viewer@test.com", password: "Password123!" },
+      payload: { email: viewerEmail, password: "Password123!" },
     });
     await app.prisma.user.update({
-      where: { email: "viewer@test.com" },
+      where: { email: viewerEmail },
       data: { role: "VIEWER" },
     });
     const vLogin = await app.inject({
       method: "POST",
       url: "/auth/login",
-      payload: { email: "viewer@test.com", password: "Password123!" },
+      payload: { email: viewerEmail, password: "Password123!" },
     });
     viewerCookie = `galileo_at=${parseCookies(vLogin).galileo_at}`;
 
@@ -144,16 +153,16 @@ describe("POST /products/batch-import", () => {
     await app.inject({
       method: "POST",
       url: "/auth/register",
-      payload: { email: "other-ba@test.com", password: "Password123!" },
+      payload: { email: otherBrandAdminEmail, password: "Password123!" },
     });
     await app.prisma.user.update({
-      where: { email: "other-ba@test.com" },
+      where: { email: otherBrandAdminEmail },
       data: { brandId: otherBrandId, role: "BRAND_ADMIN" },
     });
     const otherLogin = await app.inject({
       method: "POST",
       url: "/auth/login",
-      payload: { email: "other-ba@test.com", password: "Password123!" },
+      payload: { email: otherBrandAdminEmail, password: "Password123!" },
     });
     otherBrandAdminCookie = `galileo_at=${parseCookies(otherLogin).galileo_at}`;
   });
@@ -310,6 +319,34 @@ describe("POST /products/batch-import", () => {
     expect(data.data.created).toBe(0);
     expect(data.data.errors).toHaveLength(1);
     expect(data.data.errors[0].message).toContain("Duplicate");
+  });
+
+  it("should not disclose whether a duplicate exists in another workspace", async () => {
+    await app.prisma.product.create({
+      data: {
+        gtin: VALID_GTIN_13,
+        serialNumber: "XWORK001",
+        did: `did:galileo:${fixtureId}:xwork001`,
+        name: "Other Workspace Product",
+        category: "Watches",
+        brandId: otherBrandId,
+      },
+    });
+
+    const csv = buildCsv([
+      ["name", "gtin", "serialNumber", "category", "description", "materials"],
+      ["Item A", VALID_GTIN_13, "XWORK001", "Watches", "", ""],
+    ]);
+
+    const res = await injectCsv(csv, brandAdminCookie);
+    expect(res.statusCode).toBe(200);
+    expect(res.json().data.errors).toEqual([
+      expect.objectContaining({
+        row: 2,
+        field: "gtin",
+        message: "A product with this GTIN and serial number already exists",
+      }),
+    ]);
   });
 
   it("should return 0 created for empty CSV (header only)", async () => {
