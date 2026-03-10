@@ -24,6 +24,7 @@ export {
 // Constants
 export { ROLES, type RoleKey, type RoleValue } from "./constants/roles.js";
 export { CATEGORIES, type Category } from "./constants/categories.js";
+export { CATEGORY_VALIDATION_MESSAGE } from "./constants/categories.js";
 export {
   COMPLIANCE_DEFAULT_EXPIRY,
   PERMANENT_EXPIRY,
@@ -61,6 +62,29 @@ export {
   validateProductIdentity,
   validateProductSerial,
 } from "./validation/product-identity.js";
+export {
+  PRODUCT_PASSPORT_AUTHORING_VERSION,
+  productAuthoringDescriptionSchema,
+  productAuthoringNameSchema,
+  productAuthoringPatchSchema,
+  productAuthoringSchema,
+  productCategorySchema,
+  productMaterialSchema,
+  productMaterialsSchema,
+  productMediaDescriptorSchema,
+  productMediaDescriptorsSchema,
+  productMediaKindSchema,
+  productPassportAuthoringMetadataSchema,
+  productPassportMetadataEnvelopeSchema,
+  readProductPassportAuthoringMetadata,
+  writeProductPassportAuthoringMetadata,
+  type ProductAuthoringInput,
+  type ProductAuthoringPatchInput,
+  type ProductMaterial,
+  type ProductMediaDescriptor,
+  type ProductPassportAuthoringMetadata,
+  type ProductPassportAuthoringMetadataInput,
+} from "./validation/product-authoring.js";
 export {
   generateDid,
   generateDigitalLinkUrl,

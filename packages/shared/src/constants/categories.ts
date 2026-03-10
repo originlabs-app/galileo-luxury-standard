@@ -18,3 +18,5 @@ export const CATEGORIES = [
 ] as const;
 
 export type Category = (typeof CATEGORIES)[number];
+
+export const CATEGORY_VALIDATION_MESSAGE = `Category must be one of: ${CATEGORIES.join(", ")}`;
