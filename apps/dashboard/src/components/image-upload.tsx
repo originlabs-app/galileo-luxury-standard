@@ -3,8 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { type ProductMediaDescriptor } from "@galileo/shared";
 import { Image as ImageIcon, Upload } from "lucide-react";
-import { API_URL } from "@/lib/constants";
-import { api } from "@/lib/api";
+import { api, ApiError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +14,13 @@ interface UploadResponse {
     upload: {
       imageCid: string;
       imageUrl: string;
+      media: ProductMediaDescriptor;
+      replacement: {
+        action: "added" | "replaced" | "unchanged";
+        previousImageUrl: string | null;
+        previousImageCid: string | null;
+        previousFileDeleted: boolean | null;
+      };
     };
   };
 }
@@ -26,6 +32,9 @@ interface ImageUploadProps {
   onUploadComplete?: () => void;
 }
 
+const uploadStatusStorageKey = (productId: string) =>
+  `galileo:image-upload-status:${productId}`;
+
 export function ImageUpload({
   productId,
   currentImageUrl,
@@ -36,6 +45,7 @@ export function ImageUpload({
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [altText, setAltText] = useState("");
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
   const primaryImage = useMemo(
     () =>
@@ -47,6 +57,34 @@ export function ImageUpload({
   useEffect(() => {
     setAltText(primaryImage?.alt ?? "");
   }, [primaryImage]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !primaryImage?.cid) {
+      return;
+    }
+
+    const storedStatus = window.sessionStorage.getItem(
+      uploadStatusStorageKey(productId),
+    );
+    if (!storedStatus) {
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(storedStatus) as {
+        cid?: string;
+        message?: string;
+      };
+
+      if (parsed.cid === primaryImage.cid && parsed.message) {
+        setStatusMessage(parsed.message);
+      }
+    } catch {
+      // Ignore malformed persisted UI state.
+    } finally {
+      window.sessionStorage.removeItem(uploadStatusStorageKey(productId));
+    }
+  }, [primaryImage?.cid, productId]);
 
   const handleFileSelect = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,57 +106,57 @@ export function ImageUpload({
       // Upload
       setIsUploading(true);
       setError(null);
+      setStatusMessage(null);
       try {
         const formData = new FormData();
         formData.append("file", file);
+        formData.append("alt", trimmedAltText);
 
-        const res = await fetch(`${API_URL}/products/${productId}/upload`, {
+        const data = await api<UploadResponse>(`/products/${productId}/upload`, {
           method: "POST",
           body: formData,
-          credentials: "include",
-          headers: {
-            "X-Galileo-Client": "dashboard",
-          },
         });
 
-        if (!res.ok) {
-          const data = await res.json();
-          throw new Error(data.error?.message ?? "Upload failed");
+        let nextStatusMessage = "Linked image saved to the DRAFT passport.";
+        if (data.data.upload.replacement.action === "replaced") {
+          nextStatusMessage =
+            data.data.upload.replacement.previousFileDeleted === false
+              ? "Linked image replaced. Previous file cleanup needs manual review."
+              : "Linked image replaced for this DRAFT passport.";
+        } else if (data.data.upload.replacement.action === "unchanged") {
+          nextStatusMessage =
+            "Linked image metadata updated for this DRAFT passport.";
         }
 
-        const data = (await res.json()) as UploadResponse;
-        const mediaWithoutPrimaryImage = currentMedia.filter(
-          (media) => !(media.kind === "image" && media.position === 0),
-        );
-
-        await api(`/products/${productId}`, {
-          method: "PATCH",
-          body: JSON.stringify({
-            media: [
-              {
-                kind: "image",
-                url: data.data.upload.imageUrl,
-                cid: data.data.upload.imageCid,
-                alt: trimmedAltText,
-                position: 0,
-              },
-              ...mediaWithoutPrimaryImage,
-            ],
-          }),
-        });
+        setStatusMessage(nextStatusMessage);
+        if (typeof window !== "undefined") {
+          window.sessionStorage.setItem(
+            uploadStatusStorageKey(productId),
+            JSON.stringify({
+              cid: data.data.upload.media.cid,
+              message: nextStatusMessage,
+            }),
+          );
+        }
 
         onUploadComplete?.();
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Upload failed");
+        if (err instanceof ApiError) {
+          setError(err.message);
+        } else {
+          setError(err instanceof Error ? err.message : "Upload failed");
+        }
         setPreview(null);
       } finally {
         setIsUploading(false);
+        e.target.value = "";
       }
     },
-    [altText, currentMedia, productId, onUploadComplete],
+    [altText, productId, onUploadComplete],
   );
 
-  const displayUrl = preview ?? currentImageUrl;
+  const displayUrl = preview ?? primaryImage?.url ?? currentImageUrl ?? null;
+  const actionLabel = primaryImage ? "Replace linked image" : "Upload linked image";
 
   return (
     <div className="flex flex-col gap-4">
@@ -164,7 +202,7 @@ export function ImageUpload({
         >
           <label className="cursor-pointer">
             <Upload className="mr-1 size-3" />
-            {isUploading ? "Uploading..." : "Upload linked image"}
+            {isUploading ? "Uploading..." : actionLabel}
             <input
               type="file"
               accept="image/*"
@@ -178,6 +216,9 @@ export function ImageUpload({
         <p className="text-xs text-muted-foreground">
           Current linked CID: {primaryImage.cid}
         </p>
+      ) : null}
+      {statusMessage ? (
+        <p className="text-xs text-muted-foreground">{statusMessage}</p>
       ) : null}
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>

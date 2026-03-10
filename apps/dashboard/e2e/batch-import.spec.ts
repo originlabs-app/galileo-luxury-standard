@@ -75,6 +75,19 @@ test.describe("Batch CSV import", () => {
       timeout: 15_000,
     });
     await expect(page.getByRole("cell", { name: secondName })).toBeVisible();
+
+    await page.getByRole("cell", { name: firstName }).click();
+    await page.waitForURL(/\/dashboard\/products\/[a-zA-Z0-9-]+$/, {
+      timeout: 15_000,
+    });
+    await expect(
+      page.getByText("Passport workspace", { exact: true }),
+    ).toBeVisible();
+    await expect(page.getByText("Record status")).toBeVisible();
+    await expect(
+      page.getByRole("definition").filter({ hasText: /^DRAFT$/ }).first(),
+    ).toBeVisible();
+    await expect(page.getByText("Linked media draft")).toBeVisible();
   });
 
   test("shows row-level validation feedback and blocks commit when dry-run finds errors", async ({
