@@ -16,13 +16,13 @@ Requirements for the current pilot cycle: one luxury brand running a real end-to
 ### Product Identity & Catalog
 
 - [x] **PROD-01**: Operator can create a product manually with validated GTIN and serial data
-- [ ] **PROD-02**: Operator can batch import products from CSV with validation feedback
+- [x] **PROD-02**: Operator can batch import products from CSV with validation feedback
 - [x] **PROD-03**: System generates a persistent product identifier set for each item, including GS1 Digital Link URL and Galileo DID
-- [ ] **PROD-04**: Operator can manage core passport metadata and linked media needed for public verification
+- [x] **PROD-04**: Operator can manage core passport metadata and linked media needed for public verification
 
 ### On-Chain Issuance & Transfer
 
-- [ ] **CHAIN-01**: System can deploy or reference the active Base Sepolia contract stack through a canonical environment manifest
+- [x] **CHAIN-01**: System can deploy or reference the active Base Sepolia contract stack through a canonical environment manifest
 - [ ] **CHAIN-02**: Operator can mint a product passport on Base Sepolia and the system stores the real transaction hash, contract address, and explorer URL
 - [ ] **CHAIN-03**: System exposes pending, confirmed, and failed blockchain transaction states with recovery guidance for operators
 - [ ] **CHAIN-04**: Operator can transfer product ownership through the current compliance flow and store the resulting on-chain evidence
@@ -44,7 +44,7 @@ Requirements for the current pilot cycle: one luxury brand running a real end-to
 
 - [ ] **SECO-01**: Platform keeps customer PII off-chain and validates untrusted input across operator and public flows
 - [ ] **SECO-02**: Hosted pilot exposes public URLs for dashboard, API, and scanner so a non-engineer can complete the end-to-end demo flow
-- [ ] **SECO-03**: System stores and displays deployment metadata needed to inspect the pilot environment, including chain ID, contract addresses, and explorer references
+- [x] **SECO-03**: System stores and displays deployment metadata needed to inspect the pilot environment, including chain ID, contract addresses, and explorer references
 
 ## v2 Requirements
 
@@ -96,12 +96,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTH-03 | Phase 1 | Complete |
 | PROD-01 | Phase 1 | Complete |
 | PROD-03 | Phase 1 | Complete |
-| PROD-02 | Phase 2 | Pending |
-| PROD-04 | Phase 2 | Pending |
-| CHAIN-01 | Phase 3 | Pending |
+| PROD-02 | Phase 2 | Complete |
+| PROD-04 | Phase 2 | Complete |
+| CHAIN-01 | Phase 3 | Complete |
 | CHAIN-02 | Phase 3 | Pending |
 | CHAIN-03 | Phase 3 | Pending |
-| SECO-03 | Phase 3 | Pending |
+| SECO-03 | Phase 3 | Complete |
 | CHAIN-04 | Phase 4 | Pending |
 | LIFE-01 | Phase 4 | Pending |
 | LIFE-02 | Phase 4 | Pending |

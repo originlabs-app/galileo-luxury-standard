@@ -6,7 +6,7 @@
 
 ## Last Updated
 
-2026-03-10 -- updated after Sprint #11 (doc-roadmap drift audit). DELETE /webhooks/:id added to API table, test counts corrected, Smart Wallet marked resolved.
+2026-03-11 -- updated after Sprint #11 archival + Phase 1/2/3 commit analysis. Added workspace utility, authoring services, Base Sepolia manifest, new dashboard components. Noted WIP schema changes from Phase 3.
 
 ## Tech Stack
 
@@ -40,7 +40,7 @@ galileo-protocol/
 |   |   |   +-- plugins/
 |   |   |   |   +-- audit.ts           # Audit trail onResponse hook
 |   |   |   |   +-- auth.ts            # JWT authentication decorator
-|   |   |   |   +-- chain.ts           # viem client (mock mode — no deployer key)
+|   |   |   |   +-- chain.ts           # viem client + Base Sepolia manifest (read-only without deployer key)
 |   |   |   |   +-- cookie.ts          # @fastify/cookie (with signing secret)
 |   |   |   |   +-- cors.ts            # CORS config
 |   |   |   |   +-- prisma.ts          # Prisma client decorator
@@ -57,6 +57,7 @@ galileo-protocol/
 |   |   |   |   +-- webhooks/          # Webhook subscription management
 |   |   |   +-- services/
 |   |   |   |   +-- compliance/        # Transfer compliance modules (jurisdiction, sanctions, brand-auth, cpo, service-center)
+|   |   |   |   +-- products/          # Product services: import-csv.ts (CSV normalization + authoring reuse)
 |   |   |   |   +-- webhooks/          # Outbox + delivery (HMAC-SHA256, exponential backoff)
 |   |   |   |   +-- siwe.ts            # SIWE nonce store (create/consume/expire)
 |   |   |   +-- utils/
@@ -69,6 +70,7 @@ galileo-protocol/
 |   |   |       +-- cid.ts             # CIDv1 computation (multiformats)
 |   |   |       +-- token-hash.ts      # SHA-256 token hashing
 |   |   |       +-- tokens.ts          # JWT generation
+|   |   |       +-- workspace.ts       # Centralized workspace enforcement (brand scoping, membership checks)
 |   |   +-- test/
 |   |       +-- global-setup.ts        # DB setup + teardown
 |   |       +-- helpers.ts             # parseCookies, cleanDb
@@ -98,9 +100,10 @@ galileo-protocol/
 |   |       |   +-- register/page.tsx
 |   |       +-- components/
 |   |       |   +-- auth-guard.tsx     # SSR-safe auth guard
-|   |       |   +-- batch-import-dialog.tsx # CSV import dialog (file picker, preview, upload)
+|   |       |   +-- batch-import-dialog.tsx # CSV import dialog (dry-run + commit, validation preview)
 |   |       |   +-- header.tsx
-|   |       |   +-- image-upload.tsx   # Product image upload
+|   |       |   +-- image-upload.tsx   # Product image upload (local fallback + R2)
+|   |       |   +-- product-materials-editor.tsx # Materials composition editor for passport authoring
 |   |       |   +-- sidebar.tsx
 |   |       |   +-- siwe-login.tsx     # SIWE wallet login button + flow
 |   |       |   +-- wallet-connection.tsx # wagmi wallet link
@@ -131,6 +134,7 @@ galileo-protocol/
 |   +-- src/                   # Token, compliance, identity, infrastructure
 |   +-- test/                  # Foundry tests (722 passing)
 |   +-- script/Deploy.s.sol    # Deployment script
+|   +-- deployments/base-sepolia.json  # Canonical Base Sepolia manifest (Phase 3)
 +-- specifications/            # Schemas, DID methods, compliance docs
 +-- governance/                # TSC charter, anti-dominance rules
 +-- website/                   # Next.js documentation portal
@@ -218,10 +222,15 @@ Key relations: User -> Brand (many-to-one), Product -> Brand (many-to-one), Prod
 - Shared categories: CATEGORIES array in @galileo/shared/constants/categories (Title Case strings)
 - Available shadcn components: badge, button, card, dialog, input, label, select, table, textarea
 - SIWE login: nonce-based, viem verifyMessage, wallet lookup by checksumAddress
-- Batch import: CSV parse with BOM strip, row-level Zod validation, transaction/partial mode
+- Batch import: CSV parse with BOM strip, row-level Zod validation, dry-run/commit mode (Phase 2)
 - Batch mint: optimistic concurrency per product, webhook enqueue per minted product
-- Dashboard batch import dialog: file picker, CSV preview, progress, error summary table
+- Dashboard batch import dialog: dry-run + commit workflow, validation preview, error summary
 - Dashboard SIWE login: wagmi connect + signMessage, nonce fetch, verify + redirect
+- Workspace enforcement: centralized utility in `utils/workspace.ts` replaces per-route brand scoping (Phase 1)
+- Shared authoring contract: typed passport metadata envelope in @galileo/shared (Phase 2)
+- CSV normalization: moved into `services/products/import-csv.ts` for reuse (Phase 2)
+- Base Sepolia manifest: canonical chain config loaded through typed API config (Phase 3)
+- Health diagnostics: exposes deployment metadata, explorer refs, read-only vs write-enabled (Phase 3)
 
 ## Test Architecture
 
@@ -246,6 +255,8 @@ Key relations: User -> Brand (many-to-one), Product -> Brand (many-to-one), Prod
 9. **No multi-tenant isolation** (P2): app-level RBAC only, no database-level RLS
 10. ~~**No error tracking**~~ RESOLVED: Sentry plugin with graceful no-op when SENTRY_DSN not set
 11. **Register route has response schema** (info): register + login have Fastify response schemas which may strip fields -- inherited from Sprint 1, works because fields are explicitly listed
+12. **WIP schema changes break tests** (ACTIVE): uncommitted changes from Phase 3 `base-sepolia-deployment-live-minting` (commit 9f4a8fc) introduce MINTING status, BlockchainOperation/BlockchainTransactionState enums, ~15 new ProductPassport fields, MINT_PENDING/MINT_FAILED EventTypes. 54+ tests fail because they expect old DRAFT->ACTIVE flow. Awaiting operator decision: complete feature or revert.
+13. **Two planning systems** (info): `.planning/phases/` GSD system handles Phase 1-6 execution. BACKLOG/SPRINT system handles autonomous loop sprints. Both must be kept aligned.
 
 ## Research Notes
 
