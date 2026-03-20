@@ -12,7 +12,9 @@ import {
   Coins,
   Lock,
 } from 'lucide-react';
-import { capitalizeCategory } from '@/lib/specifications';
+function capitalizeCategory(category: string): string {
+  return category.charAt(0).toUpperCase() + category.slice(1);
+}
 
 // ============================================================================
 // Types
