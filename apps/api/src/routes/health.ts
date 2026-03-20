@@ -15,7 +15,7 @@ export default async function healthRoutes(fastify: FastifyInstance) {
     },
     async (_request, reply) => {
       // Database check
-      let dbStatus: "ok" | "error" = "error";
+      let dbStatus: "ok" | "error";
       try {
         await fastify.prisma.$queryRawUnsafe("SELECT 1");
         dbStatus = "ok";

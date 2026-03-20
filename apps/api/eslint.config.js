@@ -7,4 +7,12 @@ export default tseslint.config(
   {
     ignores: ["dist/**", "test/**", "src/generated/**", "vitest.config.ts", "eslint.config.js"],
   },
+  {
+    rules: {
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", destructuredArrayIgnorePattern: "^_" },
+      ],
+    },
+  },
 );

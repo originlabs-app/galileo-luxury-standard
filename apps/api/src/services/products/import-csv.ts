@@ -87,7 +87,7 @@ interface CommitCatalogCsvImportParams {
   prisma: CsvImportDbClient;
 }
 
-interface PartialCatalogCsvImportParams extends CommitCatalogCsvImportParams {}
+type PartialCatalogCsvImportParams = CommitCatalogCsvImportParams;
 
 type CatalogImportResult = CatalogImportPreview | CatalogImportFileError;
 
