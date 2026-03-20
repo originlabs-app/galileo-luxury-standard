@@ -83,15 +83,26 @@ export function DescentSection() {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [currentDepth, setCurrentDepth] = useState(0);
   const [currentZone, setCurrentZone] = useState(zones[0]);
+  const [sectionHeightPx, setSectionHeightPx] = useState(0);
   const sectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+
+    // Set section height in JS pixels to ensure CSS height matches scroll calculation.
+    // Using window.innerHeight avoids mismatches between CSS `vh` and JS innerHeight
+    // (common on mobile browsers with dynamic toolbars).
+    const setHeight = () => setSectionHeightPx(window.innerHeight * 5);
+    setHeight();
+
     const handleScroll = () => {
-      if (!sectionRef.current) return;
-      const rect = sectionRef.current.getBoundingClientRect();
-      const sectionHeight = sectionRef.current.offsetHeight - window.innerHeight;
+      if (!section) return;
+      const rect = section.getBoundingClientRect();
+      const scrollableHeight = section.offsetHeight - window.innerHeight;
+      if (scrollableHeight <= 0) return;
       const scrolled = -rect.top;
-      const progress = Math.max(0, Math.min(1, scrolled / sectionHeight));
+      const progress = Math.max(0, Math.min(1, scrolled / scrollableHeight));
       setScrollProgress(progress);
 
       const depth = Math.round(progress * 6000);
@@ -101,8 +112,13 @@ export function DescentSection() {
       setCurrentZone(zone);
     };
 
+    handleScroll(); // Initialize from current scroll position
     window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener('resize', setHeight, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', setHeight);
+    };
   }, []);
 
   const getBackgroundColor = () => {
@@ -112,7 +128,11 @@ export function DescentSection() {
   };
 
   return (
-    <section ref={sectionRef} className="relative" style={{ height: '500vh' }}>
+    <section
+      ref={sectionRef}
+      className="relative"
+      style={{ height: sectionHeightPx > 0 ? `${sectionHeightPx}px` : '500vh' }}
+    >
       {/* Sticky viewport */}
       <div
         className="sticky top-0 h-screen overflow-hidden transition-colors duration-1000"
@@ -232,9 +252,6 @@ export function DescentSection() {
           >
             {currentZone.name}
           </div>
-          <div className="text-xs text-cyan-400/50 italic mt-1">
-            {currentZone.nameFr}
-          </div>
 
           {/* Feature unlocked */}
           <div className="mt-6 flex items-center gap-2 justify-end">
@@ -347,18 +364,6 @@ export function DescentSection() {
         )}
       </div>
 
-      <style jsx>{`
-        @keyframes sonarPing {
-          0%, 100% {
-            transform: scale(1);
-            opacity: 1;
-          }
-          50% {
-            transform: scale(1.2);
-            opacity: 0.8;
-          }
-        }
-      `}</style>
     </section>
   );
 }

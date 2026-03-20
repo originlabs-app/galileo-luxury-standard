@@ -19,7 +19,7 @@ export default function BlogPage() {
           <div className="inline-flex items-center gap-4 mb-6">
             <div className="w-12 h-[1px] bg-gradient-to-r from-transparent to-cyan-500/50" />
             <span className="text-[10px] tracking-[0.4em] uppercase text-cyan-400/60">
-              Journal
+              Latest
             </span>
             <div className="w-12 h-[1px] bg-gradient-to-l from-transparent to-cyan-500/50" />
           </div>
@@ -40,7 +40,13 @@ export default function BlogPage() {
             </p>
           </div>
         ) : (
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          <div className={`grid gap-8 ${
+            posts.length === 1
+              ? 'max-w-md mx-auto'
+              : posts.length === 2
+              ? 'md:grid-cols-2 max-w-3xl mx-auto'
+              : 'md:grid-cols-2 lg:grid-cols-3'
+          }`}>
             {posts.map((post, index) => {
               // Generate unique gradient angles per card for visual variety
               const hueShift = index * 40;
