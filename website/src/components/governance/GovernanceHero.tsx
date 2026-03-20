@@ -107,8 +107,10 @@ export function GovernanceHero() {
               style={{ animationDelay: `${subheadDelay + 160}ms` }}
             >
               <div className="absolute inset-0 bg-[var(--platinum)] opacity-0 group-hover:opacity-10 blur-xl rounded-lg transition-opacity duration-300" />
-              <Link
-                href="/governance/tsc"
+              <a
+                href="https://github.com/originlabs-app/galileo-luxury-standard/discussions"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="relative precision-line button-haptic inline-flex items-center gap-2 px-8 py-4 border border-[var(--platinum)]/20 text-[var(--platinum)] font-semibold rounded-lg hover:bg-[var(--platinum)]/5 hover:border-[var(--platinum)]/40 transition-all"
               >
                 <svg
@@ -125,7 +127,7 @@ export function GovernanceHero() {
                   />
                 </svg>
                 Join TSC
-              </Link>
+              </a>
             </div>
           </div>
         </div>

@@ -7,6 +7,7 @@ const navItems = [
   { label: 'Protocol', href: '/docs' },
   { label: 'Specifications', href: '/specifications' },
   { label: 'Governance', href: '/governance' },
+  { label: 'La Maison', href: '/maison' },
   { label: 'Blog', href: '/blog' },
 ];
 

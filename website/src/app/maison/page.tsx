@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Footer } from "@/components/layout/Footer";
 
 export const metadata = {
@@ -154,6 +155,39 @@ export default function MaisonPage() {
                 </p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Separator */}
+      <div className="h-px bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent" />
+
+      {/* CTA */}
+      <section className="py-20 md:py-28">
+        <div className="container mx-auto px-6 md:px-8 max-w-3xl text-center">
+          <h2
+            className="text-2xl md:text-3xl font-extralight text-white mb-6"
+            style={{ fontFamily: "var(--font-serif)" }}
+          >
+            Ready to explore the standard?
+          </h2>
+          <p className="text-white/50 mb-10 leading-relaxed max-w-xl mx-auto">
+            Dive into the technical specifications that power authentic luxury
+            authentication, or jump straight to the quick-start guide.
+          </p>
+          <div className="flex flex-wrap justify-center gap-4">
+            <Link
+              href="/specifications"
+              className="inline-flex items-center gap-2 px-8 py-3.5 bg-gradient-to-r from-cyan-500 to-emerald-500 text-black font-medium tracking-wide hover:opacity-90 transition-opacity"
+            >
+              Browse Specifications
+            </Link>
+            <Link
+              href="/docs/quick-start"
+              className="inline-flex items-center gap-2 px-8 py-3.5 border border-white/20 text-white font-medium tracking-wide hover:bg-white/5 hover:border-white/30 transition-all"
+            >
+              Get Started
+            </Link>
           </div>
         </div>
       </section>
