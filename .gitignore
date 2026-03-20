@@ -39,6 +39,7 @@ pnpm-debug.log*
 # Internal dev artifacts (not for public)
 .factory/
 planning/
+.planning/
 
 # Debug artifacts
 *-full.png
@@ -47,6 +48,10 @@ planning/
 # Tools
 .playwright-mcp/
 .claude/
+
+# Override global gitignore — internal repo: agent instruction files are tracked
+!AGENTS.md
+!CLAUDE.md
 
 # Security
 *.pem
