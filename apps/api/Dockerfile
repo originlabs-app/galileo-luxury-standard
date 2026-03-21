@@ -32,6 +32,8 @@ COPY --from=builder /app/apps/api/node_modules ./node_modules
 COPY --from=builder /app/packages/shared/dist ../packages/shared/dist
 COPY --from=builder /app/packages/shared/package.json ../packages/shared/
 COPY --from=builder /app/apps/api/package.json ./
+# Deployment manifest is resolved 3 dirs up from dist/ at runtime → /contracts/…
+COPY --from=builder /app/contracts/deployments /contracts/deployments
 EXPOSE 4000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD node -e "fetch('http://localhost:4000/health').then(r=>{if(!r.ok)throw 1}).catch(()=>process.exit(1))"
