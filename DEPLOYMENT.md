@@ -37,6 +37,50 @@ Helper script: [`scripts/bridge-to-base.mjs`](scripts/bridge-to-base.mjs)
 
 ---
 
+## Testnet Faucet
+
+The faucet lets developers request free Base Sepolia ETH to pay for gas when minting Digital Product Passports.
+
+| Item | Value |
+|------|-------|
+| API endpoint | `POST /api/v1/faucet/drip` |
+| Status endpoint | `GET /api/v1/faucet/status` |
+| Public page | `/tools/faucet` (website) |
+| Drip amount | 0.001 ETH per request |
+| Rate limit | 1 request per wallet per 24h |
+| Faucet wallet | `0xA46a59EcD84486f31Bc54A4D9d5C8241Aa998c2e` |
+
+### Monitoring
+
+```bash
+# Check faucet balance and drip count
+curl https://api.galileo.example/api/v1/faucet/status
+```
+
+### Refilling the faucet
+
+When the faucet balance drops below 0.002 ETH, drips are automatically disabled.
+To refill, send Base Sepolia ETH directly to the deployer wallet:
+
+```
+0xA46a59EcD84486f31Bc54A4D9d5C8241Aa998c2e
+```
+
+Bridge from Ethereum Sepolia using the [L1 Standard Bridge](https://superbridge.app/base-sepolia):
+
+```bash
+# Using the helper script
+node scripts/bridge-to-base.mjs --amount 0.05
+```
+
+Or bridge manually via Superbridge at https://superbridge.app/base-sepolia.
+
+### Enabling / disabling
+
+Set `FAUCET_ENABLED=false` in `apps/api/.env` and restart the API to disable without redeploying.
+
+---
+
 ## Post-Deployment TODOs
 
 These steps are required before the first product can be minted end-to-end:

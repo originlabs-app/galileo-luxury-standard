@@ -22,6 +22,7 @@ import productRoutes from "./routes/products/index.js";
 import resolverRoutes from "./routes/resolver/index.js";
 import auditRoutes from "./routes/audit/index.js";
 import webhookRoutes from "./routes/webhooks/index.js";
+import faucetRoutes from "./routes/faucet.js";
 import { startWorker, stopWorker } from "./services/webhooks/outbox.js";
 
 export async function buildApp() {
@@ -189,6 +190,7 @@ export async function buildApp() {
   await fastify.register(resolverRoutes);
   await fastify.register(auditRoutes);
   await fastify.register(webhookRoutes);
+  await fastify.register(faucetRoutes);
 
   // Also register routes under /api/v1 (versioning preparation)
   await fastify.register(
@@ -199,6 +201,7 @@ export async function buildApp() {
       await v1.register(resolverRoutes);
       await v1.register(auditRoutes);
       await v1.register(webhookRoutes);
+      await v1.register(faucetRoutes);
     },
     { prefix: "/api/v1" },
   );
