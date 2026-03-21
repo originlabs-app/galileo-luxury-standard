@@ -1,0 +1,37 @@
+# Dependencies (installed during build)
+node_modules
+**/node_modules
+
+# Build outputs
+.next
+**/.next
+dist
+**/dist
+build
+**/build
+
+# Dev/test artifacts
+*.log
+.turbo
+**/.turbo
+coverage
+**/coverage
+
+# Other apps (only scanner is needed)
+apps/api
+apps/dashboard
+apps/website
+
+# Contracts & docs
+contracts
+governance
+planning
+.planning
+docs
+
+# Git
+.git
+
+# Misc
+*.test.*
+*.spec.*

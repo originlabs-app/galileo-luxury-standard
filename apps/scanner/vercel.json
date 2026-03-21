@@ -1,6 +1,6 @@
 {
   "buildCommand": "cd ../.. && pnpm turbo build --filter=@galileo/scanner",
-  "installCommand": "pnpm install",
+  "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
   "framework": "nextjs",
   "headers": [
     {
