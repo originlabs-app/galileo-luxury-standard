@@ -20,24 +20,7 @@ RUN pnpm build
 WORKDIR /app/apps/api
 RUN pnpm prisma generate && pnpm tsc \
   && cp -rT src/generated/prisma/internal dist/generated/prisma/internal \
-  && cat > /tmp/fix-imports.js << 'FIXEOF'
-const fs = require("fs");
-const path = require("path");
-function fix(dir) {
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) { fix(full); continue; }
-    if (!entry.name.endsWith(".js")) continue;
-    let code = fs.readFileSync(full, "utf8");
-    code = code.replace(/from (['"])(\.\.?\/[^'"]+)\1/g, (m, q, p) =>
-      p.endsWith(".js") ? m : "from " + q + p + ".js" + q
-    );
-    fs.writeFileSync(full, code);
-  }
-}
-fix("dist/generated");
-FIXEOF
-  && node /tmp/fix-imports.js \
+  && node -e 'var fs=require("fs"),p=require("path");function f(d){fs.readdirSync(d,{withFileTypes:true}).forEach(function(e){var n=p.join(d,e.name);if(e.isDirectory())f(n);else if(e.name.endsWith(".js")){var c=fs.readFileSync(n,"utf8");c=c.replace(/from ([\x27\x22])(\.\.\/[^\x27\x22]+)\1/g,function(m,q,i){return i.endsWith(".js")?m:"from "+q+i+".js"+q});c=c.replace(/from ([\x27\x22])(\.\/[^\x27\x22]+)\1/g,function(m,q,i){return i.endsWith(".js")?m:"from "+q+i+".js"+q});fs.writeFileSync(n,c)}})}f("dist/generated")' \
   && echo "=== Fixed client.js imports ===" && grep -n "from " dist/generated/prisma/client.js | head -10
 
 # Stage 3: Production
@@ -62,3 +45,4 @@ EXPOSE 4000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD node -e "fetch('http://localhost:4000/health').then(r=>{if(!r.ok)throw 1}).catch(()=>process.exit(1))"
 CMD ["node", "dist/main.js"]
+
