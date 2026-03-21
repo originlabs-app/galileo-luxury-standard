@@ -8,7 +8,11 @@
  *   1. MINTING_MNEMONIC  — BIP-39 mnemonic (recommended; derives key at path m/44'/60'/0'/0/0)
  *   2. MINTING_PRIVATE_KEY / DEPLOYER_PRIVATE_KEY — raw hex private key (legacy fallback)
  */
-import { createPublicClient, createWalletClient } from "viem";
+import {
+  type WalletClient,
+  createPublicClient,
+  createWalletClient,
+} from "viem";
 import { mnemonicToAccount, privateKeyToAccount } from "viem/accounts";
 import { baseSepolia, getBaseSepoliaTransport } from "./chain.js";
 
@@ -28,7 +32,7 @@ export function getPublicClient() {
  *   1. MINTING_MNEMONIC (BIP-39 — preferred)
  *   2. MINTING_PRIVATE_KEY or DEPLOYER_PRIVATE_KEY (raw hex — legacy)
  */
-export function getWalletClient() {
+export function getWalletClient(): WalletClient | null {
   const mnemonic = process.env.MINTING_MNEMONIC;
   if (mnemonic) {
     const account = mnemonicToAccount(mnemonic);
