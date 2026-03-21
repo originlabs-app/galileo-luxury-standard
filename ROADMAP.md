@@ -230,6 +230,11 @@ Everything shipped across Sprints 1–10.
 - 💡 Public page showing the full authenticity certificate for a given token ID, accessible via shareable link
 - 💡 Renders product metadata, ownership history, and compliance claims in a printable format
 
+### USDC Payments Integration 💡 Future
+- 💡 Enable USDC payments for ownership transfers, certification services, and marketplace transactions via Coinbase CDP
+- 💡 Allows brands to accept crypto payments for authentication services without handling volatile assets
+- 💡 Native USDC settlement on Base — no conversion needed, stable value for brand treasury
+
 ---
 
 ## Phase 4 — Token Economy 💡 Future
@@ -274,6 +279,16 @@ Everything shipped across Sprints 1–10.
 ### Trusted Issuer Registry Browser 💡 Future
 - 💡 Public explorer listing all trusted issuers recognized in the Galileo ecosystem and their authorized claim types
 - 💡 Verifiable on-chain via the Trusted Issuers Registry (TIR) contract
+
+### Onchain Agent 💡 Future
+- 💡 Autonomous agent with onchain capabilities via Coinbase CDP AgentKit to automate token management, compliance checks, and identity verification for brands
+- 💡 Handles routine operations: batch minting, identity registration, and claim issuance without manual intervention
+- 💡 Reduces operational overhead for brands managing large product catalogs on-chain
+
+### Onchain Social Profile 💡 Future
+- 💡 Brand profiles powered by Coinbase's onchain identity system, complementing ERC-3643 identity with public-facing brand reputation
+- 💡 Verification badges and social proof for luxury brands in the Galileo ecosystem
+- 💡 Verifiable onchain credentials showcase brand participation and compliance history to consumers and partners
 
 ---
 
