@@ -235,7 +235,7 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const user = request.user;
-      const sub = getSubscription(request.params.id);
+      const sub = await getSubscription(fastify.prisma, request.params.id);
 
       if (!sub) {
         return reply.status(404).send({
@@ -257,7 +257,7 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
         });
       }
 
-      const deliveries = listDeliveries(request.params.id);
+      const deliveries = await listDeliveries(fastify.prisma, request.params.id);
       return reply.status(200).send({
         success: true,
         data: { deliveries },
@@ -289,7 +289,7 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const user = request.user;
-      const sub = getSubscription(request.params.id);
+      const sub = await getSubscription(fastify.prisma, request.params.id);
 
       if (!sub) {
         return reply.status(404).send({
@@ -311,7 +311,7 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
         });
       }
 
-      const requeued = requeueFailed(request.params.id);
+      const requeued = await requeueFailed(fastify.prisma, request.params.id);
 
       return reply.status(200).send({
         success: true,

@@ -123,3 +123,14 @@ export function resolveWorkspaceMutationBrandId(
 
   return requestedBrandId;
 }
+
+export function buildWorkspaceProductByIdWhere(
+  reply: FastifyReply,
+  user: WorkspaceUser,
+  id: string,
+): { id: string; brandId?: string } | null {
+  const membership = requireWorkspaceMembership(reply, user);
+  if (!membership) return null;
+  if (membership.isAdmin) return { id };
+  return { id, brandId: membership.brandId };
+}

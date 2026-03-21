@@ -243,10 +243,15 @@ export async function getOutboxEntries(
 /**
  * List all queued delivery events for a given subscription.
  */
-export function listDeliveries(subscriptionId: string): WebhookEvent[] {
-  return outboxQueue
-    .filter((e) => e.subscriptionId === subscriptionId)
-    .map((e) => ({ ...e }));
+export async function listDeliveries(
+  prisma: PrismaClient,
+  subscriptionId: string,
+): Promise<WebhookEvent[]> {
+  const rows = await prisma.webhookDelivery.findMany({
+    where: { webhookId: subscriptionId },
+    orderBy: { createdAt: "asc" },
+  });
+  return rows.map(mapDelivery);
 }
 
 /**
@@ -255,19 +260,24 @@ export function listDeliveries(subscriptionId: string): WebhookEvent[] {
  * picks them up on the next tick.
  * Returns the number of events requeued.
  */
-export function requeueFailed(subscriptionId: string): number {
+export async function requeueFailed(
+  prisma: PrismaClient,
+  subscriptionId: string,
+): Promise<number> {
   const now = new Date();
-  let count = 0;
-  for (const event of outboxQueue) {
-    if (event.subscriptionId !== subscriptionId) continue;
-    if (event.status === "delivered") continue;
-    event.attempts = 0;
-    event.nextAttemptAt = now;
-    event.status = "pending";
-    event.lastError = undefined;
-    count++;
-  }
-  return count;
+  const result = await prisma.webhookDelivery.updateMany({
+    where: {
+      webhookId: subscriptionId,
+      status: { not: "delivered" },
+    },
+    data: {
+      attempts: 0,
+      nextAttemptAt: now,
+      status: "pending",
+      lastError: null,
+    },
+  });
+  return result.count;
 }
 
 /**
