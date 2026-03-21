@@ -16,6 +16,9 @@ vi.mock("viem", () => ({
   http: vi.fn(),
   getAddress: vi.fn((a: string) => a),
   verifyMessage: vi.fn(),
+  parseEther: vi.fn((v: string) => BigInt(Math.floor(parseFloat(v) * 1e18))),
+  formatEther: vi.fn((v: bigint) => (Number(v) / 1e18).toString()),
+  isAddress: vi.fn(() => true),
 }));
 vi.mock("viem/accounts", () => ({ privateKeyToAccount: vi.fn() }));
 vi.mock("viem/chains", () => ({
