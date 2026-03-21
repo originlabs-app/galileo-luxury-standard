@@ -16,7 +16,15 @@ node_modules
 
 # Non-API apps and docs (not needed for API image)
 website
-contracts
+contracts/src
+contracts/test
+contracts/lib
+contracts/script
+contracts/cache
+contracts/out
+contracts/broadcast
+contracts/README.md
+contracts/foundry.toml
 governance
 release
 specifications
