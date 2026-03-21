@@ -19,6 +19,7 @@ export {
   type PaginatedResponse,
   type AuthTokens,
   type HealthResponse,
+  type BlockchainVerification,
 } from "./types/api.js";
 
 // Constants

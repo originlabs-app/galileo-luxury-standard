@@ -5,6 +5,14 @@ type MaterialEntry = {
   percentage: number;
 };
 
+type BlockchainVerification = {
+  verified: boolean;
+  txHash: string;
+  tokenId: string | null;
+  chain: string;
+  explorerUrl: string;
+};
+
 type ResolverResult = {
   "@id": string;
   name?: string;
@@ -25,6 +33,7 @@ type ResolverResult = {
     chainId?: number | null;
     mintedAt?: string | null;
   } | null;
+  blockchain?: BlockchainVerification | null;
   hasMaterialComposition?: MaterialEntry[];
   provenance?: Array<{
     "@type"?: string;
@@ -316,6 +325,131 @@ function MaterialComposition({ materials }: { materials: MaterialEntry[] }) {
   );
 }
 
+function BlockchainBadge({
+  blockchain,
+}: {
+  blockchain: BlockchainVerification | null | undefined;
+}) {
+  if (blockchain === undefined || blockchain === null) {
+    return (
+      <div className="flex items-center gap-2 rounded-2xl border border-border/60 bg-background/40 px-4 py-3">
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted">
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="text-muted-foreground"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 8v4M12 16h.01" />
+          </svg>
+        </div>
+        <span className="text-sm text-muted-foreground">Not yet minted</span>
+      </div>
+    );
+  }
+
+  if (!blockchain.verified) {
+    return (
+      <div className="flex items-center gap-2 rounded-2xl border border-yellow-500/30 bg-yellow-500/5 px-4 py-3">
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-yellow-500/15">
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="text-yellow-400"
+            aria-hidden="true"
+          >
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+            <line x1="12" y1="9" x2="12" y2="13" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+        </div>
+        <span className="text-sm font-medium text-yellow-400">
+          Blockchain mismatch
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2 rounded-2xl border border-success/30 bg-success/5 px-4 py-3">
+      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-success/15">
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="text-success"
+          aria-hidden="true"
+        >
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+      </div>
+      <span className="text-sm font-medium text-success">
+        Verified on blockchain
+      </span>
+    </div>
+  );
+}
+
+function VerificationDetails({
+  blockchain,
+}: {
+  blockchain: BlockchainVerification;
+}) {
+  const shortTx = `${blockchain.txHash.slice(0, 10)}…${blockchain.txHash.slice(-8)}`;
+
+  return (
+    <details className="group mt-3">
+      <summary className="flex cursor-pointer list-none items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground select-none hover:text-foreground transition-colors">
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="transition-transform group-open:rotate-90"
+          aria-hidden="true"
+        >
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
+        Verification Details
+      </summary>
+      <dl className="mt-3 grid gap-2">
+        <DetailRow
+          label="Transaction"
+          value={shortTx}
+          mono
+          href={blockchain.explorerUrl}
+        />
+        <DetailRow label="Chain" value={blockchain.chain} />
+        {blockchain.tokenId ? (
+          <DetailRow label="Token address" value={blockchain.tokenId} mono />
+        ) : null}
+      </dl>
+    </details>
+  );
+}
+
 const CHAIN_NAMES: Record<number, string> = {
   8453: "Base",
   84532: "Base Sepolia",
@@ -505,6 +639,15 @@ export default async function Home({
             </div>
             {result.ok ? <StatusPill status={result.data?.status} /> : null}
           </div>
+
+          {result.ok ? (
+            <div className="mt-3">
+              <BlockchainBadge blockchain={result.data?.blockchain} />
+              {result.data?.blockchain ? (
+                <VerificationDetails blockchain={result.data.blockchain} />
+              ) : null}
+            </div>
+          ) : null}
 
           <p className="mt-3 text-sm leading-6 text-muted-foreground">
             {result.ok

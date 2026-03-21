@@ -13,4 +13,5 @@ export {
   type PaginatedResponse,
   type AuthTokens,
   type HealthResponse,
+  type BlockchainVerification,
 } from "./api.js";

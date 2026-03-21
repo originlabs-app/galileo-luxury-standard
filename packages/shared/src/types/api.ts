@@ -41,3 +41,17 @@ export interface HealthResponse {
   version: string;
   uptime: number;
 }
+
+/** Blockchain verification result attached to resolver responses */
+export interface BlockchainVerification {
+  /** Whether on-chain data is consistent with DB (product ACTIVE + minted) */
+  verified: boolean;
+  /** Minting transaction hash */
+  txHash: string;
+  /** On-chain token identifier (contract address / token address) */
+  tokenId: string | null;
+  /** Human-readable chain name, e.g. "Base Sepolia" or "Base" */
+  chain: string;
+  /** Direct link to the transaction on a block explorer */
+  explorerUrl: string;
+}
