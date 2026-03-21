@@ -1,11 +1,12 @@
 name: Feature Request
-description: Propose a new feature or specification addition
+description: Propose a new feature or improvement
 labels: ["enhancement"]
 body:
   - type: markdown
     attributes:
       value: |
         For significant specification changes, please follow the [RFC process](../../governance/rfcs/README.md).
+        Check the [roadmap](../../ROADMAP.md) first — your idea may already be planned.
 
   - type: textarea
     id: description
@@ -40,10 +41,29 @@ body:
     attributes:
       label: Area
       options:
-        - Specification
-        - Website
+        - API (Fastify)
+        - Dashboard (B2B portal)
+        - Scanner (PWA)
+        - Blockchain / Smart Contracts
+        - Token Economy (T1/LEOX)
+        - Specification / Standards
         - Documentation
         - Governance
+        - Security / Compliance
         - Other
     validations:
       required: true
+
+  - type: dropdown
+    id: phase
+    attributes:
+      label: Roadmap Phase
+      description: Which phase does this relate to?
+      options:
+        - Phase 2 — Blockchain Live
+        - Phase 3 — Enterprise Ready
+        - Phase 4 — Token Economy
+        - Phase 5 — Scale & Compliance
+        - Not phase-specific
+    validations:
+      required: false
