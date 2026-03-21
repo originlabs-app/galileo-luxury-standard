@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ArrowLeft, Edit3, Loader2, LockKeyhole, Save, X } from "lucide-react";
 import {
   CATEGORIES,
+  ETHEREUM_ADDRESS_RE,
   readProductPassportAuthoringMetadata,
   type ProductMaterial,
   type ProductMediaDescriptor,
@@ -15,6 +16,13 @@ import { api, ApiError } from "@/lib/api";
 import { ImageUpload } from "@/components/image-upload";
 import { ProductMaterialsEditor } from "@/components/product-materials-editor";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -134,6 +142,19 @@ export default function ProductDetailPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
 
+  // Recall state
+  const [showRecallDialog, setShowRecallDialog] = useState(false);
+  const [recallReason, setRecallReason] = useState("");
+  const [isRecalling, setIsRecalling] = useState(false);
+  const [recallError, setRecallError] = useState<string | null>(null);
+
+  // Transfer state
+  const [showTransferDialog, setShowTransferDialog] = useState(false);
+  const [transferAddress, setTransferAddress] = useState("");
+  const [transferAddressError, setTransferAddressError] = useState<string | null>(null);
+  const [isTransferring, setIsTransferring] = useState(false);
+  const [transferError, setTransferError] = useState<string | null>(null);
+
   const fetchProduct = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -233,6 +254,63 @@ export default function ProductDetailPage() {
       }
     } finally {
       setIsSaving(false);
+    }
+  }
+
+  async function handleRecall(e: FormEvent) {
+    e.preventDefault();
+    setIsRecalling(true);
+    setRecallError(null);
+    try {
+      const res = await api<ProductResponse>(`/products/${productId}/recall`, {
+        method: "POST",
+        body: JSON.stringify({ reason: recallReason.trim() || undefined }),
+      });
+      setProduct(res.data.product);
+      setShowRecallDialog(false);
+      setRecallReason("");
+    } catch (err) {
+      setRecallError(
+        err instanceof ApiError ? err.message : "Failed to recall product",
+      );
+    } finally {
+      setIsRecalling(false);
+    }
+  }
+
+  function validateTransferAddress(address: string): string | null {
+    if (!address.trim()) return "Wallet address is required";
+    if (!ETHEREUM_ADDRESS_RE.test(address.trim()))
+      return "Invalid Ethereum address (must be 0x followed by 40 hex characters)";
+    return null;
+  }
+
+  async function handleTransfer(e: FormEvent) {
+    e.preventDefault();
+    const addrError = validateTransferAddress(transferAddress);
+    if (addrError) {
+      setTransferAddressError(addrError);
+      return;
+    }
+    setIsTransferring(true);
+    setTransferError(null);
+    try {
+      const res = await api<ProductResponse>(
+        `/products/${productId}/transfer`,
+        {
+          method: "POST",
+          body: JSON.stringify({ toAddress: transferAddress.trim() }),
+        },
+      );
+      setProduct(res.data.product);
+      setShowTransferDialog(false);
+      setTransferAddress("");
+    } catch (err) {
+      setTransferError(
+        err instanceof ApiError ? err.message : "Failed to transfer product",
+      );
+    } finally {
+      setIsTransferring(false);
     }
   }
 
@@ -559,6 +637,158 @@ export default function ProductDetailPage() {
           )}
         </CardContent>
       </Card>
+
+      {product.status === "ACTIVE" && (
+        <Card className="border-destructive/30">
+          <CardHeader>
+            <CardTitle className="font-serif text-lg">Product actions</CardTitle>
+            <CardDescription>
+              Lifecycle actions for active products. These are irreversible.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-wrap gap-3">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setTransferError(null);
+                setTransferAddressError(null);
+                setTransferAddress("");
+                setShowTransferDialog(true);
+              }}
+            >
+              Transfer ownership
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                setRecallError(null);
+                setRecallReason("");
+                setShowRecallDialog(true);
+              }}
+            >
+              Recall product
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Recall confirmation dialog */}
+      <Dialog open={showRecallDialog} onOpenChange={setShowRecallDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Recall product</DialogTitle>
+            <DialogDescription>
+              This will permanently mark the product as recalled. Consumers
+              scanning the QR code will see a recalled status. This action
+              cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleRecall} className="flex flex-col gap-4 pt-2">
+            {recallError && (
+              <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                {recallError}
+              </div>
+            )}
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="recall-reason">
+                Reason{" "}
+                <span className="text-muted-foreground">(optional)</span>
+              </Label>
+              <Textarea
+                id="recall-reason"
+                placeholder="Describe the recall reason (e.g. safety defect, contamination…)"
+                value={recallReason}
+                onChange={(e) => setRecallReason(e.target.value)}
+                rows={3}
+                maxLength={2000}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowRecallDialog(false)}
+                disabled={isRecalling}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" variant="destructive" disabled={isRecalling}>
+                {isRecalling ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : null}
+                {isRecalling ? "Recalling…" : "Confirm recall"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Transfer dialog with ETH address validation */}
+      <Dialog open={showTransferDialog} onOpenChange={setShowTransferDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Transfer ownership</DialogTitle>
+            <DialogDescription>
+              Transfer this product to a new Ethereum wallet address. The
+              recipient address must be a valid checksummed EVM address.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleTransfer} className="flex flex-col gap-4 pt-2">
+            {transferError && (
+              <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                {transferError}
+              </div>
+            )}
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="transfer-address">Destination wallet address</Label>
+              <Input
+                id="transfer-address"
+                type="text"
+                placeholder="0x..."
+                value={transferAddress}
+                onChange={(e) => {
+                  setTransferAddress(e.target.value);
+                  if (transferAddressError) setTransferAddressError(null);
+                }}
+                onBlur={(e) =>
+                  setTransferAddressError(
+                    validateTransferAddress(e.target.value),
+                  )
+                }
+                aria-invalid={!!transferAddressError}
+                aria-describedby={
+                  transferAddressError ? "transfer-address-error" : undefined
+                }
+                className="font-mono"
+              />
+              {transferAddressError && (
+                <p
+                  id="transfer-address-error"
+                  className="text-sm text-destructive"
+                >
+                  {transferAddressError}
+                </p>
+              )}
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowTransferDialog(false)}
+                disabled={isTransferring}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isTransferring}>
+                {isTransferring ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : null}
+                {isTransferring ? "Transferring…" : "Transfer"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

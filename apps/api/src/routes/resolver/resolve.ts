@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import type { ProductStatus } from "../../generated/prisma/enums.js";
 import {
   padGtin14,
+  productMaterialsSchema,
   readProductPassportAuthoringMetadata,
   validateGtin,
 } from "@galileo/shared";
@@ -113,7 +114,9 @@ export default async function resolveDigitalLinkRoute(
       const authoringMetadata = readProductPassportAuthoringMetadata(
         product.passport?.metadata,
       );
-      const materials = authoringMetadata.materials ?? [];
+      const rawMaterials = authoringMetadata.materials ?? [];
+      const parsedMaterials = productMaterialsSchema.safeParse(rawMaterials);
+      const materials = parsedMaterials.success ? parsedMaterials.data : [];
 
       // Build JSON-LD payload with @context array (C1: Galileo context, I1: canonical GS1 URL)
       const jsonLd = {

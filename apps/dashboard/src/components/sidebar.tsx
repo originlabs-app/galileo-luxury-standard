@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Building2, Home, LogOut, Package, Settings } from "lucide-react";
+import { Building2, ClipboardList, Home, LogOut, Package, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { Badge } from "@/components/ui/badge";
@@ -11,12 +11,19 @@ interface NavItem {
   label: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
+  roles?: string[];
 }
 
 const navItems: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: Home },
   { label: "Products", href: "/dashboard/products", icon: Package },
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
+  {
+    label: "Audit log",
+    href: "/dashboard/audit",
+    icon: ClipboardList,
+    roles: ["ADMIN", "BRAND_ADMIN"],
+  },
 ];
 
 export function Sidebar() {
@@ -58,28 +65,33 @@ export function Sidebar() {
       </div>
 
       <nav className="flex flex-1 flex-col gap-1 px-3 py-4">
-        {navItems.map((item) => {
-          const isActive =
-            item.href === "/dashboard"
-              ? pathname === "/dashboard"
-              : pathname.startsWith(item.href);
+        {navItems
+          .filter(
+            (item) =>
+              !item.roles || (user?.role && item.roles.includes(user.role)),
+          )
+          .map((item) => {
+            const isActive =
+              item.href === "/dashboard"
+                ? pathname === "/dashboard"
+                : pathname.startsWith(item.href);
 
-          return (
-            <Link
-              key={item.label}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
-                isActive
-                  ? "bg-primary/10 text-primary"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-              )}
-            >
-              <item.icon className="size-4" />
-              {item.label}
-            </Link>
-          );
-        })}
+            return (
+              <Link
+                key={item.label}
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+                  isActive
+                    ? "bg-primary/10 text-primary"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                )}
+              >
+                <item.icon className="size-4" />
+                {item.label}
+              </Link>
+            );
+          })}
 
         <div className="flex-1" />
 

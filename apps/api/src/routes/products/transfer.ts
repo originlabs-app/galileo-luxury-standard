@@ -227,9 +227,13 @@ export default async function transferProductRoute(fastify: FastifyInstance) {
         // Webhook enqueue failure must not break the request
       });
 
+      const transferEvent =
+        fullProduct.events.find((e) => e.type === EventType.TRANSFERRED) ??
+        null;
+
       return reply.status(200).send({
         success: true,
-        data: { product: fullProduct },
+        data: { product: fullProduct, event: transferEvent },
       });
     },
   );

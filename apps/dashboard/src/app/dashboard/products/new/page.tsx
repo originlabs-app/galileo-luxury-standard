@@ -61,29 +61,41 @@ export default function NewProductPage() {
   const [serverError, setServerError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  function validateField(
+    field: keyof FormErrors,
+    value: string,
+  ): string | undefined {
+    switch (field) {
+      case "name":
+        return value.trim() ? undefined : "Name is required";
+      case "gtin":
+        if (!value.trim()) return "GTIN is required";
+        if (!validateGtin(value.trim()))
+          return "Invalid GTIN: check digit verification failed";
+        return undefined;
+      case "serialNumber":
+        return value.trim() ? undefined : "Serial number is required";
+      case "category":
+        return value ? undefined : "Category is required";
+      default:
+        return undefined;
+    }
+  }
+
+  function handleBlur(field: keyof FormErrors, value: string) {
+    const error = validateField(field, value);
+    setErrors((prev) => ({ ...prev, [field]: error }));
+  }
+
   function validateForm(): boolean {
-    const newErrors: FormErrors = {};
-
-    if (!name.trim()) {
-      newErrors.name = "Name is required";
-    }
-
-    if (!gtin.trim()) {
-      newErrors.gtin = "GTIN is required";
-    } else if (!validateGtin(gtin.trim())) {
-      newErrors.gtin = "Invalid GTIN: check digit verification failed";
-    }
-
-    if (!serialNumber.trim()) {
-      newErrors.serialNumber = "Serial number is required";
-    }
-
-    if (!category) {
-      newErrors.category = "Category is required";
-    }
-
+    const newErrors: FormErrors = {
+      name: validateField("name", name),
+      gtin: validateField("gtin", gtin),
+      serialNumber: validateField("serialNumber", serialNumber),
+      category: validateField("category", category),
+    };
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return Object.values(newErrors).every((e) => !e);
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -162,6 +174,7 @@ export default function NewProductPage() {
                   if (errors.name)
                     setErrors((prev) => ({ ...prev, name: undefined }));
                 }}
+                onBlur={(e) => handleBlur("name", e.target.value)}
                 aria-invalid={!!errors.name}
                 aria-describedby={errors.name ? "name-error" : undefined}
               />
@@ -185,6 +198,7 @@ export default function NewProductPage() {
                   if (errors.gtin)
                     setErrors((prev) => ({ ...prev, gtin: undefined }));
                 }}
+                onBlur={(e) => handleBlur("gtin", e.target.value)}
                 aria-invalid={!!errors.gtin}
                 aria-describedby={errors.gtin ? "gtin-error" : undefined}
               />
@@ -211,6 +225,7 @@ export default function NewProductPage() {
                       serialNumber: undefined,
                     }));
                 }}
+                onBlur={(e) => handleBlur("serialNumber", e.target.value)}
                 aria-invalid={!!errors.serialNumber}
                 aria-describedby={
                   errors.serialNumber ? "serialNumber-error" : undefined
