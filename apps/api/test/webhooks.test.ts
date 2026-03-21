@@ -31,10 +31,7 @@ vi.mock("viem/chains", () => ({
 import { parseCookies, cleanDb } from "./helpers.js";
 import {
   addSubscription,
-  removeSubscription,
-  listSubscriptions,
   enqueueWebhookEvent,
-  processNext,
   getOutboxEntries,
   clearAll,
 } from "../src/services/webhooks/outbox.js";
@@ -67,7 +64,6 @@ describe("Webhook system", () => {
   });
 
   beforeEach(async () => {
-    clearAll();
     await cleanDb(app.prisma);
 
     const brand = await app.prisma.brand.create({
@@ -125,8 +121,8 @@ describe("Webhook system", () => {
     );
   });
 
-  afterEach(() => {
-    clearAll();
+  afterEach(async () => {
+    await clearAll(app.prisma);
   });
 
   // ─── Route tests ──────────────────────────────────────────────
@@ -307,7 +303,7 @@ describe("Webhook system", () => {
   // ─── Outbox unit tests ────────────────────────────────────────
 
   describe("Outbox", () => {
-    it("enqueue creates entries for matching subscriptions", () => {
+    it("enqueue creates entries for matching subscriptions", async () => {
       const sub: WebhookSubscription = {
         id: "sub-1",
         brandId: testBrandId,
@@ -317,17 +313,19 @@ describe("Webhook system", () => {
         active: true,
         createdAt: new Date().toISOString(),
       };
-      addSubscription(sub);
+      await addSubscription(app.prisma, sub);
 
-      enqueueWebhookEvent("TRANSFERRED", "prod-1", { test: true });
+      await enqueueWebhookEvent(app.prisma, "TRANSFERRED", "prod-1", {
+        test: true,
+      });
 
-      const entries = getOutboxEntries();
+      const entries = await getOutboxEntries(app.prisma);
       expect(entries.length).toBe(1);
       expect(entries[0]!.subscriptionId).toBe("sub-1");
       expect(entries[0]!.status).toBe("pending");
     });
 
-    it("enqueue skips inactive subscriptions", () => {
+    it("enqueue skips inactive subscriptions", async () => {
       const sub: WebhookSubscription = {
         id: "sub-inactive",
         brandId: testBrandId,
@@ -337,15 +335,17 @@ describe("Webhook system", () => {
         active: false,
         createdAt: new Date().toISOString(),
       };
-      addSubscription(sub);
+      await addSubscription(app.prisma, sub);
 
-      enqueueWebhookEvent("TRANSFERRED", "prod-1", { test: true });
+      await enqueueWebhookEvent(app.prisma, "TRANSFERRED", "prod-1", {
+        test: true,
+      });
 
-      const entries = getOutboxEntries();
+      const entries = await getOutboxEntries(app.prisma);
       expect(entries.length).toBe(0);
     });
 
-    it("enqueue skips subscriptions not matching event type", () => {
+    it("enqueue skips subscriptions not matching event type", async () => {
       const sub: WebhookSubscription = {
         id: "sub-minted-only",
         brandId: testBrandId,
@@ -355,11 +355,13 @@ describe("Webhook system", () => {
         active: true,
         createdAt: new Date().toISOString(),
       };
-      addSubscription(sub);
+      await addSubscription(app.prisma, sub);
 
-      enqueueWebhookEvent("TRANSFERRED", "prod-1", { test: true });
+      await enqueueWebhookEvent(app.prisma, "TRANSFERRED", "prod-1", {
+        test: true,
+      });
 
-      const entries = getOutboxEntries();
+      const entries = await getOutboxEntries(app.prisma);
       expect(entries.length).toBe(0);
     });
   });
@@ -403,7 +405,7 @@ describe("Webhook system", () => {
         active: true,
         createdAt: new Date().toISOString(),
       };
-      addSubscription(sub);
+      await addSubscription(app.prisma, sub);
 
       // Create and mint a product
       const createRes = await app.inject({
@@ -435,7 +437,7 @@ describe("Webhook system", () => {
       });
 
       // Check that a webhook event was enqueued
-      const entries = getOutboxEntries();
+      const entries = await getOutboxEntries(app.prisma);
       const transferEntry = entries.find(
         (e) =>
           e.eventType === "TRANSFERRED" &&

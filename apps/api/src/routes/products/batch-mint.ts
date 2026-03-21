@@ -178,15 +178,13 @@ export default async function batchMintRoute(fastify: FastifyInstance) {
 
       // Fire webhooks (non-blocking, R29)
       for (const mp of mintedProducts) {
-        try {
-          enqueueWebhookEvent(EventType.MINTED, mp.id, {
-            productId: mp.id,
-            txHash: mp.txHash,
-            tokenAddress: mp.tokenAddress,
-          });
-        } catch {
+        await enqueueWebhookEvent(fastify.prisma, EventType.MINTED, mp.id, {
+          productId: mp.id,
+          txHash: mp.txHash,
+          tokenAddress: mp.tokenAddress,
+        }).catch(() => {
           // Webhook enqueue failure must not break the request
-        }
+        });
       }
 
       return reply.status(200).send({
