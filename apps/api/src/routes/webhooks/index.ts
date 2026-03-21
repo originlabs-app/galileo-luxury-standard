@@ -8,7 +8,7 @@
 
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
-import { randomUUID, randomBytes } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import { requireRole } from "../../middleware/rbac.js";
 import { requireCsrfHeader } from "../../middleware/csrf.js";
 import {
@@ -16,6 +16,7 @@ import {
   removeSubscription,
   getSubscription,
   listSubscriptions,
+  generateSecret,
 } from "../../services/webhooks/outbox.js";
 import type { WebhookSubscription } from "../../services/webhooks/types.js";
 
@@ -75,13 +76,13 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
         id: randomUUID(),
         brandId: user.brandId ?? "system",
         url,
-        secret: randomBytes(32).toString("hex"),
+        secret: generateSecret(),
         events,
         active: true,
         createdAt: new Date().toISOString(),
       };
 
-      addSubscription(subscription);
+      await addSubscription(fastify.prisma, subscription);
 
       return reply.status(201).send({
         success: true,
@@ -116,7 +117,7 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
       const user = request.user;
       const brandId =
         user.role === "ADMIN" ? undefined : (user.brandId ?? undefined);
-      const subs = listSubscriptions(brandId);
+      const subs = await listSubscriptions(fastify.prisma, brandId);
 
       return reply.status(200).send({
         success: true,
@@ -147,7 +148,7 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const user = request.user;
-      const sub = getSubscription(request.params.id);
+      const sub = await getSubscription(fastify.prisma, request.params.id);
 
       if (!sub) {
         return reply.status(404).send({
@@ -170,7 +171,7 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
         });
       }
 
-      removeSubscription(request.params.id);
+      await removeSubscription(fastify.prisma, request.params.id);
 
       return reply.status(200).send({
         success: true,

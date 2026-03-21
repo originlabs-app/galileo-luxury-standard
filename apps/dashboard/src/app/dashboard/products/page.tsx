@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, ChevronRight, Package, Plus, X } from "lucide-react";
+import { ArrowUpDown, ChevronLeft, ChevronRight, Package, Plus, X } from "lucide-react";
 import { CATEGORIES, type ProductStatus } from "@galileo/shared";
 import { api, ApiError } from "@/lib/api";
 import { BatchImportDialog } from "@/components/batch-import-dialog";
@@ -54,6 +54,16 @@ const CATEGORY_OPTIONS = CATEGORIES.map((value) => ({
   label: value,
 }));
 
+type SortField = "name" | "status" | "createdAt" | "updatedAt";
+type SortDir = "asc" | "desc";
+
+const SORT_OPTIONS: { value: SortField; label: string }[] = [
+  { value: "createdAt", label: "Date created" },
+  { value: "updatedAt", label: "Last updated" },
+  { value: "name", label: "Name" },
+  { value: "status", label: "Status" },
+];
+
 const PAGE_SIZE = 20;
 
 function formatDate(dateStr: string): string {
@@ -83,15 +93,24 @@ export default function ProductsPage() {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [categoryFilter, setCategoryFilter] = useState<string | undefined>();
+  const [sortBy, setSortBy] = useState<SortField>("createdAt");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
 
   const fetchProducts = useCallback(
-    async (currentPage: number, category?: string) => {
+    async (
+      currentPage: number,
+      category?: string,
+      currentSortBy: SortField = "createdAt",
+      currentSortDir: SortDir = "desc",
+    ) => {
       setIsLoading(true);
       setError(null);
       try {
         const params = new URLSearchParams({
           page: String(currentPage),
           limit: String(PAGE_SIZE),
+          sortBy: currentSortBy,
+          sortDir: currentSortDir,
         });
 
         if (category) {
@@ -117,8 +136,8 @@ export default function ProductsPage() {
   );
 
   useEffect(() => {
-    fetchProducts(page, categoryFilter);
-  }, [page, categoryFilter, fetchProducts]);
+    fetchProducts(page, categoryFilter, sortBy, sortDir);
+  }, [page, categoryFilter, sortBy, sortDir, fetchProducts]);
 
   function handleCategoryChange(value: string) {
     setCategoryFilter(value);
@@ -130,14 +149,24 @@ export default function ProductsPage() {
     setPage(1);
   }
 
+  function handleSortChange(field: SortField) {
+    if (field === sortBy) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(field);
+      setSortDir("asc");
+    }
+    setPage(1);
+  }
+
   const handleImportComplete = useCallback(() => {
     if (page !== 1) {
       setPage(1);
       return;
     }
 
-    void fetchProducts(1, categoryFilter);
-  }, [categoryFilter, fetchProducts, page]);
+    void fetchProducts(1, categoryFilter, sortBy, sortDir);
+  }, [categoryFilter, fetchProducts, page, sortBy, sortDir]);
 
   if (isLoading && !pagination) {
     return (
@@ -205,6 +234,32 @@ export default function ProductsPage() {
             ))}
           </SelectContent>
         </Select>
+
+        <Select
+          value={sortBy}
+          onValueChange={(v) => handleSortChange(v as SortField)}
+        >
+          <SelectTrigger className="w-[180px]">
+            <ArrowUpDown className="mr-2 size-3.5 text-muted-foreground" />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {SORT_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setSortDir((d) => (d === "asc" ? "desc" : "asc"))}
+          className="text-muted-foreground"
+        >
+          {sortDir === "desc" ? "Newest first" : "Oldest first"}
+        </Button>
 
         {categoryFilter && (
           <Button

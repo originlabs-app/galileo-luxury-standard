@@ -156,15 +156,13 @@ export default async function mintProductRoute(fastify: FastifyInstance) {
       }
 
       // Fire webhook (non-blocking, R29 — cross-cutting hooks fail silently)
-      try {
-        enqueueWebhookEvent(EventType.MINTED, id, {
-          productId: id,
-          txHash,
-          tokenAddress,
-        });
-      } catch {
+      await enqueueWebhookEvent(fastify.prisma, EventType.MINTED, id, {
+        productId: id,
+        txHash,
+        tokenAddress,
+      }).catch(() => {
         // Webhook enqueue failure must not break the request
-      }
+      });
 
       return reply.status(200).send({
         success: true,

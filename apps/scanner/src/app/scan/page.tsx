@@ -12,6 +12,7 @@ export default function ScanPage() {
   const handleResultRef = useRef<(rawValue: string) => void>(undefined);
   const [state, setState] = useState<ScanState>("loading");
   const [error, setError] = useState<string | null>(null);
+  const [cameraBlocked, setCameraBlocked] = useState(false);
 
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
@@ -51,9 +52,18 @@ export default function ScanPage() {
           },
           audio: false,
         });
-      } catch {
+      } catch (camErr) {
         if (!cancelled) {
-          setError("Camera access denied. Allow camera access and try again.");
+          const isPermissionDenied =
+            camErr instanceof DOMException &&
+            (camErr.name === "NotAllowedError" ||
+              camErr.name === "PermissionDeniedError");
+          setError(
+            isPermissionDenied
+              ? "Camera access blocked"
+              : "Camera unavailable. Check that no other app is using it, then retry.",
+          );
+          setCameraBlocked(isPermissionDenied);
           setState("error");
         }
         return;
@@ -171,12 +181,34 @@ export default function ScanPage() {
       </div>
 
       {/* Status bar */}
-      <div className="absolute inset-x-0 bottom-0 z-20 flex flex-col items-center gap-5 bg-gradient-to-t from-black/80 to-transparent px-6 pb-10 pt-16">
+      <div className="absolute inset-x-0 bottom-0 z-20 flex flex-col items-center gap-4 bg-gradient-to-t from-black/80 to-transparent px-6 pb-10 pt-16">
         <p className="text-center text-sm text-white/80">
           {state === "loading" && "Starting camera\u2026"}
           {state === "scanning" && "Point at a Galileo QR code"}
           {state === "error" && error}
         </p>
+
+        {state === "error" && cameraBlocked && (
+          <div className="w-full max-w-xs rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-xs text-white/70">
+            <p className="mb-1 font-semibold text-white/90">
+              How to re-enable camera access:
+            </p>
+            <ul className="space-y-1 pl-3">
+              <li>
+                <span className="font-medium text-white/80">iOS Safari:</span>{" "}
+                Settings &rsaquo; Safari &rsaquo; Camera &rsaquo; Allow
+              </li>
+              <li>
+                <span className="font-medium text-white/80">Android Chrome:</span>{" "}
+                tap the lock icon in the address bar &rsaquo; Camera &rsaquo; Allow
+              </li>
+              <li>
+                <span className="font-medium text-white/80">Desktop:</span>{" "}
+                click the camera icon in the address bar and allow access
+              </li>
+            </ul>
+          </div>
+        )}
 
         {state === "error" ? (
           <div className="flex gap-3">

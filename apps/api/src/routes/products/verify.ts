@@ -114,14 +114,12 @@ export default async function verifyProductRoute(fastify: FastifyInstance) {
       product.events = [newEvent, ...product.events].slice(0, 50);
 
       // Fire webhook (non-blocking, R29 — cross-cutting hooks fail silently)
-      try {
-        enqueueWebhookEvent(EventType.VERIFIED, id, {
-          productId: id,
-          location,
-        });
-      } catch {
+      await enqueueWebhookEvent(fastify.prisma, EventType.VERIFIED, id, {
+        productId: id,
+        location,
+      }).catch(() => {
         // Webhook enqueue failure must not break the request
-      }
+      });
 
       return reply.status(200).send({
         success: true,

@@ -109,6 +109,7 @@ export default async function transferProductRoute(fastify: FastifyInstance) {
                 brandId: true,
                 status: true,
                 walletAddress: true,
+                brand: { select: { cpoEmail: true } },
               },
             });
 
@@ -140,6 +141,8 @@ export default async function transferProductRoute(fastify: FastifyInstance) {
               userId: user.sub,
               userRole: user.role,
               userBrandId: user.brandId ?? null,
+              // brandCpoEmail: undefined means "not configured" → CPO check passes
+              brandCpoEmail: product.brand?.cpoEmail ?? undefined,
             };
 
             const compliance = await runComplianceChecks(complianceCtx, [
@@ -217,14 +220,12 @@ export default async function transferProductRoute(fastify: FastifyInstance) {
       }
 
       // Fire webhook (non-blocking, R29 — cross-cutting hooks fail silently)
-      try {
-        enqueueWebhookEvent(EventType.TRANSFERRED, id, {
-          productId: id,
-          toAddress: checksumToAddress,
-        });
-      } catch {
+      await enqueueWebhookEvent(fastify.prisma, EventType.TRANSFERRED, id, {
+        productId: id,
+        toAddress: checksumToAddress,
+      }).catch(() => {
         // Webhook enqueue failure must not break the request
-      }
+      });
 
       return reply.status(200).send({
         success: true,

@@ -178,7 +178,7 @@ export async function buildApp() {
   // Start the webhook outbox worker (skip in test env)
   if (config.NODE_ENV !== "test") {
     fastify.addHook("onReady", () => {
-      startWorker();
+      startWorker(fastify.prisma);
     });
     fastify.addHook("onClose", () => {
       stopWorker();

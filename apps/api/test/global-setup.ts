@@ -13,7 +13,7 @@ import path from "node:path";
 
 const TEST_DATABASE_URL =
   process.env.DATABASE_URL_TEST ||
-  "postgresql://postgres@localhost:5432/galileo_test";
+  `postgresql://${process.env.USER ?? "postgres"}@localhost:5432/galileo_test`;
 
 export default async function globalSetup() {
   // 1. Point every subsequent import at the test database

@@ -3,11 +3,16 @@ import { z } from "zod";
 import { ProductStatus } from "@galileo/shared";
 import { buildWorkspaceBrandFilter } from "../../utils/workspace.js";
 
+const SORTABLE_FIELDS = ["name", "status", "createdAt", "updatedAt"] as const;
+type SortField = (typeof SORTABLE_FIELDS)[number];
+
 const listQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(100).default(20),
   status: z.nativeEnum(ProductStatus).optional(),
   category: z.string().max(100).optional(),
+  sortBy: z.enum(SORTABLE_FIELDS).optional().default("createdAt"),
+  sortDir: z.enum(["asc", "desc"]).optional().default("desc"),
 });
 
 export default async function listProductsRoute(fastify: FastifyInstance) {
@@ -44,6 +49,18 @@ export default async function listProductsRoute(fastify: FastifyInstance) {
               type: "string",
               description: "Filter by product category",
             },
+            sortBy: {
+              type: "string",
+              enum: ["name", "status", "createdAt", "updatedAt"],
+              default: "createdAt",
+              description: "Sort field",
+            },
+            sortDir: {
+              type: "string",
+              enum: ["asc", "desc"],
+              default: "desc",
+              description: "Sort direction",
+            },
           },
         },
       },
@@ -61,7 +78,7 @@ export default async function listProductsRoute(fastify: FastifyInstance) {
         });
       }
 
-      const { page, limit, status, category } = parsed.data;
+      const { page, limit, status, category, sortBy, sortDir } = parsed.data;
       const user = request.user;
       const where: Record<string, unknown> | null = buildWorkspaceBrandFilter(
         reply,
@@ -76,12 +93,16 @@ export default async function listProductsRoute(fastify: FastifyInstance) {
       if (status) where.status = status;
       if (category) where.category = category;
 
+      const orderBy: Record<SortField, "asc" | "desc"> = {
+        [sortBy]: sortDir,
+      } as Record<SortField, "asc" | "desc">;
+
       const [products, total] = await Promise.all([
         fastify.prisma.product.findMany({
           where,
           skip: (page - 1) * limit,
           take: limit,
-          orderBy: { createdAt: "desc" },
+          orderBy,
         }),
         fastify.prisma.product.count({ where }),
       ]);

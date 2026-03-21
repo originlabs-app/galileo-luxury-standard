@@ -144,14 +144,12 @@ export default async function recallProductRoute(fastify: FastifyInstance) {
       }
 
       // Fire webhook (non-blocking, R29 — cross-cutting hooks fail silently)
-      try {
-        enqueueWebhookEvent(EventType.RECALLED, id, {
-          productId: id,
-          reason: bodyParsed.data.reason,
-        });
-      } catch {
+      await enqueueWebhookEvent(fastify.prisma, EventType.RECALLED, id, {
+        productId: id,
+        reason: bodyParsed.data.reason,
+      }).catch(() => {
         // Webhook enqueue failure must not break the request
-      }
+      });
 
       return reply.status(200).send({
         success: true,
