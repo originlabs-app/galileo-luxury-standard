@@ -18,7 +18,11 @@ COPY . .
 WORKDIR /app/packages/shared
 RUN pnpm build
 WORKDIR /app/apps/api
-RUN pnpm prisma generate && pnpm tsc && cp -r src/generated/prisma/internal dist/generated/prisma/internal
+RUN pnpm prisma generate && pnpm tsc \
+    && echo "=== SRC files ===" && find src/generated -type f | sort \
+    && echo "=== DIST files ===" && find dist/generated -type f | sort \
+    && cp -rT src/generated/prisma/internal dist/generated/prisma/internal \
+    && echo "=== FINAL dist ===" && find dist/generated -type f | sort
 
 # Stage 3: Production
 FROM node:22-slim AS runner
