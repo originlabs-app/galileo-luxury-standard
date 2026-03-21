@@ -72,8 +72,5 @@ Multi-stage build: `deps` → `builder` → `runner` (slim Node 22 image with `H
 
 ## Live minting status
 
-Base Sepolia contract deployment is **paused at task 2/2** (commit `9f4a8fc`) pending:
-1. `BASE_SEPOLIA_RPC` key provisioned (Alchemy/Infura)
-2. Deployer wallet funded with testnet ETH
-
-See `docs/PLANS.md` for next steps.
+ERC-3643 infrastructure is **deployed on Base Sepolia** (2026-03-21).
+See [`DEPLOYMENT.md`](../DEPLOYMENT.md) for all contract addresses and post-deployment TODOs.
