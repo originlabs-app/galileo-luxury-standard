@@ -36,8 +36,8 @@ COPY --from=builder /app/apps/api/prisma ./apps/api/prisma
 COPY --from=builder /app/apps/api/package.json ./apps/api/
 COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
 COPY --from=builder /app/packages/shared/package.json ./packages/shared/
-# Deployment manifest resolved 3 dirs up from dist/ at runtime
-COPY --from=builder /app/contracts/deployments /contracts/deployments
+# Deployment manifest resolved 3 dirs up from dist/ at runtime: /app/apps/api/dist/../../.. = /app
+COPY --from=builder /app/contracts/deployments ./contracts/deployments
 WORKDIR /app/apps/api
 EXPOSE 4000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
