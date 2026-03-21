@@ -1,9 +1,11 @@
 /**
  * Webhook subscription CRUD routes.
  *
- * POST   /webhooks       — Create subscription (BRAND_ADMIN, ADMIN)
- * GET    /webhooks       — List subscriptions (brand-scoped)
- * DELETE /webhooks/:id   — Delete subscription
+ * POST   /webhooks          — Create subscription (BRAND_ADMIN, ADMIN)
+ * GET    /webhooks          — List subscriptions (brand-scoped)
+ * DELETE /webhooks/:id      — Delete subscription
+ * GET    /webhooks/:id/deliveries — List pending/failed deliveries for a subscription
+ * POST   /webhooks/:id/retry     — Retry all failed/pending deliveries for a subscription
  */
 
 import type { FastifyInstance } from "fastify";
@@ -16,6 +18,8 @@ import {
   removeSubscription,
   getSubscription,
   listSubscriptions,
+  listDeliveries,
+  requeueFailed,
 } from "../../services/webhooks/outbox.js";
 import type { WebhookSubscription } from "../../services/webhooks/types.js";
 
@@ -82,6 +86,22 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
       };
 
       addSubscription(subscription);
+
+      // Audit log: webhook subscription created
+      try {
+        await fastify.prisma.auditLog.create({
+          data: {
+            actor: user.sub,
+            action: "CREATE webhook_subscription",
+            resource: "webhook",
+            resourceId: subscription.id,
+            metadata: { url: subscription.url, events: subscription.events },
+            ip: request.ip,
+          },
+        });
+      } catch {
+        request.log.error("Failed to write audit log for webhook create");
+      }
 
       return reply.status(201).send({
         success: true,
@@ -172,9 +192,129 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
 
       removeSubscription(request.params.id);
 
+      // Audit log: webhook subscription deleted
+      try {
+        await fastify.prisma.auditLog.create({
+          data: {
+            actor: user.sub,
+            action: "DELETE webhook_subscription",
+            resource: "webhook",
+            resourceId: sub.id,
+            metadata: { url: sub.url, brandId: sub.brandId },
+            ip: request.ip,
+          },
+        });
+      } catch {
+        request.log.error("Failed to write audit log for webhook delete");
+      }
+
       return reply.status(200).send({
         success: true,
         data: { deleted: true },
+      });
+    },
+  );
+
+  // GET /webhooks/:id/deliveries — List queued deliveries for a subscription
+  fastify.get<{ Params: { id: string } }>(
+    "/webhooks/:id/deliveries",
+    {
+      onRequest: [fastify.authenticate, requireRole("BRAND_ADMIN", "ADMIN")],
+      schema: {
+        description:
+          "List pending and failed delivery events for a webhook subscription.",
+        tags: ["Webhooks"],
+        security: [{ cookieAuth: [] }],
+        params: {
+          type: "object",
+          properties: { id: { type: "string" } },
+          required: ["id"],
+        },
+      },
+    },
+    async (request, reply) => {
+      const user = request.user;
+      const sub = getSubscription(request.params.id);
+
+      if (!sub) {
+        return reply.status(404).send({
+          success: false,
+          error: {
+            code: "NOT_FOUND",
+            message: "Webhook subscription not found",
+          },
+        });
+      }
+
+      if (user.role !== "ADMIN" && sub.brandId !== user.brandId) {
+        return reply.status(403).send({
+          success: false,
+          error: {
+            code: "FORBIDDEN",
+            message: "Cannot access another brand's deliveries",
+          },
+        });
+      }
+
+      const deliveries = listDeliveries(request.params.id);
+      return reply.status(200).send({
+        success: true,
+        data: { deliveries },
+      });
+    },
+  );
+
+  // POST /webhooks/:id/retry — Retry all pending/failed deliveries for a subscription
+  fastify.post<{ Params: { id: string } }>(
+    "/webhooks/:id/retry",
+    {
+      onRequest: [
+        requireCsrfHeader,
+        fastify.authenticate,
+        requireRole("BRAND_ADMIN", "ADMIN"),
+      ],
+      schema: {
+        description:
+          "Retry all failed or pending deliveries for a webhook subscription. " +
+          "Resets attempt counters so the background worker processes them immediately.",
+        tags: ["Webhooks"],
+        security: [{ cookieAuth: [] }],
+        params: {
+          type: "object",
+          properties: { id: { type: "string" } },
+          required: ["id"],
+        },
+      },
+    },
+    async (request, reply) => {
+      const user = request.user;
+      const sub = getSubscription(request.params.id);
+
+      if (!sub) {
+        return reply.status(404).send({
+          success: false,
+          error: {
+            code: "NOT_FOUND",
+            message: "Webhook subscription not found",
+          },
+        });
+      }
+
+      if (user.role !== "ADMIN" && sub.brandId !== user.brandId) {
+        return reply.status(403).send({
+          success: false,
+          error: {
+            code: "FORBIDDEN",
+            message: "Cannot retry another brand's deliveries",
+          },
+        });
+      }
+
+      const requeued = requeueFailed(request.params.id);
+
+      return reply.status(200).send({
+        success: true,
+        data: { requeued },
       });
     },
   );

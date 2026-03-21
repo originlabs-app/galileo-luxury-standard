@@ -157,6 +157,36 @@ export function getOutboxEntries(): WebhookEvent[] {
 }
 
 /**
+ * List all queued delivery events for a given subscription.
+ */
+export function listDeliveries(subscriptionId: string): WebhookEvent[] {
+  return outboxQueue
+    .filter((e) => e.subscriptionId === subscriptionId)
+    .map((e) => ({ ...e }));
+}
+
+/**
+ * Requeue all non-delivered events for a subscription.
+ * Resets attempts counter and sets nextAttemptAt to now so the worker
+ * picks them up on the next tick.
+ * Returns the number of events requeued.
+ */
+export function requeueFailed(subscriptionId: string): number {
+  const now = new Date();
+  let count = 0;
+  for (const event of outboxQueue) {
+    if (event.subscriptionId !== subscriptionId) continue;
+    if (event.status === "delivered") continue;
+    event.attempts = 0;
+    event.nextAttemptAt = now;
+    event.status = "pending";
+    event.lastError = undefined;
+    count++;
+  }
+  return count;
+}
+
+/**
  * Clear all subscriptions and outbox entries (for testing).
  */
 export function clearAll(): void {
