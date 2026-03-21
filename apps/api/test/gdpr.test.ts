@@ -26,18 +26,31 @@ describe("GDPR endpoints", () => {
     });
 
     it("returns 200 with complete user data export", async () => {
-      // Register user with brand
+      // Register user
       const registerRes = await app.inject({
         method: "POST",
         url: "/auth/register",
         payload: {
           email: "export@test.com",
           password: "password123",
-          brandName: "Export Brand",
         },
       });
       expect(registerRes.statusCode).toBe(201);
+      const userId = registerRes.json().data.user.id;
       const cookies = parseCookies(registerRes);
+
+      // Create brand and assign to user
+      const brand = await app.prisma.brand.create({
+        data: {
+          name: "Export Brand",
+          slug: "export-brand-gdpr",
+          did: "did:galileo:brand:export-brand-gdpr",
+        },
+      });
+      await app.prisma.user.update({
+        where: { id: userId },
+        data: { brandId: brand.id },
+      });
 
       const response = await app.inject({
         method: "GET",
@@ -110,24 +123,30 @@ describe("GDPR endpoints", () => {
     });
 
     it("includes products when user's brand has products", async () => {
-      // Register with brand
+      // Register user
       const registerRes = await app.inject({
         method: "POST",
         url: "/auth/register",
         payload: {
           email: "withproducts@test.com",
           password: "password123",
-          brandName: "Products Brand",
         },
       });
-      const cookies = parseCookies(registerRes);
       const userId = registerRes.json().data.user.id;
 
-      // Update user to BRAND_ADMIN role for product creation
+      // Create brand and assign to user as BRAND_ADMIN
+      const brand = await app.prisma.brand.create({
+        data: {
+          name: "Products Brand",
+          slug: "products-brand-gdpr",
+          did: "did:galileo:brand:products-brand-gdpr",
+        },
+      });
       await app.prisma.user.update({
         where: { id: userId },
-        data: { role: "BRAND_ADMIN" },
+        data: { brandId: brand.id, role: "BRAND_ADMIN" },
       });
+
       // Re-login to get updated token
       const loginRes = await app.inject({
         method: "POST",
@@ -170,24 +189,30 @@ describe("GDPR endpoints", () => {
     });
 
     it("includes events performed by user", async () => {
-      // Register with brand
+      // Register user
       const registerRes = await app.inject({
         method: "POST",
         url: "/auth/register",
         payload: {
           email: "withevents@test.com",
           password: "password123",
-          brandName: "Events Brand",
         },
       });
-      const cookies = parseCookies(registerRes);
       const userId = registerRes.json().data.user.id;
 
-      // Update to BRAND_ADMIN
+      // Create brand and assign to user as BRAND_ADMIN
+      const brand = await app.prisma.brand.create({
+        data: {
+          name: "Events Brand",
+          slug: "events-brand-gdpr",
+          did: "did:galileo:brand:events-brand-gdpr",
+        },
+      });
       await app.prisma.user.update({
         where: { id: userId },
-        data: { role: "BRAND_ADMIN" },
+        data: { brandId: brand.id, role: "BRAND_ADMIN" },
       });
+
       const loginRes = await app.inject({
         method: "POST",
         url: "/auth/login",
@@ -270,6 +295,7 @@ describe("GDPR endpoints", () => {
           cookie: `galileo_at=${cookies.galileo_at}`,
           "x-galileo-client": "1",
         },
+        payload: { confirm: "DELETE_MY_ACCOUNT" },
       });
 
       expect(response.statusCode).toBe(200);
@@ -286,24 +312,30 @@ describe("GDPR endpoints", () => {
     });
 
     it("anonymizes events by setting performedBy to null", async () => {
-      // Register with brand
+      // Register user
       const registerRes = await app.inject({
         method: "POST",
         url: "/auth/register",
         payload: {
           email: "anon-events@test.com",
           password: "password123",
-          brandName: "Anon Brand",
         },
       });
-      const cookies = parseCookies(registerRes);
       const userId = registerRes.json().data.user.id;
 
-      // Update to BRAND_ADMIN and re-login
+      // Create brand and assign to user as BRAND_ADMIN
+      const brand = await app.prisma.brand.create({
+        data: {
+          name: "Anon Brand",
+          slug: "anon-brand-gdpr",
+          did: "did:galileo:brand:anon-brand-gdpr",
+        },
+      });
       await app.prisma.user.update({
         where: { id: userId },
-        data: { role: "BRAND_ADMIN" },
+        data: { brandId: brand.id, role: "BRAND_ADMIN" },
       });
+
       const loginRes = await app.inject({
         method: "POST",
         url: "/auth/login",
@@ -345,6 +377,7 @@ describe("GDPR endpoints", () => {
           cookie: `galileo_at=${loginCookies.galileo_at}`,
           "x-galileo-client": "1",
         },
+        payload: { confirm: "DELETE_MY_ACCOUNT" },
       });
 
       // Verify events still exist but performedBy is null
@@ -358,25 +391,31 @@ describe("GDPR endpoints", () => {
     });
 
     it("preserves products belonging to the user's brand", async () => {
-      // Register with brand
+      // Register user
       const registerRes = await app.inject({
         method: "POST",
         url: "/auth/register",
         payload: {
           email: "keep-products@test.com",
           password: "password123",
-          brandName: "Keep Brand",
         },
       });
-      const cookies = parseCookies(registerRes);
       const userId = registerRes.json().data.user.id;
-      const brandId = registerRes.json().data.user.brandId;
 
-      // Update to BRAND_ADMIN and re-login
+      // Create brand and assign to user as BRAND_ADMIN
+      const brand = await app.prisma.brand.create({
+        data: {
+          name: "Keep Brand",
+          slug: "keep-brand-gdpr",
+          did: "did:galileo:brand:keep-brand-gdpr",
+        },
+      });
+      const brandId = brand.id;
       await app.prisma.user.update({
         where: { id: userId },
-        data: { role: "BRAND_ADMIN" },
+        data: { brandId, role: "BRAND_ADMIN" },
       });
+
       const loginRes = await app.inject({
         method: "POST",
         url: "/auth/login",
@@ -411,6 +450,7 @@ describe("GDPR endpoints", () => {
           cookie: `galileo_at=${loginCookies.galileo_at}`,
           "x-galileo-client": "1",
         },
+        payload: { confirm: "DELETE_MY_ACCOUNT" },
       });
 
       // Verify products still exist
@@ -418,7 +458,7 @@ describe("GDPR endpoints", () => {
         where: { brandId },
       });
       expect(products.length).toBe(1);
-      expect(products[0].name).toBe("Keep Product");
+      expect(products[0]!.name).toBe("Keep Product");
     });
 
     it("clears auth cookies in the response", async () => {
@@ -439,6 +479,7 @@ describe("GDPR endpoints", () => {
           cookie: `galileo_at=${cookies.galileo_at}`,
           "x-galileo-client": "1",
         },
+        payload: { confirm: "DELETE_MY_ACCOUNT" },
       });
 
       expect(response.statusCode).toBe(200);

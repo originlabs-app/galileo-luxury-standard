@@ -66,6 +66,7 @@ describe("GET /health", () => {
     app.decorate("prisma", {
       $queryRawUnsafe: async () => [{ "?column?": 1 }],
     });
+    app.decorate("storage", { isCloudStorage: false });
     app.decorate("chain", createChainState());
     await app.register(healthRoutes);
     await app.ready();
@@ -124,6 +125,7 @@ describe("GET /health", () => {
         throw new Error("Connection refused");
       },
     });
+    degradedApp.decorate("storage", { isCloudStorage: false });
     degradedApp.decorate("chain", createChainState());
     await degradedApp.register(healthRoutes);
     await degradedApp.ready();
@@ -146,6 +148,7 @@ describe("GET /health", () => {
     chainApp.decorate("prisma", {
       $queryRawUnsafe: async () => [{ "?column?": 1 }],
     });
+    chainApp.decorate("storage", { isCloudStorage: false });
     chainApp.decorate(
       "chain",
       createChainState({
@@ -207,6 +210,7 @@ describe("GET /health", () => {
     chainApp.decorate("prisma", {
       $queryRawUnsafe: async () => [{ "?column?": 1 }],
     });
+    chainApp.decorate("storage", { isCloudStorage: false });
     chainApp.decorate("chain", createChainState({
       chainEnabled: true,
       publicClient: {
@@ -233,6 +237,7 @@ describe("GET /health", () => {
     chainApp.decorate("prisma", {
       $queryRawUnsafe: async () => [{ "?column?": 1 }],
     });
+    chainApp.decorate("storage", { isCloudStorage: false });
     chainApp.decorate("chain", createChainState({
       chainEnabled: true,
       publicClient: {

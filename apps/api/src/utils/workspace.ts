@@ -81,7 +81,14 @@ export function ensureSameWorkspaceBrand(
     return true;
   }
 
-  sendForbidden(reply, options?.accessDeniedMessage ?? "Access denied");
+  // Return 404 (not 403) to avoid leaking that the resource exists for another brand
+  reply.status(404).send({
+    success: false,
+    error: {
+      code: "NOT_FOUND",
+      message: options?.accessDeniedMessage ?? "Not found",
+    },
+  });
   return false;
 }
 

@@ -77,12 +77,13 @@ export default async function qrProductRoute(fastify: FastifyInstance) {
       }
 
       // Brand scoping: non-ADMIN users can only access their own brand's products
+      // Return 404 (not 403) to avoid leaking that the product exists for another brand
       if (user.role !== "ADMIN" && product.brandId !== user.brandId) {
-        return reply.status(403).send({
+        return reply.status(404).send({
           success: false,
           error: {
-            code: "FORBIDDEN",
-            message: "Access denied",
+            code: "NOT_FOUND",
+            message: "Product not found",
           },
         });
       }

@@ -272,7 +272,8 @@ describe("POST /products/:id/recall", () => {
       headers: { cookie: otherBrandAdminCookie, ...CSRF },
     });
 
-    expect(res.statusCode).toBe(403);
+    // 404 (not 403) to avoid leaking that the product exists for another brand
+    expect(res.statusCode).toBe(404);
   });
 
   it("allows ADMIN to recall any brand product", async () => {

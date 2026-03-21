@@ -74,7 +74,7 @@ export default async function mintProductRoute(fastify: FastifyInstance) {
 
             // Brand scoping: BRAND_ADMIN can only mint their own brand's products; ADMIN can mint any
             if (user.role !== "ADMIN" && product.brandId !== user.brandId) {
-              throw new RouteError(403, "FORBIDDEN", "Access denied");
+              throw new RouteError(404, "NOT_FOUND", "Product not found");
             }
 
             // Product must be in DRAFT status

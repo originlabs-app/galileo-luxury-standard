@@ -281,7 +281,8 @@ describe("POST /products/:id/transfer", () => {
       payload: { toAddress: VALID_ETH_ADDRESS },
     });
 
-    expect(res.statusCode).toBe(403);
+    // 404 (not 403) to avoid leaking that the product exists for another brand
+    expect(res.statusCode).toBe(404);
   });
 
   it("allows ADMIN to transfer any brand product", async () => {

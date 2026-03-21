@@ -118,7 +118,7 @@ export default async function transferProductRoute(fastify: FastifyInstance) {
             }
 
             if (user.role !== "ADMIN" && product.brandId !== user.brandId) {
-              throw new RouteError(403, "FORBIDDEN", "Access denied");
+              throw new RouteError(404, "NOT_FOUND", "Product not found");
             }
 
             if (product.status !== ProductStatus.ACTIVE) {

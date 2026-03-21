@@ -85,14 +85,10 @@ export default async function batchMintRoute(fastify: FastifyInstance) {
           continue;
         }
 
+        // Treat cross-brand products as not found (information hiding)
         if (user.role !== "ADMIN" && product.brandId !== user.brandId) {
-          return reply.status(403).send({
-            success: false,
-            error: {
-              code: "FORBIDDEN",
-              message: "Access denied: cross-brand product in batch",
-            },
-          });
+          errors.push({ productId: id, message: "Product not found" });
+          continue;
         }
 
         if (product.status === ProductStatus.ACTIVE) {
