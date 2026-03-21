@@ -4,6 +4,8 @@ import { z } from "zod";
 import { EventType, ProductStatus } from "@galileo/shared";
 import { requireRole } from "../../middleware/rbac.js";
 import { enqueueWebhookEvent } from "../../services/webhooks/outbox.js";
+import { mintProduct } from "../../services/blockchain/mint.js";
+import type { MintParams } from "../../services/blockchain/types.js";
 
 const CHAIN_ID = 84532; // Base Sepolia
 
@@ -55,21 +57,24 @@ export default async function batchMintRoute(fastify: FastifyInstance) {
 
       const { productIds } = parsed.data;
 
-      // Real chain mode — not yet implemented
-      if (fastify.chain.chainEnabled) {
-        return reply.status(503).send({
-          success: false,
-          error: {
-            code: "NOT_IMPLEMENTED",
-            message: "Real chain minting not yet implemented",
-          },
-        });
+      // Determine if real on-chain minting is possible
+      const infra = fastify.chain.deployment.infrastructure;
+      const canUseRealChain =
+        fastify.chain.chainEnabled &&
+        infra.identityRegistry !== null &&
+        infra.compliance !== null &&
+        fastify.chain.walletClient !== undefined;
+
+      if (fastify.chain.chainEnabled && !canUseRealChain) {
+        fastify.log.warn(
+          "[batch-mint] Chain enabled but infrastructure not fully deployed — falling back to mock minting",
+        );
       }
 
-      // Fetch all products
+      // Fetch all products with brand relation (needed for MintParams)
       const products = await fastify.prisma.product.findMany({
         where: { id: { in: productIds } },
-        include: { passport: true },
+        include: { passport: true, brand: true },
       });
 
       const productMap = new Map(products.map((p) => [p.id, p]));
@@ -115,7 +120,6 @@ export default async function batchMintRoute(fastify: FastifyInstance) {
         toMint.push(id);
       }
 
-      // Mint valid products in a transaction
       let minted = 0;
       const mintedProducts: Array<{
         id: string;
@@ -124,51 +128,151 @@ export default async function batchMintRoute(fastify: FastifyInstance) {
       }> = [];
 
       if (toMint.length > 0) {
-        try {
-          await fastify.prisma.$transaction(
-            async (tx: import("../../plugins/prisma.js").TxClient) => {
-              for (const id of toMint) {
-                const txHash = `0x${crypto.randomBytes(32).toString("hex")}`;
-                const tokenAddress = `0x${crypto.randomBytes(20).toString("hex")}`;
-                const mintedAt = new Date();
+        // ── REAL CHAIN PATH ───────────────────────────────────────────────────
+        if (canUseRealChain) {
+          for (const id of toMint) {
+            const product = productMap.get(id)!;
 
-                // Optimistic concurrency: only update if still DRAFT
-                const updated = await tx.product.updateMany({
-                  where: { id, status: ProductStatus.DRAFT },
-                  data: { status: ProductStatus.ACTIVE },
-                });
+            // Atomically DRAFT → MINTING
+            const setMinting = await fastify.prisma.product.updateMany({
+              where: { id, status: ProductStatus.DRAFT },
+              data: { status: ProductStatus.MINTING },
+            });
 
-                if (updated.count === 0) {
-                  errors.push({
-                    productId: id,
-                    message: "Product status changed concurrently",
+            if (setMinting.count === 0) {
+              errors.push({
+                productId: id,
+                message: "Product status changed concurrently",
+              });
+              continue;
+            }
+
+            const mintParams: MintParams = {
+              admin: fastify.chain.walletClient!.account
+                .address as `0x${string}`,
+              identityRegistry: infra.identityRegistry as `0x${string}`,
+              compliance: infra.compliance as `0x${string}`,
+              productDID: product.did,
+              productCategory: product.category,
+              brandDID: product.brand.did,
+              productURI: product.passport?.digitalLink ?? "",
+              gtin: product.gtin,
+              serialNumber: product.serialNumber,
+              initialOwner: (product.walletAddress ??
+                fastify.chain.walletClient!.account.address) as `0x${string}`,
+            };
+
+            try {
+              const result = await mintProduct(
+                fastify.chain.walletClient!,
+                fastify.chain.publicClient,
+                mintParams,
+              );
+
+              const mintedAt = new Date();
+              await fastify.prisma.$transaction(
+                async (tx: import("../../plugins/prisma.js").TxClient) => {
+                  await tx.product.update({
+                    where: { id },
+                    data: { status: ProductStatus.ACTIVE },
                   });
-                  continue;
+                  await tx.productPassport.update({
+                    where: { productId: id },
+                    data: {
+                      txHash: result.txHash,
+                      tokenAddress: result.tokenAddress,
+                      chainId: result.chainId,
+                      mintedAt,
+                    },
+                  });
+                  await tx.productEvent.create({
+                    data: {
+                      productId: id,
+                      type: EventType.MINTED,
+                      data: {
+                        txHash: result.txHash,
+                        tokenAddress: result.tokenAddress,
+                        chainId: result.chainId,
+                      },
+                      performedBy: user.sub,
+                    },
+                  });
+                },
+              );
+
+              mintedProducts.push({
+                id,
+                txHash: result.txHash,
+                tokenAddress: result.tokenAddress,
+              });
+              minted++;
+            } catch (err) {
+              // Revert this product to DRAFT; continue with the rest
+              await fastify.prisma.product
+                .update({ where: { id }, data: { status: ProductStatus.DRAFT } })
+                .catch(() => {});
+
+              fastify.log.error(
+                { err, productId: id },
+                "[batch-mint] Blockchain deployment failed for product",
+              );
+              errors.push({
+                productId: id,
+                message:
+                  err instanceof Error
+                    ? err.message
+                    : "Blockchain minting failed",
+              });
+            }
+          }
+        } else {
+          // ── MOCK PATH ───────────────────────────────────────────────────────
+          try {
+            await fastify.prisma.$transaction(
+              async (tx: import("../../plugins/prisma.js").TxClient) => {
+                for (const id of toMint) {
+                  const txHash = `0x${crypto.randomBytes(32).toString("hex")}`;
+                  const tokenAddress = `0x${crypto.randomBytes(20).toString("hex")}`;
+                  const mintedAt = new Date();
+
+                  // Optimistic concurrency: only update if still DRAFT
+                  const updated = await tx.product.updateMany({
+                    where: { id, status: ProductStatus.DRAFT },
+                    data: { status: ProductStatus.ACTIVE },
+                  });
+
+                  if (updated.count === 0) {
+                    errors.push({
+                      productId: id,
+                      message: "Product status changed concurrently",
+                    });
+                    continue;
+                  }
+
+                  await tx.productPassport.update({
+                    where: { productId: id },
+                    data: { txHash, tokenAddress, chainId: CHAIN_ID, mintedAt },
+                  });
+
+                  await tx.productEvent.create({
+                    data: {
+                      productId: id,
+                      type: EventType.MINTED,
+                      data: { txHash, tokenAddress, chainId: CHAIN_ID },
+                      performedBy: user.sub,
+                    },
+                  });
+
+                  mintedProducts.push({ id, txHash, tokenAddress });
+                  minted++;
                 }
-
-                await tx.productPassport.update({
-                  where: { productId: id },
-                  data: { txHash, tokenAddress, chainId: CHAIN_ID, mintedAt },
-                });
-
-                await tx.productEvent.create({
-                  data: {
-                    productId: id,
-                    type: EventType.MINTED,
-                    data: { txHash, tokenAddress, chainId: CHAIN_ID },
-                    performedBy: user.sub,
-                  },
-                });
-
-                mintedProducts.push({ id, txHash, tokenAddress });
-                minted++;
-              }
-            },
-          );
-        } catch {
-          // Transaction failed entirely
-          minted = 0;
-          mintedProducts.length = 0;
+              },
+            );
+          } catch {
+            // Transaction failed entirely
+            minted = 0;
+            mintedProducts.length = 0;
+          }
         }
       }
 

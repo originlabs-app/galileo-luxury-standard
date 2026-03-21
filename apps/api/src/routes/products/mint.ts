@@ -4,6 +4,8 @@ import { EventType } from "@galileo/shared";
 import { requireRole } from "../../middleware/rbac.js";
 import { RouteError } from "../../utils/route-error.js";
 import { enqueueWebhookEvent } from "../../services/webhooks/outbox.js";
+import { mintProduct } from "../../services/blockchain/mint.js";
+import type { MintParams } from "../../services/blockchain/types.js";
 
 export default async function mintProductRoute(fastify: FastifyInstance) {
   fastify.post<{ Params: { id: string } }>(
@@ -39,18 +41,183 @@ export default async function mintProductRoute(fastify: FastifyInstance) {
         });
       }
 
-      // Real chain mode — not yet implemented
-      if (fastify.chain.chainEnabled) {
-        return reply.status(503).send({
-          success: false,
-          error: {
-            code: "NOT_IMPLEMENTED",
-            message: "Real chain minting not yet implemented",
+      // Determine if real on-chain minting is possible:
+      // chain plugin must be enabled AND infrastructure contracts must be deployed.
+      const infra = fastify.chain.deployment.infrastructure;
+      const canUseRealChain =
+        fastify.chain.chainEnabled &&
+        infra.identityRegistry !== null &&
+        infra.compliance !== null &&
+        fastify.chain.walletClient !== undefined;
+
+      if (fastify.chain.chainEnabled && !canUseRealChain) {
+        fastify.log.warn(
+          "[mint] Chain enabled but infrastructure not fully deployed — falling back to mock minting",
+        );
+      }
+
+      // ── REAL CHAIN PATH ─────────────────────────────────────────────────────
+      if (canUseRealChain) {
+        // Pre-fetch product to build MintParams (outside transaction — blockchain
+        // call may take several seconds, so we don't hold a DB transaction open).
+        const product = await fastify.prisma.product.findUnique({
+          where: { id },
+          include: { passport: true, brand: true },
+        });
+
+        if (!product) {
+          return reply.status(404).send({
+            success: false,
+            error: { code: "NOT_FOUND", message: "Product not found" },
+          });
+        }
+
+        if (user.role !== "ADMIN" && product.brandId !== user.brandId) {
+          return reply.status(404).send({
+            success: false,
+            error: { code: "NOT_FOUND", message: "Product not found" },
+          });
+        }
+
+        if (product.status !== "DRAFT") {
+          return reply.status(409).send({
+            success: false,
+            error: {
+              code: "CONFLICT",
+              message: "Product is not in DRAFT status",
+            },
+          });
+        }
+
+        // Atomically transition DRAFT → MINTING to claim the slot and prevent
+        // concurrent requests from double-minting the same product.
+        const setMinting = await fastify.prisma.product.updateMany({
+          where: { id, status: "DRAFT" },
+          data: { status: "MINTING" },
+        });
+
+        if (setMinting.count === 0) {
+          return reply.status(409).send({
+            success: false,
+            error: {
+              code: "CONFLICT",
+              message: "Product is not in DRAFT status",
+            },
+          });
+        }
+
+        // Deploy GalileoToken on Base Sepolia.
+        const mintParams: MintParams = {
+          admin: fastify.chain.walletClient.account.address as `0x${string}`,
+          identityRegistry: infra.identityRegistry as `0x${string}`,
+          compliance: infra.compliance as `0x${string}`,
+          productDID: product.did,
+          productCategory: product.category,
+          brandDID: product.brand.did,
+          productURI: product.passport?.digitalLink ?? "",
+          gtin: product.gtin,
+          serialNumber: product.serialNumber,
+          initialOwner: (product.walletAddress ??
+            fastify.chain.walletClient.account.address) as `0x${string}`,
+        };
+
+        let txHash: `0x${string}`;
+        let tokenAddress: `0x${string}`;
+        let chainId: number;
+
+        try {
+          const result = await mintProduct(
+            fastify.chain.walletClient,
+            fastify.chain.publicClient,
+            mintParams,
+          );
+          txHash = result.txHash;
+          tokenAddress = result.tokenAddress;
+          chainId = result.chainId;
+        } catch (err) {
+          // Blockchain deployment failed — revert product to DRAFT (best effort)
+          await fastify.prisma.product
+            .update({ where: { id }, data: { status: "DRAFT" } })
+            .catch((rollbackErr: unknown) => {
+              fastify.log.error(
+                { err: rollbackErr, productId: id },
+                "[mint] Failed to revert product to DRAFT after blockchain error",
+              );
+            });
+
+          fastify.log.error(
+            { err, productId: id },
+            "[mint] Blockchain deployment failed",
+          );
+          return reply.status(502).send({
+            success: false,
+            error: {
+              code: "BLOCKCHAIN_ERROR",
+              message:
+                err instanceof Error ? err.message : "Blockchain minting failed",
+            },
+          });
+        }
+
+        // Commit on-chain data to DB and transition MINTING → ACTIVE.
+        const mintedAt = new Date();
+        await fastify.prisma.$transaction(
+          async (tx: import("../../plugins/prisma.js").TxClient) => {
+            await tx.product.update({
+              where: { id },
+              data: { status: "ACTIVE" },
+            });
+
+            await tx.productPassport.update({
+              where: { productId: id },
+              data: { txHash, tokenAddress, chainId, mintedAt },
+            });
+
+            await tx.productEvent.create({
+              data: {
+                productId: id,
+                type: "MINTED",
+                data: { txHash, tokenAddress, chainId },
+                performedBy: user.sub,
+              },
+            });
           },
+        );
+
+        const fullProduct = await fastify.prisma.product.findUnique({
+          where: { id },
+          include: {
+            passport: true,
+            events: { orderBy: { createdAt: "desc" }, take: 50 },
+          },
+        });
+
+        if (!fullProduct) {
+          return reply.status(500).send({
+            success: false,
+            error: {
+              code: "INTERNAL_ERROR",
+              message: "Product not found after mint — this should not happen",
+            },
+          });
+        }
+
+        await enqueueWebhookEvent(fastify.prisma, EventType.MINTED, id, {
+          productId: id,
+          txHash,
+          tokenAddress,
+        }).catch(() => {});
+
+        return reply.status(200).send({
+          success: true,
+          data: { product: fullProduct },
         });
       }
 
-      // Mock mode: generate synthetic on-chain data
+      // ── MOCK PATH ───────────────────────────────────────────────────────────
+      // Used when chain is disabled or infrastructure is not yet deployed.
+      // Generates synthetic on-chain data deterministically for dev/test.
+
       const txHash = `0x${crypto.randomBytes(32).toString("hex")}`;
       const tokenAddress = `0x${crypto.randomBytes(20).toString("hex")}`;
       const chainId = 84532; // Base Sepolia
