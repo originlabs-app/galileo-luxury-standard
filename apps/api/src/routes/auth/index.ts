@@ -8,6 +8,7 @@ import linkWalletRoute from "./link-wallet.js";
 import nonceRoute from "./nonce.js";
 import dataExportRoute from "./data-export.js";
 import dataErasureRoute from "./data-erasure.js";
+import gdprStatusRoute from "./gdpr-status.js";
 import siweRoute from "./siwe.js";
 
 export default async function authRoutes(fastify: FastifyInstance) {
@@ -20,5 +21,6 @@ export default async function authRoutes(fastify: FastifyInstance) {
   await fastify.register(linkWalletRoute);
   await fastify.register(dataExportRoute);
   await fastify.register(dataErasureRoute);
+  await fastify.register(gdprStatusRoute);
   await fastify.register(siweRoute);
 }

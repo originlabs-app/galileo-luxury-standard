@@ -8,7 +8,7 @@ export default async function dataExportRoute(fastify: FastifyInstance) {
       schema: {
         description:
           "Export all personal data for the authenticated user (GDPR Art. 15). " +
-          "Returns user profile, brand association, products, and events performed.",
+          "Returns user profile, brand association, products, events, audit logs, and webhooks.",
         tags: ["Auth", "GDPR"],
         security: [{ cookieAuth: [] }],
       },
@@ -28,21 +28,46 @@ export default async function dataExportRoute(fastify: FastifyInstance) {
         });
       }
 
-      // Products owned by user's brand (if any)
-      let products: unknown[] = [];
-      if (user.brandId) {
-        products = await fastify.prisma.product.findMany({
-          where: { brandId: user.brandId },
-          include: { passport: true },
-        });
-      }
+      // Run all parallel queries together
+      const [products, webhooks, auditLogs, events] = await Promise.all([
+        // Products owned by user's brand (if any)
+        user.brandId
+          ? fastify.prisma.product.findMany({
+              where: { brandId: user.brandId },
+              include: { passport: true },
+            })
+          : Promise.resolve([]),
 
-      // Events performed by this user
-      const events = await fastify.prisma.productEvent.findMany({
-        where: { performedBy: sub },
-        orderBy: { createdAt: "desc" },
-        take: 1000,
-      });
+        // Webhook subscriptions for the user's brand
+        user.brandId
+          ? fastify.prisma.webhookSubscription.findMany({
+              where: { brandId: user.brandId },
+              select: {
+                id: true,
+                url: true,
+                events: true,
+                active: true,
+                createdAt: true,
+                updatedAt: true,
+                // exclude secret
+              },
+            })
+          : Promise.resolve([]),
+
+        // Audit log entries attributed to this user
+        fastify.prisma.auditLog.findMany({
+          where: { actor: sub },
+          orderBy: { createdAt: "desc" },
+          take: 1000,
+        }),
+
+        // Events performed by this user
+        fastify.prisma.productEvent.findMany({
+          where: { performedBy: sub },
+          orderBy: { createdAt: "desc" },
+          take: 1000,
+        }),
+      ]);
 
       // Build export -- explicitly exclude passwordHash and refreshToken
       const exportData = {
@@ -65,8 +90,16 @@ export default async function dataExportRoute(fastify: FastifyInstance) {
             }
           : null,
         products,
+        webhooks,
+        auditLogs,
         events,
       };
+
+      const filename = `galileo-data-export-${new Date().toISOString().slice(0, 10)}.json`;
+      reply.header(
+        "Content-Disposition",
+        `attachment; filename="${filename}"`,
+      );
 
       return reply.status(200).send({
         success: true,

@@ -61,7 +61,10 @@ export default function SettingsPage() {
     setIsDeleting(true);
     setDeleteError(null);
     try {
-      await api("/auth/me/data", { method: "DELETE" });
+      await api("/auth/me/data", {
+        method: "DELETE",
+        body: JSON.stringify({ confirm: "DELETE_MY_ACCOUNT" }),
+      });
       setConfirmOpen(false);
       await logout();
       router.push("/login");
