@@ -7,6 +7,8 @@ import {
   validateGtin,
   type BlockchainVerification,
 } from "@galileo/shared";
+import { getPublicClient } from "../../services/blockchain/client.js";
+import { verifyOnChain } from "../../services/blockchain/verify.js";
 
 const CHAIN_NAMES: Record<number, string> = {
   8453: "Base",
@@ -129,10 +131,20 @@ export default async function resolveDigitalLinkRoute(
       const parsedMaterials = productMaterialsSchema.safeParse(rawMaterials);
       const materials = parsedMaterials.success ? parsedMaterials.data : [];
 
+      // Read on-chain data when the product has a token address
+      const onChainData =
+        product.passport?.tokenAddress
+          ? await verifyOnChain(
+              getPublicClient(),
+              product.passport.tokenAddress as `0x${string}`,
+            )
+          : null;
+
       // Build blockchain verification object when passport has been minted
       const blockchain: BlockchainVerification | null = product.passport?.txHash
         ? {
-            verified: product.status === "ACTIVE",
+            verified:
+              product.status === "ACTIVE" && (onChainData?.found ?? false),
             txHash: product.passport.txHash,
             tokenId: product.passport.tokenAddress ?? null,
             chain: product.passport.chainId
@@ -144,6 +156,11 @@ export default async function resolveDigitalLinkRoute(
                 EXPLORER_BASE_URLS[product.passport.chainId]) ??
               "https://sepolia.basescan.org"
             }/tx/${product.passport.txHash}`,
+            onChainDID: onChainData?.productDID ?? null,
+            onChainGtin: onChainData?.gtin ?? null,
+            onChainSerial: onChainData?.serialNumber ?? null,
+            onChainCategory: onChainData?.productCategory ?? null,
+            isDecommissioned: onChainData?.isDecommissioned ?? false,
           }
         : null;
 

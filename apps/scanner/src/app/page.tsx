@@ -11,6 +11,11 @@ type BlockchainVerification = {
   tokenId: string | null;
   chain: string;
   explorerUrl: string;
+  onChainDID?: string | null;
+  onChainGtin?: string | null;
+  onChainSerial?: string | null;
+  onChainCategory?: string | null;
+  isDecommissioned?: boolean;
 };
 
 type ResolverResult = {
@@ -414,6 +419,9 @@ function VerificationDetails({
   blockchain: BlockchainVerification;
 }) {
   const shortTx = `${blockchain.txHash.slice(0, 10)}…${blockchain.txHash.slice(-8)}`;
+  const explorerBase = blockchain.tokenId
+    ? blockchain.explorerUrl.replace(/\/tx\/0x[0-9a-fA-F]+$/, "")
+    : null;
 
   return (
     <details className="group mt-3">
@@ -443,7 +451,35 @@ function VerificationDetails({
         />
         <DetailRow label="Chain" value={blockchain.chain} />
         {blockchain.tokenId ? (
-          <DetailRow label="Token address" value={blockchain.tokenId} mono />
+          <DetailRow
+            label="Token address"
+            value={blockchain.tokenId}
+            mono
+            href={explorerBase ? `${explorerBase}/address/${blockchain.tokenId}` : null}
+          />
+        ) : null}
+        {blockchain.isDecommissioned ? (
+          <div className="rounded-2xl border border-yellow-500/30 bg-yellow-500/5 px-4 py-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-yellow-400">
+              Decommissioned on-chain
+            </p>
+          </div>
+        ) : null}
+        {(blockchain.onChainDID ||
+          blockchain.onChainGtin ||
+          blockchain.onChainSerial ||
+          blockchain.onChainCategory) ? (
+          <div className="mt-1 border-t border-border/40 pt-2">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              On-chain data
+            </p>
+            <div className="grid gap-2">
+              <DetailRow label="DID" value={blockchain.onChainDID} mono />
+              <DetailRow label="GTIN" value={blockchain.onChainGtin} mono />
+              <DetailRow label="Serial" value={blockchain.onChainSerial} mono />
+              <DetailRow label="Category" value={blockchain.onChainCategory} />
+            </div>
+          </div>
         ) : null}
       </dl>
     </details>
