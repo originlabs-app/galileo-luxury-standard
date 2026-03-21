@@ -19,7 +19,11 @@ WORKDIR /app/packages/shared
 RUN pnpm build
 WORKDIR /app/apps/api
 RUN pnpm prisma generate && pnpm tsc \
-  && rm -rf dist/generated && cp -r src/generated dist/generated
+  && echo "=== SRC generated files ===" && find src/generated -type f | head -20 \
+  && echo "=== DIST generated files (before overlay) ===" && find dist/generated -type f | head -20 \
+  && echo "=== client.js imports ===" && grep -n "from " dist/generated/prisma/client.js | head -10 \
+  && cp -rT src/generated/prisma/internal dist/generated/prisma/internal \
+  && echo "=== DIST generated files (after overlay) ===" && find dist/generated -type f | head -20
 
 # Stage 3: Production
 FROM node:22-slim AS runner
