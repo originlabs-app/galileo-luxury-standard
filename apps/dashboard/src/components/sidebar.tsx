@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Building2, Home, LogOut, Package } from "lucide-react";
+import { Building2, Home, LogOut, Package, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +16,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: Home },
   { label: "Products", href: "/dashboard/products", icon: Package },
+  { label: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
 export function Sidebar() {
