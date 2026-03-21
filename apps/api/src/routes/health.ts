@@ -5,6 +5,31 @@ const require = createRequire(import.meta.url);
 const pkg = require("../../package.json") as { version: string };
 
 export default async function healthRoutes(fastify: FastifyInstance) {
+  // Liveness probe — always 200, no external checks
+  fastify.get(
+    "/health/live",
+    { schema: { description: "Liveness probe — always 200", tags: ["Health"] } },
+    async (_request, reply) => {
+      return reply.status(200).send({ status: "ok" });
+    },
+  );
+
+  // Readiness probe — 503 if the database is unavailable
+  fastify.get(
+    "/health/ready",
+    { schema: { description: "Readiness probe — 503 if DB is down", tags: ["Health"] } },
+    async (_request, reply) => {
+      try {
+        await fastify.prisma.$queryRawUnsafe("SELECT 1");
+        return reply.status(200).send({ status: "ready" });
+      } catch {
+        return reply
+          .status(503)
+          .send({ status: "not_ready", reason: "database_unavailable" });
+      }
+    },
+  );
+
   fastify.get(
     "/health",
     {
@@ -58,10 +83,18 @@ export default async function healthRoutes(fastify: FastifyInstance) {
         fastify.chain.deployment.infrastructure,
       ).filter(Boolean).length;
 
+      const mem = process.memoryUsage();
+
       return reply.status(statusCode).send({
         status,
         version: pkg.version,
         uptime: process.uptime(),
+        memory: {
+          rss: mem.rss,
+          heapTotal: mem.heapTotal,
+          heapUsed: mem.heapUsed,
+          external: mem.external,
+        },
         deployment: {
           environment: fastify.chain.deployment.environment,
           network: fastify.chain.deployment.network,

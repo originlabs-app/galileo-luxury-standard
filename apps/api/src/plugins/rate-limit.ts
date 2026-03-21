@@ -1,11 +1,14 @@
 import fp from "fastify-plugin";
 import rateLimit from "@fastify/rate-limit";
 import type { FastifyInstance } from "fastify";
+import { ACCESS_COOKIE_NAME } from "../utils/cookies.js";
 
 /**
  * Rate-limiting plugin for the Galileo Protocol API.
  *
- * Sets a global default of 100 req/min per IP for authenticated endpoints.
+ * Global defaults:
+ *   - Authenticated requests (access-token cookie present): 100 req/min
+ *   - Unauthenticated requests: 30 req/min
  * Route-specific overrides are applied via the `onRoute` hook using
  * Fastify's `config.rateLimit` option.
  *
@@ -51,7 +54,9 @@ export default fp(async (fastify: FastifyInstance) => {
 
   await fastify.register(rateLimit, {
     global: true,
-    max: 100,
+    // Authenticated users (access-token cookie present) get 100 req/min;
+    // unauthenticated requests are limited to 30 req/min.
+    max: (req) => (req.cookies?.[ACCESS_COOKIE_NAME] ? 100 : 30),
     timeWindow: "1 minute",
     addHeaders: {
       "x-ratelimit-limit": true,

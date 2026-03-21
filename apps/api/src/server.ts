@@ -167,13 +167,41 @@ export async function buildApp() {
     });
   }
 
-  // Register routes
+  // Add X-API-Version header to every response
+  fastify.addHook("onSend", async (_request, reply) => {
+    reply.header("X-API-Version", "1.0.0");
+  });
+
+  // Supplement Fastify's built-in request log with userId for authenticated requests
+  fastify.addHook("onResponse", (request, _reply, done) => {
+    const user = request.user as { sub?: string } | undefined;
+    const userId = user?.sub;
+    if (userId) {
+      request.log.info({ userId }, "user request");
+    }
+    done();
+  });
+
+  // Register routes (original paths — backward compat)
   await fastify.register(healthRoutes);
   await fastify.register(authRoutes);
   await fastify.register(productRoutes);
   await fastify.register(resolverRoutes);
   await fastify.register(auditRoutes);
   await fastify.register(webhookRoutes);
+
+  // Also register routes under /api/v1 (versioning preparation)
+  await fastify.register(
+    async (v1) => {
+      await v1.register(healthRoutes);
+      await v1.register(authRoutes);
+      await v1.register(productRoutes);
+      await v1.register(resolverRoutes);
+      await v1.register(auditRoutes);
+      await v1.register(webhookRoutes);
+    },
+    { prefix: "/api/v1" },
+  );
 
   // Start the webhook outbox worker (skip in test env)
   if (config.NODE_ENV !== "test") {
