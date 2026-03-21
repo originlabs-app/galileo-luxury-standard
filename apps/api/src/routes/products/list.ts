@@ -16,7 +16,9 @@ export default async function listProductsRoute(fastify: FastifyInstance) {
     {
       onRequest: [fastify.authenticate],
       schema: {
-        description: "List products with pagination, scoped by brand",
+        description:
+          "List products with pagination, scoped by brand. " +
+          "Results are sorted by creation date descending (newest first).",
         tags: ["Products"],
         security: [{ cookieAuth: [] }],
         querystring: {
@@ -26,14 +28,14 @@ export default async function listProductsRoute(fastify: FastifyInstance) {
               type: "integer",
               minimum: 1,
               default: 1,
-              description: "Page number",
+              description: "Page number (1-indexed)",
             },
             limit: {
               type: "integer",
               minimum: 1,
               maximum: 100,
               default: 20,
-              description: "Items per page",
+              description: "Items per page (max 100)",
             },
             status: {
               type: "string",

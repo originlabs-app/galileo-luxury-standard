@@ -141,8 +141,50 @@ export default function ProductsPage() {
 
   if (isLoading && !pagination) {
     return (
-      <div className="flex flex-1 items-center justify-center py-16">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-col gap-2">
+            <div className="h-7 w-32 animate-pulse rounded-md bg-muted" />
+            <div className="h-4 w-72 animate-pulse rounded-md bg-muted" />
+          </div>
+        </div>
+        <div className="rounded-lg border border-border bg-card">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>GTIN</TableHead>
+                <TableHead>Serial Number</TableHead>
+                <TableHead>Identity</TableHead>
+                <TableHead>Created</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <TableRow key={i}>
+                  <TableCell>
+                    <div className="flex flex-col gap-1">
+                      <div className="h-4 w-36 animate-pulse rounded bg-muted" />
+                      <div className="h-3 w-20 animate-pulse rounded bg-muted" />
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="h-4 w-32 animate-pulse rounded bg-muted" />
+                  </TableCell>
+                  <TableCell>
+                    <div className="h-4 w-24 animate-pulse rounded bg-muted" />
+                  </TableCell>
+                  <TableCell>
+                    <div className="h-6 w-28 animate-pulse rounded-full bg-muted" />
+                  </TableCell>
+                  <TableCell>
+                    <div className="h-4 w-20 animate-pulse rounded bg-muted" />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     );
   }

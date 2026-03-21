@@ -19,6 +19,8 @@ const exportQuerySchema = z.object({
   to: z.string().datetime().optional(),
   resource: z.string().optional(),
   actor: z.string().optional(),
+  sortBy: z.enum(["date", "action"]).default("date"),
+  sortOrder: z.enum(["asc", "desc"]).default("desc"),
 });
 
 export default async function auditExportRoute(fastify: FastifyInstance) {
@@ -44,6 +46,18 @@ export default async function auditExportRoute(fastify: FastifyInstance) {
             to: { type: "string", format: "date-time" },
             resource: { type: "string" },
             actor: { type: "string" },
+            sortBy: {
+              type: "string",
+              enum: ["date", "action"],
+              default: "date",
+              description: "Field to sort by",
+            },
+            sortOrder: {
+              type: "string",
+              enum: ["asc", "desc"],
+              default: "desc",
+              description: "Sort direction",
+            },
           },
         },
       },
@@ -61,7 +75,7 @@ export default async function auditExportRoute(fastify: FastifyInstance) {
         });
       }
 
-      const { format, from, to, resource, actor } = parsed.data;
+      const { format, from, to, resource, actor, sortBy, sortOrder } = parsed.data;
       const user = request.user;
 
       // Build where clause
@@ -85,9 +99,14 @@ export default async function auditExportRoute(fastify: FastifyInstance) {
         where.actor = { in: brandUserIds };
       }
 
+      const orderBy =
+        sortBy === "action"
+          ? { action: sortOrder }
+          : { createdAt: sortOrder };
+
       const entries = await fastify.prisma.auditLog.findMany({
         where,
-        orderBy: { createdAt: "desc" },
+        orderBy,
         take: 10000, // Safety limit
       });
 

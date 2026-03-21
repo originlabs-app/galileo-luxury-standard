@@ -24,44 +24,81 @@ export default async function statsProductRoute(fastify: FastifyInstance) {
         return;
       }
 
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
       // Run all queries in parallel for performance
-      const [statusCounts, verificationCount, recentEvents] = await Promise.all(
-        [
-          // Product counts by status using groupBy
-          fastify.prisma.product.groupBy({
-            by: ["status"],
-            where: brandFilter,
-            _count: { status: true },
-          }),
+      const [
+        statusCounts,
+        verificationCount,
+        recentEvents,
+        productsLast7Days,
+        verificationsLast7Days,
+      ] = await Promise.all([
+        // Product counts by status using groupBy
+        fastify.prisma.product.groupBy({
+          by: ["status"],
+          where: brandFilter,
+          _count: { status: true },
+        }),
 
-          // Total verification events
-          fastify.prisma.productEvent.count({
-            where: {
-              type: EventType.VERIFIED,
-              product: brandFilter,
-            },
-          }),
+        // Total verification events
+        fastify.prisma.productEvent.count({
+          where: {
+            type: EventType.VERIFIED,
+            product: brandFilter,
+          },
+        }),
 
-          // Recent 10 events for activity feed
-          fastify.prisma.productEvent.findMany({
-            where: {
-              product: brandFilter,
+        // Recent 10 events for activity feed
+        fastify.prisma.productEvent.findMany({
+          where: {
+            product: brandFilter,
+          },
+          orderBy: { createdAt: "desc" },
+          take: 10,
+          include: {
+            product: {
+              select: { name: true, gtin: true },
             },
-            orderBy: { createdAt: "desc" },
-            take: 10,
-            include: {
-              product: {
-                select: { name: true, gtin: true },
-              },
-            },
-          }),
-        ],
-      );
+          },
+        }),
+
+        // Products created in the last 7 days (for sparkline)
+        fastify.prisma.product.findMany({
+          where: { ...brandFilter, createdAt: { gte: sevenDaysAgo } },
+          select: { createdAt: true },
+        }),
+
+        // Verifications in the last 7 days (for sparkline)
+        fastify.prisma.productEvent.findMany({
+          where: {
+            type: EventType.VERIFIED,
+            product: brandFilter,
+            createdAt: { gte: sevenDaysAgo },
+          },
+          select: { createdAt: true },
+        }),
+      ]);
 
       // Transform groupBy result into a flat object
       const byStatus: Record<string, number> = {};
       for (const row of statusCounts) {
         byStatus[row.status] = row._count.status;
+      }
+
+      // Aggregate daily counts for the last 7 days (index 0 = 6 days ago, index 6 = today)
+      function aggregateByDay(records: { createdAt: Date }[]): number[] {
+        const counts = Array<number>(7).fill(0);
+        const now = Date.now();
+        for (const { createdAt } of records) {
+          const daysAgo = Math.floor(
+            (now - createdAt.getTime()) / (24 * 60 * 60 * 1000),
+          );
+          if (daysAgo >= 0 && daysAgo < 7) {
+            counts[6 - daysAgo]! += 1;
+          }
+        }
+        return counts;
       }
 
       return reply.status(200).send({
@@ -70,6 +107,10 @@ export default async function statsProductRoute(fastify: FastifyInstance) {
           byStatus,
           verificationCount,
           recentEvents,
+          trends: {
+            productsCreated: aggregateByDay(productsLast7Days),
+            verifications: aggregateByDay(verificationsLast7Days),
+          },
         },
       });
     },

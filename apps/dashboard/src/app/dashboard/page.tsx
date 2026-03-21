@@ -28,7 +28,45 @@ interface StatsResponse {
         gtin: string;
       };
     }>;
+    trends?: {
+      productsCreated: number[];
+      verifications: number[];
+    };
   };
+}
+
+function Sparkline({ data }: { data: number[] }) {
+  if (data.length < 2 || data.every((v) => v === 0)) return null;
+
+  const max = Math.max(...data, 1);
+  const W = 64;
+  const H = 24;
+  const points = data
+    .map((v, i) => {
+      const x = (i / (data.length - 1)) * W;
+      const y = H - (v / max) * H;
+      return `${x},${y}`;
+    })
+    .join(" ");
+
+  return (
+    <svg
+      width={W}
+      height={H}
+      viewBox={`0 0 ${W} ${H}`}
+      className="overflow-visible opacity-70"
+      aria-hidden
+    >
+      <polyline
+        points={points}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
 }
 
 const EVENT_LABELS: Record<string, string> = {
@@ -60,6 +98,7 @@ export default function DashboardPage() {
   const [recentEvents, setRecentEvents] = useState<
     StatsResponse["data"]["recentEvents"]
   >([]);
+  const [trends, setTrends] = useState<StatsResponse["data"]["trends"]>();
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchStats = useCallback(async () => {
@@ -68,6 +107,7 @@ export default function DashboardPage() {
       setByStatus(res.data.byStatus);
       setVerificationCount(res.data.verificationCount);
       setRecentEvents(res.data.recentEvents);
+      setTrends(res.data.trends);
     } catch (err) {
       // Silently fail -- show zeros if stats unavailable
       if (!(err instanceof ApiError)) {
@@ -93,14 +133,30 @@ export default function DashboardPage() {
     (byStatus.MINTING ?? 0);
 
   const stats = [
-    { label: "Total Products", value: totalProducts, icon: Package },
-    { label: "Active Passports", value: byStatus.ACTIVE ?? 0, icon: Shield },
+    {
+      label: "Total Products",
+      value: totalProducts,
+      icon: Package,
+      trend: trends?.productsCreated,
+    },
+    {
+      label: "Active Passports",
+      value: byStatus.ACTIVE ?? 0,
+      icon: Shield,
+      trend: undefined,
+    },
     {
       label: "Transferred",
       value: byStatus.TRANSFERRED ?? 0,
       icon: ArrowRightLeft,
+      trend: undefined,
     },
-    { label: "Verifications", value: verificationCount, icon: CheckCircle },
+    {
+      label: "Verifications",
+      value: verificationCount,
+      icon: CheckCircle,
+      trend: trends?.verifications,
+    },
   ];
 
   return (
@@ -126,9 +182,16 @@ export default function DashboardPage() {
               <stat.icon className="size-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-foreground">
-                {isLoading ? "\u2014" : stat.value}
-              </p>
+              <div className="flex items-end justify-between gap-2">
+                <p className="text-3xl font-bold text-foreground">
+                  {isLoading ? "\u2014" : stat.value}
+                </p>
+                {!isLoading && stat.trend && (
+                  <div className="text-primary">
+                    <Sparkline data={stat.trend} />
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
         ))}

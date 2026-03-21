@@ -46,56 +46,88 @@ const API_BASE_URL =
   process.env.NEXT_PUBLIC_RESOLVER_BASE_URL?.replace(/\/$/, "") ??
   "http://localhost:4000";
 
-function normalizeResolverInput(
-  input: string,
-): { resolverPath: string; canonicalUrl: string } | null {
+type NormalizeResult =
+  | { ok: true; resolverPath: string; canonicalUrl: string }
+  | { ok: false; error: string };
+
+function normalizeResolverInput(input: string): NormalizeResult {
   const trimmed = input.trim();
 
-  if (!trimmed) return null;
+  if (!trimmed) {
+    return { ok: false, error: "Enter a Digital Link URL or DID to look up a product." };
+  }
 
-  const didMatch = /^did:galileo:01:(\d{13,14}):21:(.+)$/i.exec(trimmed);
+  // DID format: did:galileo:01:{gtin}:21:{serial}
+  const didMatch = /^did:galileo:01:(\d+):21:(.+)$/i.exec(trimmed);
   if (didMatch) {
     const [, gtin, serial] = didMatch;
-    if (!validateGtin(gtin)) return null;
-
-    const encodedSerial = encodeURIComponent(serial);
+    if (!gtin || gtin.length < 13 || gtin.length > 14) {
+      return {
+        ok: false,
+        error: `DID GTIN must be 13 or 14 digits, got ${gtin?.length ?? 0}`,
+      };
+    }
+    if (!validateGtin(gtin)) {
+      return { ok: false, error: "DID GTIN check digit invalid" };
+    }
+    const encodedSerial = encodeURIComponent(serial!);
     return {
+      ok: true,
       resolverPath: `/01/${gtin}/21/${encodedSerial}`,
-      canonicalUrl: generateDigitalLinkUrl(gtin!, serial!),
+      canonicalUrl: generateDigitalLinkUrl(gtin, serial!),
+    };
+  }
+
+  // If it looks like a DID prefix but didn't match fully
+  if (/^did:/i.test(trimmed)) {
+    return {
+      ok: false,
+      error:
+        'DID format not recognized — expected "did:galileo:01:{gtin}:21:{serial}"',
     };
   }
 
   try {
     const url = new URL(trimmed);
-    const match = url.pathname.match(/\/01\/(\d{13,14})\/21\/([^/?#]+)/i);
+    const match = url.pathname.match(/\/01\/(\d+)\/21\/([^/?#]+)/i);
 
-    if (!match) return null;
+    if (!match) {
+      return {
+        ok: false,
+        error:
+          'URL format not recognized — expected path "/01/{gtin}/21/{serial}"',
+      };
+    }
 
     const [, gtin, serialPart] = match;
-    if (!validateGtin(gtin)) return null;
+    if (!gtin || gtin.length < 13 || gtin.length > 14) {
+      return {
+        ok: false,
+        error: `URL GTIN must be 13 or 14 digits, got ${gtin?.length ?? 0}`,
+      };
+    }
+    if (!validateGtin(gtin)) {
+      return { ok: false, error: "URL GTIN check digit invalid" };
+    }
 
-    const serial = decodeURIComponent(serialPart);
+    const serial = decodeURIComponent(serialPart!);
     const encodedSerial = encodeURIComponent(serial);
 
     return {
+      ok: true,
       resolverPath: `/01/${gtin}/21/${encodedSerial}`,
-      canonicalUrl: generateDigitalLinkUrl(gtin!, serial),
+      canonicalUrl: generateDigitalLinkUrl(gtin, serial),
     };
   } catch {
-    return null;
+    return { ok: false, error: "URL format not recognized" };
   }
 }
 
 async function resolveLink(input: string): Promise<ResolveState> {
   const normalized = normalizeResolverInput(input);
 
-  if (!normalized) {
-    return {
-      ok: false,
-      status: 400,
-      error:
-        "Enter a valid Galileo / GS1 Digital Link or DID in the format /01/{gtin}/21/{serial}.",
-    };
+  if (!normalized.ok) {
+    return { ok: false, status: 400, error: normalized.error };
   }
 
   const response = await fetch(`${API_BASE_URL}${normalized.resolverPath}`, {

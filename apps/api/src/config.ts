@@ -27,6 +27,7 @@ const envSchema = z.object({
     .enum(["fatal", "error", "warn", "info", "debug", "trace"])
     .optional(),
   PORT: z.coerce.number().int().positive().default(4000),
+  API_URL: z.string().url().optional(),
   CORS_ORIGIN: z.string().url().default("http://localhost:3000"),
   NODE_ENV: z
     .enum(["development", "production", "test"])

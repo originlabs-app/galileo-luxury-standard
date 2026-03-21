@@ -80,8 +80,8 @@ export async function buildApp() {
         },
         servers: [
           {
-            url: `http://localhost:${config.PORT}`,
-            description: "Development server",
+            url: config.API_URL ?? `http://localhost:${config.PORT}`,
+            description: config.API_URL ? "API server" : "Development server",
           },
         ],
         components: {
