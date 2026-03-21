@@ -155,6 +155,14 @@ Everything shipped across Sprints 1–10.
 - 📡 Future (mainnet): bridge ETH Mainnet → Base Mainnet via the same L1 Standard Bridge pattern
 - 📡 Future: reverse direction — Base → Ethereum (7-day optimistic rollup challenge window, clearly communicated)
 
+### Gas Estimator 📋 Planned
+- 📋 Public page at `galileoprotocol.io/gas` — calculate estimated minting, transfer, and recall costs before execution
+- 📋 Shows current Base gas price, estimated ETH cost, and equivalent in EUR/USD
+
+### Galileo Testnet Faucet 📋 Planned
+- 📋 Public page distributing testnet ETH to developers and brands testing on Base Sepolia — no third-party faucets needed
+- 📋 Rate-limited by wallet address and IP, with optional GitHub OAuth for higher allowance
+
 ---
 
 ## Phase 3 — Enterprise Ready 💡 Future
@@ -194,6 +202,34 @@ Everything shipped across Sprints 1–10.
 - 💡 Manual retry for failed deliveries
 - 💡 Webhook event filtering per subscription
 
+### Token Factory 💡 Future
+- 💡 No-code interface for brands to deploy their own ERC-3643 token contract (configure name, symbol, compliance rules) without writing Solidity
+- 💡 Wizard-based deployment flow with pre-audited templates; brand receives deployed contract address and ownership
+
+### Token Explorer 💡 Future
+- 💡 Public explorer for all Galileo tokens on Base — browse any ERC-3643 token, view full transfer history and chain of custody
+- 💡 Interactive provenance visualization (timeline / graph) per token ID
+
+### Batch Transfer / Multi-sender 💡 Future
+- 💡 Send ERC-3643 authentication tokens to multiple recipients in a single transaction — ideal for collection launches
+- 💡 Paste or upload recipient list, preview gas cost, one-click batch execution
+
+### Airdrop Tool 💡 Future
+- 💡 Distribute tokens to a list of addresses via CSV upload, with gas cost preview before execution
+- 💡 Progress tracker showing per-address status (pending, confirmed, failed)
+
+### Recall / Burn Manager 💡 Future
+- 💡 Dedicated interface for brands to recall a product by burning its token, with full traceability and audit record
+- 💡 Requires dual confirmation (brand admin + on-chain signature) to prevent accidental burns
+
+### Product Authenticator (standalone) 💡 Future
+- 💡 Public web page — no app install required — for NFC/QR → on-chain verification of any Galileo product
+- 💡 Works on mobile browser; displays authenticity certificate and full provenance chain
+
+### Certificate Viewer 💡 Future
+- 💡 Public page showing the full authenticity certificate for a given token ID, accessible via shareable link
+- 💡 Renders product metadata, ownership history, and compliance claims in a printable format
+
 ---
 
 ## Phase 4 — Token Economy 💡 Future
@@ -226,6 +262,18 @@ Everything shipped across Sprints 1–10.
 - 💡 MiCA utility token classification validation with counsel (Origin Labs SASU)
 - 💡 Inter-entity liquidity contribution structure (convention between 4 entities)
 - 💡 LEOX ownership resolution (Nathaniel litigation) — T1 launches independently
+
+### Identity Claim Verifier 💡 Future
+- 💡 Public interface to verify the ERC-3643 claim status of any wallet address (accredited investor, authorized reseller, etc.)
+- 💡 Returns claim type, issuer, and expiry without exposing underlying personal data
+
+### KYC/KYB Onboarding Portal 💡 Future
+- 💡 Self-service form for partners and resellers to submit verification documents and receive their identity token
+- 💡 Integrates with a KYC provider (e.g., Synaps or Onfido); status tracked in the dashboard
+
+### Trusted Issuer Registry Browser 💡 Future
+- 💡 Public explorer listing all trusted issuers recognized in the Galileo ecosystem and their authorized claim types
+- 💡 Verifiable on-chain via the Trusted Issuers Registry (TIR) contract
 
 ---
 
@@ -263,6 +311,14 @@ Everything shipped across Sprints 1–10.
 - 💡 Docker Compose sandbox (one-command local setup)
 - 💡 Developer documentation portal (`apps/website`)
 - 💡 Sandbox environment with testnet contracts + seeded demo data
+
+### Mainnet Bridge UI 💡 Future
+- 💡 Upgrade the bridge page to support Ethereum mainnet ↔ Base mainnet transfers — same UX as the testnet bridge
+- 💡 Gas estimates in USD, mainnet block confirmation progress, Etherscan / Basescan links
+
+### Reverse Bridge (Base → Ethereum) 💡 Future
+- 💡 Support withdrawals from Base back to Ethereum mainnet via the optimistic rollup mechanism
+- 💡 7-day challenge window clearly communicated in the UI with countdown timer and status tracking
 
 ---
 
