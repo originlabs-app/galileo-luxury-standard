@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Edit3, Loader2, LockKeyhole, Save, X } from "lucide-react";
+import { ArrowLeft, Edit3, Flame, Loader2, LockKeyhole, Save, X } from "lucide-react";
 import {
   CATEGORIES,
   ETHEREUM_ADDRESS_RE,
@@ -40,6 +40,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 interface ProductPassport {
   id: string;
@@ -141,6 +142,11 @@ export default function ProductDetailPage() {
   const [editMaterials, setEditMaterials] = useState<ProductMaterial[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
+
+  // Mint state
+  const [showMintDialog, setShowMintDialog] = useState(false);
+  const [isMinting, setIsMinting] = useState(false);
+  const [mintError, setMintError] = useState<string | null>(null);
 
   // Recall state
   const [showRecallDialog, setShowRecallDialog] = useState(false);
@@ -314,6 +320,58 @@ export default function ProductDetailPage() {
     }
   }
 
+  async function handleMint(e: FormEvent) {
+    e.preventDefault();
+    setIsMinting(true);
+    setMintError(null);
+    try {
+      const res = await api<ProductResponse>(`/products/${productId}/mint`, {
+        method: "POST",
+      });
+      setProduct(res.data.product);
+      setShowMintDialog(false);
+    } catch (err) {
+      setMintError(
+        err instanceof ApiError ? err.message : "Failed to mint product",
+      );
+    } finally {
+      setIsMinting(false);
+    }
+  }
+
+  function statusBadge(status: ProductStatus) {
+    const config: Record<
+      ProductStatus,
+      { label: string; className: string }
+    > = {
+      DRAFT: {
+        label: "Draft",
+        className: "bg-secondary text-secondary-foreground",
+      },
+      MINTING: {
+        label: "Minting…",
+        className: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+      },
+      ACTIVE: {
+        label: "Active",
+        className: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+      },
+      TRANSFERRED: {
+        label: "Transferred",
+        className: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
+      },
+      RECALLED: {
+        label: "Recalled",
+        className: "bg-destructive/15 text-destructive",
+      },
+    };
+    const { label, className } = config[status] ?? {
+      label: status,
+      className: "",
+    };
+    return <Badge className={className}>{label}</Badge>;
+  }
+
   if (isLoading) {
     return (
       <div className="flex flex-1 items-center justify-center py-16">
@@ -382,10 +440,23 @@ export default function ProductDetailPage() {
             </Link>
           </Button>
           {canAuthorDraft && !isEditing && (
-            <Button size="sm" onClick={startEditing}>
-              <Edit3 className="size-4" />
-              Edit passport draft
-            </Button>
+            <>
+              <Button size="sm" onClick={startEditing}>
+                <Edit3 className="size-4" />
+                Edit passport draft
+              </Button>
+              <Button
+                size="sm"
+                variant="default"
+                onClick={() => {
+                  setMintError(null);
+                  setShowMintDialog(true);
+                }}
+              >
+                <Flame className="size-4" />
+                Mint to blockchain
+              </Button>
+            </>
           )}
         </div>
       </div>
@@ -394,16 +465,24 @@ export default function ProductDetailPage() {
         <CardContent className="flex flex-col gap-3 py-5 md:flex-row md:items-center md:justify-between">
           <div className="space-y-1">
             <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
-              Draft authoring status
+              Lifecycle status
             </p>
             <p className="text-sm text-foreground">
-              Passport draft authoring stays available only while status remains
-              DRAFT.
+              {product.status === "DRAFT" &&
+                "Passport draft authoring stays available only while status remains DRAFT."}
+              {product.status === "MINTING" &&
+                "Minting is in progress. The product is being registered on-chain."}
+              {product.status === "ACTIVE" &&
+                "Product is live on-chain. Transfer ownership or recall if needed."}
+              {product.status === "TRANSFERRED" &&
+                "Ownership has been transferred. This product is no longer under your control."}
+              {product.status === "RECALLED" &&
+                "This product has been permanently recalled. No further actions are available."}
             </p>
           </div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-border/70 px-3 py-1 text-sm font-medium text-foreground">
+          <div className="inline-flex items-center gap-2">
             <LockKeyhole className="size-4 text-muted-foreground" />
-            {product.status}
+            {statusBadge(product.status)}
           </div>
         </CardContent>
       </Card>
@@ -638,6 +717,43 @@ export default function ProductDetailPage() {
         </CardContent>
       </Card>
 
+      {product.status === "MINTING" && (
+        <Card className="border-blue-200 bg-blue-50/50 dark:border-blue-900/50 dark:bg-blue-950/20">
+          <CardContent className="flex items-center gap-3 py-5">
+            <Loader2 className="size-5 animate-spin text-blue-600 dark:text-blue-400" />
+            <div>
+              <p className="text-sm font-medium text-foreground">
+                Minting in progress
+              </p>
+              <p className="text-xs text-muted-foreground">
+                The product is being registered on-chain. This may take a few
+                moments.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {(product.status === "TRANSFERRED" || product.status === "RECALLED") && (
+        <Card className="border-border/70 bg-muted/20">
+          <CardContent className="flex items-center gap-3 py-5">
+            <LockKeyhole className="size-5 text-muted-foreground" />
+            <div>
+              <p className="text-sm font-medium text-foreground">
+                {product.status === "TRANSFERRED"
+                  ? "Ownership transferred"
+                  : "Product recalled"}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {product.status === "TRANSFERRED"
+                  ? "This product has been transferred to a new owner. No further lifecycle actions are available."
+                  : "This product has been permanently recalled. No further lifecycle actions are available."}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {product.status === "ACTIVE" && (
         <Card className="border-destructive/30">
           <CardHeader>
@@ -717,6 +833,45 @@ export default function ProductDetailPage() {
                   <Loader2 className="size-4 animate-spin" />
                 ) : null}
                 {isRecalling ? "Recalling…" : "Confirm recall"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Mint confirmation dialog */}
+      <Dialog open={showMintDialog} onOpenChange={setShowMintDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Mint to blockchain</DialogTitle>
+            <DialogDescription>
+              This will register the product on-chain and transition it to
+              ACTIVE status. Once minted, descriptive metadata can no longer
+              be edited. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleMint} className="flex flex-col gap-4 pt-2">
+            {mintError && (
+              <div className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                {mintError}
+              </div>
+            )}
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowMintDialog(false)}
+                disabled={isMinting}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isMinting}>
+                {isMinting ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Flame className="size-4" />
+                )}
+                {isMinting ? "Minting…" : "Confirm mint"}
               </Button>
             </div>
           </form>
