@@ -18,7 +18,7 @@ COPY . .
 WORKDIR /app/packages/shared
 RUN pnpm build
 WORKDIR /app/apps/api
-RUN pnpm prisma generate && pnpm tsc
+RUN pnpm prisma generate && pnpm tsc && cp -r src/generated dist/generated
 
 # Stage 3: Production
 FROM node:22-slim AS runner
@@ -32,7 +32,6 @@ COPY --from=builder /app/apps/api/node_modules ./apps/api/node_modules
 # Copy built artifacts
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/apps/api/prisma ./apps/api/prisma
-COPY --from=builder /app/apps/api/src/generated ./apps/api/src/generated
 COPY --from=builder /app/apps/api/package.json ./apps/api/
 COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
 COPY --from=builder /app/packages/shared/package.json ./packages/shared/
