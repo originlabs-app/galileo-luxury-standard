@@ -23,6 +23,11 @@ export default async function healthRoutes(fastify: FastifyInstance) {
         dbStatus = "error";
       }
 
+      // Storage check
+      const storageStatus: "ok" | "local" = fastify.storage.isCloudStorage
+        ? "ok"
+        : "local";
+
       // Chain RPC check
       let chainStatus: "ok" | "disabled" | "error" = "disabled";
       if (fastify.chain.chainEnabled) {
@@ -79,6 +84,7 @@ export default async function healthRoutes(fastify: FastifyInstance) {
         },
         dependencies: {
           database: dbStatus,
+          storage: storageStatus,
           chain: chainStatus,
         },
       });
