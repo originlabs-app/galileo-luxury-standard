@@ -85,6 +85,31 @@ export function ensureSameWorkspaceBrand(
   return false;
 }
 
+/**
+ * Build a Prisma `where` clause that finds a product by `id` scoped to the
+ * user's brand. ADMINs can access any product; BRAND_ADMINs are restricted to
+ * products belonging to their brand.
+ *
+ * Returns `null` and sends a 403 when the user has no brand association.
+ */
+export function buildWorkspaceProductByIdWhere(
+  reply: FastifyReply,
+  user: WorkspaceUser,
+  productId: string,
+): { id: string; brandId?: string } | null {
+  const membership = requireWorkspaceMembership(reply, user);
+
+  if (!membership) {
+    return null;
+  }
+
+  if (membership.isAdmin) {
+    return { id: productId };
+  }
+
+  return { id: productId, brandId: membership.brandId };
+}
+
 export function resolveWorkspaceMutationBrandId(
   reply: FastifyReply,
   user: WorkspaceUser,
