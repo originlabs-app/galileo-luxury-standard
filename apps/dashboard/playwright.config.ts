@@ -38,5 +38,11 @@ export default defineConfig({
       reuseExistingServer: !process.env.CI,
       timeout: 60_000,
     },
+    {
+      command: "cd ../scanner && pnpm build && PORT=3001 pnpm start",
+      url: "http://localhost:3001",
+      reuseExistingServer: !process.env.CI,
+      timeout: 60_000,
+    },
   ],
 });
