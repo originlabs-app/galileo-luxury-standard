@@ -413,10 +413,22 @@ describe("Compliance modules (unit)", () => {
     sanctionedAddresses.clear();
   });
 
-  it("jurisdictionCheck always passes (MVP stub)", async () => {
+  it("jurisdictionCheck passes when no jurisdiction is provided", async () => {
     const result = await jurisdictionCheck(baseCtx);
     expect(result.passed).toBe(true);
     expect(result.module).toBe("jurisdiction");
+  });
+
+  it("jurisdictionCheck fails for OFAC-blocked jurisdictions", async () => {
+    const result = await jurisdictionCheck({ ...baseCtx, jurisdiction: "KP" });
+    expect(result.passed).toBe(false);
+    expect(result.module).toBe("jurisdiction");
+    expect(result.reason).toBeDefined();
+  });
+
+  it("jurisdictionCheck passes for non-blocked jurisdictions", async () => {
+    const result = await jurisdictionCheck({ ...baseCtx, jurisdiction: "FR" });
+    expect(result.passed).toBe(true);
   });
 
   it("sanctionsCheck passes when toAddress is not sanctioned", async () => {
@@ -453,15 +465,51 @@ describe("Compliance modules (unit)", () => {
     expect(result.passed).toBe(true);
   });
 
-  it("cpoCheck always passes (MVP stub)", async () => {
+  it("cpoCheck passes when brandCpoEmail is not configured", async () => {
+    // No brandCpoEmail in context — brand hasn't opted in to CPO enforcement
     const result = await cpoCheck(baseCtx);
     expect(result.passed).toBe(true);
     expect(result.module).toBe("cpo");
   });
 
-  it("serviceCenterCheck always passes (MVP stub)", async () => {
+  it("cpoCheck passes when brandCpoEmail is a valid address", async () => {
+    const result = await cpoCheck({
+      ...baseCtx,
+      brandCpoEmail: "cpo@example.com",
+    });
+    expect(result.passed).toBe(true);
+    expect(result.module).toBe("cpo");
+  });
+
+  it("cpoCheck fails when brandCpoEmail is explicitly empty", async () => {
+    const result = await cpoCheck({ ...baseCtx, brandCpoEmail: "" });
+    expect(result.passed).toBe(false);
+    expect(result.module).toBe("cpo");
+    expect(result.reason).toBeDefined();
+  });
+
+  it("serviceCenterCheck passes for same-brand user", async () => {
+    // baseCtx has userBrandId === productBrandId
     const result = await serviceCenterCheck(baseCtx);
     expect(result.passed).toBe(true);
+    expect(result.module).toBe("service-center");
+  });
+
+  it("serviceCenterCheck passes for ADMIN", async () => {
+    const result = await serviceCenterCheck({
+      ...baseCtx,
+      userRole: "ADMIN",
+      userBrandId: null,
+    });
+    expect(result.passed).toBe(true);
+  });
+
+  it("serviceCenterCheck fails for cross-brand non-ADMIN without authorization", async () => {
+    const result = await serviceCenterCheck({
+      ...baseCtx,
+      userBrandId: "other-brand",
+    });
+    expect(result.passed).toBe(false);
     expect(result.module).toBe("service-center");
   });
 

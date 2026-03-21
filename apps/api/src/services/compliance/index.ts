@@ -14,6 +14,10 @@ export interface ComplianceContext {
   userId: string;
   userRole: string;
   userBrandId: string | null;
+  /** ISO 3166-1 alpha-2 country code of the destination — optional, from GeoIP or caller */
+  jurisdiction?: string | null;
+  /** Brand's CPO email address — fetched from DB by the route before running checks */
+  brandCpoEmail?: string | null;
 }
 
 export interface ComplianceResult {
