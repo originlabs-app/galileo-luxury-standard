@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/main.ts",
     "build": "prisma generate && tsc",
+    "postbuild": "node scripts/fix-prisma-esm.mjs",
     "start": "node dist/main.js",
     "test": "vitest run",
     "lint": "eslint src/",

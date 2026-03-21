@@ -18,9 +18,7 @@ COPY . .
 WORKDIR /app/packages/shared
 RUN pnpm build
 WORKDIR /app/apps/api
-RUN pnpm prisma generate && pnpm tsc \
-  && cp -rT src/generated/prisma/internal dist/generated/prisma/internal \
-  && find dist/generated -name '*.js' -exec sed -i -E "s#(from ['"]\.\.?/[^'"]+)(['"])#\1.js\2#g; s#\.js\.js#.js#g" {} +
+RUN pnpm run build
 
 # Stage 3: Production
 FROM node:22-slim AS runner
