@@ -79,3 +79,35 @@ export const GALILEO_TOKEN_ABI = [
     stateMutability: "view",
   },
 ] as const;
+
+/**
+ * Minimal ABI for the GalileoCompliance contract.
+ *
+ * Covers:
+ *   - Constructor (for deployContract)
+ *   - transferOwnership (called before token deploy so compliance.owner() == predictedTokenAddr)
+ *   - owner view (for debugging / verification)
+ */
+export const GALILEO_COMPLIANCE_ABI = [
+  {
+    type: "constructor",
+    inputs: [
+      { name: "admin_", type: "address" },
+      { name: "identityRegistry_", type: "address" },
+    ],
+  },
+  {
+    type: "function",
+    name: "transferOwnership",
+    inputs: [{ name: "newOwner", type: "address" }],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "owner",
+    inputs: [],
+    outputs: [{ name: "", type: "address" }],
+    stateMutability: "view",
+  },
+] as const;

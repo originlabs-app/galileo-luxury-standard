@@ -9,8 +9,6 @@ export interface MintParams {
   admin: `0x${string}`;
   /** Deployed IdentityRegistry contract address */
   identityRegistry: `0x${string}`;
-  /** Deployed GalileoCompliance contract address */
-  compliance: `0x${string}`;
   /** Product DID: did:galileo:01:{gtin}:21:{serialNumber} */
   productDID: string;
   /** Product category string (e.g. "Watches") */
@@ -29,10 +27,12 @@ export interface MintParams {
 
 /** Result returned by a successful mint / deployment. */
 export interface MintResult {
-  /** Deployment transaction hash */
+  /** GalileoToken deployment transaction hash */
   txHash: `0x${string}`;
   /** Deployed GalileoToken contract address (becomes the on-chain token ID) */
   tokenAddress: `0x${string}`;
+  /** Deployed GalileoCompliance contract address (per-product, bound to tokenAddress) */
+  complianceAddress: `0x${string}`;
   /** Chain ID where the token was deployed (84532 = Base Sepolia) */
   chainId: number;
 }

@@ -151,7 +151,6 @@ export default async function batchMintRoute(fastify: FastifyInstance) {
               admin: fastify.chain.walletClient!.account
                 .address as `0x${string}`,
               identityRegistry: infra.identityRegistry as `0x${string}`,
-              compliance: infra.compliance as `0x${string}`,
               productDID: product.did,
               productCategory: product.category,
               brandDID: product.brand.did,

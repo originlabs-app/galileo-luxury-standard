@@ -106,11 +106,11 @@ export default async function mintProductRoute(fastify: FastifyInstance) {
           });
         }
 
-        // Deploy GalileoToken on Base Sepolia.
+        // Deploy GalileoCompliance + GalileoToken on Base Sepolia.
+        // GalileoCompliance is deployed per-product by mintProduct() — no shared compliance needed.
         const mintParams: MintParams = {
           admin: fastify.chain.walletClient.account.address as `0x${string}`,
           identityRegistry: infra.identityRegistry as `0x${string}`,
-          compliance: infra.compliance as `0x${string}`,
           productDID: product.did,
           productCategory: product.category,
           brandDID: product.brand.did,
@@ -123,6 +123,7 @@ export default async function mintProductRoute(fastify: FastifyInstance) {
 
         let txHash: `0x${string}`;
         let tokenAddress: `0x${string}`;
+        let complianceAddress: `0x${string}`;
         let chainId: number;
 
         try {
@@ -133,6 +134,7 @@ export default async function mintProductRoute(fastify: FastifyInstance) {
           );
           txHash = result.txHash;
           tokenAddress = result.tokenAddress;
+          complianceAddress = result.complianceAddress;
           chainId = result.chainId;
         } catch (err) {
           // Blockchain deployment failed — revert product to DRAFT (best effort)
@@ -177,7 +179,7 @@ export default async function mintProductRoute(fastify: FastifyInstance) {
               data: {
                 productId: id,
                 type: "MINTED",
-                data: { txHash, tokenAddress, chainId },
+                data: { txHash, tokenAddress, complianceAddress, chainId },
                 performedBy: user.sub,
               },
             });

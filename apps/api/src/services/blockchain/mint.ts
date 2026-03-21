@@ -1,31 +1,38 @@
 /**
- * Minting service: deploys a GalileoToken contract on Base Sepolia.
+ * Minting service: deploys a per-product GalileoCompliance then GalileoToken
+ * on Base Sepolia using a 3-step flow that matches the working test-mint.mjs pattern.
  *
  * Each product is issued as its own GalileoToken (per-product-token model).
- * The constructor mints the single token to initialOwner — no separate mint() call.
+ * The GalileoToken constructor mints the single token to initialOwner and calls
+ * compliance.bindToken(address(this)) — which requires compliance.owner() to be
+ * the predicted token address at deploy time.
  *
- * Bytecode is loaded from Foundry compilation artifacts
- * (contracts/out/GalileoToken.sol/GalileoToken.json).
- * If the artifact is not found, the function throws with a clear message directing
- * the caller to run `forge build` first.
+ * Steps:
+ *   1. Deploy GalileoCompliance at nonce N
+ *   2. Call compliance.transferOwnership(predictedTokenAddr) at nonce N+1
+ *   3. Deploy GalileoToken at nonce N+2 with the actual compliance address
  *
- * For unit tests, pass the optional `bytecodeOverride` parameter instead of
- * relying on the filesystem artifact.
+ * Bytecodes are loaded from Foundry compilation artifacts.
+ * Run `forge build` in contracts/ if artifacts are missing.
+ *
+ * For unit tests, pass `bytecodeOverrides` to inject compiled bytecode
+ * directly instead of loading from the filesystem.
  */
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { GALILEO_TOKEN_ABI } from "./abi.js";
+import { getContractAddress } from "viem";
+import { GALILEO_TOKEN_ABI, GALILEO_COMPLIANCE_ABI } from "./abi.js";
 import { BASE_SEPOLIA_CHAIN_ID } from "./chain.js";
 import type { MintParams, MintResult } from "./types.js";
 
 /**
- * Attempts to load the compiled GalileoToken bytecode from Foundry artifacts.
+ * Attempts to load compiled bytecode from a Foundry artifact.
  * Returns null if the artifact file is not found or malformed.
  */
-function loadGalileoTokenBytecode(): `0x${string}` | null {
+function loadBytecode(contractPath: string): `0x${string}` | null {
   try {
     const artifactUrl = new URL(
-      "../../../../../../contracts/out/GalileoToken.sol/GalileoToken.json",
+      `../../../../../../contracts/out/${contractPath}`,
       import.meta.url,
     );
     const content = readFileSync(fileURLToPath(artifactUrl), "utf8");
@@ -41,13 +48,17 @@ function loadGalileoTokenBytecode(): `0x${string}` | null {
 }
 
 /**
- * Deploy a new GalileoToken contract on Base Sepolia for one product.
+ * Deploy a GalileoCompliance + GalileoToken for one product on Base Sepolia.
  *
- * @param walletClient  Viem wallet client (with account set) for signing transactions
- * @param publicClient  Viem public client for reading receipts
- * @param params        Product metadata and infrastructure addresses
- * @param bytecodeOverride  Optional compiled bytecode (for testing; omit in production)
- * @returns MintResult with txHash, tokenAddress, chainId
+ * The 3-step flow ensures compliance.bindToken(address(this)) succeeds in the
+ * token constructor by pre-transferring compliance ownership to the predicted
+ * token address before deploying the token.
+ *
+ * @param walletClient       Viem wallet client (with account) for signing txs
+ * @param publicClient       Viem public client for reading receipts and nonce
+ * @param params             Product metadata and infrastructure addresses
+ * @param bytecodeOverrides  Optional bytecodes for testing (omit in production)
+ * @returns MintResult with txHash (token deploy), tokenAddress, complianceAddress, chainId
  */
 export async function mintProduct(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -55,16 +66,83 @@ export async function mintProduct(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   publicClient: any,
   params: MintParams,
-  bytecodeOverride?: `0x${string}`,
+  bytecodeOverrides?: { token?: `0x${string}`; compliance?: `0x${string}` },
 ): Promise<MintResult> {
-  const bytecode = bytecodeOverride ?? loadGalileoTokenBytecode();
+  const complianceBytecode =
+    bytecodeOverrides?.compliance ??
+    loadBytecode("GalileoCompliance.sol/GalileoCompliance.json");
 
-  if (!bytecode) {
+  if (!complianceBytecode) {
+    throw new Error(
+      "GalileoCompliance bytecode not found. Run `forge build` in the contracts/ directory to compile.",
+    );
+  }
+
+  const tokenBytecode =
+    bytecodeOverrides?.token ??
+    loadBytecode("GalileoToken.sol/GalileoToken.json");
+
+  if (!tokenBytecode) {
     throw new Error(
       "GalileoToken bytecode not found. Run `forge build` in the contracts/ directory to compile.",
     );
   }
 
+  const deployerAddress = walletClient.account.address as `0x${string}`;
+
+  // Get current nonce so we can predict the token CREATE address.
+  // We use explicit nonces on each tx to remain correct even when RPC state
+  // lags slightly behind local state.
+  const currentNonce: number = await publicClient.getTransactionCount({
+    address: deployerAddress,
+  });
+
+  // Predict addresses using CREATE determinism:
+  //   nonce N   → GalileoCompliance  (CREATE)
+  //   nonce N+1 → transferOwnership  (CALL — does not advance CREATE nonce)
+  //   nonce N+2 → GalileoToken       (CREATE)
+  const predictedTokenAddr = getContractAddress({
+    from: deployerAddress,
+    nonce: BigInt(currentNonce + 2),
+  });
+
+  // ── Step 1: Deploy GalileoCompliance ───────────────────────────────────────
+  const complianceDeployHash: `0x${string}` = await walletClient.deployContract(
+    {
+      abi: GALILEO_COMPLIANCE_ABI,
+      bytecode: complianceBytecode,
+      args: [deployerAddress, params.identityRegistry],
+      nonce: currentNonce,
+    },
+  );
+
+  const complianceReceipt = await publicClient.waitForTransactionReceipt({
+    hash: complianceDeployHash,
+  });
+
+  if (!complianceReceipt.contractAddress) {
+    throw new Error(
+      `GalileoCompliance deployment receipt for tx ${complianceDeployHash} is missing contractAddress`,
+    );
+  }
+
+  const complianceAddress =
+    complianceReceipt.contractAddress as `0x${string}`;
+
+  // ── Step 2: Transfer compliance ownership to predicted token address ────────
+  // The GalileoToken constructor calls compliance.bindToken(address(this)).
+  // bindToken requires compliance.owner() == address(this) == predictedTokenAddr.
+  const transferHash: `0x${string}` = await walletClient.writeContract({
+    address: complianceAddress,
+    abi: GALILEO_COMPLIANCE_ABI,
+    functionName: "transferOwnership",
+    args: [predictedTokenAddr],
+    nonce: currentNonce + 1,
+  });
+
+  await publicClient.waitForTransactionReceipt({ hash: transferHash });
+
+  // ── Step 3: Deploy GalileoToken ────────────────────────────────────────────
   const config = {
     tokenName: params.gtin,
     tokenSymbol: "GLXO",
@@ -76,31 +154,33 @@ export async function mintProduct(
     serialNumber: params.serialNumber,
   };
 
-  const txHash: `0x${string}` = await walletClient.deployContract({
+  const tokenDeployHash: `0x${string}` = await walletClient.deployContract({
     abi: GALILEO_TOKEN_ABI,
-    bytecode,
+    bytecode: tokenBytecode,
     args: [
       params.admin,
       params.identityRegistry,
-      params.compliance,
+      complianceAddress,
       config,
       params.initialOwner,
     ],
+    nonce: currentNonce + 2,
   });
 
-  const receipt = await publicClient.waitForTransactionReceipt({
-    hash: txHash,
+  const tokenReceipt = await publicClient.waitForTransactionReceipt({
+    hash: tokenDeployHash,
   });
 
-  if (!receipt.contractAddress) {
+  if (!tokenReceipt.contractAddress) {
     throw new Error(
-      `Contract deployment receipt for tx ${txHash} is missing contractAddress`,
+      `GalileoToken deployment receipt for tx ${tokenDeployHash} is missing contractAddress`,
     );
   }
 
   return {
-    txHash,
-    tokenAddress: receipt.contractAddress as `0x${string}`,
+    txHash: tokenDeployHash,
+    tokenAddress: tokenReceipt.contractAddress as `0x${string}`,
+    complianceAddress,
     chainId: BASE_SEPOLIA_CHAIN_ID,
   };
 }
