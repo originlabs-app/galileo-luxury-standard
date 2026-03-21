@@ -18,7 +18,7 @@ COPY . .
 WORKDIR /app/packages/shared
 RUN pnpm build
 WORKDIR /app/apps/api
-RUN pnpm prisma generate && pnpm tsc && rm -rf dist/generated && cp -r src/generated dist/generated
+RUN pnpm prisma generate && pnpm tsc && cp -r src/generated/prisma/internal dist/generated/prisma/internal
 
 # Stage 3: Production
 FROM node:22-slim AS runner
