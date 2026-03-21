@@ -19,10 +19,7 @@ WORKDIR /app/packages/shared
 RUN pnpm build
 WORKDIR /app/apps/api
 RUN pnpm prisma generate && pnpm tsc \
-    && echo "=== SRC files ===" && find src/generated -type f | sort \
-    && echo "=== DIST files ===" && find dist/generated -type f | sort \
-    && cp -rT src/generated/prisma/internal dist/generated/prisma/internal \
-    && echo "=== FINAL dist ===" && find dist/generated -type f | sort
+  && rm -rf dist/generated && cp -r src/generated dist/generated
 
 # Stage 3: Production
 FROM node:22-slim AS runner
@@ -44,5 +41,5 @@ COPY --from=builder /app/contracts/deployments /contracts/deployments
 WORKDIR /app/apps/api
 EXPOSE 4000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD node -e "fetch('http://localhost:4000/health').then(r=>{if(!r.ok)throw 1}).catch(()=>process.exit(1))"
+  CMD node -e "fetch('http://localhost:4000/health').then(r=>{if(!r.ok)throw 1}).catch(()=>process.exit(1))"
 CMD ["node", "dist/main.js"]
