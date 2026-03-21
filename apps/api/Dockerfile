@@ -25,15 +25,20 @@ FROM node:22-slim AS runner
 RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 ENV NODE_ENV=production
-COPY --from=builder /app/apps/api/dist ./dist
-COPY --from=builder /app/apps/api/prisma ./prisma
-COPY --from=builder /app/apps/api/src/generated ./src/generated
-COPY --from=builder /app/apps/api/node_modules ./node_modules
-COPY --from=builder /app/packages/shared/dist ../packages/shared/dist
-COPY --from=builder /app/packages/shared/package.json ../packages/shared/
-COPY --from=builder /app/apps/api/package.json ./
-# Deployment manifest is resolved 3 dirs up from dist/ at runtime → /contracts/…
+# Copy root node_modules (contains pnpm virtual store .pnpm/)
+COPY --from=builder /app/node_modules ./node_modules
+# Copy workspace node_modules (contains symlinks to root .pnpm/)
+COPY --from=builder /app/apps/api/node_modules ./apps/api/node_modules
+# Copy built artifacts
+COPY --from=builder /app/apps/api/dist ./apps/api/dist
+COPY --from=builder /app/apps/api/prisma ./apps/api/prisma
+COPY --from=builder /app/apps/api/src/generated ./apps/api/src/generated
+COPY --from=builder /app/apps/api/package.json ./apps/api/
+COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
+COPY --from=builder /app/packages/shared/package.json ./packages/shared/
+# Deployment manifest resolved 3 dirs up from dist/ at runtime
 COPY --from=builder /app/contracts/deployments /contracts/deployments
+WORKDIR /app/apps/api
 EXPOSE 4000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
   CMD node -e "fetch('http://localhost:4000/health').then(r=>{if(!r.ok)throw 1}).catch(()=>process.exit(1))"
