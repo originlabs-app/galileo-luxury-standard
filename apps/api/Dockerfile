@@ -20,7 +20,7 @@ RUN pnpm build
 WORKDIR /app/apps/api
 RUN pnpm prisma generate && pnpm tsc \
   && cp -rT src/generated/prisma/internal dist/generated/prisma/internal \
-  && node -e 'var fs=require("fs"),p=require("path");function f(d){fs.readdirSync(d,{withFileTypes:true}).forEach(function(e){var n=p.join(d,e.name);if(e.isDirectory())f(n);else if(e.name.endsWith(".js")){var c=fs.readFileSync(n,"utf8");c=c.replace(/from ([\x27\x22])(\.\.\/[^\x27\x22]+)\1/g,function(m,q,i){return i.endsWith(".js")?m:"from "+q+i+".js"+q});c=c.replace(/from ([\x27\x22])(\.\/ [^\x27\x22]+)\1/g,function(m,q,i){return i.endsWith(".js")?m:"from "+q+i+".js"+q});fs.writeFileSync(n,c)}})}f("dist/generated")'
+  && find dist/generated -name '*.js' -exec sed -i -E "s/(from ['"]\.\.?\/[^'"]+)(['"])/\1.js\2/g; s/\.js\.js/.js/g" {} +
 
 # Stage 3: Production
 FROM node:22-slim AS runner
