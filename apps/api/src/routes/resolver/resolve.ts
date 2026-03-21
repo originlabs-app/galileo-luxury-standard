@@ -5,7 +5,18 @@ import {
   productMaterialsSchema,
   readProductPassportAuthoringMetadata,
   validateGtin,
+  type BlockchainVerification,
 } from "@galileo/shared";
+
+const CHAIN_NAMES: Record<number, string> = {
+  8453: "Base",
+  84532: "Base Sepolia",
+};
+
+const EXPLORER_BASE_URLS: Record<number, string> = {
+  8453: "https://basescan.org",
+  84532: "https://sepolia.basescan.org",
+};
 
 /**
  * Maps internal product status to public-safe resolver values.
@@ -118,6 +129,24 @@ export default async function resolveDigitalLinkRoute(
       const parsedMaterials = productMaterialsSchema.safeParse(rawMaterials);
       const materials = parsedMaterials.success ? parsedMaterials.data : [];
 
+      // Build blockchain verification object when passport has been minted
+      const blockchain: BlockchainVerification | null = product.passport?.txHash
+        ? {
+            verified: product.status === "ACTIVE",
+            txHash: product.passport.txHash,
+            tokenId: product.passport.tokenAddress ?? null,
+            chain: product.passport.chainId
+              ? (CHAIN_NAMES[product.passport.chainId] ??
+                `Chain ${product.passport.chainId}`)
+              : "Base Sepolia",
+            explorerUrl: `${
+              (product.passport.chainId &&
+                EXPLORER_BASE_URLS[product.passport.chainId]) ??
+              "https://sepolia.basescan.org"
+            }/tx/${product.passport.txHash}`,
+          }
+        : null;
+
       // Build JSON-LD payload with @context array (C1: Galileo context, I1: canonical GS1 URL)
       const jsonLd = {
         "@context": JSONLD_CONTEXT,
@@ -145,6 +174,7 @@ export default async function resolveDigitalLinkRoute(
               mintedAt: product.passport.mintedAt,
             }
           : null,
+        blockchain,
         ...(materials.length > 0 ? { hasMaterialComposition: materials } : {}),
         provenance:
           product.events
