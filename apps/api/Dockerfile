@@ -19,11 +19,26 @@ WORKDIR /app/packages/shared
 RUN pnpm build
 WORKDIR /app/apps/api
 RUN pnpm prisma generate && pnpm tsc \
-  && echo "=== SRC generated files ===" && find src/generated -type f | head -20 \
-  && echo "=== DIST generated files (before overlay) ===" && find dist/generated -type f | head -20 \
-  && echo "=== client.js imports ===" && grep -n "from " dist/generated/prisma/client.js | head -10 \
   && cp -rT src/generated/prisma/internal dist/generated/prisma/internal \
-  && echo "=== DIST generated files (after overlay) ===" && find dist/generated -type f | head -20
+  && cat > /tmp/fix-imports.js << 'FIXEOF'
+const fs = require("fs");
+const path = require("path");
+function fix(dir) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) { fix(full); continue; }
+    if (!entry.name.endsWith(".js")) continue;
+    let code = fs.readFileSync(full, "utf8");
+    code = code.replace(/from (['"])(\.\.?\/[^'"]+)\1/g, (m, q, p) =>
+      p.endsWith(".js") ? m : "from " + q + p + ".js" + q
+    );
+    fs.writeFileSync(full, code);
+  }
+}
+fix("dist/generated");
+FIXEOF
+  && node /tmp/fix-imports.js \
+  && echo "=== Fixed client.js imports ===" && grep -n "from " dist/generated/prisma/client.js | head -10
 
 # Stage 3: Production
 FROM node:22-slim AS runner
