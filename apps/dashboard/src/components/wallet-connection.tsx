@@ -1,5 +1,6 @@
 "use client";
 
+import { Avatar, Identity, Name } from "@coinbase/onchainkit/identity";
 import { AlertCircle, Link2, LoaderCircle, LogOut, Wallet } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -15,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/use-auth";
 import { buildLinkWalletMessage } from "@galileo/shared";
 import { api, ApiError } from "@/lib/api";
-import { formatWalletAddress, walletChain } from "@/lib/wallet";
+import { walletChain } from "@/lib/wallet";
 
 function resolveErrorMessage(message?: string) {
   if (!message) {
@@ -157,9 +158,10 @@ export function WalletConnection() {
         <Badge variant={isWrongChain ? "destructive" : "secondary"}>
           {isWrongChain ? "Wrong network" : (chain?.name ?? walletChain.name)}
         </Badge>
-        <span className="text-sm text-foreground">
-          {formatWalletAddress(address)}
-        </span>
+        <Identity address={address} className="flex items-center gap-1.5">
+          <Avatar className="size-5" />
+          <Name className="text-sm text-foreground" />
+        </Identity>
         <span className="text-xs text-muted-foreground">
           {connector?.name ?? "Browser wallet"}
         </span>
