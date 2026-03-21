@@ -2,7 +2,9 @@
   "environment": "base-sepolia",
   "network": "Base Sepolia",
   "chainId": 84532,
-  "status": "planned",
+  "status": "deployed",
+  "deployedAt": "2026-03-21T00:00:00.000Z",
+  "deployer": "0xA46a59EcD84486f31Bc54A4D9d5C8241Aa998c2e",
   "rpc": {
     "envVar": "BASE_SEPOLIA_RPC_URL"
   },
@@ -18,16 +20,20 @@
     "description": "Infrastructure addresses are canonical. Each product is issued as its own GalileoToken deployment rather than sharing one pilot-wide token address."
   },
   "infrastructure": {
-    "accessControl": null,
-    "claimTopicsRegistry": null,
-    "trustedIssuersRegistry": null,
-    "identityRegistryStorage": null,
-    "identityRegistry": null,
-    "compliance": null,
-    "brandAuthorizationModule": null,
-    "cpoCertificationModule": null,
-    "jurisdictionModule": null,
-    "sanctionsModule": null,
-    "serviceCenterModule": null
+    "accessControl": "0xbDC20FA6469fDE0200d8c87CE883D2DE3cAceeE1",
+    "claimTopicsRegistry": "0x5d3d76fcFB1927853e5B7b6B6671fDe749eA41E1",
+    "trustedIssuersRegistry": "0x78833255f0c85bB17ee317b9Af3AD39c1173E348",
+    "identityRegistryStorage": "0x516cD7a94d402c0bc265057939f2b5eb64e1865D",
+    "identityRegistry": "0x04B0318E368C187F9d10681fDDBBBFBC7C6b82B3",
+    "compliance": "0x4Ae2336E70fc9765Ea0438Ae9563E204B0dF8D18",
+    "brandAuthorizationModule": "0x83aA36D6c518151E37bC84732ED424B5bC31B888",
+    "cpoCertificationModule": "0xC91Ecdf36097D8F5E50B208550a85B0434984bd0",
+    "jurisdictionModule": "0xB8e3E1de072b231494177f9e456128F8D8F86aa6",
+    "sanctionsModule": "0xB7fBf8F21A92E8fFc9D4Ec69999d06B6357f5127",
+    "serviceCenterModule": "0xa7859F1724c3b40AF6Fd9292ca0233eb7e88e936"
+  },
+  "exampleToken": {
+    "address": "0x0Eb8764115147Cea9299815ba18bc4724925Afcd",
+    "note": "Example GalileoToken deployed by Deploy.s.sol. Actual product tokens are deployed individually by the minting service."
   }
 }
