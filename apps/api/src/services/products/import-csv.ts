@@ -204,7 +204,20 @@ function parseCsvRecords(content: string): ParsedCsvRecords {
   return { ok: true, rows };
 }
 
+function hasInvalidEncoding(content: string): boolean {
+  // buffer.toString('utf-8') replaces undecodable bytes with U+FFFD;
+  // null bytes (U+0000) are also never valid in CSV text files.
+  return content.includes("\uFFFD") || content.includes("\x00");
+}
+
 function parseCsvSource(content: string): ParsedCsvSource {
+  if (hasInvalidEncoding(content)) {
+    return {
+      ok: false,
+      message: "File must be valid UTF-8 encoded text (invalid bytes detected)",
+    };
+  }
+
   const parsedRecords = parseCsvRecords(content);
   if (!parsedRecords.ok) {
     return parsedRecords;
