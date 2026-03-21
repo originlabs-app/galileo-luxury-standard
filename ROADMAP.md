@@ -143,6 +143,18 @@ Everything shipped across Sprints 1–10.
 - 📋 Transaction pending state (spinner, block confirmations)
 - 📋 Basescan link in product detail after mint
 
+### Public Bridge Interface 📋 Planned
+> **Target:** Help luxury brands onboard onto Base chain easily — get ETH on Base Sepolia without needing to navigate external bridges.
+
+- 📋 New public page at `galileoprotocol.io/bridge` (`apps/website` — no auth required)
+- 📋 "Connect Wallet" button supporting MetaMask and WalletConnect (wagmi)
+- 📋 Bridge ETH from Ethereum Sepolia → Base Sepolia using L1 Standard Bridge (`0xfd0Bf71F60660E2f608ed56e1659C450eB113120` on Sepolia)
+- 📋 Free to use during testnet phase
+- 📋 Real-time bridge status: transaction confirmation, block progress, estimated arrival time (~1–3 min)
+- 📋 Link to Etherscan / Basescan for each bridge transaction
+- 📡 Future (mainnet): bridge ETH Mainnet → Base Mainnet via the same L1 Standard Bridge pattern
+- 📡 Future: reverse direction — Base → Ethereum (7-day optimistic rollup challenge window, clearly communicated)
+
 ---
 
 ## Phase 3 — Enterprise Ready 💡 Future
