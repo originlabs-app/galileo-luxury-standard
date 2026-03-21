@@ -4,10 +4,12 @@
  * These helpers create fresh clients independently of the Fastify chain plugin,
  * making the blockchain service unit-testable without a running server.
  *
- * Priority for the private key: MINTING_PRIVATE_KEY → DEPLOYER_PRIVATE_KEY.
+ * Priority for account resolution:
+ *   1. MINTING_MNEMONIC  — BIP-39 mnemonic (recommended; derives key at path m/44'/60'/0'/0/0)
+ *   2. MINTING_PRIVATE_KEY / DEPLOYER_PRIVATE_KEY — raw hex private key (legacy fallback)
  */
 import { createPublicClient, createWalletClient } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
+import { mnemonicToAccount, privateKeyToAccount } from "viem/accounts";
 import { baseSepolia, getBaseSepoliaTransport } from "./chain.js";
 
 /** Create a public (read-only) viem client for Base Sepolia. */
@@ -20,15 +22,29 @@ export function getPublicClient() {
 
 /**
  * Create a wallet (write) viem client for Base Sepolia.
- * Returns null and logs a warning if no private key is configured.
+ * Returns null and logs a warning if no credential is configured.
+ *
+ * Resolution order:
+ *   1. MINTING_MNEMONIC (BIP-39 — preferred)
+ *   2. MINTING_PRIVATE_KEY or DEPLOYER_PRIVATE_KEY (raw hex — legacy)
  */
 export function getWalletClient() {
+  const mnemonic = process.env.MINTING_MNEMONIC;
+  if (mnemonic) {
+    const account = mnemonicToAccount(mnemonic);
+    return createWalletClient({
+      account,
+      chain: baseSepolia,
+      transport: getBaseSepoliaTransport(),
+    });
+  }
+
   const privateKey =
     process.env.MINTING_PRIVATE_KEY ?? process.env.DEPLOYER_PRIVATE_KEY;
 
   if (!privateKey) {
     console.warn(
-      "[blockchain] No private key configured (MINTING_PRIVATE_KEY / DEPLOYER_PRIVATE_KEY) — blockchain writes disabled",
+      "[blockchain] No credential configured (MINTING_MNEMONIC / MINTING_PRIVATE_KEY / DEPLOYER_PRIVATE_KEY) — blockchain writes disabled",
     );
     return null;
   }
@@ -42,12 +58,14 @@ export function getWalletClient() {
 }
 
 /**
- * Returns true when both an RPC URL and a private key are configured,
+ * Returns true when both an RPC URL and a signing credential are configured,
  * meaning the service can submit real transactions.
  */
 export function isBlockchainWriteConfigured(): boolean {
   return Boolean(
-    (process.env.MINTING_PRIVATE_KEY || process.env.DEPLOYER_PRIVATE_KEY) &&
+    (process.env.MINTING_MNEMONIC ||
+      process.env.MINTING_PRIVATE_KEY ||
+      process.env.DEPLOYER_PRIVATE_KEY) &&
       process.env.BASE_SEPOLIA_RPC_URL,
   );
 }

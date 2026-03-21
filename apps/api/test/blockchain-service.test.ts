@@ -25,6 +25,9 @@ vi.mock("viem/accounts", () => ({
   privateKeyToAccount: vi.fn(() => ({
     address: "0xDeadBeefDeadBeefDeadBeefDeadBeefDeadBeef",
   })),
+  mnemonicToAccount: vi.fn(() => ({
+    address: "0xMnemonicMnemonicMnemonicMnemonicMnemonic00",
+  })),
 }));
 
 vi.mock("viem/chains", () => ({
@@ -250,6 +253,7 @@ describe("getWalletClient", () => {
 
   beforeEach(() => {
     process.env = { ...originalEnv };
+    delete process.env.MINTING_MNEMONIC;
     delete process.env.MINTING_PRIVATE_KEY;
     delete process.env.DEPLOYER_PRIVATE_KEY;
   });
@@ -258,7 +262,7 @@ describe("getWalletClient", () => {
     process.env = originalEnv;
   });
 
-  it("returns null when neither MINTING_PRIVATE_KEY nor DEPLOYER_PRIVATE_KEY is set", () => {
+  it("returns null when no credential is set", () => {
     const client = getWalletClient();
     expect(client).toBeNull();
   });
@@ -271,6 +275,7 @@ describe("isBlockchainWriteConfigured", () => {
 
   beforeEach(() => {
     process.env = { ...originalEnv };
+    delete process.env.MINTING_MNEMONIC;
     delete process.env.MINTING_PRIVATE_KEY;
     delete process.env.DEPLOYER_PRIVATE_KEY;
     delete process.env.BASE_SEPOLIA_RPC_URL;
@@ -284,7 +289,7 @@ describe("isBlockchainWriteConfigured", () => {
     expect(isBlockchainWriteConfigured()).toBe(false);
   });
 
-  it("returns false when only RPC URL is set (no private key)", () => {
+  it("returns false when only RPC URL is set (no credential)", () => {
     process.env.BASE_SEPOLIA_RPC_URL = "https://sepolia.base.org";
     expect(isBlockchainWriteConfigured()).toBe(false);
   });
@@ -298,6 +303,13 @@ describe("isBlockchainWriteConfigured", () => {
   it("returns true when both MINTING_PRIVATE_KEY and BASE_SEPOLIA_RPC_URL are set", () => {
     process.env.MINTING_PRIVATE_KEY =
       "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
+    process.env.BASE_SEPOLIA_RPC_URL = "https://sepolia.base.org";
+    expect(isBlockchainWriteConfigured()).toBe(true);
+  });
+
+  it("returns true when both MINTING_MNEMONIC and BASE_SEPOLIA_RPC_URL are set", () => {
+    process.env.MINTING_MNEMONIC =
+      "test test test test test test test test test test test junk";
     process.env.BASE_SEPOLIA_RPC_URL = "https://sepolia.base.org";
     expect(isBlockchainWriteConfigured()).toBe(true);
   });
