@@ -9,6 +9,8 @@ const navItems = [
   { label: 'Governance', href: '/governance' },
   { label: 'La Maison', href: '/maison' },
   { label: 'Blog', href: '/blog' },
+  { label: 'Changelog', href: '/changelog' },
+  { label: 'Roadmap', href: '/roadmap' },
   { label: 'Tools', href: '/tools' },
 ];
 

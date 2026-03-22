@@ -301,6 +301,47 @@ All features shipped across the initial development cycle.
 
 ---
 
+## Base Ecosystem Integration 💡 Future
+
+Galileo Protocol is built on Base — Coinbase's L2 network. The Base ecosystem offers a set of developer services that, when integrated, would make Galileo significantly more accessible for brands and consumers alike: no ETH required, AI-powered automation, native wallet experiences, and on-chain analytics from day one.
+
+### Gas Sponsorship — Base Paymaster 💡
+- 💡 **Brand-sponsored gas** — Brands cover the transaction cost for all on-chain operations; consumers never need ETH to verify, transfer, or interact with their product passport
+- 💡 **Policy-based sponsorship rules** — Configure which operations are gas-sponsored and up to what daily limit per brand wallet
+- 💡 **Seamless UX for consumers** — Scanning a product and recording provenance becomes a zero-friction action, no wallet setup required
+
+### High-Volume Efficiency — Base Batched 💡
+- 💡 **Batch minting at scale** — Group hundreds of mint operations into a single transaction, reducing per-unit gas cost significantly for large brands
+- 💡 **Batch ownership transfers** — Process secondary market transfers in bulk for trade-in programs and certified pre-owned workflows
+- 💡 **Cost benchmarks** — Publish gas estimates per operation so brands can forecast infrastructure costs before committing
+
+### Wallet & Authentication — OnchainKit 💡
+- 💡 **Unified wallet connection** — Integrate OnchainKit's wallet components for a consistent connection experience across Coinbase Wallet, MetaMask, and smart wallets
+- 💡 **Passkey-based Smart Wallets** — Allow brands and consumers to onboard without seed phrases, using biometric passkeys via Coinbase Smart Wallet
+- 💡 **Identity components** — Display verified on-chain brand identity and product ownership directly in the scanner UI using OnchainKit primitives
+
+### On-Chain Automation — AgentKit 💡
+- 💡 **Autonomous minting agent** — An AI agent that monitors incoming product registrations and triggers on-chain minting automatically, without manual brand intervention
+- 💡 **DPP maintenance agent** — Detect when a product's compliance claims are about to expire and automatically initiate renewal workflows
+- 💡 **Compliance reporting agent** — Aggregate on-chain events and generate ESPR-aligned compliance reports on a scheduled basis, fully automated
+
+### Embedded Experiences — Mini Apps 💡
+- 💡 **In-wallet product passport** — A Mini App embedded in Coinbase Wallet that lets consumers view, verify, and share their product provenance without leaving the wallet interface
+- 💡 **Brand storefronts** — Lightweight Mini Apps for brands to surface their product catalog and ownership history directly to wallet users
+- 💡 **CPO marketplace widget** — A Mini App enabling consumers to initiate certified pre-owned transfers directly from their wallet, with on-chain settlement
+
+### On-Chain Analytics — Spindl 💡
+- 💡 **Scan-to-verify attribution** — Track which QR scans convert to on-chain actions, giving brands insight into product engagement in the real world
+- 💡 **Geographic verification heatmaps** — Visualize where products are being scanned and verified globally, useful for detecting gray-market distribution
+- 💡 **Counterfeiting anomaly signals** — Detect unusual scan patterns (repeated scans of the same product from different locations) as early counterfeiting signals
+
+### Blockchain Data Access — Base Data 💡
+- 💡 **Real-time event streaming** — Subscribe to on-chain product events (minted, transferred, recalled) via Base webhooks for instant downstream processing
+- 💡 **Archive node access** — Query full historical on-chain data for audit reports and compliance exports using Base's archive infrastructure
+- 💡 **SQL-based analytics** — Run ad-hoc queries across product passport history using Base's SQL data access layer, directly from the dashboard
+
+---
+
 ## Future Directions
 
 > This section captures ideas the community is excited about. Nothing here is committed — these are directions worth exploring as the protocol matures. If any of these resonates with you, open a discussion on GitHub.
