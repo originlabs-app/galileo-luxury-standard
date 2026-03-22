@@ -5,10 +5,6 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-### Added
-- Project engineering standards: documentation structure, agent guidelines, and architecture reference
-- Automated release pipeline with version management, changelog generation, and blog post publication
-
 ## [2026-03-22] — Production Deployment Complete
 
 All four platform components are now live in production: API, Dashboard, Scanner, and Website.
@@ -16,17 +12,21 @@ All four platform components are now live in production: API, Dashboard, Scanner
 ### Added
 - **Brand Dashboard live** — The B2B portal is deployed and open for brand onboarding
 - **Consumer Scanner live** — The QR-based product verification PWA is accessible for end-users
-- **Cloud storage for product assets** — Product images and Digital Passport assets are stored in persistent cloud storage
+- **Cloud storage for product assets** — Product images and Digital Passport assets are stored in Cloudflare R2
 - **Smart contract verification** — Contracts are now verifiable on the Base Sepolia block explorer
-- **Automated release pipeline** — Version management, changelog automation, and release notes generation are fully configured
+- **Automated release pipeline** — Changesets + GitHub Actions for versioning, changelog generation, and release notes
+- **Project engineering standards** — Documentation structure, agent guidelines, and architecture reference
+- **Website /changelog and /roadmap** — Public-facing pages live with Base ecosystem integration section
 
 ### Fixed
-- **Node.js ESM compatibility** — Improved module resolution for the API server in production environments
-- **Container build reliability** — Smart contract deployment artifacts are correctly bundled in the production image
+- **Node.js ESM compatibility** — Postbuild script patches Prisma client `.js` extensions for ESM resolution in production
+- **Container build reliability** — Smart contract `deployments/` artifacts correctly copied in multi-stage Docker build
+- **Vercel deployment scope** — `.vercelignore` updated to exclude `/governance` and `/docs` from website builds
 
 ### Infrastructure
-- **Production database live** — Full product registry and brand management schema deployed and migrated
+- **Production database live** — Full product registry and brand management schema deployed and migrated on Railway
 - **End-to-end configuration verified** — Dashboard and Scanner correctly connected to the production API
+- **Git hygiene** — 61 stale branches and 60 worktrees pruned from repository
 
 ## [1.0.0] — 2026-03-20 — Foundation Release
 

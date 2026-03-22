@@ -6,7 +6,7 @@
 |---------|----------|-------|
 | `apps/api` | Docker (Railway or self-hosted) | Multi-stage Dockerfile in `apps/api/Dockerfile` |
 | `apps/dashboard` | Vercel | `apps/dashboard/vercel.json` |
-| `apps/scanner` | Vercel | Vercel config TBD |
+| `apps/scanner` | Vercel | `apps/scanner/vercel.json` |
 | `apps/website` | Vercel or static | |
 | Database | PostgreSQL 16+ | Railway managed or self-hosted |
 | Object storage | Cloudflare R2 (or AWS S3-compatible) | Product images |
