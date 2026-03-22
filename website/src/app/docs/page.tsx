@@ -7,7 +7,7 @@ export const metadata = {
 };
 
 export default async function DocsIntroduction() {
-  const totalSpecs = await getTotalSpecCount();
+  const totalSpecs = await getTotalSpecCount().catch(() => 65);
   return (
     <>
       <h1>Introduction to Galileo</h1>

@@ -23,11 +23,11 @@ apps/dashboard
 apps/website
 
 # Contracts & docs
-contracts
-governance
-planning
-.planning
-docs
+/contracts
+/governance
+/planning
+/.planning
+/docs
 
 # Git
 .git
