@@ -7,6 +7,26 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 - Harness engineering structure: AGENTS.md, ARCHITECTURE.md, docs/ reference layer
+- Changesets pipeline: @changesets/cli + @changesets/changelog-github, GitHub Actions release workflow
+
+## [2026-03-22] — Production Deployment
+
+### Fixed
+- **Prisma ESM imports** — postbuild script patches generated `.js` extensions on all ESM imports in `@prisma/client` (Prisma 7 compat)
+- **Dockerfile path** — `contracts/deployments` now copied to `/app` instead of `/` in production stage
+- **sed delimiter** — replaced `/` with `#` as delimiter in sed commands to avoid path conflicts
+
+### Added
+- **Dashboard deployed** — `apps/dashboard` live on Vercel at galileo-dashboard.vercel.app
+- **Scanner deployed** — `apps/scanner` live on Vercel at galileo-scanner.vercel.app (monorepo config)
+- **R2 storage configured** — Cloudflare R2 bucket wired for persistent image uploads (production)
+- **Basescan API key** — contract verification on Base Sepolia now enabled
+- **Changeset automation** — `@changesets/cli` + `@changesets/changelog-github` installed, `.changeset/config.json` set up, GitHub Actions `release.yml` workflow created
+
+### Infrastructure
+- **Prisma DB migrations** — `prisma migrate deploy` run on Railway production database; `Product` table and all relations created
+- **Vercel env vars** — `NEXT_PUBLIC_API_URL` and related env vars corrected on both dashboard and scanner projects
+- **Git worktrees cleaned** — 46 orphaned worktrees removed from `.claude/worktrees/`
 
 ## [1.0.0] — 2026-03-20
 
