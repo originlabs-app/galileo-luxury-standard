@@ -60,55 +60,61 @@ jobs:
           SLUG="${DATE}-release-v${VERSION}"
           FILE="website/content/blog/${SLUG}.mdx"
 
-          # Build changelog excerpt from .changeset files that were consumed
-          # At publish time, CHANGELOG.md has already been updated — extract the latest entry
+          # Extract the latest release entry from CHANGELOG.md
           CHANGES=$(node -e "
             const fs = require('fs');
             const changelog = fs.readFileSync('CHANGELOG.md', 'utf8');
-            // Extract the first release block (between first ## [ and second ## [)
             const match = changelog.match(/## \[[\d.]+\][^\n]*\n([\s\S]*?)(?=\n## \[|$)/);
             if (match) {
-              // Strip markdown headers, keep bullet points, limit to 5 lines
               const lines = match[1].trim().split('\n')
                 .filter(l => l.trim())
-                .slice(0, 8)
+                .slice(0, 12)
                 .join('\n');
               console.log(lines);
             } else {
-              console.log('- Patch release with bug fixes and infrastructure improvements');
+              console.log('- Improvements and bug fixes across the platform.');
             }
-          " 2>/dev/null || echo "- Patch release with bug fixes and infrastructure improvements")
+          " 2>/dev/null || echo "- Improvements and bug fixes across the platform.")
 
-          EXCERPT="Galileo Protocol v${VERSION} — ${DATE}. $(echo "$CHANGES" | head -1 | sed 's/^[#*-]* *//')"
+          # Build a short excerpt from the first meaningful change line
+          FIRST_CHANGE=$(echo "$CHANGES" | grep -E '^\*\*|- \*\*|^- ' | head -1 | sed 's/^[#*\-]* *//' | sed 's/\*\*//g' | cut -c1-120)
+          EXCERPT="Galileo Protocol v${VERSION} is out. ${FIRST_CHANGE}"
 
           cat > "$FILE" << MDXEOF
           ---
-          title: "Release v${VERSION} — ${DATE}"
+          title: "Galileo Protocol v${VERSION}"
           date: "${DATE}"
           author: "Galileo Core Team"
           excerpt: "${EXCERPT}"
           tags:
             - release
-            - patch
           published: true
           ---
 
-          ## Galileo Protocol v${VERSION}
+          Galileo Protocol **v${VERSION}** is now available. Here is what changed in this release.
 
-          Released on ${DATE}.
+          ## What's new
 
           ${CHANGES}
 
+          ## Upgrading
+
+          Pull the latest changes from the repository. If you are running a self-hosted instance, review the [upgrade guide](https://galileoprotocol.io/docs/upgrading) for any migration steps required before restarting.
+
+          ## Get involved
+
+          Galileo Protocol is open source. If you find an issue, have a feature request, or want to contribute, we welcome pull requests and discussions on [GitHub](https://github.com/galileo-protocol/galileo).
+
           ---
 
-          *Full diff available on [GitHub Releases](https://github.com/galileo-protocol/galileo/releases).*
+          *Full release diff available on [GitHub Releases](https://github.com/galileo-protocol/galileo/releases/tag/v${VERSION}).*
           MDXEOF
 
-          # Trim leading whitespace from heredoc (bash indentation artifact)
+          # Remove the heredoc indentation (10 spaces from shell indentation)
           sed -i 's/^          //' "$FILE"
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add "$FILE"
-          git commit -m "docs(blog): add release notes for v${VERSION}"
+          git commit -m "docs(blog): release notes for v${VERSION}"
           git push
