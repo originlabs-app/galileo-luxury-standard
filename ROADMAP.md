@@ -36,32 +36,35 @@ Build the **open standard for luxury product traceability on blockchain** — ad
 | App | Cible | Statut |
 |-----|-------|--------|
 | `apps/api` | Railway | ✅ En prod (health OK, faucet OK, auth OK) |
-| `website/` | Vercel (`galileo-luxury-standard`) | ✅ En prod (site vitrine ABYSSE) |
-| `apps/dashboard` | Vercel (à créer) | ⏳ Pas encore déployé |
-| `apps/scanner` | Vercel (à créer) | ⏳ Pas encore déployé |
+| `website/` | Vercel | ✅ En prod (site vitrine) |
+| `apps/dashboard` | Vercel | ✅ Déployé (galileo-dashboard.vercel.app) |
+| `apps/scanner` | Vercel | ✅ Déployé (galileo-scanner.vercel.app) |
 
-### Priorités immédiates
+### Complété le 22/03/2026
 
-#### P0 — Bloquants
-- [ ] **Migrations Prisma sur DB Railway** — La table `Product` n'existe pas, le résolveur GS1 retourne 500. Il faut exécuter `prisma migrate deploy` ou `prisma db push` contre la DB de production.
+- ✅ **Migrations Prisma sur DB production** — Table `Product` et toutes les relations créées
+- ✅ **Dashboard déployé sur Vercel** — Back-office B2B pour les marques
+- ✅ **Scanner déployé sur Vercel** — PWA consommateur QR + vérification blockchain
+- ✅ **R2 storage configuré** — Uploads d'images persistants en production
+- ✅ **Clé API Basescan ajoutée** — Vérification des contrats sur Base Sepolia activée
+- ✅ **Env vars Vercel corrigées** — Dashboard et scanner pointent vers l'API de production
+- ✅ **Worktrees git nettoyés** — 46 worktrees orphelins supprimés
 
-#### P1 — Déploiements manquants
-- [ ] **Déployer apps/dashboard sur Vercel** — Back-office B2B pour les marques (gestion produits/DPP)
-- [ ] **Déployer apps/scanner sur Vercel** — PWA consommateur pour scanner les QR et vérifier l'authenticité blockchain
+### Changelog automatisé — 📋 À faire
 
-#### P2 — Configuration prod
-- [ ] **Configurer R2 storage sur Railway** — Actuellement en mode `local`, les uploads d'images ne persistent pas entre redémarrages
-- [ ] **Ajouter clé API Basescan** — Nécessaire pour la vérification des contrats sur Base Sepolia
-- [ ] **Clean up worktrees git** — ~25 worktrees orphelins à supprimer dans `.claude/worktrees/`
+- ✅ **Installer @changesets/cli** — pipeline de versioning configuré
+- ✅ **Workflow GitHub Actions release.yml** — PR "Version Packages" auto + GitHub Release
+- ✅ **Premier changeset** — fixes du 22/03/2026 documentés
+- ✅ **Générer post blog MDX depuis les release notes** — step `generate blog post` dans `release.yml`
+- ✅ **Route /changelog sur le site** — `website/src/app/changelog/page.tsx` — liste les releases
+- 📋 **Automatiser la publication blog** — vérifier le workflow end-to-end sur la prochaine vraie release (merger la PR "Version Packages")
 
-#### P3 — Tests & Validation
-- [ ] **Test navigateur end-to-end** — Connexion wallet, faucet, flow complet sur le dashboard
-- [ ] **Smoke test scanner** — Vérifier le scan QR et la résolution GS1 Digital Link
-- [ ] **Vérifier communication dashboard ↔ API** — S'assurer que les env vars pointent vers la bonne URL API
+### Prochaines priorités
 
-### Notes
-- L'API a été fixée le 22/03/2026 : Prisma 7 ESM imports (.js extensions) + chemin contracts/deployments dans le Dockerfile
-- Règle : toujours éditer en local + git push, ne jamais utiliser l'éditeur web GitHub sauf si parfaitement justifié
+#### P2 — Tests & Validation
+- 📋 **Test navigateur end-to-end** — Connexion wallet, faucet, flow complet sur le dashboard
+- 📋 **Smoke test scanner** — Vérifier le scan QR et la résolution GS1 Digital Link
+- 📋 **Vérifier communication dashboard ↔ API** — S'assurer que les env vars pointent vers la bonne URL API
 
 ---
 
@@ -184,12 +187,12 @@ Everything shipped across Sprints 1–10.
 
 - 📋 New public page at `galileoprotocol.io/bridge` (`apps/website` — no auth required)
 - 📋 "Connect Wallet" button supporting MetaMask and WalletConnect (wagmi)
-- 📋 Bridge ETH from Ethereum Sepolia → Base Sepolia using L1 Standard Bridge (`0xfd0Bf71F60660E2f608ed56e1659C450eB113120` on Sepolia)
+- 📋 Bridge ETH from Ethereum Sepolia → Base Sepolia using L1 Standard Bridge
 - 📋 Free to use during testnet phase
 - 📋 Real-time bridge status: transaction confirmation, block progress, estimated arrival time (~1–3 min)
 - 📋 Link to Etherscan / Basescan for each bridge transaction
-- 📡 Future (mainnet): bridge ETH Mainnet → Base Mainnet via the same L1 Standard Bridge pattern
-- 📡 Future: reverse direction — Base → Ethereum (7-day optimistic rollup challenge window, clearly communicated)
+- 📡 Future (mainnet): bridge ETH Mainnet → Base Mainnet
+- 📡 Future: reverse direction — Base → Ethereum (7-day optimistic rollup challenge window)
 
 ### Gas Estimator 📋 Planned
 - 📋 Public page at `galileoprotocol.io/gas` — calculate estimated minting, transfer, and recall costs before execution
@@ -248,36 +251,35 @@ Everything shipped across Sprints 1–10.
 - 💡 SLA dashboard for brands
 
 ### Token Factory 💡 Future
-- 💡 No-code interface for brands to deploy their own ERC-3643 token contract (configure name, symbol, compliance rules) without writing Solidity
-- 💡 Wizard-based deployment flow with pre-audited templates; brand receives deployed contract address and ownership
+- 💡 No-code interface for brands to deploy their own ERC-3643 token contract without writing Solidity
+- 💡 Wizard-based deployment flow with pre-audited templates
 
 ### Token Explorer 💡 Future
-- 💡 Public explorer for all Galileo tokens on Base — browse any ERC-3643 token, view full transfer history and chain of custody
+- 💡 Public explorer for all Galileo tokens on Base — browse any ERC-3643 token, view full transfer history
 - 💡 Interactive provenance visualization (timeline / graph) per token ID
 
 ### Batch Transfer / Multi-sender 💡 Future
-- 💡 Send ERC-3643 authentication tokens to multiple recipients in a single transaction — ideal for collection launches
+- 💡 Send ERC-3643 authentication tokens to multiple recipients in a single transaction
 - 💡 Paste or upload recipient list, preview gas cost, one-click batch execution
 
 ### Airdrop Tool 💡 Future
-- 💡 Distribute tokens to a list of addresses via CSV upload, with gas cost preview before execution
+- 💡 Distribute tokens to a list of addresses via CSV upload, with gas cost preview
 - 💡 Progress tracker showing per-address status (pending, confirmed, failed)
 
 ### Recall / Burn Manager 💡 Future
-- 💡 Dedicated interface for brands to recall a product by burning its token, with full traceability and audit record
-- 💡 Requires dual confirmation (brand admin + on-chain signature) to prevent accidental burns
+- 💡 Dedicated interface for brands to recall a product by burning its token
+- 💡 Requires dual confirmation (brand admin + on-chain signature)
 
 ### Product Authenticator (standalone) 💡 Future
-- 💡 Public web page — no app install required — for NFC/QR → on-chain verification of any Galileo product
+- 💡 Public web page — no app install required — for NFC/QR → on-chain verification
 - 💡 Works on mobile browser; displays authenticity certificate and full provenance chain
 
 ### Certificate Viewer 💡 Future
-- 💡 Public page showing the full authenticity certificate for a given token ID, accessible via shareable link
+- 💡 Public page showing the full authenticity certificate for a given token ID
 - 💡 Renders product metadata, ownership history, and compliance claims in a printable format
 
 ### USDC Payments Integration 💡 Future
-- 💡 Enable USDC payments for ownership transfers, certification services, and marketplace transactions via Coinbase CDP
-- 💡 Allows brands to accept crypto payments for authentication services without handling volatile assets
+- 💡 Enable USDC payments for ownership transfers, certification services, and marketplace transactions
 - 💡 Native USDC settlement on Base — no conversion needed, stable value for brand treasury
 
 ---
@@ -286,7 +288,7 @@ Everything shipped across Sprints 1–10.
 
 **Gate:** MVP KPIs validated on Base Sepolia (stable create → mint → scan → verify with real brand data).
 
-> Token architecture details: see GDPR Compliance Architecture and Token Architecture sections below.
+> Token architecture details: see Token Architecture section below.
 
 ### T1 Token Launch on Base
 - 💡 Deploy `T1Token.sol` (ERC-20, 1B fixed supply) on Base
@@ -308,32 +310,25 @@ Everything shipped across Sprints 1–10.
 - 💡 T1 holder voting on protocol evolution
 - 💡 Buy-back-and-burn: quarterly 1–5% of net revenues → buy T1 on DEX → burn (`BuybackBurn.sol`)
 
-### Legal Prerequisites (open items)
-- 💡 MiCA utility token classification validation with counsel (Origin Labs SASU)
-- 💡 Inter-entity liquidity contribution structure (convention between 4 entities)
-- 💡 LEOX ownership resolution (Nathaniel litigation) — T1 launches independently
-
 ### Identity Claim Verifier 💡 Future
-- 💡 Public interface to verify the ERC-3643 claim status of any wallet address (accredited investor, authorized reseller, etc.)
+- 💡 Public interface to verify the ERC-3643 claim status of any wallet address
 - 💡 Returns claim type, issuer, and expiry without exposing underlying personal data
 
 ### KYC/KYB Onboarding Portal 💡 Future
-- 💡 Self-service form for partners and resellers to submit verification documents and receive their identity token
-- 💡 Integrates with a KYC provider (e.g., Synaps or Onfido); status tracked in the dashboard
+- 💡 Self-service form for partners and resellers to submit verification documents
+- 💡 Integrates with a KYC provider; status tracked in the dashboard
 
 ### Trusted Issuer Registry Browser 💡 Future
-- 💡 Public explorer listing all trusted issuers recognized in the Galileo ecosystem and their authorized claim types
+- 💡 Public explorer listing all trusted issuers in the Galileo ecosystem
 - 💡 Verifiable on-chain via the Trusted Issuers Registry (TIR) contract
 
 ### Onchain Agent (Coinbase CDP AgentKit) 💡 Future
-- 💡 Autonomous agent with onchain capabilities via Coinbase CDP AgentKit to automate token management, compliance checks, and identity verification for brands
-- 💡 Handles routine operations: batch minting, identity registration, and claim issuance without manual intervention
-- 💡 Reduces operational overhead for brands managing large product catalogs on-chain
+- 💡 Autonomous agent with onchain capabilities via Coinbase CDP AgentKit
+- 💡 Handles routine operations: batch minting, identity registration, and claim issuance
 
 ### Onchain Social Profile (Coinbase) 💡 Future
-- 💡 Brand profiles powered by Coinbase's onchain identity system, complementing ERC-3643 identity with public-facing brand reputation
-- 💡 Verification badges and social proof for luxury brands in the Galileo ecosystem
-- 💡 Verifiable onchain credentials showcase brand participation and compliance history to consumers and partners
+- 💡 Brand profiles powered by Coinbase's onchain identity system
+- 💡 Verifiable onchain credentials showcase brand participation and compliance history
 
 ---
 
@@ -371,7 +366,7 @@ Everything shipped across Sprints 1–10.
 - 💡 CLI tool: `npx @galileo/cli create-product` — standalone command-line DPP creation
 - 💡 Docker Compose sandbox (one-command local setup)
 - 💡 Developer documentation portal (`apps/website`)
-- 💡 Sandbox environment with testnet contracts + seeded demo data (`sandbox.galileoprotocol.io`)
+- 💡 Sandbox environment with testnet contracts + seeded demo data
 - 💡 Helm chart for Kubernetes deployments
 - 💡 Publish npm packages: `@galileo/shared`, `@galileo/sdk`, `@galileo/contracts`
 - 💡 Docker images on GitHub Container Registry
@@ -383,53 +378,52 @@ Everything shipped across Sprints 1–10.
 - 💡 Identify 2–3 design partners (mid-market luxury brands for pilot)
 
 ### Mainnet Bridge UI 💡 Future
-- 💡 Upgrade the bridge page to support Ethereum mainnet ↔ Base mainnet transfers — same UX as the testnet bridge
+- 💡 Upgrade the bridge page to support Ethereum mainnet ↔ Base mainnet transfers
 - 💡 Gas estimates in USD, mainnet block confirmation progress, Etherscan / Basescan links
 
 ### Reverse Bridge (Base → Ethereum) 💡 Future
 - 💡 Support withdrawals from Base back to Ethereum mainnet via the optimistic rollup mechanism
-- 💡 7-day challenge window clearly communicated in the UI with countdown timer and status tracking
+- 💡 7-day challenge window clearly communicated in the UI
 
 ---
 
-## Brainstorming — Idées non implémentées
+## 💡 Brainstorming — Idées à explorer
 
-> Features identifiées en brainstorming ou dans l'historique git mais jamais codées. Aucune décision d'implémenter prise — à évaluer lors de futures sprints.
+> **Section vivante** — notez ici toutes les idées au fur et à mesure, sans filtre. Aucune décision d'implémenter n'est prise à ce stade. Ces items sont évalués et promus en Phase lors des sprints de planification.
+>
+> **Comment contribuer** : ajouter une ligne `- 💡 **Titre** — description courte` dans la sous-section qui correspond le mieux. Pas besoin d'être exhaustif — l'idée importante c'est de ne pas la perdre.
 
 ### Intégration IA / LLM
 > *Brainstorm oral — aucun fichier git ne trace ces idées. À affiner.*
 
-- 💡 **Détection de contrefaçon par IA** — Analyse des patterns de scan anormaux (fréquence, géographie, timing) via ML pour détecter les tentatives de falsification de DPP
-- 💡 **Assistant de vérification produit** — LLM intégré dans le scanner pour répondre aux questions consommateurs sur le produit (composition, provenance, histoire) à partir des métadonnées DPP
-- 💡 **Génération automatique de contenu DPP** — À partir d'une photo ou d'une référence produit, un LLM génère les champs DPP (catégorie, matières, pays d'origine) en pré-remplissage
-- 💡 **Audit de conformité ESPR assisté par IA** — Analyse automatique des DPP d'une marque pour identifier les champs manquants ou non conformes aux exigences réglementaires ESPR 2027
-- 💡 **Support client IA pour le dashboard** — Agent conversationnel pour guider les BRAND_ADMIN dans la création de produits, l'import CSV, et les opérations de lifecycle
-- 💡 **Analyse sémantique des audits** — LLM pour résumer et détecter des patterns inhabituels dans les audit logs (ex: pic de recalls, transferts répétés sur un même produit)
+- 💡 **Détection de contrefaçon par IA** — Analyse des patterns de scan anormaux via ML
+- 💡 **Assistant de vérification produit** — LLM dans le scanner pour répondre aux questions consommateurs
+- 💡 **Génération automatique de contenu DPP** — À partir d'une photo, un LLM génère les champs DPP
+- 💡 **Audit de conformité ESPR assisté par IA** — Analyse des DPP pour identifier les non-conformités ESPR 2027
+- 💡 **Support client IA pour le dashboard** — Agent conversationnel pour guider les BRAND_ADMIN
+- 💡 **Analyse sémantique des audits** — LLM pour résumer et détecter des patterns dans les audit logs
 
 ### Scope Coinbase élargi
-> *Items Coinbase discutés mais non implémentés au-delà de ce qui est dans les phases 3–4.*
 
-- 💡 **Coinbase Commerce** — Accepter des paiements en crypto directement via Coinbase Commerce pour les frais de certification et mint, sans passer par un DEX
-- 💡 **Coinbase Verifications** — Intégrer le système de vérifications on-chain de Coinbase pour les claims de marque (country of origin, brand authenticity) — complémentaire à ERC-3643
-- 💡 **Base Paymaster (sponsored transactions)** — Sponsor les frais de gas pour les consommateurs scannant un QR, offrant une expérience Web3 transparente (aucun wallet requis)
-- 💡 **Smart Wallet pour les marques** — Déployer des Coinbase Smart Wallets pour les BRAND_ADMIN pour une expérience passkey sans seed phrase
+- 💡 **Coinbase Commerce** — Accepter des paiements crypto pour les frais de certification et mint
+- 💡 **Coinbase Verifications** — Claims on-chain de Coinbase pour les marques (complémentaire à ERC-3643)
+- 💡 **Base Paymaster (sponsored transactions)** — Sponsor les frais de gas pour les consommateurs
+- 💡 **Smart Wallet pour les marques** — Coinbase Smart Wallets pour les BRAND_ADMIN (passkey)
 
 ### Bridge avancé
-> *Étendu au-delà des items déjà dans Phase 2 et Phase 5.*
 
-- 💡 **Bridge multi-actifs** — Supporter le bridging de tokens ERC-20 (LEOX, USDC) en plus de l'ETH natif
-- 💡 **Bridge vers Polygon** — Route alternative pour les marques souhaitant des frais de gas ultra-faibles (marchés émergents, petites maisons)
-- 💡 **Wormhole / LayerZero integration** — Interoperabilité cross-chain pour les DPP : résoudre un DID quelle que soit la chaîne où il est enregistré
-- 💡 **Bridge status API** — Endpoint public pour vérifier le statut de n'importe quelle transaction de bridge, utile pour les intégrations ERP de marques
+- 💡 **Bridge multi-actifs** — Supporter le bridging de tokens ERC-20 en plus de l'ETH natif
+- 💡 **Bridge vers Polygon** — Route alternative pour les marchés émergents
+- 💡 **Wormhole / LayerZero integration** — Interoperabilité cross-chain pour les DPP
+- 💡 **Bridge status API** — Endpoint public pour vérifier le statut d'une transaction de bridge
 
-### Features backlog non planifiées (issues git)
-> *Issues et tâches identifiées dans les sprints passés mais repoussées.*
+### Features backlog non planifiées
 
-- 💡 **Uptime monitoring externe** — Alertes Uptime Robot ou Better Stack pour l'API et les frontends (mentionné Sprint #10, jamais implémenté)
-- 💡 **PostgreSQL Row-Level Security** — Isolation DB-level par brand/workspace, actuellement en app-level RBAC seulement (🔒 migration DB requise)
-- 💡 **MFA : TOTP + passkey** — Authentification à deux facteurs pour BRAND_ADMIN et ADMIN (🔒 migration DB requise — champs `totpSecret`, `totpEnabled`)
-- 💡 **Human review pour rejets de compliance** — GDPR Art. 22 : les décisions automatisées de blocage de transfert doivent offrir une option de révision humaine
-- 💡 **Events lifecycle étendus** — Types REPAIRED, CPO_CERTIFIED, OWNERSHIP_CHANGED (🔒 migration DB requise)
+- 💡 **Uptime monitoring externe** — Alertes pour l'API et les frontends
+- 💡 **PostgreSQL Row-Level Security** — Isolation DB-level par brand/workspace (🔒 migration DB)
+- 💡 **MFA : TOTP + passkey** — 2FA pour BRAND_ADMIN et ADMIN (🔒 migration DB)
+- 💡 **Human review pour rejets de compliance** — GDPR Art. 22
+- 💡 **Events lifecycle étendus** — Types REPAIRED, CPO_CERTIFIED, OWNERSHIP_CHANGED (🔒 migration DB)
 
 ---
 

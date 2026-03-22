@@ -1,0 +1,114 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Create Release PR or Tag
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          title: 'chore: version packages'
+          commit: 'chore: version packages'
+          publish: pnpm changeset tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate blog post from release notes
+        if: steps.changesets.outputs.published == 'true'
+        env:
+          PUBLISHED_PACKAGES: ${{ steps.changesets.outputs.publishedPackages }}
+        run: |
+          set -euo pipefail
+
+          DATE=$(date -u +%Y-%m-%d)
+          VERSION=$(echo "$PUBLISHED_PACKAGES" | node -e "
+            const data = JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));
+            const pkg = Array.isArray(data) ? data[0] : data;
+            console.log(pkg.version || 'unknown');
+          " 2>/dev/null || echo "unknown")
+
+          SLUG="${DATE}-release-v${VERSION}"
+          FILE="website/content/blog/${SLUG}.mdx"
+
+          # Build changelog excerpt from .changeset files that were consumed
+          # At publish time, CHANGELOG.md has already been updated — extract the latest entry
+          CHANGES=$(node -e "
+            const fs = require('fs');
+            const changelog = fs.readFileSync('CHANGELOG.md', 'utf8');
+            // Extract the first release block (between first ## [ and second ## [)
+            const match = changelog.match(/## \[[\d.]+\][^\n]*\n([\s\S]*?)(?=\n## \[|$)/);
+            if (match) {
+              // Strip markdown headers, keep bullet points, limit to 5 lines
+              const lines = match[1].trim().split('\n')
+                .filter(l => l.trim())
+                .slice(0, 8)
+                .join('\n');
+              console.log(lines);
+            } else {
+              console.log('- Patch release with bug fixes and infrastructure improvements');
+            }
+          " 2>/dev/null || echo "- Patch release with bug fixes and infrastructure improvements")
+
+          EXCERPT="Galileo Protocol v${VERSION} — ${DATE}. $(echo "$CHANGES" | head -1 | sed 's/^[#*-]* *//')"
+
+          cat > "$FILE" << MDXEOF
+          ---
+          title: "Release v${VERSION} — ${DATE}"
+          date: "${DATE}"
+          author: "Galileo Core Team"
+          excerpt: "${EXCERPT}"
+          tags:
+            - release
+            - patch
+          published: true
+          ---
+
+          ## Galileo Protocol v${VERSION}
+
+          Released on ${DATE}.
+
+          ${CHANGES}
+
+          ---
+
+          *Full diff available on [GitHub Releases](https://github.com/galileo-protocol/galileo/releases).*
+          MDXEOF
+
+          # Trim leading whitespace from heredoc (bash indentation artifact)
+          sed -i 's/^          //' "$FILE"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "$FILE"
+          git commit -m "docs(blog): add release notes for v${VERSION}"
+          git push
