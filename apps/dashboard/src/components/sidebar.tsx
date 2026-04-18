@@ -2,7 +2,15 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Building2, ClipboardList, Home, LogOut, Package, Settings } from "lucide-react";
+import {
+  Building2,
+  ClipboardList,
+  Home,
+  LogOut,
+  Package,
+  Settings,
+  Webhook,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +25,12 @@ interface NavItem {
 const navItems: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: Home },
   { label: "Products", href: "/dashboard/products", icon: Package },
+  {
+    label: "Webhooks",
+    href: "/dashboard/webhooks",
+    icon: Webhook,
+    roles: ["ADMIN", "BRAND_ADMIN"],
+  },
   { label: "Settings", href: "/dashboard/settings", icon: Settings },
   {
     label: "Audit log",
