@@ -425,6 +425,153 @@ describe("Webhook system", () => {
     });
   });
 
+  describe("GET /webhooks/:id/deliveries", () => {
+    async function createSubWithEvents(
+      eventTypes: string[],
+    ): Promise<string> {
+      const createRes = await app.inject({
+        method: "POST",
+        url: "/webhooks",
+        headers: { cookie: brandAdminCookie, ...CSRF },
+        payload: {
+          url: "https://example.com/hook-deliveries",
+          events: eventTypes,
+        },
+      });
+      return createRes.json().data.subscription.id;
+    }
+
+    it("returns deliveries newest-first with nextCursor=null when one page", async () => {
+      const subId = await createSubWithEvents(["TRANSFERRED"]);
+      await enqueueWebhookEvent(app.prisma, "TRANSFERRED", "prod-old", {});
+      await new Promise((r) => setTimeout(r, 5));
+      await enqueueWebhookEvent(app.prisma, "TRANSFERRED", "prod-new", {});
+
+      const res = await app.inject({
+        method: "GET",
+        url: `/webhooks/${subId}/deliveries`,
+        headers: { cookie: brandAdminCookie },
+      });
+
+      expect(res.statusCode).toBe(200);
+      const body = res.json();
+      expect(body.data.deliveries).toHaveLength(2);
+      expect(body.data.deliveries[0].payload.productId).toBe("prod-new");
+      expect(body.data.deliveries[1].payload.productId).toBe("prod-old");
+      expect(body.data.nextCursor).toBeNull();
+    });
+
+    it("filters by status=pending (attempts=0)", async () => {
+      const subId = await createSubWithEvents(["TRANSFERRED"]);
+      await enqueueWebhookEvent(app.prisma, "TRANSFERRED", "prod-a", {});
+      await enqueueWebhookEvent(app.prisma, "TRANSFERRED", "prod-b", {});
+
+      // Mark one as retrying
+      const rows = await app.prisma.webhookDelivery.findMany({
+        where: { webhookId: subId },
+        take: 1,
+      });
+      await app.prisma.webhookDelivery.update({
+        where: { id: rows[0]!.id },
+        data: { attempts: 1, lastError: "boom" },
+      });
+
+      const res = await app.inject({
+        method: "GET",
+        url: `/webhooks/${subId}/deliveries?status=pending`,
+        headers: { cookie: brandAdminCookie },
+      });
+
+      expect(res.statusCode).toBe(200);
+      const body = res.json();
+      expect(body.data.deliveries).toHaveLength(1);
+      expect(body.data.deliveries[0].attempts).toBe(0);
+    });
+
+    it("filters by status=failing (attempts>0)", async () => {
+      const subId = await createSubWithEvents(["TRANSFERRED"]);
+      await enqueueWebhookEvent(app.prisma, "TRANSFERRED", "prod-a", {});
+      await enqueueWebhookEvent(app.prisma, "TRANSFERRED", "prod-b", {});
+
+      const rows = await app.prisma.webhookDelivery.findMany({
+        where: { webhookId: subId },
+        take: 1,
+      });
+      await app.prisma.webhookDelivery.update({
+        where: { id: rows[0]!.id },
+        data: { attempts: 3, lastError: "timeout" },
+      });
+
+      const res = await app.inject({
+        method: "GET",
+        url: `/webhooks/${subId}/deliveries?status=failing`,
+        headers: { cookie: brandAdminCookie },
+      });
+
+      expect(res.statusCode).toBe(200);
+      const body = res.json();
+      expect(body.data.deliveries).toHaveLength(1);
+      expect(body.data.deliveries[0].attempts).toBe(3);
+      expect(body.data.deliveries[0].lastError).toBe("timeout");
+    });
+
+    it("paginates with limit + cursor", async () => {
+      const subId = await createSubWithEvents(["TRANSFERRED"]);
+      for (let i = 0; i < 5; i++) {
+        await enqueueWebhookEvent(app.prisma, "TRANSFERRED", `prod-${i}`, {});
+        await new Promise((r) => setTimeout(r, 2));
+      }
+
+      const first = await app.inject({
+        method: "GET",
+        url: `/webhooks/${subId}/deliveries?limit=2`,
+        headers: { cookie: brandAdminCookie },
+      });
+      expect(first.statusCode).toBe(200);
+      const firstBody = first.json();
+      expect(firstBody.data.deliveries).toHaveLength(2);
+      expect(firstBody.data.nextCursor).not.toBeNull();
+
+      const second = await app.inject({
+        method: "GET",
+        url: `/webhooks/${subId}/deliveries?limit=2&cursor=${firstBody.data.nextCursor}`,
+        headers: { cookie: brandAdminCookie },
+      });
+      expect(second.statusCode).toBe(200);
+      const secondBody = second.json();
+      expect(secondBody.data.deliveries).toHaveLength(2);
+      // No overlap with first page
+      const firstIds = firstBody.data.deliveries.map(
+        (d: { id: string }) => d.id,
+      );
+      const secondIds = secondBody.data.deliveries.map(
+        (d: { id: string }) => d.id,
+      );
+      for (const id of secondIds) expect(firstIds).not.toContain(id);
+    });
+
+    it("rejects invalid status value (400)", async () => {
+      const subId = await createSubWithEvents(["TRANSFERRED"]);
+      const res = await app.inject({
+        method: "GET",
+        url: `/webhooks/${subId}/deliveries?status=bogus`,
+        headers: { cookie: brandAdminCookie },
+      });
+      expect(res.statusCode).toBe(400);
+      expect(res.json().error.code).toBe("VALIDATION_ERROR");
+    });
+
+    it("returns 403 when BRAND_ADMIN queries another brand's subscription", async () => {
+      const subId = await createSubWithEvents(["TRANSFERRED"]);
+      const res = await app.inject({
+        method: "GET",
+        url: `/webhooks/${subId}/deliveries`,
+        headers: { cookie: otherBrandAdminCookie },
+      });
+      expect(res.statusCode).toBe(403);
+    });
+  });
+
   describe("DELETE /webhooks/:id", () => {
     it("removes subscription", async () => {
       const createRes = await app.inject({

@@ -240,18 +240,59 @@ export async function getOutboxEntries(
   return rows.map(mapDelivery);
 }
 
+export type DeliveryStatusFilter = "pending" | "failing";
+
+export interface ListDeliveriesOptions {
+  status?: DeliveryStatusFilter;
+  limit?: number;
+  cursor?: string;
+}
+
+export interface ListDeliveriesResult {
+  deliveries: WebhookEvent[];
+  nextCursor: string | null;
+}
+
 /**
- * List all queued delivery events for a given subscription.
+ * List queued delivery events for a given subscription.
+ *
+ * Returns newest-first, paginated by cursor (id of the last row in the previous page).
+ * `status` narrows by queue state: "pending" = attempts=0, "failing" = attempts>0.
  */
 export async function listDeliveries(
   prisma: PrismaClient,
   subscriptionId: string,
-): Promise<WebhookEvent[]> {
+  opts: ListDeliveriesOptions = {},
+): Promise<ListDeliveriesResult> {
+  const limit = Math.min(Math.max(opts.limit ?? 50, 1), 200);
+
+  const where: Prisma.WebhookDeliveryWhereInput = {
+    webhookId: subscriptionId,
+  };
+  if (opts.status === "pending") {
+    where.status = "pending";
+    where.attempts = 0;
+  } else if (opts.status === "failing") {
+    where.status = "pending";
+    where.attempts = { gt: 0 };
+  }
+
   const rows = await prisma.webhookDelivery.findMany({
-    where: { webhookId: subscriptionId },
-    orderBy: { createdAt: "asc" },
+    where,
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    take: limit + 1,
+    ...(opts.cursor
+      ? { cursor: { id: opts.cursor }, skip: 1 }
+      : {}),
   });
-  return rows.map(mapDelivery);
+
+  const hasMore = rows.length > limit;
+  const page = hasMore ? rows.slice(0, limit) : rows;
+
+  return {
+    deliveries: page.map(mapDelivery),
+    nextCursor: hasMore ? (page[page.length - 1]?.id ?? null) : null,
+  };
 }
 
 /**

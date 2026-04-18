@@ -245,13 +245,22 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
   );
 
   // GET /webhooks/:id/deliveries — List queued deliveries for a subscription
-  fastify.get<{ Params: { id: string } }>(
+  const deliveriesQuery = z
+    .object({
+      status: z.enum(["pending", "failing"]).optional(),
+      limit: z.coerce.number().int().min(1).max(200).optional(),
+      cursor: z.string().min(1).optional(),
+    })
+    .strict();
+
+  fastify.get<{ Params: { id: string }; Querystring: unknown }>(
     "/webhooks/:id/deliveries",
     {
       onRequest: [fastify.authenticate, requireRole("BRAND_ADMIN", "ADMIN")],
       schema: {
         description:
-          "List pending and failed delivery events for a webhook subscription.",
+          "List queued delivery events for a webhook subscription, newest-first. " +
+          "Filter by ?status=pending|failing, paginate with ?limit (1-200, default 50) and ?cursor.",
         tags: ["Webhooks"],
         security: [{ cookieAuth: [] }],
         params: {
@@ -262,6 +271,18 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
       },
     },
     async (request, reply) => {
+      const parsedQuery = deliveriesQuery.safeParse(request.query);
+      if (!parsedQuery.success) {
+        return reply.status(400).send({
+          success: false,
+          error: {
+            code: "VALIDATION_ERROR",
+            message: "Invalid query parameters",
+            details: parsedQuery.error.flatten().fieldErrors,
+          },
+        });
+      }
+
       const user = request.user;
       const sub = await getSubscription(fastify.prisma, request.params.id);
 
@@ -285,10 +306,14 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
         });
       }
 
-      const deliveries = await listDeliveries(fastify.prisma, request.params.id);
+      const { deliveries, nextCursor } = await listDeliveries(
+        fastify.prisma,
+        request.params.id,
+        parsedQuery.data,
+      );
       return reply.status(200).send({
         success: true,
-        data: { deliveries },
+        data: { deliveries, nextCursor },
       });
     },
   );
