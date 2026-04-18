@@ -6,7 +6,8 @@
 
 ## Later
 
-- [ ] Webhook delivery monitoring — dashboard view for subscription health and delivery status
+- [ ] Historical delivery stats — rows are deleted on success/max-retries, so "% delivered over time" isn't computable. Options: keep rows with `delivered`/`dead` status + TTL cleanup, or new `WebhookDeliveryHistory` table.
+- [ ] Toggle webhook subscription active state — `PATCH /webhooks/:id` + UI switch (Slice 5 of monitoring work, deferred)
 - [ ] Scanner PWA offline support — service worker + cached verification
 - [ ] T1 token ecosystem — paymaster, KYC integration, price feed (Phase 6 per roadmap)
 
@@ -18,6 +19,7 @@
 
 - [x] Phase 01: Foundation — auth (JWT + SIWE), products CRUD, shared package, 372 unit tests
 - [x] Phase 02: Security hardening — CSRF, input validation, GDPR endpoints, audit trail, webhooks, batch ops
+- [x] Webhook delivery monitoring v1 — stats endpoint, paginated deliveries with status filter, dashboard list + detail views (4 slices)
 - [x] Phase 03-01: Base Sepolia deployment metadata — chain config, health diagnostics, live minting task 1/2
 - [x] Harness alignment — AGENTS.md, ARCHITECTURE.md, docs/ reference layer
 - [x] Production deployment — API on Railway (Docker), Dashboard + Scanner on Vercel, managed PostgreSQL migrated
