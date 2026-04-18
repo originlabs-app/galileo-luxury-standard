@@ -265,6 +265,166 @@ describe("Webhook system", () => {
     });
   });
 
+  describe("GET /webhooks/stats", () => {
+    async function seedSubscription(
+      brandId: string,
+      events: string[] = ["TRANSFERRED"],
+      active = true,
+    ): Promise<string> {
+      const id = `sub-${Math.random().toString(36).slice(2, 10)}`;
+      await addSubscription(app.prisma, {
+        id,
+        brandId,
+        url: "https://example.com/hook",
+        secret: "test-secret",
+        events,
+        active,
+        createdAt: new Date().toISOString(),
+      });
+      return id;
+    }
+
+    it("returns zeros when nothing exists", async () => {
+      const res = await app.inject({
+        method: "GET",
+        url: "/webhooks/stats",
+        headers: { cookie: brandAdminCookie },
+      });
+
+      expect(res.statusCode).toBe(200);
+      const body = res.json();
+      expect(body.success).toBe(true);
+      expect(body.data.subscriptions).toEqual({
+        total: 0,
+        active: 0,
+        inactive: 0,
+      });
+      expect(body.data.deliveries).toEqual({
+        total: 0,
+        pending: 0,
+        failing: 0,
+      });
+      expect(body.data.byEvent).toEqual([]);
+    });
+
+    it("counts active and inactive subscriptions", async () => {
+      await seedSubscription(testBrandId, ["TRANSFERRED"], true);
+      await seedSubscription(testBrandId, ["MINTED"], true);
+      await seedSubscription(testBrandId, ["RECALLED"], false);
+
+      const res = await app.inject({
+        method: "GET",
+        url: "/webhooks/stats",
+        headers: { cookie: brandAdminCookie },
+      });
+
+      expect(res.statusCode).toBe(200);
+      const body = res.json();
+      expect(body.data.subscriptions).toEqual({
+        total: 3,
+        active: 2,
+        inactive: 1,
+      });
+    });
+
+    it("distinguishes pending (attempts=0) from failing (attempts>0) deliveries", async () => {
+      const subId = await seedSubscription(testBrandId, ["TRANSFERRED"]);
+      await enqueueWebhookEvent(app.prisma, "TRANSFERRED", "prod-a", {});
+      await enqueueWebhookEvent(app.prisma, "TRANSFERRED", "prod-b", {});
+      await enqueueWebhookEvent(app.prisma, "TRANSFERRED", "prod-c", {});
+
+      // Mark two of the three as retrying (attempts=2)
+      const deliveries = await app.prisma.webhookDelivery.findMany({
+        where: { webhookId: subId },
+        orderBy: { createdAt: "asc" },
+        take: 2,
+      });
+      await app.prisma.webhookDelivery.updateMany({
+        where: { id: { in: deliveries.map((d) => d.id) } },
+        data: { attempts: 2, lastError: "timeout" },
+      });
+
+      const res = await app.inject({
+        method: "GET",
+        url: "/webhooks/stats",
+        headers: { cookie: brandAdminCookie },
+      });
+
+      expect(res.statusCode).toBe(200);
+      const body = res.json();
+      expect(body.data.deliveries).toEqual({
+        total: 3,
+        pending: 1,
+        failing: 2,
+      });
+      expect(body.data.byEvent).toEqual([
+        { eventType: "TRANSFERRED", pending: 1, failing: 2 },
+      ]);
+    });
+
+    it("aggregates byEvent across multiple event types", async () => {
+      await seedSubscription(testBrandId, ["TRANSFERRED", "MINTED"]);
+      await enqueueWebhookEvent(app.prisma, "TRANSFERRED", "prod-a", {});
+      await enqueueWebhookEvent(app.prisma, "MINTED", "prod-b", {});
+
+      const res = await app.inject({
+        method: "GET",
+        url: "/webhooks/stats",
+        headers: { cookie: brandAdminCookie },
+      });
+
+      expect(res.statusCode).toBe(200);
+      const body = res.json();
+      expect(body.data.byEvent).toEqual([
+        { eventType: "MINTED", pending: 1, failing: 0 },
+        { eventType: "TRANSFERRED", pending: 1, failing: 0 },
+      ]);
+    });
+
+    it("BRAND_ADMIN sees only their brand's stats", async () => {
+      await seedSubscription(testBrandId, ["TRANSFERRED"]);
+      await seedSubscription(otherBrandId, ["TRANSFERRED"]);
+      await enqueueWebhookEvent(app.prisma, "TRANSFERRED", "prod-a", {});
+
+      const res = await app.inject({
+        method: "GET",
+        url: "/webhooks/stats",
+        headers: { cookie: brandAdminCookie },
+      });
+
+      expect(res.statusCode).toBe(200);
+      const body = res.json();
+      expect(body.data.subscriptions.total).toBe(1);
+      expect(body.data.deliveries.total).toBe(1);
+    });
+
+    it("ADMIN sees stats across all brands", async () => {
+      await seedSubscription(testBrandId, ["TRANSFERRED"]);
+      await seedSubscription(otherBrandId, ["TRANSFERRED"]);
+      await enqueueWebhookEvent(app.prisma, "TRANSFERRED", "prod-a", {});
+
+      const res = await app.inject({
+        method: "GET",
+        url: "/webhooks/stats",
+        headers: { cookie: adminCookie },
+      });
+
+      expect(res.statusCode).toBe(200);
+      const body = res.json();
+      expect(body.data.subscriptions.total).toBe(2);
+      expect(body.data.deliveries.total).toBe(2);
+    });
+
+    it("returns 401 for unauthenticated request", async () => {
+      const res = await app.inject({
+        method: "GET",
+        url: "/webhooks/stats",
+      });
+
+      expect(res.statusCode).toBe(401);
+    });
+  });
+
   describe("DELETE /webhooks/:id", () => {
     it("removes subscription", async () => {
       const createRes = await app.inject({

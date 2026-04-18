@@ -280,6 +280,94 @@ export async function requeueFailed(
   return result.count;
 }
 
+// ─── Stats ────────────────────────────────────────────────────
+
+export interface WebhookStats {
+  subscriptions: { total: number; active: number; inactive: number };
+  deliveries: { total: number; pending: number; failing: number };
+  byEvent: Array<{ eventType: string; pending: number; failing: number }>;
+}
+
+/**
+ * Aggregate webhook health metrics.
+ *
+ * Delivered rows are removed from the table on success (see processNext),
+ * so stats describe the live queue only: "pending" = not yet tried,
+ * "failing" = tried at least once and awaiting retry.
+ */
+export async function getStats(
+  prisma: PrismaClient,
+  brandId?: string,
+): Promise<WebhookStats> {
+  const subWhere: Prisma.WebhookSubscriptionWhereInput = brandId
+    ? { brandId }
+    : {};
+  const delWhere: Prisma.WebhookDeliveryWhereInput = brandId
+    ? { subscription: { brandId } }
+    : {};
+
+  const [subTotal, subActive, delTotal, delPending, delFailing] =
+    await Promise.all([
+      prisma.webhookSubscription.count({ where: subWhere }),
+      prisma.webhookSubscription.count({
+        where: { ...subWhere, active: true },
+      }),
+      prisma.webhookDelivery.count({ where: delWhere }),
+      prisma.webhookDelivery.count({
+        where: { ...delWhere, status: "pending", attempts: 0 },
+      }),
+      prisma.webhookDelivery.count({
+        where: { ...delWhere, status: "pending", attempts: { gt: 0 } },
+      }),
+    ]);
+
+  const [pendingByEvent, failingByEvent] = await Promise.all([
+    prisma.webhookDelivery.groupBy({
+      by: ["eventType"],
+      where: { ...delWhere, status: "pending", attempts: 0 },
+      _count: { _all: true },
+    }),
+    prisma.webhookDelivery.groupBy({
+      by: ["eventType"],
+      where: { ...delWhere, status: "pending", attempts: { gt: 0 } },
+      _count: { _all: true },
+    }),
+  ]);
+
+  const pendingMap = new Map<string, number>(
+    pendingByEvent.map((r) => [r.eventType, r._count._all ?? 0]),
+  );
+  const failingMap = new Map<string, number>(
+    failingByEvent.map((r) => [r.eventType, r._count._all ?? 0]),
+  );
+  const eventTypes = new Set<string>([
+    ...pendingMap.keys(),
+    ...failingMap.keys(),
+  ]);
+
+  const byEvent = Array.from(eventTypes)
+    .sort()
+    .map((eventType) => ({
+      eventType,
+      pending: pendingMap.get(eventType) ?? 0,
+      failing: failingMap.get(eventType) ?? 0,
+    }));
+
+  return {
+    subscriptions: {
+      total: subTotal,
+      active: subActive,
+      inactive: subTotal - subActive,
+    },
+    deliveries: {
+      total: delTotal,
+      pending: delPending,
+      failing: delFailing,
+    },
+    byEvent,
+  };
+}
+
 /**
  * Clear all subscriptions and outbox entries (for testing).
  */

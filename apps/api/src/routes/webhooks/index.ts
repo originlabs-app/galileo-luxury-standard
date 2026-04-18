@@ -3,6 +3,7 @@
  *
  * POST   /webhooks          — Create subscription (BRAND_ADMIN, ADMIN)
  * GET    /webhooks          — List subscriptions (brand-scoped)
+ * GET    /webhooks/stats    — Aggregated subscription and delivery stats
  * DELETE /webhooks/:id      — Delete subscription
  * GET    /webhooks/:id/deliveries — List pending/failed deliveries for a subscription
  * POST   /webhooks/:id/retry     — Retry all failed/pending deliveries for a subscription
@@ -21,6 +22,7 @@ import {
   generateSecret,
   listDeliveries,
   requeueFailed,
+  getStats,
 } from "../../services/webhooks/outbox.js";
 import type { WebhookSubscription } from "../../services/webhooks/types.js";
 
@@ -142,6 +144,32 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
       return reply.status(200).send({
         success: true,
         data: { subscriptions: subs },
+      });
+    },
+  );
+
+  // GET /webhooks/stats — Aggregated subscription and delivery metrics
+  fastify.get(
+    "/webhooks/stats",
+    {
+      onRequest: [fastify.authenticate, requireRole("BRAND_ADMIN", "ADMIN")],
+      schema: {
+        description:
+          "Aggregated webhook subscription and live delivery queue metrics. " +
+          "BRAND_ADMIN sees only their brand. ADMIN sees all.",
+        tags: ["Webhooks"],
+        security: [{ cookieAuth: [] }],
+      },
+    },
+    async (request, reply) => {
+      const user = request.user;
+      const brandId =
+        user.role === "ADMIN" ? undefined : (user.brandId ?? undefined);
+      const stats = await getStats(fastify.prisma, brandId);
+
+      return reply.status(200).send({
+        success: true,
+        data: stats,
       });
     },
   );
